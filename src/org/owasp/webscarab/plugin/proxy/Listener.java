@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.lang.Thread;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
  *
@@ -36,6 +37,9 @@ public class Listener implements Runnable {
     private boolean _stop = false;
     private boolean _stopped = true;
     
+    private int _count = 1;
+    
+    private Logger _logger = Logger.getLogger("org.owasp.webscarab");
     
     /** Creates a new instance of Listener */
     public Listener(Plug plug, String address, int port, String base, ArrayList plugins) throws UnknownHostException, IOException {
@@ -64,27 +68,32 @@ public class Listener implements Runnable {
         _plugins = plugins;
         _serversocket = new ServerSocket(port, 5, addr);
         
-        System.err.println("Proxy listening on " + address + ":" + port);
+        _logger.info("Proxy listening on " + address + ":" + port);
         
         try {
             _serversocket.setSoTimeout(100);
         } catch (SocketException se) {
-            System.err.println("Error setting sockettimeout " + se);
-            System.err.println("It is likely that this listener will be unstoppable!");
+            _logger.warning("Error setting sockettimeout " + se);
+            _logger.warning("It is likely that this listener will be unstoppable!");
         }
-        Thread t = new Thread(this);
-        t.setDaemon(false);
+        Thread t = new Thread(this, "Listener-"+Integer.toString(port));
+        t.setDaemon(true);
         t.start();
     }
     
     public void run() {
         _stopped = false;
         Socket sock;
+        ConnectionHandler ch;
+        Thread thread;
         while (! _stop) {
             try {
                 sock = _serversocket.accept();
-                System.err.println("Connect from " + sock.getInetAddress().getHostAddress() + ":" + sock.getPort());
-                new ConnectionHandler(sock, _plug, _base, _plugins);
+                _logger.info("Connect from " + sock.getInetAddress().getHostAddress() + ":" + sock.getPort());
+                ch = new ConnectionHandler(sock, _plug, _base, _plugins);
+                thread = new Thread(ch, "Proxy-"+Integer.toString(_count++));
+                thread.setDaemon(true);
+                thread.start();
             } catch (IOException e) {
                 if (!e.getMessage().equals("Accept timed out")) {
                     System.err.println("I/O error while waiting for a connection : " + e.getMessage());
