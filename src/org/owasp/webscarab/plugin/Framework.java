@@ -13,7 +13,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.jar.Attributes.Name;
@@ -30,8 +29,6 @@ import org.owasp.webscarab.model.StoreException;
  */
 public class Framework {
     
-    private Properties _props;
-    
     private List _plugins = new ArrayList();
     
     private SiteModel _model = null;
@@ -44,12 +41,10 @@ public class Framework {
     
     /**
      * Creates a new instance of Framework
-     * @param props the properties to use to configure the Framework
      */
-    public Framework(Properties props) {
-        _props = props;
+    public Framework() {
         extractVersionFromManifest();
-        configureHTTPClient(props);
+        configureHTTPClient();
     }
     
     /**
@@ -93,14 +88,6 @@ public class Framework {
      */    
     public SiteModel getModel() {
         return _model;
-    }
-    
-    /**
-     * returns the properties in use by the framework
-     * @return the properties
-     */    
-    public Properties getProperties() {
-        return _props;
     }
     
     private void extractVersionFromManifest() {
@@ -263,7 +250,7 @@ public class Framework {
         return _version;
     }
     
-    private void configureHTTPClient(Properties props) {
+    private void configureHTTPClient() {
         HTTPClientFactory factory = HTTPClientFactory.getInstance();
         String prop = null;
         String value;
@@ -272,25 +259,28 @@ public class Framework {
         	// FIXME for some reason, we get "" instead of null for value,
         	// and do not use our default value???
             prop = "WebScarab.httpProxy";
-            value = props.getProperty(prop, ":80");
+            value = Preferences.getPreference(prop);
+            if (value == null || value.equals("")) value = ":3128";
             colon = value.indexOf(":");
-            factory.setHttpProxy(value.substring(0,colon), Integer.parseInt(value.substring(colon+1)));
+            factory.setHttpProxy(value.substring(0,colon), Integer.parseInt(value.substring(colon+1).trim()));
             
             prop = "WebScarab.httpsProxy";
-            value = props.getProperty(prop, ":80");
+            value = Preferences.getPreference(prop);
+            if (value == null || value.equals("")) value = ":3128";
             colon = value.indexOf(":");
-            factory.setHttpsProxy(value.substring(0,colon), Integer.parseInt(value.substring(colon+1)));
+            factory.setHttpsProxy(value.substring(0,colon), Integer.parseInt(value.substring(colon+1).trim()));
             
             prop = "WebScarab.noProxy";
-            value = props.getProperty(prop, "");
+            value = Preferences.getPreference(prop, "");
+            if (value == null) value = "";
             factory.setNoProxy(value.split(" *, *"));
             
             prop = "WebScarab.clientCertificateFile";
-            String file = props.getProperty(prop, "");
-            prop = "WebScarab.keyStorePassword";
-            String keystorePass = props.getProperty(prop, "");
+            String file = Preferences.getPreference(prop, "");
+            prop = "WebScarab.keystorePassword";
+            String keystorePass = Preferences.getPreference(prop, "");
             prop = "WebScarab.keyPassword";
-            String keyPass = props.getProperty(prop, "");
+            String keyPass = Preferences.getPreference(prop, "");
             
             factory.setClientCertificateFile(file, keystorePass, keyPass);
             
