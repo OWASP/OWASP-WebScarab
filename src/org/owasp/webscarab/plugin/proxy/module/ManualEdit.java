@@ -40,7 +40,7 @@ public class ManualEdit extends AbstractProxyPlugin {
         
         prop = "ManualEdit.excludeRegex";
         value = _prop.getProperty(prop);
-        if (value == null) value = ".*\\.(gif)|(jpg)|(css)|(js)$";
+        if (value == null) value = ".*\\.(gif|jpg|png|css|js)$";
         setExcludeRegex(value);
         
         prop = "ManualEdit.interceptMethods";
