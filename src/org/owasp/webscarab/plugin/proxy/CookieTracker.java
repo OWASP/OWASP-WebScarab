@@ -49,6 +49,8 @@ import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.SiteModel;
 
+import org.owasp.webscarab.plugin.Framework;
+
 /**
  *
  * @author  rdawes
@@ -60,13 +62,10 @@ public class CookieTracker extends ProxyPlugin {
     private boolean _injectRequests = false;
     private boolean _readResponses = false;
     
-    /** Creates a new instance of RevealHidden */
-    public CookieTracker() {
+    /** Creates a new instance of CookieTracker */
+    public CookieTracker(Framework framework) {
+        _model = framework.getModel();
         parseProperties();
-    }
-    
-    public void setModel(SiteModel model, String type, Object connection) {
-        _model = model;
     }
     
     public void parseProperties() {

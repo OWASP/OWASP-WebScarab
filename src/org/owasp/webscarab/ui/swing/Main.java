@@ -235,7 +235,7 @@ public class Main {
         proxy.addPlugin(rh);
         BrowserCache bc = new BrowserCache();
         proxy.addPlugin(bc);
-        CookieTracker ct = new CookieTracker();
+        CookieTracker ct = new CookieTracker(_framework);
         proxy.addPlugin(ct);
         NTLMFilter nf = new NTLMFilter();
         proxy.addPlugin(nf);
