@@ -490,7 +490,6 @@ public class WebScarab extends javax.swing.JFrame {
     }//GEN-LAST:event_newMenuItemActionPerformed
     
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
-        // FIXME
         String[] message = new String[] {
             "OWASP WebScarab - part of the Open Web Application Security Project",
             "See http://www.owasp.org/",
@@ -512,8 +511,7 @@ public class WebScarab extends javax.swing.JFrame {
         try {
             _framework.saveSessionData();
         } catch (StoreException se) {
-            // pop up an alert dialog box or something
-            System.err.println("Error saving session : " + se);
+            JOptionPane.showMessageDialog(this, new String[] {"Error saving session!", se.toString()}, "Error!", JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -521,7 +519,7 @@ public class WebScarab extends javax.swing.JFrame {
         try {
             Preferences.savePreferences();
         } catch (Exception e) {
-            System.err.println("Could not write to prefs file : " + e);
+            JOptionPane.showMessageDialog(this, new String[] {"Error saving preferences!", e.toString()}, "Error!", JOptionPane.ERROR_MESSAGE);
         }
     }
     
