@@ -198,6 +198,12 @@ public class URLFetcher implements HTTPClient {
         }
         // Still send the real request
         try {
+            // Not ideal, but likely won't affect anything too negatively
+            // This could slow down large POST's a lot, since we read it all before starting to write
+            // needed so that we can associate the request content with the Response later.
+            if (request.getContentStream() != null) {
+                request.readContentStream();
+            }
             /*if (sslsocket != null) {
                 request.writeDirect(out);
             } else*/ if (proxysocket != null) {
@@ -208,6 +214,7 @@ public class URLFetcher implements HTTPClient {
             out.flush();
             
             response = new Response();
+            response.setRequest(request); 
             response.read(in);
             String length = response.getHeader("Content-Length");
             if (length != null) {
