@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -40,12 +40,17 @@
 package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.model.Message;
+import org.owasp.webscarab.model.NamedValue;
 
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 
 import java.util.Vector;
+
+import java.awt.Component;
+import javax.swing.table.TableCellEditor;
+
 /**
  *
  * @author  rdawes
@@ -58,6 +63,8 @@ public class MessagePanel extends javax.swing.JPanel {
     private boolean _modified = false;
     private HeaderTableModel _tableModel;
     private Vector _columns;
+    
+    private NamedValue[] NO_HEADERS = new NamedValue[0];
     
     /** Creates new form MessagePanel */
     public MessagePanel() {
@@ -76,11 +83,16 @@ public class MessagePanel extends javax.swing.JPanel {
         
         _cp = new ContentPanel();
         messageSplitPane.setRightComponent(_cp);
-        setMessage(null, false);
+        setEditable(false);
+        setMessage(null);
     }
     
-    public void setMessage(Message message, boolean editable) {
-        _message = message;
+    public MessagePanel(int orientation) {
+        this();
+        messageSplitPane.setOrientation(orientation);
+    }
+    
+    public void setEditable(boolean editable) {
         _editable = editable;
         buttonPanel.setVisible(_editable);
         java.awt.Color color;
@@ -91,34 +103,41 @@ public class MessagePanel extends javax.swing.JPanel {
         }
         headerTable.setBackground(color);
         _tableModel.setEditable(editable);
+        _cp.setEditable(editable);
+    }
+    
+    public void setMessage(Message message) {
+        _modified = false;
+        _message = message;
         
         if (message != null) {
             _tableModel.setHeaders(_message.getHeaders());
             byte[] content = message.getContent();
             if (_editable || (content.length > 0)) {
+                _cp.setContentType(message.getHeader("Content-Type"));
+                _cp.setContent(content);
                 _cp.setVisible(true);
-                _cp.setContent(message.getHeader("Content-Type"), content, _editable);
             } else {
                 _cp.setVisible(false);
             }
         } else {
-            _tableModel.setHeaders(new String[0][2]);
-            _cp.setContent("", null, false);
+            _tableModel.setHeaders(NO_HEADERS);
+            _cp.setContentType(null);
+            _cp.setContent(null);
         }
         invalidate();
-        _modified = false;
+        revalidate();
     }
     
     public Message getMessage() {
         if (_editable) {
-            if (headerTable.isEditing()) headerTable.getCellEditor().stopCellEditing();
-            if (_modified) {
+            if (isModified() && _message != null) {
                 _message.setHeaders(_tableModel.getHeaders());
             }
             if (_cp.isModified()) {
                 _message.setContent(_cp.getContent());
                 if (_message.getHeader("Content-Length") != null) {
-                    _message.setHeader("Content-Length", Integer.toString(_message.getContent().length));
+                    _message.setHeader(new NamedValue("Content-Length", Integer.toString(_message.getContent().length)));
                 }
             }
         }
@@ -126,6 +145,9 @@ public class MessagePanel extends javax.swing.JPanel {
     }
     
     public boolean isModified() {
+        if (headerTable.isEditing()) {
+            headerTable.getCellEditor().stopCellEditing();
+        }
         return _editable && (_modified || _cp.isModified());
     }
     
@@ -177,7 +199,6 @@ public class MessagePanel extends javax.swing.JPanel {
                 return types [columnIndex];
             }
         });
-        headerTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
         jScrollPane1.setViewportView(headerTable);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -191,7 +212,6 @@ public class MessagePanel extends javax.swing.JPanel {
         buttonPanel.setLayout(new java.awt.GridBagLayout());
 
         insertButton.setText("Insert");
-        insertButton.setMinimumSize(new java.awt.Dimension(70, 25));
         insertButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 insertButtonActionPerformed(evt);
@@ -206,7 +226,6 @@ public class MessagePanel extends javax.swing.JPanel {
         buttonPanel.add(insertButton, gridBagConstraints);
 
         deleteButton.setText("Delete");
-        deleteButton.setMinimumSize(new java.awt.Dimension(74, 25));
         deleteButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 deleteButtonActionPerformed(evt);
@@ -235,14 +254,14 @@ public class MessagePanel extends javax.swing.JPanel {
         add(messageSplitPane, gridBagConstraints);
 
     }//GEN-END:initComponents
-
+    
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
         int rowIndex = headerTable.getSelectedRow();
         if (rowIndex > -1) {
             _tableModel.removeRow(rowIndex);
         }
     }//GEN-LAST:event_deleteButtonActionPerformed
-
+    
     private void insertButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertButtonActionPerformed
         int rowIndex = headerTable.getSelectedRow();
         if (rowIndex > -1) {
@@ -288,7 +307,8 @@ public class MessagePanel extends javax.swing.JPanel {
         top.pack();
         top.show();
         try {
-            mp.setMessage(response, false);
+            mp.setEditable(false);
+            mp.setMessage(response);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -318,7 +338,7 @@ public class MessagePanel extends javax.swing.JPanel {
             return _names[column];
         }
         
-        public void setHeaders(String[][] headers) {
+        public void setHeaders(NamedValue[] headers) {
             _headers.clear();
             for (int i=0; i<headers.length; i++) {
                 _headers.add(headers[i]);
@@ -326,12 +346,8 @@ public class MessagePanel extends javax.swing.JPanel {
             fireTableDataChanged();
         }
         
-        public String[][] getHeaders() {
-            String[][] headers = new String[_headers.size()][2];
-            for (int i=0; i<headers.length; i++) {
-                headers[i] = (String[]) _headers.get(i);
-            }
-            return headers;
+        public NamedValue[] getHeaders() {
+            return (NamedValue[]) _headers.toArray(NO_HEADERS);
         }
         
         public int getColumnCount() {
@@ -342,30 +358,35 @@ public class MessagePanel extends javax.swing.JPanel {
             return _headers.size();
         }
         
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            String[] row = (String[]) _headers.get(rowIndex);
-            return row[columnIndex];
+        public Object getValueAt(int row, int column) {
+            NamedValue nv = (NamedValue) _headers.get(row);
+            if (column == 0) return nv.getName();
+            return nv.getValue();
         }
         
-        public void insertRow(int rowIndex) {
-            _headers.add(rowIndex, new String[] {"Header", "value"});
-            fireTableRowsInserted(rowIndex, rowIndex);
+        public void insertRow(int row) {
+            _headers.add(row, new NamedValue("Header", "value"));
+            fireTableRowsInserted(row, row);
         }
         
-        public void removeRow(int rowIndex) {
-            _headers.remove(rowIndex);
-            fireTableRowsDeleted(rowIndex, rowIndex);
+        public void removeRow(int row) {
+            _headers.remove(row);
+            fireTableRowsDeleted(row, row);
         }
         
-        public void setValueAt(Object aValue, int rowIndex, int colIndex) {
+        public void setValueAt(Object aValue, int row, int col) {
             if (_editable && aValue instanceof String) {
-                String[] row = (String[]) _headers.get(rowIndex);
-                row[colIndex] = (String) aValue;
-                fireTableCellUpdated(rowIndex, colIndex);
+                NamedValue nv = (NamedValue) _headers.get(row);
+                if (col == 0) {
+                    _headers.set(row, new NamedValue((String)aValue, nv.getValue()));
+                } else {
+                    _headers.set(row, new NamedValue(nv.getName(), (String) aValue));
+                }
+                fireTableCellUpdated(row, col);
             }
         }
         
-        public boolean isCellEditable(int rowIndex, int columnIndex) {
+        public boolean isCellEditable(int row, int column) {
             return _editable;
         }
         

@@ -64,7 +64,6 @@
                         <Column editable="true" title="Value" type="java.lang.String"/>
                       </Table>
                     </Property>
-                    <Property name="autoResizeMode" type="int" value="0"/>
                   </Properties>
                 </Component>
               </SubComponents>
@@ -81,9 +80,6 @@
                 <Component class="javax.swing.JButton" name="insertButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Insert"/>
-                    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-                      <Dimension value="[70, 25]"/>
-                    </Property>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="insertButtonActionPerformed"/>
@@ -97,9 +93,6 @@
                 <Component class="javax.swing.JButton" name="deleteButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Delete"/>
-                    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-                      <Dimension value="[74, 25]"/>
-                    </Property>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="deleteButtonActionPerformed"/>
