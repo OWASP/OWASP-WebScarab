@@ -39,7 +39,7 @@ public class Listener implements Runnable {
     
     private int _count = 1;
     
-    private Logger _logger = Logger.getLogger("org.owasp.webscarab");
+    private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     /** Creates a new instance of Listener */
     public Listener(Plug plug, String address, int port, String base, ArrayList plugins) throws UnknownHostException, IOException {

@@ -26,7 +26,7 @@ public class ConnectionHandler implements Runnable {
     private ProxyPlugin[] _plugins;
     private Socket _sock = null;
     private String _base;
-    private Logger _logger = Logger.getLogger("org.owasp.webscarab");
+    private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     private InputStream _clientIn = null;
     private OutputStream _clientOut = null;

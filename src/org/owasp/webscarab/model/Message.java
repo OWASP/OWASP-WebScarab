@@ -44,7 +44,7 @@ public class Message {
     boolean _gzipped = false;
     int _length = -1;
     
-    private Logger _logger = Logger.getLogger("org.owasp.webscarab");
+    private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     /** Message is a class that is used to represent the bulk of an HTTP message, namely
      * the headers, and (possibly null) body. Messages should not be instantiated
