@@ -79,7 +79,7 @@ public class ConversationRenderer extends JLabel implements ListCellRenderer {
         StringBuffer text = new StringBuffer();
         text.append(id).append(" - ");
         text.append(_model.getConversationProperty(id, "METHOD")).append(" ");
-        text.append(_model.getUrlOf(id)).append("    ");
+        text.append(_model.getUrlOf(id).getSHPP()).append("    ");
         text.append(_model.getConversationProperty(id, "STATUS"));
         setText(text.toString());
         
