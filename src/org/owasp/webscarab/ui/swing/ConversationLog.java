@@ -34,12 +34,10 @@ public class ConversationLog extends javax.swing.JPanel implements SwingPlugin {
         
         requestPanel = new RequestPanel(null);
         requestPanel.setBorder(new TitledBorder("Request"));
-        requestPanel.setVisible(false);
         conversationSplitPane.setLeftComponent(requestPanel);
 
         responsePanel = new ResponsePanel(null);
         responsePanel.setBorder(new TitledBorder("Response"));
-        responsePanel.setVisible(false);
         conversationSplitPane.setRightComponent(responsePanel);
         
         conversationTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -56,7 +54,6 @@ public class ConversationLog extends javax.swing.JPanel implements SwingPlugin {
         
         int row = conversationTable.getSelectedRow();
         // updateDescription();
-        System.out.println("Selected row " + row);
         if (row < 0) {
             // conversationDescriptionTextField.setText("");
             requestPanel.setVisible(false);
