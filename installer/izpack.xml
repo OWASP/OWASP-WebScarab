@@ -38,6 +38,7 @@
             <file src="webscarab.jar" targetdir="$INSTALL_PATH"/>
             <file src="bin/webscarab.sh" targetdir="$INSTALL_PATH" os="unix"/>
             <file src="bin/webscarab.bat" targetdir="$INSTALL_PATH" os="windows"/>
+            <file src="lib/concurrent.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/htmlparser.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/bsh-2.0b1.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/jfreechart-0.9.12.jar" targetdir="$INSTALL_PATH/lib/"/>
