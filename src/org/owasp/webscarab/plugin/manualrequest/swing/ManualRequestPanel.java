@@ -22,6 +22,7 @@ import org.owasp.webscarab.ui.swing.ResponsePanel;
 
 import org.owasp.webscarab.util.swing.ListComboBoxModel;
 import org.owasp.webscarab.util.swing.SwingWorker;
+import org.owasp.webscarab.util.swing.ColumnDataModel;
 
 import javax.swing.border.TitledBorder;
 import javax.swing.SwingUtilities;
@@ -60,9 +61,6 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         initComponents();
         
         _manualRequest = manualRequest;
-        setModel(null);
-        
-        _manualRequest.setUI(this);
         
         _requestPanel = new RequestPanel();
         _requestPanel.setRequest(null, true);
@@ -80,6 +78,8 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
             }
         });
         
+        setModel(null);
+        _manualRequest.setUI(this);
     }
     
     /** This method is called from within the constructor to
@@ -240,7 +240,7 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         return null;
     }
     
-    public javax.swing.Action[] getURLActions() {
+    public javax.swing.Action[] getUrlActions() {
         // doesn't really make sense at an URL level
         return null;
     }
@@ -253,20 +253,43 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         _respUpdater.setResponse(response);
     }
     
-    public void setModel(SiteModel model) {
-        _model = model;
-        ListModel conversationList = new ConversationListModel(model);
-        ComboBoxModel requestModel = new ListComboBoxModel(conversationList);
-        requestComboBox.setModel(requestModel);
-        requestComboBox.setRenderer(new ConversationRenderer(_model));
+    public void setModel(final SiteModel model) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            _model = model;
+            ListModel conversationList = new ConversationListModel(model);
+            ComboBoxModel requestModel = new ListComboBoxModel(conversationList);
+            requestComboBox.setModel(requestModel);
+            requestComboBox.setRenderer(new ConversationRenderer(_model));
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    setModel(model);
+                }
+            });
+        }
     }
     
-    public void setEnabled(boolean enabled) {
-        super.setEnabled(enabled);
-        fetchResponseButton.setEnabled(enabled);
-        getCookieButton.setEnabled(enabled);
-        updateCookiesButton.setEnabled(enabled);
-        requestComboBox.setEnabled(enabled);
+    public void setEnabled(final boolean enabled) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            fetchResponseButton.setEnabled(enabled);
+            getCookieButton.setEnabled(enabled);
+            updateCookiesButton.setEnabled(enabled);
+            requestComboBox.setEnabled(enabled);
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    setEnabled(enabled);
+                }
+            });
+        }
+    }
+    
+    public ColumnDataModel[] getConversationColumns() {
+        return null;
+    }
+    
+    public ColumnDataModel[] getUrlColumns() {
+        return null;
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
