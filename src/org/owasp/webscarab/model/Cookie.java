@@ -40,6 +40,7 @@
 package org.owasp.webscarab.model;
 
 import java.util.Date;
+import java.util.logging.Logger;
 
 /**
  * Represents a cookie received from a web server
@@ -79,6 +80,8 @@ public class Cookie {
     private boolean _secure = false;
     private String _version = null;
     private boolean _httponly = false;
+    
+    private Logger _logger = Logger.getLogger(getClass().getName());
     
     /**
      * Creates a new instance of Cookie
@@ -124,7 +127,7 @@ public class Cookie {
         }
         String[] av = parts[0].split("=",2);
         if (av.length != 2) {
-            throw new IllegalArgumentException("The header passed in must at least contain the name and value");
+            throw new IllegalArgumentException("The header passed in must at least contain the name and value '" +parts[0] + "'");
         }
         _name = av[0];
         _value = av[1];
@@ -136,9 +139,8 @@ public class Cookie {
             } else {
                 av = parts[i].split("=", 2);
                 if (av.length != 2) {
-                    throw new IllegalArgumentException("Bad format for '" + parts[i] + "'");
-                }
-                if (av[0].equalsIgnoreCase("Comment")) {
+                    _logger.warning("Unknown cookie attribute '" + parts[i] + "'");
+                } else if (av[0].equalsIgnoreCase("Comment")) {
                     _comment = av[1];
                 } else if (av[0].equalsIgnoreCase("Domain")) {
                     _domain = av[1];
