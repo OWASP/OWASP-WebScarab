@@ -9,12 +9,12 @@ package org.owasp.webscarab.ui.swing;
 import javax.swing.ImageIcon;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.SwingUtilities;
 
 import java.io.ByteArrayInputStream;
 import java.net.URL;
 
 import org.owasp.webscarab.model.Request;
-
 import org.owasp.webscarab.ui.swing.editors.BeanShellPanel;
 import org.owasp.webscarab.ui.swing.editors.TextPanel;
 
@@ -83,7 +83,7 @@ public class RequestPanel extends javax.swing.JPanel {
         if (! _editable || panel < 0) {
             return;
         }
-        if (panel == 0) {// parsed text
+        if (displayTabbedPane.getTitleAt(panel).equals("Parsed")) {// parsed text
             if (_messagePanel.isModified()) {
                 _request = (Request) _messagePanel.getMessage();
                 _modified = true;
@@ -105,11 +105,12 @@ public class RequestPanel extends javax.swing.JPanel {
                 }
             }
             _request.setVersion(versionTextField.getText());
-        } else if (panel == 1) {// bean shell
-            _modified = true;
+        } else if (displayTabbedPane.getTitleAt(panel).equals("Bean Script")) {// bean shell
+            _modified = true; // we have to assume that the bean shell has modified the response
             invalidatePanels();
-            _request = _beanShellPanel.getRequest();
-        } else if (panel == 2) { // raw text
+            // BeanShell modifies our copy of _request directly, no need to fetch it
+            // _request = _beanShellPanel.getRequest();
+        } else if (displayTabbedPane.getTitleAt(panel).equals("Raw")) { // raw text
             if (_textPanel.isModified()) {
                 try {
                     Request r = new Request();
@@ -142,7 +143,11 @@ public class RequestPanel extends javax.swing.JPanel {
                 _messagePanel.setMessage(_request);
                 if (_request != null) {
                     methodTextField.setText(_request.getMethod());
-                    urlTextField.setText(_request.getURL().toString());
+                    if (_request.getURL() != null) {
+                        urlTextField.setText(_request.getURL().toString());
+                    } else {
+                        urlTextField.setText("");
+                    }
                     versionTextField.setText(_request.getVersion());
                 } else {
                     methodTextField.setText("");
@@ -150,9 +155,13 @@ public class RequestPanel extends javax.swing.JPanel {
                     versionTextField.setText("");
                 }
             } else if (panel == 1) {// bean shell
-                _beanShellPanel.setRequest(_request);
+                try {
+                    _beanShellPanel.setVariable("request", _request);
+                } catch (bsh.EvalError ee) {
+                    System.err.println("Exception setting the request in the BeanShell : " + ee);
+                }
             } else if (panel == 2) { // raw text
-                if (_request != null) {
+                if (_request != null && _request.getMethod() != null && _request.getURL() != null && _request.getVersion() != null) {
                     _textPanel.setBytes(_request.toString("\n").getBytes());
                 } else {
                     _textPanel.setBytes(new byte[0]);
@@ -165,7 +174,7 @@ public class RequestPanel extends javax.swing.JPanel {
     public void setEditable(boolean editable) {
         _editable = editable;
         _messagePanel.setEditable(editable);
-        _beanShellPanel.setEditable(editable);
+        // _beanShellPanel.setEditable(editable); // it is editable regardless ;-)
         _textPanel.setEditable(editable);
         
         java.awt.Color color;
@@ -190,7 +199,19 @@ public class RequestPanel extends javax.swing.JPanel {
             _request = null;
         }
         invalidatePanels();
-        updatePanel(displayTabbedPane.getSelectedIndex());
+        if (SwingUtilities.isEventDispatchThread()) {
+            updatePanel(displayTabbedPane.getSelectedIndex());
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        updatePanel(displayTabbedPane.getSelectedIndex());
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
     
     public Request getRequest() {
@@ -319,7 +340,7 @@ public class RequestPanel extends javax.swing.JPanel {
         top.setBounds(100,100,600,400);
         Request request = new Request();
         try {
-            java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/santam/webscarab/conversations/48-request");
+            java.io.FileInputStream fis = new java.io.FileInputStream("c:/temp/reverse/conversations/1-request");
             request.read(fis);
         } catch (Exception e) {
             e.printStackTrace();
@@ -330,15 +351,15 @@ public class RequestPanel extends javax.swing.JPanel {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTabbedPane displayTabbedPane;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JPanel messagePanelPlaceHolder;
-    private javax.swing.JTextField methodTextField;
-    private javax.swing.JPanel parsedPanel;
     private javax.swing.JTextField urlTextField;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JTextField versionTextField;
+    private javax.swing.JTextField methodTextField;
+    private javax.swing.JPanel messagePanelPlaceHolder;
+    private javax.swing.JPanel parsedPanel;
+    private javax.swing.JTabbedPane displayTabbedPane;
+    private javax.swing.JLabel jLabel5;
     // End of variables declaration//GEN-END:variables
     
 }

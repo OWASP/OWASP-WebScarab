@@ -9,11 +9,11 @@ package org.owasp.webscarab.ui.swing;
 import javax.swing.ImageIcon;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.SwingUtilities;
 
 import java.io.ByteArrayInputStream;
 
 import org.owasp.webscarab.model.Response;
-
 import org.owasp.webscarab.ui.swing.editors.BeanShellPanel;
 import org.owasp.webscarab.ui.swing.editors.TextPanel;
 
@@ -52,6 +52,7 @@ public class ResponsePanel extends javax.swing.JPanel {
         _messagePanel = new MessagePanel();
         
         parsedPanel.remove(messagePanelPlaceHolder);
+        // copy  and paste the constraints for the placeholder from initcomponents
         java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -88,14 +89,18 @@ public class ResponsePanel extends javax.swing.JPanel {
                 _modified = true;
                 invalidatePanels();
             }
+            if (_response == null) {
+                _response = new Response();
+            }
             // if _modified
             _response.setStatus(statusTextField.getText());
             _response.setMessage(messageTextField.getText());
             _response.setVersion(versionTextField.getText());
         } else if (panel == 1) {// bean shell
-            _modified = true;
+            _modified = true; // we have to assume that the bean shell has modified the response
             invalidatePanels();
-            _response = _beanShellPanel.getResponse();
+            // BeanShell modifies our copy of _response directly, no need to fetch it
+            // _response = _beanShellPanel.getResponse();
         } else if (panel == 2) { // raw text
             if (_textPanel.isModified()) {
                 try {
@@ -137,7 +142,11 @@ public class ResponsePanel extends javax.swing.JPanel {
                     versionTextField.setText("");
                 }
             } else if (panel == 1) {// bean shell
-                _beanShellPanel.setResponse(_response);
+                try {
+                    _beanShellPanel.setVariable("response", _response);
+                } catch (bsh.EvalError ee) {
+                    System.err.println("Exception setting the response in the BeanShell : " + ee);
+                }
             } else if (panel == 2) { // raw text
                 if (_response != null) {
                     _textPanel.setBytes(_response.toString("\n").getBytes());
@@ -152,7 +161,7 @@ public class ResponsePanel extends javax.swing.JPanel {
     public void setEditable(boolean editable) {
         _editable = editable;
         _messagePanel.setEditable(editable);
-        _beanShellPanel.setEditable(editable);
+        // _beanShellPanel.setEditable(editable); // it is editable regardless ;-)
         _textPanel.setEditable(editable);
 
         java.awt.Color color;
@@ -177,7 +186,20 @@ public class ResponsePanel extends javax.swing.JPanel {
             _response = null;
         }
         invalidatePanels();
-        updatePanel(displayTabbedPane.getSelectedIndex());
+        if (SwingUtilities.isEventDispatchThread()) {
+            updatePanel(displayTabbedPane.getSelectedIndex());
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        updatePanel(displayTabbedPane.getSelectedIndex());
+                    }
+                });
+            } catch (Exception e) {
+                System.out.println("Exception in invoke and wait");
+                e.printStackTrace();
+            }
+        }
     }
     
     public Response getResponse() {
@@ -306,26 +328,30 @@ public class ResponsePanel extends javax.swing.JPanel {
         top.setBounds(100,100,600,400);
         Response response = new Response();
         try {
-            java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/santam/webscarab/conversations/10-response");
+            String resp = "/home/rdawes/santam/webscarab/conversations/10-response";
+            if (args.length == 1) {
+                resp = args[0];
+            }
+            java.io.FileInputStream fis = new java.io.FileInputStream(resp);
             response.read(fis);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        rp.setEditable(true);
+        rp.setEditable(false);
         rp.setResponse(response);
         top.show();
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTabbedPane displayTabbedPane;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JTextField versionTextField;
     private javax.swing.JPanel messagePanelPlaceHolder;
-    private javax.swing.JTextField messageTextField;
     private javax.swing.JPanel parsedPanel;
     private javax.swing.JTextField statusTextField;
-    private javax.swing.JTextField versionTextField;
+    private javax.swing.JTabbedPane displayTabbedPane;
+    private javax.swing.JTextField messageTextField;
+    private javax.swing.JLabel jLabel5;
     // End of variables declaration//GEN-END:variables
     
 }
