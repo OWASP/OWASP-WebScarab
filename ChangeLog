@@ -1,3 +1,228 @@
+2004-12-26 20:06  rogan
+
+	* src/org/owasp/webscarab/: model/SiteModel.java,
+	  model/SiteModelAdapter.java, model/SiteModelListener.java,
+	  ui/swing/ConversationListModel.java,
+	  ui/swing/ConversationTableModel.java,
+	  ui/swing/SiteTreeModelAdapter.java: added a dataChanged event to
+	  the SiteModel, and implemented listeners for the event. This will
+	  be used to support a single instance of SiteModel, with the
+	  underlying Store changing
+
+2004-12-26 20:05  rogan
+
+	* src/org/owasp/webscarab/ui/swing/SummaryPanel.java: removed
+	  unnecessary site model listener
+
+2004-12-26 18:57  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: Main.java, UIFramework.java:
+	  Create a temporary session, that is deleted on exit.
+
+2004-12-26 18:55  rogan
+
+	* src/org/owasp/webscarab/plugin/Framework.java: remove unused
+	  exit() method
+
+2004-12-26 18:53  rogan
+
+	* src/org/owasp/webscarab/util/TempDir.java: creates a temporary
+	  directory
+
+2004-12-26 17:52  rogan
+
+	* src/org/owasp/webscarab/ui/swing/SessionLoader.java: removed
+	  unused class
+
+2004-12-26 16:36  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/swing/ManualEditFrame.java:
+	  make editing the response Swing thread safe
+
+2004-12-26 16:25  rogan
+
+	* build.xml: minor updates
+
+2004-12-26 16:25  rogan
+
+	* src/org/owasp/webscarab/plugin/sessionid/CustomCalculator.java:
+	  example of a custom calculator. still need supporting code to
+	  allow choosing
+
+2004-12-26 16:18  rogan
+
+	*
+	  src/org/owasp/webscarab/util/ReentrantReaderPreferenceReadWriteLock.java:
+	  remove debugging code
+
+2004-12-26 16:17  rogan
+
+	* src/org/owasp/webscarab/util/Encoding.java: include url
+	  {en,de}code routines
+
+2004-12-26 16:15  rogan
+
+	* src/org/owasp/webscarab/plugin/:
+	  proxy/swing/ManualEditFrame.java,
+	  sessionid/swing/SessionIDPanel.java: updated to reflect changes
+	  in Request and Response Panels
+
+2004-12-26 16:14  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/ConnectionHandler.java:
+	  handle tracking of outstanding requests better, when exceptions
+	  occur
+
+2004-12-26 16:12  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/: BeanShell.java,
+	  CookieTracker.java, ManualEdit.java, NTLMFilter.java: minor
+	  changes
+
+2004-12-26 16:11  rogan
+
+	* src/org/owasp/webscarab/plugin/manualrequest/swing/:
+	  ManualRequestPanel.form, ManualRequestPanel.java: updated to
+	  reflect changes in Request and Response panels
+
+2004-12-26 16:10  rogan
+
+	*
+	  src/org/owasp/webscarab/plugin/fragments/swing/FragmentsPanel.java:
+	  remove debugging code
+
+2004-12-26 16:09  rogan
+
+	* src/org/owasp/webscarab/ui/swing/Main.java: updated to reflect
+	  changes in framework/plugin interfaces
+
+2004-12-26 16:08  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ConversationPanel.java: updated
+	  to reflect changes in Request and Response Panels. Supports
+	  external calls to show conversations supplied on stdin
+
+2004-12-26 16:06  rogan
+
+	* src/org/owasp/webscarab/ui/swing/editors/: ByteArrayEditor.java,
+	  HTMLPanel.java, HexPanel.java, ImagePanel.java,
+	  SerializedObjectPanel.java, TextPanel.java, UrlEncodedPanel.form,
+	  UrlEncodedPanel.java, XMLPanel.java: updated to use new
+	  content-type parameter
+
+2004-12-26 16:05  rogan
+
+	* src/org/owasp/webscarab/ui/swing/editors/EditorWrapper.java:
+	  remove unused EditorWrapper class
+
+2004-12-26 16:05  rogan
+
+	* src/org/owasp/webscarab/ui/swing/editors/EditorFactory.java:
+	  remove reference to unused editor
+
+2004-12-26 16:03  rogan
+
+	* src/org/owasp/webscarab/ui/swing/editors/: MultiPartPanel.form,
+	  MultiPartPanel.java: provides an editor for Multi-part content
+
+2004-12-26 15:57  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: UIFramework.form,
+	  UIFramework.java: remove annoying tooltip
+
+2004-12-26 15:56  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: RequestPanel.java,
+	  ResponsePanel.java: change method of setting editable. Make
+	  usable outside of WebScarab framework, by reading in messages
+	  from commandline or stdin
+
+2004-12-26 15:55  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: MessagePanel.form,
+	  MessagePanel.java: use NamedValues when editing the Messages.
+	  Improve support for Multi-part messages
+
+2004-12-26 15:53  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ConversationRenderer.java:
+	  reduce the width of the label
+
+2004-12-26 15:52  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: ContentPanel.java,
+	  editors/EditorFactory.java: use an EditorFactory to create the
+	  content editors, and remove the configuration code into the
+	  EditorFactory
+
+2004-12-26 15:41  rogan
+
+	* src/org/owasp/webscarab/plugin/: fragments/Fragments.java,
+	  manualrequest/ManualRequest.java, proxy/Proxy.java,
+	  sessionid/SessionIDAnalysis.java, spider/Spider.java: updated to
+	  use the new analysis features
+
+2004-12-26 15:38  rogan
+
+	* src/org/owasp/webscarab/plugin/fragments/FileSystemStore.java:
+	  remove debugging code
+
+2004-12-26 15:37  rogan
+
+	* src/org/owasp/webscarab/model/SiteModel.java: grab the readlock
+	  only, rather than the write lock
+
+2004-12-26 15:33  rogan
+
+	* src/org/owasp/webscarab/model/: Request.java, Response.java:
+	  update access permissions after Message was updated
+
+2004-12-26 15:08  rogan
+
+	* src/org/owasp/webscarab/model/: Message.java, NamedValue.java:
+	  create a NamedValue primitive, and change Message to use it where
+	  necessary
+
+2004-12-26 15:07  rogan
+
+	* src/org/owasp/webscarab/plugin/: Framework.java, Plugin.java:
+	  update processing for framework to call the various plugins,
+	  rather than as listeners on the SiteModel. Also improve startup
+	  and shutdown processes
+
+2004-12-26 15:01  rogan
+
+	* src/org/owasp/webscarab/model/MultiPartContent.java: add support
+	  for parsing Multi-part messages
+
+2004-12-16 11:48  rogan
+
+	* build.xml: some cleanups
+
+2004-12-16 11:45  rogan
+
+	* build.xml, webscarab.pro: moved proguard configuration into the
+	  build file
+
+2004-12-15 13:30  rogan
+
+	* build.xml, webscarab.pro: removed some hard-coded paths from the
+	  proguard configuration file. Now the only hardcoded path is the
+	  location of the servlet.jar
+
+2004-12-15 13:11  rogan
+
+	* webscarab.pro: removed absolute paths where possible
+
+2004-12-15 13:09  rogan
+
+	* lib/bsf-2.3.0.jar: might be used later, rather than defaulting to
+	  BeanShell
+
+2004-12-15 12:58  rogan
+
+	* webscarab.pro: include servlet.jar as a library file
+
 2004-12-15 12:42  rogan
 
 	* src/org/owasp/webscarab/: httpclient/AsyncFetcher.java,
