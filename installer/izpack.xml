@@ -42,6 +42,7 @@
             <file src="lib/bsf-2.3.0.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/jfreechart-0.9.12.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/jcommon-0.8.7.jar" targetdir="$INSTALL_PATH/lib/"/>
+            <file src="lib/jhbasic.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="doc/WebScarab-Howto.txt" targetdir="$INSTALL_PATH/doc/"/>
         </pack>
         <pack name="Docs" required="no" preselected="no">
