@@ -41,6 +41,7 @@ public class AsyncFetcher implements Runnable {
         _requestQueue = requestQueue;
         _responseQueue = responseQueue;
         Thread me = new Thread(this);
+        me.setPriority(Thread.MIN_PRIORITY);
         me.setDaemon(true);
         if (threadName != null) {
             me.setName(threadName);
