@@ -8,11 +8,13 @@ package org.owasp.webscarab.ui.swing.sessionid;
 
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.model.Conversation;
+import org.owasp.webscarab.model.SiteModel;
 
 import org.owasp.webscarab.ui.swing.SwingPlugin;
 import org.owasp.webscarab.ui.swing.SwingWorker;
 import org.owasp.webscarab.ui.swing.ListComboBoxModel;
-import org.owasp.webscarab.ui.swing.editors.TextPanel;
+import org.owasp.webscarab.ui.swing.RequestPanel;
 import org.owasp.webscarab.ui.swing.ResponsePanel;
 import org.owasp.webscarab.ui.Framework;
 
@@ -25,8 +27,11 @@ import org.owasp.webscarab.util.swing.TableSorter;
 
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
+import java.net.MalformedURLException;
 
 import javax.swing.ListModel;
+import javax.swing.ComboBoxModel;
+
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
@@ -35,6 +40,9 @@ import javax.swing.table.TableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 import java.util.TreeMap;
 import java.util.Date;
@@ -56,13 +64,15 @@ import org.jfree.chart.renderer.StandardXYItemRenderer;
  */
 public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, ListDataListener {
     
-    TextPanel _requestTextPanel;
-    ResponsePanel _responsePanel;
-    JFreeChart _chart = null;
+    private final RequestPanel _requestPanel;
+    private final ResponsePanel _responsePanel;
+    private JFreeChart _chart = null;
     
-    SessionIDAnalysis _sa;
-    ListTableModelAdaptor _ltma = new ListTableModelAdaptor(null, new SessionIDRow());
-    SessionIDDataset _sidd = new SessionIDDataset(null);
+    private SessionIDAnalysis _sa;
+    private ListTableModelAdaptor _ltma = new ListTableModelAdaptor(null, new SessionIDRow());
+    private SessionIDDataset _sidd = new SessionIDDataset(null);
+    
+    private SiteModel _siteModel;
     
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
@@ -98,20 +108,44 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
                 }
             }
         });
-        _requestTextPanel = new TextPanel();
-        _requestTextPanel.setEditable(true);
-        _requestTextPanel.setBorder(new javax.swing.border.TitledBorder("Request"));
-        _requestTextPanel.setBytes("GET http://localhost:8080/index.jsp HTTP/1.0".getBytes());
+        _requestPanel = new RequestPanel();
+        _requestPanel.setEditable(true);
+        _requestPanel.setBorder(new javax.swing.border.TitledBorder("Request"));
+        Request req = new Request();
+        try {
+            req.setMethod("GET");
+            req.setURL("http://localhost:8080/admin/");
+            req.setMethod("HTTP/1.0");
+        } catch (MalformedURLException mue) {}
+        _requestPanel.setRequest(req);
         
         _responsePanel = new ResponsePanel();
         _responsePanel.setBorder(new javax.swing.border.TitledBorder("Response"));
         _responsePanel.setEditable(false);
         
-        conversationSplitPane.setTopComponent(_requestTextPanel);
+        conversationSplitPane.setTopComponent(_requestPanel);
         conversationSplitPane.setBottomComponent(_responsePanel);
         nameComboBox.setModel(new ListComboBoxModel(_sa.getSessionIDNames()));
         idTable.setModel(new TableSorter(_ltma, idTable.getTableHeader()));
         idTable.setDefaultRenderer(Date.class, new DateRenderer());
+        
+        _siteModel = framework.getSiteModel();
+        ListModel conversationList = _siteModel.getConversationListModel();
+        ComboBoxModel requestModel = new ListComboBoxModel(conversationList);
+        requestComboBox.setModel(requestModel);
+        requestComboBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Object o = requestComboBox.getSelectedItem();
+                if (o instanceof Conversation) {
+                    Conversation c = (Conversation) o;
+                    String id = c.getProperty("ID");
+                    Request r = _siteModel.getRequest(id);
+                    _requestPanel.setRequest(r);
+                    _responsePanel.setResponse(null);
+                }
+            }
+        });
+
     }
     
     private JFreeChart createChart(XYDataset data) {
@@ -145,6 +179,8 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         jLabel2 = new javax.swing.JLabel();
         regexTextField = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        requestComboBox = new javax.swing.JComboBox();
         conversationPanel = new javax.swing.JPanel();
         conversationSplitPane = new javax.swing.JSplitPane();
         actionPanel = new javax.swing.JPanel();
@@ -231,6 +267,21 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         specPanel.add(jLabel6, gridBagConstraints);
+
+        jLabel9.setText("Previous Requests :");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        specPanel.add(jLabel9, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        specPanel.add(requestComboBox, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -406,7 +457,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
     }//GEN-LAST:event_calculateButtonActionPerformed
     
     private void fetchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fetchButtonActionPerformed
-        Request request = parseRequestPanel();
+        Request request = _requestPanel.getRequest();
         if (request == null) {
             System.err.println("Request was null");
             return;
@@ -427,7 +478,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
     }//GEN-LAST:event_fetchButtonActionPerformed
     
     private void testButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testButtonActionPerformed
-        final Request request = parseRequestPanel();
+        final Request request = _requestPanel.getRequest();
         if (request == null) {
             return;
         }
@@ -473,19 +524,6 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
             }
         }.start();
     }//GEN-LAST:event_testButtonActionPerformed
-    
-    private Request parseRequestPanel() {
-        try {
-            Request request = new Request();
-            request.parse(new String(_requestTextPanel.getBytes()));
-            if (request.getVersion() != null) {
-                return request;
-            }
-        } catch (Exception e) {
-            System.err.println("Parse error : " + e);
-        }
-        return null;
-    }
     
     public javax.swing.JPanel getPanel() {
         return this;
@@ -563,12 +601,14 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.ButtonGroup locationButtonGroup;
     private javax.swing.JTabbedPane mainTabbedPane;
     private javax.swing.JComboBox nameComboBox;
     private javax.swing.JTextField nameTextField;
     private javax.swing.JTextField regexTextField;
+    private javax.swing.JComboBox requestComboBox;
     private javax.swing.JPanel resultPanel;
     private javax.swing.JSpinner sampleSpinner;
     private javax.swing.JPanel specPanel;
