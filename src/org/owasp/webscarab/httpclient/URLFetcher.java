@@ -49,7 +49,7 @@ public class URLFetcher implements HTTPClient {
     static private SSLSocketFactory _factory = null;
     static private TrustManager[] _trustAllCerts = null;
     
-    String keystore = "/clientkeys";
+    String keystore = "/client.p12";
     char keystorepass[] = "password".toCharArray();
     char keypassword[] = "password".toCharArray();
 
@@ -90,7 +90,7 @@ public class URLFetcher implements HTTPClient {
         try {
             SSLContext sc = SSLContext.getInstance("SSL");
             KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-            KeyStore ks = KeyStore.getInstance("JKS");
+            KeyStore ks = KeyStore.getInstance("PKCS12");
             ks.load(this.getClass().getResourceAsStream(keystore), keystorepass);
             kmf.init(ks, keypassword);
             sc.init(kmf.getKeyManagers(), _trustAllCerts, new java.security.SecureRandom());
@@ -390,11 +390,12 @@ public class URLFetcher implements HTTPClient {
     
     public static void main(String[] args) {
         try {
+            URLFetcher.setHttpsProxy("proxy.czprg.atrema.deloitte.com", 3128);
             Request req = new Request();
             req.setMethod("GET");
-            req.setURL("http://dawes.za.net/rogan/");
-            req.setVersion("HTTP/1.1");
-            req.setHeader("Host","dawes.za.net");
+            req.setURL("https://mystic.pca.dfn.de/cgi/sslcheck.cgi");
+            // req.setURL("https://localhost:4433/cgi/sslcheck.cgi");
+            req.setVersion("HTTP/1.0");
             URLFetcher uf = new URLFetcher();
             Response resp = uf.fetchResponse(req);
             System.out.println(resp.toString());

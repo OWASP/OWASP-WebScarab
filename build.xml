@@ -43,7 +43,8 @@
 		<mkdir dir="${classes}"/>
 	</target>
 	<target depends="prepare" name="compile">
-                <copy file="serverkeys" todir="${classes}"/>
+                <copy file="server.p12" todir="${classes}"/>
+                <copy file="client.p12" todir="${classes}"/>
 		<javac classpathref="cpath" compiler="extJavac" deprecation="off" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}" listfiles="yes">
                 </javac>
 	</target>

@@ -26,7 +26,7 @@ public class ConnectionHandler implements Runnable {
     private Socket _sock;
     private String _base;
     
-    String keystore = "/serverkeys";
+    String keystore = "/server.p12";
     char keystorepass[] = "password".toCharArray();
     char keypassword[] = "password".toCharArray();
         
@@ -204,7 +204,7 @@ public class ConnectionHandler implements Runnable {
         KeyManagerFactory kmf = null;
         SSLContext sslcontext = null;
         try {
-            ks = KeyStore.getInstance("JKS");
+            ks = KeyStore.getInstance("PKCS12");
             ks.load(this.getClass().getResourceAsStream(keystore), keystorepass);
             kmf = KeyManagerFactory.getInstance("SunX509");
             kmf.init(ks, keypassword);
