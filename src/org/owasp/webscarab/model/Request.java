@@ -27,7 +27,7 @@ public class Request extends Message {
     private String method = null;
     private URL url = null;
     private String version = null;
-    private String _base = null;
+    private URL _base = null;
     
     /** Creates a new instance of Request */
     public Request() {
@@ -91,6 +91,10 @@ public class Request extends Message {
      * sending to an HTTP proxy. Uses the supplied string to separate lines.
      */    
     public void write(OutputStream os, String crlf) throws IOException {
+        if (method == null || url == null || version == null) {
+            System.err.println("Unitialised Request!");
+            return;
+        }
         os.write(new String(method+" "+(url==null?"null":url.getProtocol()) + "://" + (url==null?"null":url.getHost())).getBytes());
         os.write(new String(":"+(url==null?"null":String.valueOf(url.getPort()==-1?url.getDefaultPort():url.getPort()))).getBytes());
         os.write(new String((url==null?"null":url.getPath())).getBytes());
@@ -110,6 +114,10 @@ public class Request extends Message {
      * sending to the HTTP server itself. Uses the supplied string to separate lines.
      */    
     public void writeDirect(OutputStream os, String crlf) throws IOException {
+        if (method == null || url == null || version == null) {
+            System.err.println("Unitialised Request!");
+            return;
+        }
         os.write(new String(method+" " + (url==null?"null":url.getPath())).getBytes());
         os.write(new String((url==null?"null":url.getQuery()==null?"":"?"+url.getQuery())).getBytes());
         os.write(new String(" " + version + crlf).getBytes());
@@ -130,14 +138,14 @@ public class Request extends Message {
      * appropriate when parsing an intercepted CONNECT Request, when the URL read will
      * no longer include the protocol://host:port.
      */    
-    public void setBaseURL(String base) {
-        _base = base;
+    public void setBaseURL(String base) throws java.net.MalformedURLException {
+        _base = new URL(base);
     }
     
     /** Sets the Request URL */    
     public void setURL(String url) throws MalformedURLException {
         if (_base != null) {
-            this.url = new URL(_base + url);
+            this.url = new URL(_base, url);
         } else {
             this.url = new URL(url);
         }
