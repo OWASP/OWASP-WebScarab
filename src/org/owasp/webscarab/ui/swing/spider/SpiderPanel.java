@@ -42,6 +42,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
     
     private void configure() {
         recursiveCheckBox.setSelected(_spider.getRecursive());
+        cookieSyncCheckBox.setSelected(_spider.getCookieSync());
         domainRegexTextField.setText(_spider.getAllowedDomains());
         pathRegexTextField.setText(_spider.getForbiddenPaths());
     }
@@ -54,7 +55,6 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
-        stopButton = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         domainRegexTextField = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
@@ -70,21 +70,10 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
         unseenLinkTree = new javax.swing.JTree();
         linkTreeFetchSelectionButton = new javax.swing.JButton();
         linkTreeFetchTreeButton = new javax.swing.JButton();
+        stopButton = new javax.swing.JButton();
+        cookieSyncCheckBox = new javax.swing.JCheckBox();
 
         setLayout(new java.awt.GridBagLayout());
-
-        stopButton.setText("Stop");
-        stopButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                stopButtonActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
-        add(stopButton, gridBagConstraints);
 
         jLabel1.setText("Allowed Domains");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -133,7 +122,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
         gridBagConstraints.weightx = 1.0;
         add(pathRegexTextField, gridBagConstraints);
 
-        recursiveCheckBox.setText("Recursive");
+        recursiveCheckBox.setText("Fetch Recursively");
         recursiveCheckBox.setToolTipText("Enables recursive fetching of Links");
         recursiveCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
         recursiveCheckBox.addActionListener(new java.awt.event.ActionListener() {
@@ -143,8 +132,10 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         add(recursiveCheckBox, gridBagConstraints);
 
         linkTablePanel.setLayout(new java.awt.GridBagLayout());
@@ -223,14 +214,46 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         add(unseenTabbedPane, gridBagConstraints);
 
+        stopButton.setText("Stop");
+        stopButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                stopButtonActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        add(stopButton, gridBagConstraints);
+
+        cookieSyncCheckBox.setText("Synchronise cookies");
+        cookieSyncCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+        cookieSyncCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cookieSyncCheckBoxActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(cookieSyncCheckBox, gridBagConstraints);
+
     }//GEN-END:initComponents
+
+    private void cookieSyncCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cookieSyncCheckBoxActionPerformed
+        _spider.setCookieSync(cookieSyncCheckBox.isSelected());
+    }//GEN-LAST:event_cookieSyncCheckBoxActionPerformed
 
     private void linkTreeFetchTreeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_linkTreeFetchTreeButtonActionPerformed
         TreePath[] selection = unseenLinkTree.getSelectionPaths();
@@ -289,6 +312,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
     }//GEN-LAST:event_recursiveCheckBoxActionPerformed
         
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox cookieSyncCheckBox;
     private javax.swing.JTextField domainRegexTextField;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
