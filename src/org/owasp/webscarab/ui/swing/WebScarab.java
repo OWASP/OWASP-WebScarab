@@ -45,19 +45,22 @@ public class WebScarab extends javax.swing.JFrame {
     
     /** Creates new form WebScarab */
     public WebScarab(Framework framework) {
+        initComponents();
+        
+        // capture STDOUT and STDERR to a TextArea
+        // System.setOut(new PrintStream(new DocumentOutputStream(stdoutTextArea.getDocument())));
+        // System.setErr(new PrintStream(new DocumentOutputStream(stderrTextArea.getDocument())));
+        
+        // load the properties
         _framework = framework;
         _prop = loadProperties();
         _framework.setProperties(_prop);
-
-        initComponents();
         
-        System.setOut(new PrintStream(new DocumentOutputStream(stdoutTextArea.getDocument())));
-        System.setErr(new PrintStream(new DocumentOutputStream(stderrTextArea.getDocument())));
-        
+        // load the conversation log GUI plugin
         addPlugin(new ConversationLog(_framework));
-
+        
+        // create the plugins, and their GUI's
         Proxy proxy = new Proxy(_framework);
-        new Thread(proxy).start();
         _framework.addPlugin(proxy);
         addPlugin(new ProxyPanel(proxy));
         
@@ -178,19 +181,26 @@ public class WebScarab extends javax.swing.JFrame {
 
         mainSplitPane.setBorder(null);
         mainSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        mainSplitPane.setResizeWeight(1.0);
-        mainSplitPane.setOneTouchExpandable(true);
+        mainSplitPane.setResizeWeight(0.5);
+        mainSplitPane.setContinuousLayout(true);
+        mainSplitPane.setAutoscrolls(true);
         mainTabbedPane.setMinimumSize(new java.awt.Dimension(300, 300));
-        mainTabbedPane.setPreferredSize(new java.awt.Dimension(800, 500));
+        mainTabbedPane.setPreferredSize(new java.awt.Dimension(400, 400));
         mainSplitPane.setLeftComponent(mainTabbedPane);
 
         jTabbedPane1.setTabPlacement(javax.swing.JTabbedPane.LEFT);
+        jTabbedPane1.setMinimumSize(new java.awt.Dimension(146, 40));
+        jTabbedPane1.setPreferredSize(new java.awt.Dimension(127, 60));
+        jScrollPane1.setMinimumSize(new java.awt.Dimension(22, 40));
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(3, 40));
         stdoutTextArea.setBackground(new java.awt.Color(204, 204, 204));
         stdoutTextArea.setEditable(false);
         jScrollPane1.setViewportView(stdoutTextArea);
 
         jTabbedPane1.addTab("stdout", jScrollPane1);
 
+        jScrollPane2.setMinimumSize(new java.awt.Dimension(22, 40));
+        jScrollPane2.setPreferredSize(new java.awt.Dimension(3, 40));
         stderrTextArea.setBackground(new java.awt.Color(204, 204, 204));
         stderrTextArea.setEditable(false);
         jScrollPane2.setViewportView(stderrTextArea);
@@ -275,7 +285,7 @@ public class WebScarab extends javax.swing.JFrame {
         setJMenuBar(mainMenuBar);
 
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width-640)/2, (screenSize.height-480)/2, 640, 480);
+        setBounds((screenSize.width-800)/2, (screenSize.height-600)/2, 800, 600);
     }//GEN-END:initComponents
 
     private void proxyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_proxyMenuItemActionPerformed
