@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -84,6 +84,7 @@ import org.owasp.webscarab.plugin.spider.Spider;
 import org.owasp.webscarab.plugin.spider.swing.SpiderPanel;
 
 import org.owasp.webscarab.util.TextFormatter;
+import org.owasp.webscarab.util.TempDir;
 
 /**
  *
@@ -113,63 +114,71 @@ public class Main {
         
         loadPlugins();
         
-        _uif.setSessionLoader(new SessionLoader() {
-            public void newSession(Component parent, Framework framework) {
-                String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
-                JFileChooser jfc = new JFileChooser(defaultDir);
-                jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                jfc.setDialogTitle("Select a directory to write the session into");
-                int returnVal = jfc.showOpenDialog(_uif);
-                if (returnVal == JFileChooser.APPROVE_OPTION) {
-                    File dir = jfc.getSelectedFile();
-                    // String dir = file.toString() + System.getProperty("file.separator");
-                    try {
-                        if (! FileSystemStore.isExistingSession(dir)) {
-                            FileSystemStore store = new FileSystemStore(dir);
-                            framework.setSession(new SiteModel(store), "FileSystem", dir);
-                        } else {
-                            // FIXME to change this to prompt to open it if it already exists
-                            JOptionPane.showMessageDialog(null, new String[] {dir + " already contains a session ", }, "Error", JOptionPane.ERROR_MESSAGE);
-                        }
-                    } catch (StoreException se) {
-                        JOptionPane.showMessageDialog(null, new String[] {"Error creating Session : ", se.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                    Preferences.setPreference("WebScarab.defaultDirectory", jfc.getCurrentDirectory().toString());
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    _uif.show();
+                    _uif.toFront();
+                    _uif.requestFocus();
                 }
-            }
-            
-            public void openSession(Component parent, Framework framework) {
-                String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
-                JFileChooser jfc = new JFileChooser(defaultDir);
-                jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                jfc.setDialogTitle("Choose a directory that contains a previous session");
-                int returnVal = jfc.showOpenDialog(_uif);
-                if (returnVal == JFileChooser.APPROVE_OPTION) {
-                    File dir = jfc.getSelectedFile();
-                    try {
-                        if (FileSystemStore.isExistingSession(dir)) {
-                            FileSystemStore store = new FileSystemStore(dir);
-                            framework.setSession(new SiteModel(store), "FileSystem", dir);
-                        } else {
-                            // FIXME to change this to prompt to create it if it does not already exist
-                            JOptionPane.showMessageDialog(null, new String[] {dir + " does not contain a session ", }, "Error", JOptionPane.ERROR_MESSAGE);
-                        }
-                    } catch (StoreException se) {
-                        JOptionPane.showMessageDialog(null, new String[] {"Error loading Session : ", se.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                    Preferences.setPreference("WebScarab.defaultDirectory", jfc.getCurrentDirectory().toString());
+            });
+        } catch (Exception e) {
+            System.err.println("Error loading GUI: " + e.getMessage());
+            System.exit(1);
+        }
+        
+        File tempDir = null;
+        
+        try {
+            File dir = null;
+            if (args == null || args.length == 0) {
+                try {
+                    tempDir = TempDir.createTempDir("webscarab", ".tmp", null);
+                    dir = tempDir;
+                } catch (IOException ioe) {
+                    throw new StoreException("Error creating initial temporary session: " + ioe.getMessage());
                 }
+            } else if (args.length == 1) {
+                // treat it as a directory to create or open
+                dir = new File(args[0]);
             }
-        });
-        
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                _uif.show();
-                _uif.toFront();
-                _uif.requestFocus();
+            if (dir != null) {
+                FileSystemStore store = new FileSystemStore(dir);
+                _framework.setSession(new SiteModel(store), "FileSystem", dir);
             }
-        });
+        } catch (StoreException se) {
+            JOptionPane.showMessageDialog(null, new String[] {"Error creating Session : ", se.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
+        }
         
+        
+        _uif.run();
+        
+        if (tempDir != null) {
+            recursiveDelete(tempDir);
+        }
+        try {
+            Preferences.savePreferences();
+        } catch (IOException ioe) {
+            System.err.println("Could not save preferences: " + ioe);
+        }
+        System.exit(0);
+    }
+    
+    /**
+     * Recursive delete files.
+     */
+    private static void recursiveDelete(File dir) {
+        String[] ls = dir.list();
+        
+        for (int i = 0; i < ls.length; i++) {
+            File file = new File(dir, ls[i]);
+            if (file.isDirectory()) {
+                recursiveDelete(file);
+            } else {
+                file.delete();
+            }
+        }
+        dir.delete();
     }
     
     private static void initLogging() {
@@ -180,7 +189,7 @@ public class Main {
         logger.addHandler(ch);
         ch.setLevel(Level.INFO);
     }
-
+    
     public static void loadPlugins() {
         Fragments fragments = new Fragments(_framework);
         _framework.addPlugin(fragments);

@@ -41,11 +41,15 @@ package org.owasp.webscarab.ui.swing;
 
 import java.awt.Rectangle;
 
+import java.io.File;
+import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JFrame;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -59,6 +63,7 @@ import javax.swing.text.Position.Bias;
 
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.FileSystemStore;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.FrameworkUI;
@@ -74,7 +79,6 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private Framework _framework;
     private SiteModel _model;
     private ArrayList _plugins;
-    private SessionLoader _loader;
     
     private CookieJarViewer _cookieJarViewer;
     private SummaryPanel _summaryPanel;
@@ -84,6 +88,9 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private Logger _logger = Logger.getLogger("org.owasp.webscarab");
     
     private DocumentHandler _dh;
+    
+    // we use this to wait on the exit of the UI
+    private Object _exit = new Object();
     
     /** Creates new form WebScarab */
     public UIFramework(Framework framework) {
@@ -114,12 +121,17 @@ public class UIFramework extends JFrame implements FrameworkUI {
         });
     }
     
-    public void setSessionLoader(SessionLoader loader) {
-        _loader = loader;
+    public void run() {
+        synchronized(_exit) {
+            try {
+                _exit.wait();
+            } catch (InterruptedException ie) {
+                _logger.info("Interrupted waiting for exit: " + ie);
+            }
+        }
     }
     
     private void initLogging() {
-        
         _dh = new DocumentHandler();
         _dh.setFormatter(new TextFormatter());
         _logger.addHandler(_dh);
@@ -400,18 +412,49 @@ public class UIFramework extends JFrame implements FrameworkUI {
     }//GEN-END:initComponents
     
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
-        if (_loader != null) {
-            _loader.openSession(this, _framework);
-        } else {
-            _logger.severe("OPEN called, but loader is null");
+        String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
+        JFileChooser jfc = new JFileChooser(defaultDir);
+        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        jfc.setDialogTitle("Choose a directory that contains a previous session");
+        int returnVal = jfc.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File dir = jfc.getSelectedFile();
+            try {
+                if (FileSystemStore.isExistingSession(dir)) {
+                    FileSystemStore store = new FileSystemStore(dir);
+                    _framework.setSession(new SiteModel(store), "FileSystem", dir);
+                } else {
+                    // FIXME to change this to prompt to create it if it does not already exist
+                    JOptionPane.showMessageDialog(null, new String[] {dir + " does not contain a session ", }, "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (StoreException se) {
+                JOptionPane.showMessageDialog(null, new String[] {"Error loading Session : ", se.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            Preferences.setPreference("WebScarab.defaultDirectory", jfc.getCurrentDirectory().toString());
         }
     }//GEN-LAST:event_openMenuItemActionPerformed
     
     private void newMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newMenuItemActionPerformed
-        if (_loader != null) {
-            _loader.newSession(this, _framework);
-        } else {
-            _logger.severe("NEW called, but loader is null");
+        String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
+        JFileChooser jfc = new JFileChooser(defaultDir);
+        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        jfc.setDialogTitle("Select a directory to write the session into");
+        int returnVal = jfc.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File dir = jfc.getSelectedFile();
+            // String dir = file.toString() + System.getProperty("file.separator");
+            try {
+                if (! FileSystemStore.isExistingSession(dir)) {
+                    FileSystemStore store = new FileSystemStore(dir);
+                    _framework.setSession(new SiteModel(store), "FileSystem", dir);
+                } else {
+                    // FIXME to change this to prompt to open it if it already exists
+                    JOptionPane.showMessageDialog(null, new String[] {dir + " already contains a session ", }, "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (StoreException se) {
+                JOptionPane.showMessageDialog(null, new String[] {"Error creating Session : ", se.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            Preferences.setPreference("WebScarab.defaultDirectory", jfc.getCurrentDirectory().toString());
         }
     }//GEN-LAST:event_newMenuItemActionPerformed
     
@@ -507,7 +550,9 @@ public class UIFramework extends JFrame implements FrameworkUI {
                 if (choice != JOptionPane.YES_OPTION) return;
             }
         }
-        _framework.exit();
+        synchronized(_exit) {
+            _exit.notify();
+        }
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
