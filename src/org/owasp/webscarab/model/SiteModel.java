@@ -105,9 +105,18 @@ public class SiteModel {
             }
         }
         synchronized (ui) {
-            ui.setProperty("METHOD", conversation.getProperty("METHOD")); // should add it, so as not to override previous
-            ui.setProperty("STATUS", conversation.getProperty("STATUS")); // should add it, so as not to override previous
-            ui.setProperty("CHECKSUM", conversation.getProperty("CHECKSUM")); // should add it, so as not to override previous
+            String property = "METHOD";
+            String value = conversation.getProperty(property);
+            if (value != null) ui.setProperty(property, value); // should add it, so as not to override previous
+
+            property = "STATUS";
+            value = conversation.getProperty(property);
+            if (value != null) ui.setProperty(property, value); // should add it, so as not to override previous
+
+            property = "CHECKSUM";
+            value = conversation.getProperty(property);
+            if (value != null) ui.setProperty(property, value); // should add it, so as not to override previous
+            
             int conversationbytes = 0;
             int urlbytes = 0;
             try {
