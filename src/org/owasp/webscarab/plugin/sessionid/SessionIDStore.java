@@ -7,7 +7,6 @@
 package org.owasp.webscarab.plugin.sessionid;
 
 import org.owasp.webscarab.model.StoreException;
-import java.util.TreeMap;
 
 /**
  *
@@ -15,8 +14,16 @@ import java.util.TreeMap;
  */
 public interface SessionIDStore {
     
-    void writeSessionIDs(TreeMap idmap) throws StoreException;
+    int addSessionID(String key, SessionID id);
     
-    TreeMap readSessionIDs() throws StoreException;
+    int getSessionIDNameCount();
+    
+    String getSessionIDName(int index);
+    
+    int getSessionIDCount(String key);
+    
+    SessionID getSessionIDAt(String key, int index);
+    
+    void flush() throws StoreException;
     
 }

@@ -6,10 +6,6 @@
 
 package org.owasp.webscarab.httpclient;
 
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.net.ConnectException;
-
 import java.io.IOException;
 
 import java.net.Socket;
@@ -17,62 +13,34 @@ import java.net.Socket;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.File;
-import java.io.FileInputStream;
 
-import java.net.UnknownHostException;
-import java.net.SocketException;
-
-import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.KeyManager;
 
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.cert.CertificateException;
-import java.security.UnrecoverableKeyException;
-
-import java.util.Properties;
 import java.util.logging.Logger;
 
-import org.owasp.webscarab.model.Preferences;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.util.LogInputStream;
 import org.owasp.webscarab.util.LogOutputStream;
-
 
 /** Creates a new instance of URLFetcher
  * @author rdawes
  */
 public class URLFetcher implements HTTPClient {
     
-    private static Logger _logger = Logger.getLogger("org.owasp.webscarab.httpclient.URLFetcher");
-    
-    private static Properties _props = Preferences.getPreferences();
-    
     // These represent the SSL classes required to connect to the server.
     private static SSLSocketFactory _factory = null;
     
-    // Create a trust manager that does not validate certificate chains
-    private static TrustManager[] _trustAllCerts = new TrustManager[]{
-        new X509TrustManager() {
-            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
-            public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-            }
-            public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-            }
-        }
-    };
+    private Logger _logger = Logger.getLogger(getClass().getName());
+    
+    private String _httpProxy = "";
+    private int _httpProxyPort = -1;
+    private String _httpsProxy = "";
+    private int _httpsProxyPort = -1;
+    private String[] _noProxy = new String[0];
     
     private Socket _socket = null;
     private boolean _direct = false;
@@ -126,140 +94,24 @@ public class URLFetcher implements HTTPClient {
         _serverInput = fromServer;
     }
     
-    private static void initSSLSocketFactory(KeyManager[] managers) {
-        try {
-            SSLContext sc = SSLContext.getInstance("SSL");
-            sc.init(managers, _trustAllCerts, new java.security.SecureRandom());
-            _factory = (SSLSocketFactory)sc.getSocketFactory();
-        } catch (NoSuchAlgorithmException nsae) {
-            _logger.severe("NoSuchAlgorithmException setting up SSL support: " + nsae);
-            _factory = null;
-        } catch (KeyManagementException kme) {
-            _logger.severe("KeyManagementException setting up SSL support: " + kme);
-            _factory = null;
-        }
-    }
-    
-    private static void initSSL() {
-        String certFile = getClientCertificateFile();
-        if (certFile != null && !certFile.equals("")) {
-            String keyStorePassword = getKeystorePassword();
-            if (keyStorePassword != null) {
-                String keyPassword = getKeyPassword();
-                if (keyPassword == null) { keyPassword = keyStorePassword; }
-                try {
-                    KeyManager[] managers = getKeyManagersForCertificateFile(certFile, keyStorePassword, keyPassword);
-                } catch (Exception e) {
-                    _logger.severe("Exception loading client cert preferences: " + e);
-                }
-            }
-        } else {
-            initSSLSocketFactory(null);
-        }
-    }
-    
-    /** Tells all instances of URLFetcher which HTTP proxy to use, if any
+    /** Tells URLFetcher which HTTP proxy to use, if any
      * @param proxy The address or name of the proxy server to use for HTTP requests
      * @param proxyport The port on the proxy server to connect to
      */
-    public static void setHttpProxy(String proxy, int proxyport) {
-        String prop = "WebScarab.httpProxy";
-        String value = proxy + ":" + Integer.toString(proxyport);
-        _props.setProperty(prop, value);
+    public void setHttpProxy(String proxy, int proxyport) {
+        _httpProxy = proxy;
+        if (_httpProxy == null) _httpProxy = "";
+        _httpProxyPort = proxyport;
     }
     
-    /** Returns the address of the HTTP proxy server that all instances of URLFetcher
-     * will use
-     * @return The address of the HTTP proxy configured, or null if none is configured
-     */
-    public static String getHttpProxyServer() {
-        String prop = "WebScarab.httpProxy";
-        String value = _props.getProperty(prop);
-        if (value != null) {
-            String[] proxy = value.split(":",2);
-            if (proxy.length == 2) {
-                try {
-                    int port = Integer.parseInt(proxy[1]);
-                } catch (NumberFormatException nfe) {
-                    _logger.severe("Error parsing " + prop + " from properties: " + nfe);
-                }
-                return proxy[0];
-            }
-        }
-        return "";
-    }
-    
-    /** Returns the port of the HTTP proxy server that all instances of URLFetcher
-     * will use
-     * @return The port of the currently configured HTTP proxy, or 0 if none is configured
-     */
-    public static int getHttpProxyPort() {
-        String prop = "WebScarab.httpProxy";
-        String value = _props.getProperty(prop);
-        if (value != null) {
-            String[] proxy = value.split(":",2);
-            if (proxy.length == 2) {
-                try {
-                    int port = Integer.parseInt(proxy[1]);
-                    return port;
-                } catch (NumberFormatException nfe) {
-                    _logger.severe("Error parsing " + prop + " from properties: " + nfe);
-                }
-            }
-        }
-        return 0;
-    }
-    
-    /** Tells all instances of URLFetcher which HTTPS proxy to use, if any
+    /** Tells URLFetcher which HTTPS proxy to use, if any
      * @param proxy The address or name of the proxy server to use for HTTPS requests
      * @param proxyport The port on the proxy server to connect to
      */
-    public static void setHttpsProxy(String proxy, int proxyport) {
-        String prop = "WebScarab.httpsProxy";
-        String value = proxy + ":" + Integer.toString(proxyport);
-        _props.setProperty(prop, value);
-    }
-    
-    /** Returns the address of the HTTPs proxy server that all instances of URLFetcher
-     * will use
-     * @return The address of the HTTPs proxy configured, or null if none is configured
-     */
-    public static String getHttpsProxyServer() {
-        String prop = "WebScarab.httpsProxy";
-        String value = _props.getProperty(prop);
-        if (value != null) {
-            String[] proxy = value.split(":",2);
-            if (proxy.length == 2) {
-                try {
-                    int port = Integer.parseInt(proxy[1]);
-                } catch (NumberFormatException nfe) {
-                    _logger.severe("Error parsing " + prop + " from properties: " + nfe);
-                }
-                return proxy[0];
-            }
-        }
-        return "";
-    }
-    
-    /** Returns the port of the HTTP proxy server that all instances of URLFetcher
-     * will use
-     * @return The port of the currently configured HTTP proxy, or 0 if none is configured
-     */
-    public static int getHttpsProxyPort() {
-        String prop = "WebScarab.httpsProxy";
-        String value = _props.getProperty(prop);
-        if (value != null) {
-            String[] proxy = value.split(":",2);
-            if (proxy.length == 2) {
-                try {
-                    int port = Integer.parseInt(proxy[1]);
-                    return port;
-                } catch (NumberFormatException nfe) {
-                    _logger.severe("Error parsing " + prop + " from properties: " + nfe);
-                }
-            }
-        }
-        return 0;
+    public void setHttpsProxy(String proxy, int proxyport) {
+        _httpsProxy = proxy;
+        if (_httpsProxy == null) _httpsProxy = "";
+        _httpsProxyPort = proxyport;
     }
     
     /** Accepts an array of hostnames or domains for which no proxy should be used.
@@ -268,74 +120,19 @@ public class URLFetcher implements HTTPClient {
      * @param noproxy An array of hosts or domains for which no proxy should be used.
      * Domains must start with a period (".")
      */
-    public static void setNoProxy(String[] noproxy) {
-        String prop = "WebScarab.noProxy";
-        if (noproxy.length>0) {
-            StringBuffer buff = new StringBuffer();
-            buff.append(noproxy[0]);
-            for (int i=1; i<noproxy.length;i++) {
-                buff.append(", ").append(noproxy[i]);
-            }
-            _props.setProperty(prop, buff.toString().trim());
+    public void setNoProxy(String[] noproxy) {
+        if (noproxy == null) {
+            _noProxy = new String[0];
+        } else if (noproxy.length == 0) {
+            _noProxy = noproxy;
         } else {
-            _props.setProperty(prop, "");
+            _noProxy = new String[noproxy.length];
+            System.arraycopy(noproxy, 0, _noProxy, 0, noproxy.length);
         }
     }
     
-    /** returns the list of hosts and domains that bypass any configured proxies
-     * @return Returns an array of hosts and domains for which no proxy should be
-     * used (i.e. direct connection should be made)
-     */
-    public static String[] getNoProxy() {
-        String prop = "WebScarab.noProxy";
-        String value = _props.getProperty(prop);
-        if (value == null || value.equals("")) {
-            return new String[0];
-        } else {
-            String[] noProxy = value.split(" *, *");
-            return noProxy;
-        }
-    }
-    
-    private static KeyManager[] getKeyManagersForCertificateFile(String certFile, String keystorePassword, String keyPassword)
-    throws IOException, KeyStoreException, CertificateException, UnrecoverableKeyException {
-        try {
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-            KeyStore ks = KeyStore.getInstance("PKCS12");
-            ks.load(new FileInputStream(certFile), keystorePassword.toCharArray());
-            kmf.init(ks, keyPassword.toCharArray());
-            return kmf.getKeyManagers();
-        } catch (NoSuchAlgorithmException nsae) {
-            _logger.severe("No SunX509 suport: " + nsae);
-            return null;
-        }
-    }
-    
-    public static void setClientCertificateFile(String certFile, String keystorePassword, String keyPassword)
-    throws IOException, KeyStoreException, CertificateException, UnrecoverableKeyException {
-        KeyManager[] managers = getKeyManagersForCertificateFile(certFile, keystorePassword, keyPassword);
-        initSSLSocketFactory(managers);
-        _props.setProperty("WebScarab.clientCertificateFile", certFile);
-        _props.setProperty("WebScarab.keystorePassword", keystorePassword);
-        _props.setProperty("WebScarab.keyPassword", keyPassword);
-    }
-    
-    public static String getClientCertificateFile() {
-        String prop = "WebScarab.clientCertificateFile";
-        String value = _props.getProperty(prop);
-        return value == null ? "" : value;
-    }
-    
-    public static String getKeystorePassword() {
-        String prop = "WebScarab.keystorePassword";
-        String value = _props.getProperty(prop);
-        return value == null ? "" : value;
-    }
-    
-    public static String getKeyPassword() {
-        String prop = "WebScarab.keyPassword";
-        String value = _props.getProperty(prop);
-        return value == null ? "" : value;
+    public void setSSLContext(SSLContext sslContext) {
+        _factory = (SSLSocketFactory) sslContext.getSocketFactory();
     }
     
     /** Can be used by a calling class to fetch a request without spawning an additional
@@ -353,7 +150,7 @@ public class URLFetcher implements HTTPClient {
             _logger.severe("Asked to fetch a null request");
             return null;
         }
-        URL url = request.getURL();
+        HttpUrl url = request.getURL();
         if (url == null) {
             _logger.severe("Asked to fetch a request with a null URL");
             return null;
@@ -426,33 +223,29 @@ public class URLFetcher implements HTTPClient {
         return _response;
     }
     
-    private Socket opensocket(URL url, String proxyAuth) throws IOException {
+    private Socket opensocket(HttpUrl url, String proxyAuth) throws IOException {
         // We initialise to null;
         Socket socket = null;
         _direct = true;
         
         // We record where we are connected to, in case we might reuse this socket later
         _host = url.getHost();
-        _port = url.getPort()==-1?url.getDefaultPort():url.getPort();
-        boolean ssl = url.getProtocol().equalsIgnoreCase("https");
+        _port = url.getPort();
+        boolean ssl = url.getScheme().equalsIgnoreCase("https");
         
         if (useProxy(url)) {
             if (!ssl) {
-                String httpProxy = getHttpProxyServer();
-                int httpProxyPort = getHttpProxyPort();
-                _logger.fine("Connect to " + httpProxy + ":" + httpProxyPort);
+                _logger.fine("Connect to " + _httpProxy + ":" + _httpProxyPort);
                 if (!_debug) {
-                    socket = new Socket(httpProxy, httpProxyPort);
+                    socket = new Socket(_httpProxy, _httpProxyPort);
                     socket.setTcpNoDelay(true);
                     socket.setSoTimeout(60 * 1000);
                 }
                 _direct = false;
                 return socket;
             } else {
-                String httpsProxy = getHttpsProxyServer();
-                int httpsProxyPort = getHttpsProxyPort();
                 if (!_debug) {
-                    socket = new Socket(httpsProxy, httpsProxyPort);
+                    socket = new Socket(_httpsProxy, _httpsProxyPort);
                     _in = socket.getInputStream();
                     _out = socket.getOutputStream();
                     if (_serverInput != null) {
@@ -491,7 +284,7 @@ public class URLFetcher implements HTTPClient {
         
         if (!_debug && ssl && socket != null) {
             if (_factory == null) {
-                initSSL();
+                throw new IOException("Cannot connect to SSL server. SSLContext did not provide a factory!");
             }
             // Use the factory to create a secure socket connected to the
             // HTTPS port of the specified web server.
@@ -508,20 +301,19 @@ public class URLFetcher implements HTTPClient {
         return socket;
     }
     
-    private boolean useProxy(URL url) {
+    private boolean useProxy(HttpUrl url) {
         String host = url.getHost();
-        boolean ssl = url.getProtocol().equalsIgnoreCase("https");
+        boolean ssl = url.getScheme().equalsIgnoreCase("https");
         
-        if (ssl && "".equals(getHttpsProxyServer())) {
+        if (ssl && "".equals(_httpsProxy)) {
             return false;
-        } else if (!ssl && "".equals(getHttpProxyServer())) {
+        } else if (!ssl && "".equals(_httpProxy)) {
             return false;
         } else {
-            String[] noProxy = getNoProxy();
-            for (int i=0; i<noProxy.length; i++) {
-                if (noProxy[i].startsWith(".") && host.endsWith(noProxy[i])) {
+            for (int i=0; i<_noProxy.length; i++) {
+                if (_noProxy[i].startsWith(".") && host.endsWith(_noProxy[i])) {
                     return false;
-                } else if (host.equals(noProxy[i])) {
+                } else if (host.equals(_noProxy[i])) {
                     return false;
                 }
             }
@@ -529,11 +321,11 @@ public class URLFetcher implements HTTPClient {
         return true;
     }
     
-    private boolean invalidSocket(URL url) {
+    private boolean invalidSocket(HttpUrl url) {
         if (_host == null || _in == null) return true; // _out may be null if we are testing
         // the right host
         if (url.getHost().equals(_host)) {
-            int urlport = url.getPort()==-1?url.getDefaultPort():url.getPort();
+            int urlport = url.getPort();
             // and the right port
             if (urlport == _port) {
                 // in the last 1 second, it could still be valid

@@ -6,74 +6,43 @@
 
 package org.owasp.webscarab.ui.swing.editors;
 
-import javax.swing.AbstractAction;
-import javax.swing.KeyStroke;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.Event;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.Keymap;
-import java.awt.Container;
-import javax.swing.JFrame;
-import javax.swing.JEditorPane;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.net.URL;
-
+import javax.swing.JEditorPane;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.event.HyperlinkEvent.EventType;
+
+import java.util.logging.Logger;
 
 /**
  *
  * @author  rdawes
  */
-public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
+public class HTMLPanel extends JPanel implements ByteArrayEditor {
     
     private byte[] _data = new byte[0];
     
     private SearchDialog _searchDialog = null;
+    
+    private Logger _logger = Logger.getLogger(getClass().getName());
+    
+    private byte[] _bytes = null;
     
     /** Creates new form HexEditor */
     public HTMLPanel() {
         initComponents();
         setName("HTML");
         
-        // a special editor kit that overrides all elements that would lead to loading from the server
-        // e.g. frames, images, applets, objects, etc. This is because we don't know what the right
-        // base URL is, and we don't actually want to reload the pages anyway.
-        // if there are tags that still cause requests to the server, override them in MyHTMLEditorKit
-        htmlEditorPane.setEditorKit(new MyHTMLEditorKit());
         htmlEditorPane.setEditable(false);
-        
-        Keymap keymap = htmlEditorPane.addKeymap("MySearchBindings",
-        htmlEditorPane.getKeymap());
-        //Ctrl-f to open the search dialog
-        keymap.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F, Event.CTRL_MASK), new AbstractAction() {
-            public void actionPerformed(ActionEvent event) {
-                if (_searchDialog == null) {
-                    Container c = htmlScrollPane;
-                    while (! (c instanceof JFrame) && c.getParent() != null) {
-                        c = c.getParent();
-                    }
-                    if (c instanceof JFrame) {
-                        _searchDialog = new SearchDialog((JFrame) c, htmlEditorPane);
-                    } else {
-                        System.err.println("No JFrame parent found!");
-                        return;
-                    }
-                }
-                _searchDialog.show();
-            }
-        });
-        keymap.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_G, Event.CTRL_MASK), new AbstractAction() {
-            public void actionPerformed(ActionEvent event) {
-                if (_searchDialog != null) {
-                    _searchDialog.doSearch();
-                }
-            }
-        });
-                
-        htmlEditorPane.setKeymap(keymap);
+        // even though we override getStream in a custom editor pane,
+        // if the HTML includes a Frame, the editor Kit creates a new
+        // non-custom JEditorPane, which causes problems !!!
+        htmlEditorPane.setEditorKit(new MyHTMLEditorKit());
         htmlEditorPane.addHyperlinkListener(new HTMLPanel.LinkToolTipListener());
     }
     
@@ -100,18 +69,21 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
         }
     }
     
-    private void loadBytes(final byte[] bytes) {
-        htmlEditorPane.getDocument().putProperty("base","");
+    private void loadBytes(byte[] bytes) {
+        _bytes = bytes;
+        // htmlEditorPane.getDocument().putProperty("base","");
         if (bytes != null) {
-            // FIXME: may need to reset style sheets, etc here. Not sure how to do that, though
-            htmlEditorPane.setDocument(new MyHTMLEditorKit().createDefaultDocument());
             htmlEditorPane.setContentType("text/html");
+            // FIXME: may need to reset style sheets, etc here. Not sure how to do that, though
+            // Maybe this will work?
+            htmlEditorPane.setDocument(JEditorPane.createEditorKitForContentType("text/html").createDefaultDocument());
             htmlEditorPane.putClientProperty("IgnoreCharsetDirective", Boolean.TRUE);
             htmlEditorPane.getDocument().putProperty("IgnoreCharsetDirective", Boolean.TRUE);
             try {
-                htmlEditorPane.setText(new String(bytes));
+                InputStream is = new ByteArrayInputStream(bytes);
+                htmlEditorPane.read(is, htmlEditorPane.getDocument());
             } catch (Exception e) {
-                System.err.println("Exception setting HTML text : " + e);
+                _logger.warning("Exception setting HTML text : " + e);
             }
         } else {
             htmlEditorPane.setText("");
@@ -124,7 +96,7 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     public byte[] getBytes() {
-        return htmlEditorPane.getText().getBytes();
+        return _bytes;
     }
     
     /** This method is called from within the constructor to
@@ -136,10 +108,11 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
         java.awt.GridBagConstraints gridBagConstraints;
 
         htmlScrollPane = new javax.swing.JScrollPane();
-        htmlEditorPane = new javax.swing.JEditorPane();
+        htmlEditorPane = new NoNetEditorPane();
 
         setLayout(new java.awt.GridBagLayout());
 
+        setMinimumSize(new java.awt.Dimension(400, 200));
         htmlScrollPane.setViewportView(htmlEditorPane);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -153,63 +126,14 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane htmlScrollPane;
     private javax.swing.JEditorPane htmlEditorPane;
+    private javax.swing.JScrollPane htmlScrollPane;
     // End of variables declaration//GEN-END:variables
     
-    
-    public static void main(String[] args) {
-        byte[] content = new byte[0];
-        try {
-            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-            // FileInputStream fis = new FileInputStream("/usr/share/xfce/backdrops/Flower.jpg");
-            /*
-             java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/exodus/HowTo.html");
-            byte[] buff = new byte[1024];
-            int got = 0;
-            while ((got = fis.read(buff)) > 0) {
-                baos.write(buff, 0, got);
-            }
-            content = baos.toByteArray();
-             */
-            String filename = "l2/conversations/1-response";
-            if (args.length == 1) {
-                filename = args[0];
-            }
-            java.io.FileInputStream fis = new java.io.FileInputStream(filename);
-            org.owasp.webscarab.model.Response response = new org.owasp.webscarab.model.Response();
-            response.read(fis);
-            content = response.getContent();
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
-        }
-        
-        javax.swing.JFrame top = new javax.swing.JFrame("HTML Panel");
-        top.getContentPane().setLayout(new java.awt.BorderLayout());
-        top.addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                System.exit(0);
-            }
-        });
-        
-        javax.swing.JButton button = new javax.swing.JButton("GET");
-        final HTMLPanel hp = new HTMLPanel();
-        top.getContentPane().add(hp);
-        top.getContentPane().add(button, java.awt.BorderLayout.SOUTH);
-        button.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                System.out.println(new String(hp.getBytes()));
-            }
-        });
-        top.setBounds(100,100,600,400);
-        top.show();
-        try {
-            hp.setEditable(false);
-            hp.setBytes(content);
-        } catch (Exception e) {
-            e.printStackTrace();
+    private class NoNetEditorPane extends JEditorPane {
+        protected InputStream getStream(URL page) throws IOException {
+            _logger.info("Rejecting request for " + page);
+            throw new IOException("We do not support network traffic");
         }
     }
     
@@ -217,8 +141,8 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
         public LinkToolTipListener() {
         }
         public void hyperlinkUpdate(HyperlinkEvent he) {
-            HyperlinkEvent.EventType type = he.getEventType();
-            if (type == HyperlinkEvent.EventType.ENTERED) {
+            EventType type = he.getEventType();
+            if (type == EventType.ENTERED) {
                 JEditorPane jep = (JEditorPane) he.getSource();
                 URL url = he.getURL();
                 if (url != null) {
@@ -226,11 +150,13 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
                 } else {
                     jep.setToolTipText(he.getDescription());
                 }
-            } else if (type == HyperlinkEvent.EventType.EXITED) {
+            } else if (type == EventType.EXITED) {
                 JEditorPane jep = (JEditorPane) he.getSource();
                 jep.setToolTipText("");
             }
         }
     }
+    
+
 }
 

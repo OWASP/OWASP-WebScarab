@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.ByteArrayOutputStream;
 
 import java.text.ParseException;
 
@@ -39,9 +38,11 @@ public class Response extends Message {
         setContent(resp.getContent());
     }
     
-    /** parses the provided InputStream into an HTTP Response. It only parses the header
+    /**
+     * parses the provided InputStream into an HTTP Response. It only parses the header
      * part, and sets the ContentStream to the InputStream at the appropriate point.
      * @param is The InputStream to read the Response from
+     * @throws IOException propagated from the InputStream
      */    
     public void read(InputStream is) throws IOException {
         String line = readLine(is);
@@ -67,10 +68,20 @@ public class Response extends Message {
         }
     }
     
+    /**
+     * parses a Response from the String provided
+     * @param string
+     * @throws ParseException
+     */    
     public void parse (String string) throws ParseException {
         parse(new StringBuffer(string));
     }
     
+    /**
+     *
+     * @param buff
+     * @throws ParseException
+     */    
     protected void parse(StringBuffer buff) throws ParseException {
         String line = getLine(buff);
         String[] parts = line.split(" ", 3);
@@ -90,14 +101,22 @@ public class Response extends Message {
         }
     }
     
-    /** Writes the Response out to the supplied OutputStream, using the HTTP RFC CRLF
+    /**
+     * Writes the Response out to the supplied OutputStream, using the HTTP RFC CRLF
      * value of "\r\n"
+     * @param os
+     * @throws IOException
      */    
     public void write(OutputStream os) throws IOException {
         write(os, "\r\n");
     }
     
-    /** Writes the Response to the supplied OutputStream, using the provided CRLF value. */    
+    /**
+     * Writes the Response to the supplied OutputStream, using the provided CRLF value.
+     * @param os
+     * @param crlf
+     * @throws IOException
+     */    
     public void write(OutputStream os, String crlf) throws IOException {
         os = new BufferedOutputStream(os);
         os.write(new String(version + " " + getStatusLine() + crlf).getBytes());
@@ -105,49 +124,76 @@ public class Response extends Message {
         os.flush();
     }
     
-    /** Sets the HTTP version supported by the server. */    
+    /**
+     * Sets the HTTP version supported by the server.
+     * @param version
+     */    
     public void setVersion(String version) {
         this.version = version;
     }
     
-    /** returns the HTTP version supported by the server */    
+    /**
+     * returns the HTTP version supported by the server
+     * @return
+     */    
     public String getVersion() {
         return version;
     }
 
-    /** sets the status code of the response. */    
+    /**
+     * sets the status code of the response.
+     * @param status
+     */    
     public void setStatus(String status) {
         this.status = status;
     }
     
-    /** Gets the status code of the Response. */    
+    /**
+     * Gets the status code of the Response.
+     * @return
+     */    
     public String getStatus() {
         return status;
     }
     
-    /** sets the human-readable status message */    
+    /**
+     * sets the human-readable status message
+     * @param message
+     */    
     public void setMessage(String message) {
         this.message = message;
     }
     
-    /** Gets the human readable status message */    
+    /**
+     * Gets the human readable status message
+     * @return
+     */    
     public String getMessage() {
         return message;
     }
     
-    /** Returns the status code and human readable status message */    
+    /**
+     * Returns the status code and human readable status message
+     * @return
+     */    
     public String getStatusLine() {
         return status + " " + message;
     }
     
-    /** returns a string containing the response, using the RFC specified CRLF of
+    /**
+     * returns a string containing the response, using the RFC specified CRLF of
      * "\r\n" to separate lines.
+     * @return
      */    
     public String toString() {
         return toString("\r\n");
     }
     
-    /** returns a string containing the response, using the provided string to separate lines. */    
+    /**
+     * returns a string containing the response, using the provided string to separate lines.
+     * @param crlf
+     * @return
+     */    
     public String toString(String crlf) {
         StringBuffer buff = new StringBuffer();
         buff.append(version + " " + getStatusLine() + crlf);
@@ -155,12 +201,18 @@ public class Response extends Message {
         return buff.toString();
     }
     
-    /** associates this Response with the provided Request */
+    /**
+     * associates this Response with the provided Request
+     * @param request
+     */
     public void setRequest(Request request) {
         _request = request;
     }
     
-    /** returns the Request that created this Response */
+    /**
+     * returns the Request that created this Response
+     * @return the request
+     */
     public Request getRequest() {
         return _request;
     }

@@ -6,24 +6,26 @@
 
 package org.owasp.webscarab.plugin.spider;
 
+import org.owasp.webscarab.model.StoreException;
+import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.model.Conversation;
-import org.owasp.webscarab.model.URLInfo;
-import org.owasp.webscarab.model.StoreException;
-import org.owasp.webscarab.model.CookieJar;
-import org.owasp.webscarab.model.URLTreeModel;
-import org.owasp.webscarab.util.MappedListModel;
+import org.owasp.webscarab.model.SiteModel;
 
-import org.owasp.webscarab.plugin.Plug;
-import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
+import org.owasp.webscarab.model.SiteModelAdapter;
+
+import org.owasp.webscarab.parser.Parser;
+
+import org.owasp.webscarab.plugin.Plugin;
+
 import org.owasp.webscarab.httpclient.AsyncFetcher;
 
 import org.htmlparser.Node;
 
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.tags.CompositeTag;
-import org.htmlparser.tags.FrameSetTag;
 import org.htmlparser.tags.Tag;
 
 import org.htmlparser.util.NodeIterator;
@@ -32,99 +34,88 @@ import org.htmlparser.util.ParserException;
 
 import java.util.Vector;
 import java.lang.ArrayIndexOutOfBoundsException;
-import java.util.TreeMap;
-import java.util.Map;
-import java.util.Collections;
-import java.util.Iterator;
+import java.util.Properties;
+import java.util.Date;
 
 import java.util.logging.Logger;
 
-import java.net.URL;
 import java.net.MalformedURLException;
 
 import java.lang.Thread;
-import java.lang.Runnable;
-
-import javax.swing.ListModel;
-
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
-
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
-
-import org.owasp.util.URLUtil;
 
 /**
  *
  * @author  rdawes
  */
 
-public class Spider extends AbstractWebScarabPlugin implements Runnable {
+public class Spider extends Plugin {
     
-    private Plug _plug;
+    private SiteModel _model = null;
     
-    private MappedListModel _unseenLinks = new MappedListModel();
-    private TreeMap _seenLinks = new TreeMap();
+    private SpiderUI _ui = null;
     
     private Vector _requestQueue = new Vector();
     private Vector _responseQueue = new Vector();
     private Vector _linkQueue = new Vector();
+    private Vector _conversationQueue = new Vector();
     
-    private AsyncFetcher[] _fetchers;
+    private AsyncFetcher[] _fetchers = new AsyncFetcher[0];
     private int _threads = 4;
     private boolean _recursive = false;
     private boolean _cookieSync = true;
     
+    private Analyser _analyser;
+    
     private String _allowedDomains = null;
     private String _forbiddenPaths = null;
     
-    private URLTreeModel _unseenLinkTreeModel = new URLTreeModel();
+    private boolean _stopping = false;
     
-    private SpiderStore _store = null;
+    private Listener _listener = null;
     
-    private CookieJar _cookieJar;
+    private Thread _runThread = null;
     
-    private Logger _logger = Logger.getLogger(this.getClass().getName());
+    private Logger _logger = Logger.getLogger(getClass().getName());
+    
+    private String _status = "Stopped";
     
     /** Creates a new instance of Spider */
-    public Spider(Plug plug) {
-        _plug = plug;
-        _cookieJar = plug.getCookieJar();
+    public Spider(Properties props) {
+        super(props);
         
-        setDefaultProperty("Spider.domains", ".*localhost.*");
-        setDefaultProperty("Spider.excludePaths", "");
-        setDefaultProperty("Spider.synchroniseCookies","yes");
-        setDefaultProperty("Spider.recursive","no");
         parseProperties();
-        
-        Thread me = new Thread(this);
-        me.setDaemon(true);
-        me.setPriority(Thread.MIN_PRIORITY);
-        me.setName("Spider");
-        me.start();
-        _logger.info("Spider initialised");
+    }
+    
+    public void setSession(SiteModel model, String type, Object connection) throws StoreException {
+        if (_model != null && _listener != null) {
+            _model.removeSiteModelListener(_listener);
+        }
+        _model = model;
+        _listener = new Listener();
+        _model.addSiteModelListener(_listener);
+        if (_ui != null) _ui.setModel(model);
+    }
+    
+    public void setUI(SpiderUI ui) {
+        _ui = ui;
+        if (_ui != null) _ui.setEnabled(_running);
     }
     
     public void parseProperties() {
         String prop = "Spider.domains";
-        String value = _prop.getProperty(prop);
-        if (value == null) value = "";
+        String value = _props.getProperty(prop, ".*localhost.*");
         setAllowedDomains(value);
         
         prop = "Spider.excludePaths";
-        value = _prop.getProperty(prop);
-        if (value == null) value = "";
+        value = _props.getProperty(prop, "");
         setForbiddenPaths(value);
         
         prop = "Spider.synchroniseCookies";
-        value = _prop.getProperty(prop);
+        value = _props.getProperty(prop, "true");
         setCookieSync(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
         
         prop = "Spider.recursive";
-        value = _prop.getProperty(prop);
+        value = _props.getProperty(prop, "false");
         setRecursive(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
     }
     
@@ -133,107 +124,203 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     }
     
     public void run() {
+        _status = "Started";
+        _stopping = false;
+        _runThread = Thread.currentThread();
+        
+        // start the analyser thread
+        _analyser = new Analyser();
+        Thread t = new Thread(_analyser);
+        t.setDaemon(true);
+        t.setName("Spider-Analyser");
+        t.setPriority(Thread.MIN_PRIORITY);
+        t.start();
+        
+        // start the fetchers
         _fetchers = new AsyncFetcher[_threads];
         for (int i=0; i<_threads; i++) {
-            _fetchers[i] = new AsyncFetcher(_requestQueue, _responseQueue, "Spider-" + Integer.toString(i));
+            _fetchers[i] = new AsyncFetcher(_requestQueue, _responseQueue);
+            t = new Thread(_fetchers[i], "Spider-" + Integer.toString(i));
+            t.setDaemon(true);
+            t.setPriority(Thread.MIN_PRIORITY);
+            t.start();
         }
-        Request request;
+        
+        _running = true;
+        if (_ui != null) _ui.setEnabled(_running);
+        while (!_stopping) {
+            // queue them as fast as they come, sleep a bit otherwise
+            if (!queueRequests() && !dequeueResponses()) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ie) {}
+            }
+        }
+        for (int i=0; i<_fetchers.length; i++) {
+            _fetchers[i].stop();
+        }
+        _analyser.stop();
+        _running = false;
+        _runThread = null;
+        if (_ui != null) _ui.setEnabled(_running);
+        _status = "Stopped";
+    }
+    
+    private boolean queueRequests() {
+        // if the request queue is empty, add the latest cookies etc to the
+        // request and submit it
+        Link link;
+        synchronized (_linkQueue) {
+            if (_linkQueue.size() > 0 && _requestQueue.size() == 0) {
+                link = (Link) _linkQueue.remove(0);
+                _logger.info(_linkQueue.size() + " remaining, queueing " + link.getURL());
+                if (_ui != null) _ui.linkDequeued(link);
+            } else {
+                return false;
+            }
+        }
+        if (link == null) {
+            _logger.warning("Got a null link from the link queue");
+            return false;
+        }
+        Request request = newGetRequest(link);
+        if (_cookieSync) {
+            Cookie[] cookies = _model.getCookiesForUrl(request.getURL());
+            if (cookies.length>0) {
+                StringBuffer buff = new StringBuffer();
+                buff.append(cookies[0].getName()).append("=").append(cookies[0].getValue());
+                for (int i=1; i<cookies.length; i++) {
+                    buff.append("; ").append(cookies[i].getName()).append("=").append(cookies[i].getValue());
+                }
+                request.setHeader("Cookie", buff.toString());
+            }
+        }
+        synchronized(_requestQueue) {
+            _requestQueue.add(request);
+        }
+        return true;
+    }
+    
+    private boolean dequeueResponses() {
+        // see if there are any responses waiting for us
         Response response;
-        Conversation conversation;
-        while (true) {
-            
-            // if the request queue is empty, add the latest cookies etc to the
-            // request and submit it
-            synchronized (_linkQueue) {
-                if (_linkQueue.size() > 0 && _requestQueue.size() == 0) {
-                    Link link = (Link) _linkQueue.remove(0);
-                    if (link != null) {
-                        _logger.fine(_linkQueue.size() + " remaining, queueing " + link.getURL());
-                        request = newGetRequest(link);
-                        if (request != null) {
-                            if (_cookieSync) {
-                                _cookieJar.addRequestCookies(request);
-                            }
-                            // we should set the UserAgent, Accept headers, etc
-                            synchronized(_requestQueue) {
-                                _requestQueue.add(request);
-                            }
-                        }
-                    }
+        synchronized (_responseQueue) {
+            if (_responseQueue.size() > 0) {
+                response = (Response) _responseQueue.remove(0);
+            } else {
+                return false;
+            }
+        }
+        if (response == null) {
+            _logger.warning("Got a null response from the response queue!");
+            return false;
+        }
+        Request request = response.getRequest();
+        if (request == null) {
+            _logger.warning("Got a null request from the response!");
+            return false;
+        }
+        _model.addConversation(request, response, "Spider");
+        if (_cookieSync) {
+            String[][] headers = response.getHeaders();
+            for (int i=0; i<headers.length; i++) {
+                if (headers[i][0].equals("Set-Cookie") || headers[i][0].equals("Set-Cookie2")) {
+                    Cookie cookie = new Cookie(new Date(), request.getURL(), headers[i][1]);
+                    _model.addCookie(cookie);
                 }
             }
-            
-            // see if there are any responses waiting for us
+        }
+        return true;
+    }
+    
+    public boolean isBusy() {
+        if (!_running) return false;
+        synchronized(_linkQueue) {
+            return _linkQueue.size() > 0 || _analyser.isBusy();
+        }
+    }
+    
+    public void requestLinksUnder(HttpUrl url) {
+        try {
+            _model.readLock().acquire();
             try {
-                synchronized (_responseQueue) {
-                    response = (Response) _responseQueue.remove(0);
+                queueLinksUnder(url);
+            } finally {
+                _model.readLock().release();
+            }
+        } catch (InterruptedException ie) {
+            _logger.info("Interrupted!");
+        }
+    }
+    
+    private void queueLinksUnder(HttpUrl url) {
+        Link link;
+        // fetch the queries for the url first
+        int count = _model.getQueryCount(url);
+        for (int i=0; i<count; i++) {
+            HttpUrl query = _model.getQueryAt(url, i);
+            if (! forbiddenPath(query)) {
+                if (_model.getConversationCount(query) == 0) {
+                    String referer = _model.getUrlProperty(query, "REFERER");
+                    link = new Link(query, referer);
+                    queueLink(link);
                 }
-                if (response != null) {
-                    request = response.getRequest();
-                    if (request != null) {
-                        _plug.addConversation("Spider", request, response);
-                        if (_cookieSync) {
-                            _cookieJar.updateCookies(response);
-                        }
-                    }
+            } else {
+                _logger.warning("Skipping forbidden path " + query);
+            }
+        }
+        // then fetch any child urls
+        count = _model.getChildUrlCount(url);
+        for (int i=0; i<count; i++) {
+            HttpUrl child = _model.getChildUrlAt(url, i);
+            queueLinksUnder(child);
+            if (_model.getConversationCount(child) == 0) {
+                if (! forbiddenPath(child)) {
+                    String referer = _model.getUrlProperty(child, "REFERER");
+                    link = new Link(child, referer);
+                    queueLink(link);
+                } else {
+                    _logger.warning("Skipping forbidden path " + child);
                 }
-            } catch (ArrayIndexOutOfBoundsException aioob) {
-                try {
-                    Thread.currentThread().sleep(100);
-                } catch (InterruptedException ie) {}
             }
         }
     }
     
-    public void requestLinksUnder(String root) {
-        synchronized(_unseenLinks) {
-            Iterator it = _unseenLinks.keySet().iterator();
-            while (it.hasNext()) {
-                String url = (String) it.next();
-                if (url.startsWith(root)) {
-                    if (!forbiddenPath(url)) {
-                        Link link = (Link) _unseenLinks.get(url);
-                        queueLink(link);
-                    } else {
-                        _logger.warning(url + " is a forbidden path!");
-                    }
-                }
-            }
+    public void requestLinks(HttpUrl[] urls) {
+        Link link;
+        for (int i=0; i<urls.length; i++) {
+            String referer = _model.getUrlProperty(urls[i], "REFERER");
+            link = new Link(urls[i], referer);
+            queueLink(link);
         }
     }
     
     private void queueLink(Link link) {
+        _logger.info("Queueing " + link);
         synchronized (_linkQueue) {
             _linkQueue.add(link);
         }
+        if (_ui != null) _ui.linkQueued(link);
     }
     
-    /** removes all pending reuqests from the queues - effectively stops the spider */
+    /** removes all pending requests from the queues - effectively stops the spider */
     public void resetRequestQueue() {
+        Link link;
         synchronized(_linkQueue) {
-            _linkQueue.clear();
+            while(_linkQueue.size()>0) {
+                link = (Link) _linkQueue.remove(0);
+                if (_ui != null) _ui.linkDequeued(link);
+            }
         }
         synchronized(_requestQueue) {
             _requestQueue.clear();
         }
     }
     
-    public void requestLinks(String[] urls) {
-        Link link;
-        for (int i=0; i<urls.length; i++) {
-            link = (Link) _unseenLinks.get(urls[i]);
-            if (link != null) {
-                queueLink(link);
-            } else {
-                _logger.warning("'" + urls[i] + "' not found");
-            }
-        }
-    }
-    
     public void setRecursive(boolean bool) {
         _recursive = bool;
         String prop = "Spider.recursive";
-        setProperty(prop,Boolean.toString(bool));
+        _props.setProperty(prop,Boolean.toString(bool));
     }
     
     public boolean getRecursive() {
@@ -243,138 +330,29 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     public void setCookieSync(boolean enabled) {
         _cookieSync = enabled;
         String prop = "Spider.synchroniseCookies";
-        setProperty(prop,Boolean.toString(enabled));
+        _props.setProperty(prop,Boolean.toString(enabled));
     }
     
     public boolean getCookieSync() {
         return _cookieSync;
     }
     
-    /** Called by the WebScarab data model once the {@link Response} has been parsed. It
-     * is called for all Conversations seen by the model (submitted by all plugins, not
-     * just this one).
-     * Any information gathered by this module should also be summarised into the
-     * supplied URLInfo, since only this analysis procedure will know how to do so!
-     * @param conversation The parsed Conversation to be analysed.
-     * @param urlinfo The class instance that contains the summarised information about this
-     * particular URL
-     */
-    public synchronized void analyse(Request request, Response response, Conversation conversation, URLInfo urlinfo, Object parsed) {
-        URL referer = request.getURL();
-        synchronized (_unseenLinks) {
-            String refstr = URLUtil.schemeAuthPathQry(referer);
-            if (_unseenLinks.containsKey(refstr)) {
-                int index = _unseenLinks.indexOf(refstr);
-                _unseenLinks.remove(refstr);
-                _unseenLinkTreeModel.remove(refstr);
-            }
-            _seenLinks.put(refstr,""); // actual value is irrelevant, could be a sequence no, for amusement
-        }
-        if (response.getStatus().equals("302")) {
-            String location = response.getHeader("Location");
-            if (location != null) {
-                try {
-                    URL url = new URL(location);
-                    addUnseenLink(url, referer);
-                } catch (MalformedURLException mue) {
-                    _logger.warning("Badly formed Location header : " + location);
-                }
-            } else {
-                _logger.warning("302 received, but no Location header!");
-            }
-            return;
-        }
-        if (parsed != null && parsed instanceof NodeList) { // the parsed content is HTML
-            NodeList nodelist = (NodeList) parsed;
-            recurseHtmlNodes(nodelist, referer);
-        } // else maybe it is a parsed Flash document? Anyone? :-)
-    }
-    
-    private void recurseHtmlNodes(NodeList nodelist, URL referer) {
-        try {
-            for (NodeIterator ni = nodelist.elements(); ni.hasMoreNodes();) {
-                Node node = ni.nextNode();
-                if (node instanceof LinkTag) {
-                    LinkTag linkTag = (LinkTag) node;
-                    if (! linkTag.isHTTPLikeLink() )
-                        continue;
-                    String link = linkTag.getLink();
-                    if (link == null || link.startsWith("irc://")) // for some reason the htmlparser thinks IRC:// links are httpLike()
-                        continue;
-                    try {
-                        URL url = new URL(link);
-                        addUnseenLink(url, referer);
-                    } catch (MalformedURLException mue) {
-                        // FIXME: We should also do SOMETHING with javascript links, maybe just show them
-                        // and provide a link to where they came from?
-                        _logger.warning("Malformed link : " + link);
-                    }
-                } else if (node instanceof CompositeTag) {
-                    CompositeTag ctag = (CompositeTag) node;
-                    recurseHtmlNodes(ctag.getChildren(), referer);
-                } else if (node instanceof Tag) { // this is horrendous! Why is this not a FrameTag?!
-                    Tag tag = (Tag) node;
-                    if (tag.getTagName().equals("FRAME")) {
-                        String src = tag.getAttribute("src");
-                        if (src.startsWith("http:") || src.startsWith("https://")) {
-                            try {
-                                URL url = new URL(src);
-                                addUnseenLink(url, referer);
-                            } catch (MalformedURLException mue) {
-                                _logger.warning("Malformed Frame src : " + src);
-                            }
-                        } else if (!src.startsWith("about:")) {
-                            _logger.fine("Creating a new relative URL with " + referer.toString() + " and " + src + " '");
-                            try {
-                                URL url = new URL(referer, src);
-                                addUnseenLink(url, referer);
-                            } catch (MalformedURLException mue) {
-                                _logger.warning("Bad relative URL (" + referer.toString() + ") : " + src);
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (ParserException pe) {
-            _logger.warning("ParserException : " + pe);
-        }
-    }
-    
-    private void addUnseenLink(URL url, URL referer) {
-        if (url == null) {
-            return;
-        }
-        synchronized (_unseenLinks) {
-            String urlstr = URLUtil.schemeAuthPathQry(url);
-            if (!_seenLinks.containsKey(urlstr) && !_unseenLinks.containsKey(urlstr)) {
-                Link link = new Link(url, referer);
-                _unseenLinks.put(urlstr, link);
-                _unseenLinkTreeModel.add(urlstr);
-                if (_recursive && allowedURL(url)) {
-                    queueLink(link);
-                }
-            }
-        }
-    }
-    
     private Request newGetRequest(Link link) {
-        return newGetRequest(link.getURL(), link.getReferer());
-    }
-    
-    private Request newGetRequest(URL url, URL referer) {
+        HttpUrl url = link.getURL();
+        String referer = link.getReferer();
         Request req = new Request();
         req.setMethod("GET");
         req.setURL(url);
         req.setVersion("HTTP/1.0"); // 1.1 or 1.0?
         if (referer != null) {
-            req.setHeader("Referer", referer.toString());
+            req.setHeader("Referer", referer);
         }
-        req.setHeader("Host", url.getHost() + ":" + Integer.toString(url.getPort() > -1 ? url.getPort() : url.getDefaultPort()) );
+        req.setHeader("Host", url.getHost() + ":" + url.getPort());
         req.setHeader("Connection", "Keep-Alive");
         return req;
     }
     
-    private boolean allowedURL(URL url) {
+    private boolean allowedURL(HttpUrl url) {
         // check here if it is on the primary site, or sites, or matches an exclude Regex
         // etc
         // This only applies to the automated recursive spidering. If the operator
@@ -388,32 +366,14 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         return false;
     }
     
-    public boolean allowedDomain(String url) {
-        try {
-            return allowedDomain(new URL(url));
-        } catch (MalformedURLException mue) {
-            _logger.warning("Malformed URL : " + url);
-            return false;
-        }
-    }
-    
-    public boolean allowedDomain(URL url) {
+    private boolean allowedDomain(HttpUrl url) {
         if (_allowedDomains!= null && !_allowedDomains.equals("") && url.getHost().matches(_allowedDomains)) {
             return true;
         }
         return false;
     }
     
-    public boolean forbiddenPath(String url) {
-        try {
-            return forbiddenPath(new URL(url));
-        } catch (MalformedURLException mue) {
-            _logger.warning("Malformed URL : " + url);
-            return true;
-        }
-    }
-    
-    public boolean forbiddenPath(URL url) {
+    private boolean forbiddenPath(HttpUrl url) {
         if (_forbiddenPaths != null && !_forbiddenPaths.equals("") && url.getPath().matches(_forbiddenPaths)) {
             return true;
         }
@@ -423,7 +383,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     public void setAllowedDomains(String regex) {
         _allowedDomains = regex;
         String prop = "Spider.domains";
-        setProperty(prop,regex);
+        _props.setProperty(prop,regex);
     }
     
     public String getAllowedDomains() {
@@ -433,78 +393,190 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     public void setForbiddenPaths(String regex) {
         _forbiddenPaths = regex;
         String prop = "Spider.excludePaths";
-        setProperty(prop,regex);
+        _props.setProperty(prop,regex);
     }
     
     public String getForbiddenPaths() {
         return _forbiddenPaths;
     }
     
-    public ListModel getUnseenLinkList() {
-        return _unseenLinks;
+    public void flush() throws StoreException {
+        // we do not manage our own store
     }
     
-    public TreeModel getUnseenLinkTreeModel() {
-        return _unseenLinkTreeModel;
-    }
-    
-    public void setSessionStore(Object store) throws StoreException {
-        if (store != null && store instanceof SpiderStore) {
-            _store = (SpiderStore) store;
-            synchronized (_unseenLinks) {
-                _unseenLinkTreeModel.clear(); // this fires its own events
-                _unseenLinks.clear();
-                Link[] links = _store.readUnseenLinks();
-                for (int i=0; i<links.length; i++) {
-                    String urlstr = URLUtil.schemeAuthPathQry(links[i].getURL());
-                    _unseenLinks.put(urlstr,links[i]);
-                    _unseenLinkTreeModel.add(urlstr);
-                }
-            }
-            synchronized (_seenLinks) {
-                _seenLinks.clear();
-                String[] seen = _store.readSeenLinks();
-                for (int i=0; i<seen.length; i++) {
-                    _seenLinks.put(seen[i], "");
-                }
-            }
-        } else {
-            throw new StoreException("object passed does not implement SpiderStore!");
-        }
-    }
-    
-    public void saveSessionData() throws StoreException {
-        if (_store != null) {
-            synchronized (_unseenLinks) {
-                Link[] links = new Link[_unseenLinks.size()];
-                for (int i=0; i<links.length; i++) {
-                    links[i] = (Link) _unseenLinks.get(i);
-                }
-                _store.writeUnseenLinks(links);
-            }
-            synchronized (_seenLinks) {
-                String[] seen = new String[_seenLinks.size()];
-                Iterator keys = _seenLinks.keySet().iterator();
-                for (int i=0; i<seen.length; i++) {
-                    seen[i] = (String) keys.next();
-                }
-                _store.writeSeenLinks(seen);
-            }
-        }
-    }
-    
-    private String canonicalURL(String url) {
+    public boolean stop() {
+        if (isBusy()) return false;
+        _stopping = true;
         try {
-            URL u = new URL(url);
-            url = URLUtil.schemeAuthPathQry(u);
-            if (u.getPath().equals("")) {
-                url=url+"/";
-            }
-        } catch (MalformedURLException mue) {
-            _logger.warning("Malformed url '" + url + "' : " + mue);
-            return null;
+            _runThread.join(5000);
+        } catch (InterruptedException ie) {
+            _logger.severe("Interrupted stopping " + getPluginName());
         }
-        return url;
+        return !_running;
     }
+    
+    public String getStatus() {
+        if (isBusy()) 
+            return "Started, " + 
+            _analyser.queueSize() + " queued for analysis, " + 
+            _linkQueue.size() + " queued for fetching";
+        return _status;
+    }
+    
+    private class Listener extends SiteModelAdapter {
         
+        public void conversationAdded(ConversationID id) {
+            _analyser.queue(id);
+        }
+        
+        public void urlAdded(HttpUrl url) {
+            // FIXME TODO We could add something here to support removal of links from
+            // the queue, maybe
+        }
+        
+    }
+    
+    private class Analyser implements Runnable {
+        
+        private Vector _queue = new Vector(); // is synchronized already
+        private boolean _stopping = false;
+        private boolean _running = false;
+        private Thread _runThread = null;
+        
+        public void queue(ConversationID id) {
+            _queue.add(id);
+        }
+        
+        private int queueSize() {
+            return _queue.size();
+        }
+        
+        public boolean isBusy() {
+            return _queue.size() > 0;
+        }
+        
+        public void reset() {
+            _queue.clear();
+        }
+        
+        public void run() {
+            _runThread = Thread.currentThread();
+            _stopping = false;
+            _running = true;
+            while (!_stopping) {
+                if (_queue.size()>0) {
+                    ConversationID id = (ConversationID) _queue.remove(0);
+                    _logger.info("Analysing " + id);
+                    analyse(id);
+                } else {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ie) {}
+                }
+            }
+            _running = false;
+            _runThread = null;
+        }
+        
+        public boolean stop() {
+            if (_running) {
+                _stopping = true;
+                try {
+                    _runThread.join(5000);
+                } catch (InterruptedException ie) {
+                    _logger.warning("Interrupted!");
+                }
+            }
+            return ! _running;
+        }
+        
+        private void analyse(ConversationID id) {
+            Request request = _model.getRequest(id);
+            Response response = _model.getResponse(id);
+            HttpUrl base = request.getURL();
+            if (response.getStatus().equals("302")) {
+                String location = response.getHeader("Location");
+                if (location != null) {
+                    try {
+                        HttpUrl url = new HttpUrl(location);
+                        addUnseenLink(url, base);
+                    } catch (MalformedURLException mue) {
+                        _logger.warning("Badly formed Location header : " + location);
+                    }
+                } else {
+                    _logger.warning("302 received, but no Location header!");
+                }
+                return;
+            }
+            Object parsed = Parser.parse(base, response);
+            if (parsed != null && parsed instanceof NodeList) { // the parsed content is HTML
+                NodeList nodelist = (NodeList) parsed;
+                recurseHtmlNodes(nodelist, base);
+            } // else maybe it is a parsed Flash document? Anyone? :-)
+        }
+        
+        private void recurseHtmlNodes(NodeList nodelist, HttpUrl base) {
+            try {
+                for (NodeIterator ni = nodelist.elements(); ni.hasMoreNodes();) {
+                    Node node = ni.nextNode();
+                    if (node instanceof LinkTag) {
+                        LinkTag linkTag = (LinkTag) node;
+                        if (! linkTag.isHTTPLikeLink() )
+                            continue;
+                        String link = linkTag.getLink();
+                        // for some reason the htmlparser thinks IRC:// links are httpLike
+                        if (link == null || link.startsWith("irc://"))
+                            continue;
+                        try {
+                            HttpUrl url = new HttpUrl(link);
+                            addUnseenLink(url, base);
+                        } catch (MalformedURLException mue) {
+                            // FIXME: We should also do SOMETHING with javascript links, maybe just show them
+                            // and provide a link to where they came from?
+                            _logger.warning("Malformed link: '" + link + "'");
+                        }
+                    } else if (node instanceof CompositeTag) {
+                        CompositeTag ctag = (CompositeTag) node;
+                        recurseHtmlNodes(ctag.getChildren(), base);
+                    } else if (node instanceof Tag) { // this is horrendous! Why is this not a FrameTag?!
+                        Tag tag = (Tag) node;
+                        if (tag.getTagName().equals("FRAME")) {
+                            String src = tag.getAttribute("src");
+                            if (src.startsWith("http://") || src.startsWith("https://")) {
+                                try {
+                                    HttpUrl url = new HttpUrl(src);
+                                    addUnseenLink(url, base);
+                                } catch (MalformedURLException mue) {
+                                    _logger.warning("Malformed Frame src : " + src);
+                                }
+                            } else if (!src.startsWith("about:")) {
+                                _logger.fine("Creating a new relative URL with " + base + " and " + src + " '");
+                                try {
+                                    HttpUrl url = new HttpUrl(base, src);
+                                    addUnseenLink(url, base);
+                                } catch (MalformedURLException mue) {
+                                    _logger.warning("Bad relative URL (" + base.toString() + ") : " + src);
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (ParserException pe) {
+                _logger.warning("ParserException : " + pe);
+            }
+        }
+        
+        private void addUnseenLink(HttpUrl url, HttpUrl referer) {
+            if (url == null) {
+                return;
+            }
+            if (_model.getConversationCount(url) == 0) {
+                String first = _model.getUrlProperty(url, "REFERER");
+                if (first == null || first.equals("")) {
+                    _model.setUrlProperty(url, "REFERER", referer.toString());
+                }
+            }
+        }
+        
+    }
 }

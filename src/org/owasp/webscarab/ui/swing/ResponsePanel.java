@@ -6,15 +6,11 @@
 
 package org.owasp.webscarab.ui.swing;
 
-import javax.swing.ImageIcon;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.SwingUtilities;
 
-import java.io.ByteArrayInputStream;
-
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.ui.swing.editors.BeanShellPanel;
 import org.owasp.webscarab.ui.swing.editors.TextPanel;
 
 /**
@@ -32,7 +28,6 @@ public class ResponsePanel extends javax.swing.JPanel {
     
     private Response _response = null;
     private MessagePanel _messagePanel;
-    private BeanShellPanel _beanShellPanel;
     private TextPanel _textPanel;
     
     private static int _preferred = -1;
@@ -65,8 +60,6 @@ public class ResponsePanel extends javax.swing.JPanel {
         gridBagConstraints.weighty = 1.0;
         parsedPanel.add(_messagePanel, gridBagConstraints);
         
-        _beanShellPanel = new BeanShellPanel();
-        displayTabbedPane.add("Bean Script", _beanShellPanel);
         _textPanel = new TextPanel();
         displayTabbedPane.add("Raw", _textPanel);
         
@@ -88,7 +81,7 @@ public class ResponsePanel extends javax.swing.JPanel {
         if (! _editable || panel < 0) {
             return;
         }
-        if (panel == 0) {// parsed text
+        if (displayTabbedPane.getTitleAt(panel).equals("Parsed")) {// parsed text
             if (_messagePanel.isModified()) {
                 _response = (Response) _messagePanel.getMessage();
                 _modified = true;
@@ -101,12 +94,7 @@ public class ResponsePanel extends javax.swing.JPanel {
             _response.setStatus(statusTextField.getText());
             _response.setMessage(messageTextField.getText());
             _response.setVersion(versionTextField.getText());
-        } else if (panel == 1) {// bean shell
-            _modified = true; // we have to assume that the bean shell has modified the response
-            invalidatePanels();
-            // BeanShell modifies our copy of _response directly, no need to fetch it
-            // _response = _beanShellPanel.getResponse();
-        } else if (panel == 2) { // raw text
+        } else if (displayTabbedPane.getTitleAt(panel).equals("Raw")) { // raw text
             if (_textPanel.isModified()) {
                 try {
                     Response r = new Response();
@@ -122,9 +110,13 @@ public class ResponsePanel extends javax.swing.JPanel {
         _upToDate[panel] = true;
     }
     
+    public boolean isModified() {
+        return _modified;
+    }
+    
     private void updatePanel(int panel) {
         if (!_upToDate[panel]) {
-            if (panel == 0) {// parsed text
+            if (displayTabbedPane.getTitleAt(panel).equals("Parsed")) {// parsed text
                 _messagePanel.setMessage(_response, _editable);
                 if (_response != null) {
                     statusTextField.setText(_response.getStatus());
@@ -135,13 +127,7 @@ public class ResponsePanel extends javax.swing.JPanel {
                     messageTextField.setText("");
                     versionTextField.setText("");
                 }
-            } else if (panel == 1) {// bean shell
-                try {
-                    _beanShellPanel.setVariable("response", _response);
-                } catch (bsh.EvalError ee) {
-                    System.err.println("Exception setting the response in the BeanShell : " + ee);
-                }
-            } else if (panel == 2) { // raw text
+            } else if (displayTabbedPane.getTitleAt(panel).equals("Raw")) { // raw text
                 if (_response != null) {
                     _textPanel.setBytes(_response.toString("\n").getBytes());
                 } else {
@@ -151,7 +137,7 @@ public class ResponsePanel extends javax.swing.JPanel {
             _upToDate[panel] = true;
         }
     }
-
+    
     public void updateComponents(boolean editable) {
         java.awt.Color color;
         if (editable) {
@@ -234,39 +220,39 @@ public class ResponsePanel extends javax.swing.JPanel {
         jLabel3.setLabelFor(statusTextField);
         jLabel3.setText("Status");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         parsedPanel.add(jLabel3, gridBagConstraints);
 
         statusTextField.setEditable(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         parsedPanel.add(statusTextField, gridBagConstraints);
 
         jLabel4.setLabelFor(messageTextField);
         jLabel4.setText("Message");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         parsedPanel.add(jLabel4, gridBagConstraints);
 
         messageTextField.setEditable(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weightx = 1.0;
         parsedPanel.add(messageTextField, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -281,24 +267,23 @@ public class ResponsePanel extends javax.swing.JPanel {
         jLabel5.setLabelFor(messageTextField);
         jLabel5.setText("Version");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         parsedPanel.add(jLabel5, gridBagConstraints);
 
         versionTextField.setBackground(new java.awt.Color(204, 204, 204));
         versionTextField.setEditable(false);
-        versionTextField.setText("HTTP/1.0");
         versionTextField.setMinimumSize(new java.awt.Dimension(65, 19));
         versionTextField.setPreferredSize(new java.awt.Dimension(65, 19));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         parsedPanel.add(versionTextField, gridBagConstraints);
 
         displayTabbedPane.addTab("Parsed", parsedPanel);
@@ -341,15 +326,15 @@ public class ResponsePanel extends javax.swing.JPanel {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel4;
+    private javax.swing.JTabbedPane displayTabbedPane;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JTextField versionTextField;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel messagePanelPlaceHolder;
+    private javax.swing.JTextField messageTextField;
     private javax.swing.JPanel parsedPanel;
     private javax.swing.JTextField statusTextField;
-    private javax.swing.JTabbedPane displayTabbedPane;
-    private javax.swing.JTextField messageTextField;
-    private javax.swing.JLabel jLabel5;
+    private javax.swing.JTextField versionTextField;
     // End of variables declaration//GEN-END:variables
     
 }

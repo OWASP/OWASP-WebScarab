@@ -9,44 +9,56 @@ package org.owasp.webscarab.model;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URL;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 
-import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-
 import java.text.ParseException;
-
-import org.owasp.webscarab.util.Util;
 
 /** This class represents a request that can be sent to an HTTP server.
  * @author rdawes
  */
 public class Request extends Message {
     
-    private String method = null;
-    private URL url = null;
-    private String version = null;
-    private URL _base = null;
+    private String _method = null;
+    private HttpUrl _url = null;
+    private String _version = null;
     
     /** Creates a new instance of Request */
     public Request() {
     }
     
-    /** Creates a new Request, which is a copy of the supplied Request */    
+    /**
+     * Creates a new Request, which is a copy of the supplied Request
+     * @param req the request to copy
+     */    
     public Request(Request req) {
-        this.method = req.getMethod();
-        this.url = req.getURL();
-        this.version = req.getVersion();
+        _method = req.getMethod();
+        _url = req.getURL();
+        _version = req.getVersion();
         setHeaders(req.getHeaders());
         setContent(req.getContent());
     }
-        
-    /** initialises the Request from the supplied InputStream */    
+    
+    /**
+     * initialises the Request from the supplied InputStream
+     * @param is the InputStream to read from
+     * @throws IOException propagates any exceptions thrown by the InputStream
+     */
     public void read(InputStream is) throws IOException {
+        read(is, null);
+    }
+    
+    /**
+     * initialises the Request from the supplied InputStream, using the supplied Url
+     * as a base. This will generally be useful where we are acting as a web server,
+     * and reading a line like "GET / HTTP/1.0". The request Url is then created
+     * relative to the supplied Url.
+     * @param is the InputStream to read from
+     * @param base the base Url to use for relative Urls
+     * @throws IOException propagates any IOExceptions thrown by the InputStream
+     */    
+    public void read(InputStream is, HttpUrl base) throws IOException {
         String line = null;
         try {
             line = readLine(is);
@@ -62,9 +74,10 @@ public class Request extends Message {
         if (parts.length == 2 || parts.length == 3) {
             setMethod(parts[0]);
             if (getMethod().equalsIgnoreCase("CONNECT")) {
-                setURL("https://" + parts[1] + "/");
+                setURL(new HttpUrl("https://" + parts[1] + "/"));
             } else {
-                setURL(parts[1]);
+                // supports creating an absolute url from a relative one
+                setURL(new HttpUrl(base, parts[1]));
             }
         } else {
             throw new IOException("Invalid request line reading from the InputStream '"+line+"'");
@@ -74,18 +87,28 @@ public class Request extends Message {
         } else {
             setVersion("HTTP/0.9");
         }
-        // Read the rest of the message headers and body
+        // Read the rest of the message headers and to the start of the body
         super.read(is);
-        if (method.equals("CONNECT") || method.equals("GET") || method.equals("HEAD") || method.equals("TRACE")) {
+        if (_method.equals("CONNECT") || _method.equals("GET") || _method.equals("HEAD") || _method.equals("TRACE")) {
             // These methods cannot include a message body
             setNoBody();
         }
     }
     
+    /**
+     * parses a string representation of a request
+     * @param string the string representing the request
+     * @throws ParseException if there are any errors parsing the request
+     */    
     public void parse(String string) throws ParseException {
         parse(new StringBuffer(string));
     }
     
+    /**
+     * parses a string representation of a request
+     * @param buff a StringBuffer containing the request. Note that the contents of the StringBuffer are consumed during parsing.
+     * @throws ParseException if there are any errors parsing the request
+     */    
     protected void parse(StringBuffer buff) throws ParseException {
         String line = null;
         line = getLine(buff);
@@ -94,9 +117,9 @@ public class Request extends Message {
             setMethod(parts[0]);
             try {
                 if (getMethod().equalsIgnoreCase("CONNECT")) {
-                    setURL("https://" + parts[1] + "/");
+                    setURL(new HttpUrl("https://" + parts[1] + "/"));
                 } else {
-                    setURL(parts[1]);
+                    setURL(new HttpUrl(parts[1]));
                 }
             } catch (MalformedURLException mue) {
                 throw new ParseException("Malformed URL '" + parts[1] + "' : " + mue, parts[0].length()+1);
@@ -111,39 +134,44 @@ public class Request extends Message {
         }
         // Read the rest of the message headers and body
         super.parse(buff);
-        if (method.equals("CONNECT") || method.equals("GET") || method.equals("HEAD") || method.equals("TRACE")) {
+        if (_method.equals("CONNECT") || _method.equals("GET") || _method.equals("HEAD") || _method.equals("TRACE")) {
             // These methods cannot include a message body
             setNoBody();
         }
     }
     
-    /** Writes the Request to the supplied OutputStream, in a format appropriate for
+    /**
+     * Writes the Request to the supplied OutputStream, in a format appropriate for
      * sending to an HTTP proxy. Uses the RFC CRLF string "\r\n"
+     * @param os the OutputStream to write to
+     * @throws IOException if the underlying stream throws any.
      */    
     public void write(OutputStream os) throws IOException {
         write(os,"\r\n");
     }
     
-    /** Writes the Request to the supplied OutputStream, in a format appropriate for
+    /**
+     * Writes the Request to the supplied OutputStream, in a format appropriate for
      * sending to an HTTP proxy. Uses the supplied string to separate lines.
+     * @param os the OutputStream to write to
+     * @param crlf the string to use to separate the lines (usually a CRLF pair)
+     * @throws IOException if the underlying stream throws any.
      */    
     public void write(OutputStream os, String crlf) throws IOException {
-        if (method == null || url == null || version == null) {
+        if (_method == null || _url == null || _version == null) {
             System.err.println("Uninitialised Request!");
             return;
         }
         os = new BufferedOutputStream(os);
-        os.write(new String(method+" "+(url==null?"null":url.getProtocol()) + "://" + (url==null?"null":url.getHost())).getBytes());
-        os.write(new String(":"+(url==null?"null":String.valueOf(url.getPort()==-1?url.getDefaultPort():url.getPort()))).getBytes());
-        os.write(new String((url==null?"null":(url.getPath()==null?"/":url.getPath()))).getBytes());
-        os.write(new String((url==null?"null":url.getQuery()==null?"":"?"+url.getQuery())).getBytes());
-        os.write(new String(" " + version + crlf).getBytes());
+        os.write(new String(_method+" "+_url+" " + _version + crlf).getBytes());
         super.write(os, crlf);
         os.flush();
     }
     
     /** Writes the Request to the supplied OutputStream, in a format appropriate for
      * sending to the HTTP server itself. Uses the RFC CRLF string "\r\n"
+     * @param os the OutputStream to write to
+     * @throws IOException if the underlying stream throws any.
      */    
     public void writeDirect(OutputStream os) throws IOException {
         writeDirect(os, "\r\n");
@@ -151,86 +179,93 @@ public class Request extends Message {
     
     /** Writes the Request to the supplied OutputStream, in a format appropriate for
      * sending to the HTTP server itself. Uses the supplied string to separate lines.
+     * @param os the OutputStream to write to
+     * @param crlf the string to use to separate the lines (usually a CRLF pair)
+     * @throws IOException if the underlying stream throws any.
      */    
     public void writeDirect(OutputStream os, String crlf) throws IOException {
-        if (method == null || url == null || version == null) {
+        if (_method == null || _url == null || _version == null) {
             System.err.println("Uninitialised Request!");
             return;
         }
         os = new BufferedOutputStream(os);
-        os.write((method+" ").getBytes());
-        os.write(new String((url==null?"null":(url.getPath()==null?"/":url.getPath()))).getBytes());
-        os.write(new String((url==null?"null":url.getQuery()==null?"":"?"+url.getQuery())).getBytes());
-        os.write(new String(" " + version + crlf).getBytes());
+        os.write((_method+" ").getBytes());
+        os.write(_url.direct().getBytes());
+        os.write(new String(" " + _version + crlf).getBytes());
         super.write(os, crlf);
         os.flush();
     }
     
-    /** Sets the request method */    
-    public void setMethod(String method) {
-        this.method = method;
-    }
-    
-    /** gets the Request method */    
-    public String getMethod() {
-        return method;
-    }
-    
-    /** Sets the URL that the URL read from the InputStream should be based on. This is
-     * appropriate when parsing an intercepted CONNECT Request, when the URL read will
-     * no longer include the protocol://host:port.
+    /**
+     * Sets the request method
+     * @param method the method of the request (automatically converted to uppercase)
      */    
-    public void setBaseURL(String base) throws java.net.MalformedURLException {
-        _base = new URL(base);
+    public void setMethod(String method) {
+        _method = method.toUpperCase();
     }
     
-    /** Sets the Request URL */    
-    public void setURL(String url) throws MalformedURLException {
-        if (_base != null) {
-            this.url = new URL(_base, url);
-        } else {
-            this.url = new URL(url);
-        }
+    /**
+     * gets the Request method
+     * @return the request method
+     */    
+    public String getMethod() {
+        return _method;
     }
     
-    /** Sets the Request URL */    
-    public void setURL(URL url) {
-        this.url = url;
+    /**
+     * Sets the Request URL
+     * @param url the url
+     */    
+    public void setURL(HttpUrl url) {
+        _url = url;
     }
     
-    /** Gets the Request URL */    
-    public URL getURL() {
-        return url;
+    /**
+     * Gets the Request URL
+     * @return the request url
+     */    
+    public HttpUrl getURL() {
+        return _url;
     }
     
-    /** Sets the HTTP version supported */    
+    /**
+     * Sets the HTTP version supported
+     * @param version the version of the request. Automatically converted to uppercase.
+     */    
     public void setVersion(String version) {
-        this.version = version;
+        _version = version.toUpperCase();
     }
     
-    /** gets the HTTP version */    
+    /**
+     * gets the HTTP version
+     * @return the version of the request
+     */    
     public String getVersion() {
-        return version;
+        return _version;
     }
     
-    /** returns a string representation of the Request, using a CRLF of "\r\n" */    
+    /**
+     * returns a string representation of the Request, using a CRLF of "\r\n"
+     * @return a string representation of the Request, using a CRLF of "\r\n"
+     */    
     public String toString() {
         return toString("\r\n");
     }
     
-    /** returns a string representation of the Request, using the supplied string to
+    /**
+     * returns a string representation of the Request, using the supplied string to
      * separate lines
+     * @param crlf the string to use to separate lines (usually CRLF)
+     * @return a string representation of the Request
      */    
     public String toString(String crlf) {
-        if (method == null || url == null || version == null) {
+        if (_method == null || _url == null || _version == null) {
             return "Unitialised Request!";
         }
         StringBuffer buff = new StringBuffer();
-        buff.append(method+" "+(url==null?"null":url.getProtocol()) + "://" + (url==null?"null":url.getHost()));
-        buff.append(":"+(url==null?"null":String.valueOf(url.getPort()==-1?url.getDefaultPort():url.getPort())));
-        buff.append(url==null?"null":url.getPath());
-        buff.append(url==null?"null":url.getQuery()==null?"":"?"+url.getQuery());
-        buff.append(" " + version + crlf);
+        buff.append(_method).append(" ");
+        buff.append(_url).append(" ");
+        buff.append(_version).append(crlf);
         buff.append(super.toString(crlf));
         return buff.toString();
     }
@@ -243,145 +278,5 @@ public class Request extends Message {
         if (!getVersion().equals(req.getVersion())) return false;
         return super.equals(req);
     }
-    
-//    public String[][] getParameters() {
-//        ArrayList params = new ArrayList(1);
-//        String s;
-//        if (url == null) { return new String[0][0]; }
-//        String query;
-//        if ((query=Util.getURLQuery(url)) != null) {
-//            String[] frags = null;
-//            String[] queries = null;
-//            if (query != null && query.startsWith(";")) {
-//                String[] pq = query.split("\\?",2);
-//                frags = pq[0].substring(1).split(";");
-//                if (pq.length>1) {
-//                    queries = pq[1].split("\\&");
-//                }
-//            } else if (query != null && query.startsWith("?")) {
-//                queries = query.substring(1).split("&");
-//            }
-//            if (frags != null && frags.length>0) {
-//                for (int i=0; i< frags.length; i++) {
-//                    if (frags[i].length() > 0) {
-//                        String[] pair = frags[i].split("=");
-//                        String[] row = new String[] {"FRAGMENT",pair[0], pair[1]};
-//                        params.add(row);
-//                    }
-//                }
-//            }
-//            if (queries != null && queries.length > 0) {
-//                for (int i=0; i<queries.length; i++) {
-//                    String[] pair = queries[i].split("=");
-//                    if (pair.length == 2) {
-//                        String[] row = new String[] {"QUERY",pair[0],pair[1]};
-//                        params.add(row);
-//                    } else {
-//                        String[] row = new String[] {"QUERY",pair[0],new String("")};
-//                        params.add(row);
-//                    }                        
-//                }
-//            }
-//        }
-//        String cookie = getHeader("Cookie");
-//        if (cookie != null) {
-//            // Add the cookie
-//            String[] cookies = cookie.split(" *; *");
-//            for (int i=0; i<cookies.length; i++) {
-//                String[] pair = cookies[i].split("=");
-//                String[] row = new String[] {"COOKIE", pair[0], pair[1]};
-//                params.add(row);
-//            }
-//        }
-//        if (getContent() != null) {
-//            String content = new String(getContent());
-//            String[] body = content.split("&");
-//            for (int i=0; i< body.length; i++) {
-//                String[] pair = body[i].split("=");
-//                if (pair.length == 2) {
-//                    String[] row = new String[] {"BODY",pair[0],pair[1]};
-//                    params.add(row);
-//                } else {
-//                    String[] row = new String[] {"BODY",pair[0],new String("")};
-//                    params.add(row);
-//                }                    
-//            }
-//        }
-//        String[][] p = new String[params.size()][3];
-//        for (int i=0; i<params.size(); i++) {
-//            p[i]=(String[])params.get(i);
-//        }
-//        return p;
-//    }
-//    
-//    public void setParameters(String[][] params) {
-//        String fragment = null;
-//        String query = null;
-//        String cookie = null;
-//        String content = null;
-//        
-//        for (int i=0; i<params.length; i++) {
-//            String type = params[i][0];
-//            String name = params[i][1];
-//            String value = params[i][2];
-//            if (value == null) value = "";
-//            if (type.equals("FRAGMENT")) {
-//                if (fragment == null) {
-//                    fragment = new String(name + "=" + value);
-//                } else {
-//                    System.err.println("Not sure if an URL is permitted to have multiple fragments. Currently '" 
-//                    + fragment + "', adding " + name + "=" + value);
-//                    fragment = fragment + "&" + name + "=" + value;
-//                }
-//            } else if (type.equals("QUERY")) {
-//                if (query == null)
-//                    query = new String(name + "=" + value);
-//                else
-//                    query = query + "&" + name + "=" + value;
-//            } else if (type.equals("COOKIE")) {
-//                if (cookie == null) {
-//                    cookie = new String(name + "=" + value);
-//                } else {
-//                    cookie = cookie + "; " + name + "=" + value;
-//                }
-//            } else if (type.equals("BODY")) {
-//                if (content == null)
-//                    content = new String(name + "=" + value);
-//                else
-//                    content = content + "&" + name + "=" + value;
-//            }
-//        }
-//        String fragquery = new String("");
-//        try {
-//            if (fragment != null) {
-//                fragquery = ";" + fragment;
-//            }
-//            if (query != null) {
-//                fragquery = fragquery + "?" + query;
-//            }
-//            if (!fragquery.equals("")) {
-//                url = new URL(Util.getURLSHPP(url) + fragquery);
-//            }
-//        } catch (MalformedURLException mue) {
-//            System.err.println("Error creating the URL with fragquery '" + fragquery + "' : " + mue);
-//            return;
-//        }
-//        if (cookie != null) {
-//            setHeader("Cookie", cookie);
-//        } else {
-//            deleteHeader("Cookie");
-//        }
-//        if (content != null) {
-//            if (!method.equalsIgnoreCase("GET")) {
-//                setContent(content.getBytes());
-//                setHeader("Content-Length",Integer.toString(content.length()));
-//            } else {
-//                System.err.println("GET does not support BODY parameters");
-//            }
-//        } else {
-//            setContent(null);
-//            deleteHeader("Content-Length");
-//        }
-//    }
     
 }

@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.Collection;
 import java.util.Set;
 import java.util.Map;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.swing.AbstractListModel;

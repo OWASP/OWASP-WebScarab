@@ -200,7 +200,7 @@ public class NetworkSimulator {
         
         private void sleep(int period) {
             try {
-                Thread.currentThread().sleep(period);
+                Thread.sleep(period);
             } catch (InterruptedException ie) {}
         }
         

@@ -10,9 +10,20 @@ import javax.swing.JFrame;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
-import javax.swing.border.TitledBorder;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Toolkit;
+
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
+
+import bsh.Interpreter;
+import bsh.EvalError;
+import bsh.util.JConsole;
+
+import java.util.logging.Logger;
 
 /**
  *
@@ -24,39 +35,163 @@ public class ConversationPanel extends javax.swing.JPanel {
     private ResponsePanel _responsePanel;
     private JFrame _frame = null;
     
-    private static Dimension _size = null;
-    private static Point _location = null;
+    private Thread _thread;
+    private Interpreter _interpreter;
+    private JConsole _console;
+    
+    private Logger _logger = Logger.getLogger(getClass().getName());
+    
+    private Request _request = null;
+    private Response _response = null;
+    
+    private boolean _requestModified = false;
+    private boolean _responseModified = false;
+    
+    private boolean _requestEditable = false;
+    private boolean _responseEditable = false;
+    
+    private int _selected;
+    
+    private static Dimension _preferredSize = new Dimension(600,500);
+    private static Point _preferredLocation = null;
     
     /** Creates new form ConversationPanel */
     public ConversationPanel() {
         initComponents();
         
         _requestPanel = new RequestPanel();
-        _requestPanel.setBorder(new TitledBorder("Request"));
         _responsePanel = new ResponsePanel();
-        _responsePanel.setBorder(new TitledBorder("Response"));
-        conversationSplitPane.setTopComponent(_requestPanel);
-        conversationSplitPane.setBottomComponent(_responsePanel);
+        
+        _console = new JConsole();
+        _interpreter = new Interpreter(_console);
+        _interpreter.setExitOnEOF(false);
+        _thread = new Thread(_interpreter, "BeanShell interpreter");
+        _thread.setDaemon(true);
+        _thread.start();
+        
+        tabbedPane.insertTab("Request", null, _requestPanel, null, 0);
+        tabbedPane.insertTab("Response", null, _responsePanel, null, 1);
+        tabbedPane.insertTab("Script", null, _console, null, 2);
+        
+        _selected = tabbedPane.getSelectedIndex();
+        
+        tabbedPane.getModel().addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                if (_selected == 0 && _requestPanel.isModified()) {
+                    _request = _requestPanel.getRequest();
+                    _requestModified = true;
+                } else if (_selected == 1 && _responsePanel.isModified()) {
+                    _response = _responsePanel.getResponse();
+                    _responseModified = true;
+                } else if (_selected == 2) {
+                    try {
+                        if (_requestEditable) {
+                            _request = (Request) _interpreter.get("request");
+                            _requestModified = true;
+                        }
+                        if (_responseEditable) {
+                            _response = (Response) _interpreter.get("response");
+                            _responseModified = true;
+                        }
+                    } catch (EvalError ee) {
+                        _logger.warning("Error getting request and response from the interpreter: " + ee);
+                    }
+                }
+                
+                _selected = tabbedPane.getSelectedIndex();
+                
+                if (_selected == 0) {
+                    if (_requestModified) _requestPanel.setRequest(_request, _requestEditable);
+                } else if (_selected == 1) {
+                    if (_responseModified) _responsePanel.setResponse(_response, _responseEditable);
+                } else if (_selected == 2) {
+                    try {
+                        _interpreter.set("request", _requestPanel.getRequest());
+                        _requestModified = true;
+                        _interpreter.set("response", _responsePanel.getResponse());
+                        _responseModified = true;
+                    } catch (EvalError ee) {
+                        _logger.warning("Error setting request and response: " + ee);
+                    }
+                }
+            }
+        });
+        
     }
     
     public void setRequest(Request request, boolean editable) {
-        _requestPanel.setRequest(request, editable);
+        if (request != null) request = new Request(request);
+        _request = request;
+        _requestEditable = editable;
+        _requestModified = false;
+        _requestPanel.setRequest(_request, editable);
+        try {
+            _interpreter.set("request", _request);
+        } catch (EvalError ee) {
+            _logger.warning("Error setting request: " + ee);
+        }
+    }
+    
+    public boolean isRequestModified() {
+        return _requestModified || _requestPanel.isModified();
     }
     
     public Request getRequest() {
-        return _requestPanel.getRequest();
+        if (_requestEditable) {
+            if (tabbedPane.getTitleAt(_selected).equals("Request") && _requestPanel.isModified()) {
+                _request = _requestPanel.getRequest();
+            } else if (tabbedPane.getTitleAt(_selected).equals("Script")) {
+                try {
+                    _request = (Request) _interpreter.get("request");
+                    _requestModified = true;
+                } catch (EvalError ee) {
+                    _logger.warning("Error getting request from the interpreter: " + ee);
+                }
+            }
+        }
+        return _request;
     }
     
     public void setResponse(Response response, boolean editable) {
+        _response = response;
+        _responseEditable = editable;
+        _responseModified = false;
         _responsePanel.setResponse(response, editable);
+        try {
+            _interpreter.set("response", response);
+        } catch (EvalError ee) {
+            _logger.warning("Error setting response: " + ee);
+        }
+    }
+    
+    public boolean isResponseModified() {
+        return _responseModified || _responsePanel.isModified();
     }
     
     public Response getResponse() {
-        return _responsePanel.getResponse();
+        if (_responseEditable) {
+            if (tabbedPane.getTitleAt(_selected).equals("Response") && _responsePanel.isModified()) {
+                _response = _responsePanel.getResponse();
+            } else if (tabbedPane.getTitleAt(_selected).equals("Script")) {
+                try {
+                    _response = (Response) _interpreter.get("response");
+                    _responseModified = true;
+                } catch (EvalError ee) {
+                    _logger.warning("Error getting response from the interpreter: " + ee);
+                }
+            }
+        }
+        return _response;
     }
     
     public JFrame inFrame() {
         return inFrame("Conversation Panel");
+    }
+    
+    public void stopInterpreter() {
+        // FIXME TODO Something needs to be done here to stop the JConsole too.
+        // It is waiting on a JConsole$BlockingPipedInputStream
+        _thread.interrupt();
     }
     
     public JFrame inFrame(String title) {
@@ -65,21 +200,28 @@ public class ConversationPanel extends javax.swing.JPanel {
         }
         _frame = new JFrame(title);
         _frame.getContentPane().setLayout(new java.awt.BorderLayout());
-        if (_size != null) {
-            _frame.setSize(_size);
-        } else {
-            _frame.setSize(800, 600);
-        }
-        if (_location != null) _frame.setLocation(_location);
-        _frame.getContentPane().add(this);
-        _frame.addComponentListener(new java.awt.event.ComponentAdapter() {
-            public void componentMoved(java.awt.event.ComponentEvent evt) {
-                formComponentMoved(evt);
-            }
-            public void componentResized(java.awt.event.ComponentEvent evt) {
-                formComponentResized(evt);
+        _frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent evt) {
+                stopInterpreter();
             }
         });
+        _frame.addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                if (!_frame.isVisible()) return;
+                _preferredLocation = _frame.getLocation();
+            }
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                if (!_frame.isVisible()) return;
+                _preferredSize = _frame.getSize();
+            }
+        });
+        _frame.getContentPane().add(this);
+        if (_preferredLocation != null) _frame.setLocation(_preferredLocation);
+        if (_preferredSize != null) {
+            _frame.setSize(_preferredSize);
+        } else {
+            _frame.pack();
+        }
         return _frame;
     }
     
@@ -103,65 +245,16 @@ public class ConversationPanel extends javax.swing.JPanel {
      * always regenerated by the Form Editor.
      */
     private void initComponents() {//GEN-BEGIN:initComponents
-        java.awt.GridBagConstraints gridBagConstraints;
+        tabbedPane = new javax.swing.JTabbedPane();
 
-        conversationSplitPane = new javax.swing.JSplitPane();
+        setLayout(new java.awt.BorderLayout());
 
-        setLayout(new java.awt.GridBagLayout());
-
-        conversationSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        conversationSplitPane.setResizeWeight(0.3);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        add(conversationSplitPane, gridBagConstraints);
+        add(tabbedPane, java.awt.BorderLayout.CENTER);
 
     }//GEN-END:initComponents
     
-    public static void main(String[] args) {
-        Request request = new Request();
-        Response response = new Response();
-        try {
-            String req = "c:/temp/reverse/conversations/1-request";
-            String resp = "c:/temp/reverse/conversations/1-response";
-            if (args.length == 2) {
-                req = args[0] + "/conversations/" + args[1] + "-request";
-                resp = args[0] + "/conversations/" + args[1] + "-response";
-            }
-            java.io.FileInputStream fis = new java.io.FileInputStream(req);
-            request.read(fis);
-            fis = new java.io.FileInputStream(resp);
-            response.read(fis);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
-        }
-        
-        final ConversationPanel cp = new ConversationPanel();
-        cp.setRequest(request, false);
-        cp.setResponse(response, false);
-
-        JFrame top = cp.inFrame();
-        top.addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                System.exit(0);
-            }
-        });
-        
-        javax.swing.JButton button = new javax.swing.JButton("GET");
-        top.getContentPane().add(button, java.awt.BorderLayout.SOUTH);
-        button.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                System.out.println(cp.getRequest());
-                System.out.println(cp.getResponse());
-            }
-        });
-        top.show();
-    }
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JSplitPane conversationSplitPane;
+    private javax.swing.JTabbedPane tabbedPane;
     // End of variables declaration//GEN-END:variables
     
 }

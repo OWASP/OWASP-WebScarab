@@ -6,27 +6,24 @@
 
 package org.owasp.webscarab.model;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.lang.StringBuffer;
-import java.lang.NumberFormatException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
-
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import org.owasp.webscarab.httpclient.ChunkedOutputStream;
 import org.owasp.webscarab.httpclient.ChunkedInputStream;
+import org.owasp.webscarab.httpclient.ChunkedOutputStream;
 import org.owasp.webscarab.httpclient.FixedLengthInputStream;
 
-import java.text.ParseException;
 
 /** Message is a class that is used to represent the bulk of an HTTP message, namely
  * the headers, and (possibly null) body. Messages should not be instantiated
@@ -64,13 +61,19 @@ public class Message {
      */    
     protected void read(InputStream is) throws IOException {
         _headers = null;
-        String line = readLine(is);
-        while (!line.equals("")) {
-            String[] pair = line.split(": *",2);
+        String line;
+        for (;;) {
+            line = readLine(is);
+            if (line.equals("")) break;
+            // FIXME TODO : Handle headers that are split over multiple lines
+            if (line.startsWith(" ")) {
+                _logger.severe("Got a multi-line header that I don't handle properly yet!");
+                continue;
+            }
+            String[] pair = line.split(": ",2);
             if (pair.length == 2) {
                 addHeader(pair[0],pair[1]);
             }
-            line = readLine(is);
         }
         _contentStream = is;
         if (_chunked) {
@@ -124,7 +127,7 @@ public class Message {
     /**
      * Instructs the class to read the headers and content from the supplied StringBuffer
      * N.B. The "Content-length" header is updated automatically to reflect the true size
-     * of the content
+     * of the content, if one exists
      * @param buffer The StringBuffer to parse the headers and content from. This buffer is "consumed" i.e. characters are removed from the buffer as the Message is parsed.
      * @throws ParseException if there is an error parsing the Message structure
      */    
@@ -132,7 +135,7 @@ public class Message {
         _headers = null;
         String line = getLine(buffer);
         while (line != null && !line.equals("")) {
-            String[] pair = line.split(": *",2);
+            String[] pair = line.split(": ",2);
             if (pair.length == 2) {
                 addHeader(pair[0],pair[1]);
             }
@@ -182,7 +185,7 @@ public class Message {
         if (content != null) {
             try {
                 buff.append(new String(content, "UTF-8"));
-            } catch (java.io.UnsupportedEncodingException uee) {}; // must support UTF-8
+            } catch (UnsupportedEncodingException uee) {}; // must support UTF-8
         }
         return buff.toString();
     }
@@ -435,6 +438,9 @@ public class Message {
         }
     }
     
+    /**
+     * reads all content from the content stream if one exists. Bytes read are stored internally, and returned via getContent()
+     */    
     public void flushContentStream() {
         try {
             flushContentStream(null);

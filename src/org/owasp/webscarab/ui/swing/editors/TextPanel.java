@@ -7,6 +7,7 @@
 package org.owasp.webscarab.ui.swing.editors;
 
 import javax.swing.AbstractAction;
+import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -34,7 +35,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     public TextPanel() {
         initComponents();
         setName("Text");
-        Keymap keymap = textTextArea.addKeymap("MySearchBindings",
+        Keymap keymap = JTextArea.addKeymap("MySearchBindings",
                                            textTextArea.getKeymap());
         //Ctrl-f to open the search dialog
         keymap.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F, Event.CTRL_MASK), new AbstractAction() {

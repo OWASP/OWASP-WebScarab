@@ -25,17 +25,12 @@ import javax.swing.text.JTextComponent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.UndoManager;
-import javax.swing.undo.UndoableEdit;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 
 import java.util.Hashtable;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
-import org.owasp.util.CodeUtil;
-import org.owasp.util.Convert;
+import org.owasp.webscarab.util.Encoding;
 
 /**
  *
@@ -228,17 +223,17 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
     
     private void sha1hashButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sha1hashButtonActionPerformed
         textPane.select(0,textPane.getText().length());
-        textPane.replaceSelection(hashSHA(textPane.getText()));
+        textPane.replaceSelection(Encoding.hashSHA(textPane.getText()));
     }//GEN-LAST:event_sha1hashButtonActionPerformed
     
     private void md5hashButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_md5hashButtonActionPerformed
         textPane.select(0,textPane.getText().length());
-        textPane.replaceSelection(hashMD5(textPane.getText()));
+        textPane.replaceSelection(Encoding.hashMD5(textPane.getText()));
     }//GEN-LAST:event_md5hashButtonActionPerformed
     
     private void base64DecodeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_base64DecodeButtonActionPerformed
         textPane.select(0,textPane.getText().length());
-        textPane.replaceSelection(new String(CodeUtil.base64decode(textPane.getText())));
+        textPane.replaceSelection(new String(Encoding.base64decode(textPane.getText())));
     }//GEN-LAST:event_base64DecodeButtonActionPerformed
     
     private void urlDecodeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_urlDecodeButtonActionPerformed
@@ -253,7 +248,7 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
     
     private void base64EncodeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_base64EncodeButtonActionPerformed
         textPane.select(0,textPane.getText().length());
-        textPane.replaceSelection(CodeUtil.base64encode(textPane.getText().getBytes()));
+        textPane.replaceSelection(Encoding.base64encode(textPane.getText().getBytes()));
     }//GEN-LAST:event_base64EncodeButtonActionPerformed
     
     /** Notifies this object that it is no longer the owner of
@@ -265,76 +260,6 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
     public void lostOwnership(Clipboard clipboard, Transferable contents) {
     }
     
-    /**
-     *  Returns the MD5 hash of a String.
-     *
-     *@param  str  Description of the Parameter
-     *@return      Description of the Return Value
-     */
-    public static String hashMD5( String str ) {
-        byte[] b = str.getBytes();
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance( "MD5" );
-            md.update( b );
-        }
-        catch ( NoSuchAlgorithmException e ) {
-            e.printStackTrace();
-            // it's got to be there
-        }
-        return Convert.toHexString( md.digest() );
-    }
-    
-    
-    
-    /**
-     *  Returns the SHA hash of a String.
-     *
-     *@param  str  Description of the Parameter
-     *@return      Description of the Return Value
-     */
-    public static String hashSHA( String str ) {
-        byte[] b = str.getBytes();
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance( "SHA1" );
-            md.update( b );
-        }
-        catch ( NoSuchAlgorithmException e ) {
-            e.printStackTrace();
-            // it's got to be there
-        }
-        return Convert.toHexString( md.digest() );
-    }
-    
-    /**
-     *  Description of the Method
-     *
-     *@param  input  Description of the Parameter
-     *@return        Description of the Return Value
-     */
-    public static synchronized String rot13( String input ) {
-        StringBuffer output = new StringBuffer();
-        if ( input != null ) {
-            for ( int i = 0; i < input.length(); i++ ) {
-                char inChar = input.charAt( i );
-                if ( ( inChar >= 'A' ) & ( inChar <= 'Z' ) ) {
-                    inChar += 13;
-                    if ( inChar > 'Z' ) {
-                        inChar -= 26;
-                    }
-                }
-                if ( ( inChar >= 'a' ) & ( inChar <= 'z' ) ) {
-                    inChar += 13;
-                    if ( inChar > 'z' ) {
-                        inChar -= 26;
-                    }
-                }
-                output.append( inChar );
-            }
-        }
-        return output.toString();
-    }
     
     
     /**

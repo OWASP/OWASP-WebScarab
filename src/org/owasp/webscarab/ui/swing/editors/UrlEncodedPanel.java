@@ -10,7 +10,6 @@ import javax.swing.event.TableModelListener;
 import javax.swing.event.TableModelEvent;
 
 import javax.swing.table.DefaultTableModel;
-import java.awt.Dimension;
 import java.util.Vector;
 
 import java.awt.Component;

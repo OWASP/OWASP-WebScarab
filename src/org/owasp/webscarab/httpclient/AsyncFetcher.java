@@ -17,8 +17,6 @@ import java.util.logging.Logger;
 import java.lang.Runnable;
 import java.lang.Thread;
 
-import java.io.InputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
@@ -26,49 +24,66 @@ import java.io.IOException;
  * @author  rdawes
  */
 public class AsyncFetcher implements Runnable {
-
+    
+    private boolean _stopping = false;
+    private boolean _stopped = false;
+    
     private Vector _requestQueue;
     private Vector _responseQueue;
-    private URLFetcher _uf = new URLFetcher();
+    private HTTPClient _hc = HTTPClientFactory.getInstance().getHTTPClient();
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
-    /** Creates a new instance of AsyncFetcher */
     public AsyncFetcher(Vector requestQueue, Vector responseQueue) {
-        this(requestQueue, responseQueue, null);
-    }
-    
-    public AsyncFetcher(Vector requestQueue, Vector responseQueue, String threadName) {
         _requestQueue = requestQueue;
         _responseQueue = responseQueue;
-        Thread me = new Thread(this);
-        me.setPriority(Thread.MIN_PRIORITY);
-        me.setDaemon(true);
-        if (threadName != null) {
-            me.setName(threadName);
-        }
-        me.start();
     }
     
     public void run() {
         Request request;
         Response response;
-        while (true) {
-            try {
-                request = (Request) _requestQueue.remove(0);
-                if (request != null) {
-                    try {
-                        response = _uf.fetchResponse(request);
-                        response.flushContentStream();
-                        _responseQueue.add(response);
-                    } catch (IOException ioe) {
-                        _logger.severe("IOException fetching " + request.getURL().toString() + " : " + ioe);
-                    }
+        
+        _stopping = false;
+        _stopped = false;
+        
+        while (! _stopping) {
+            synchronized(_requestQueue) {
+                if (_requestQueue.size()>0) {
+                    request = (Request) _requestQueue.remove(0);
+                } else {
+                    request = null;
                 }
-            } catch (ArrayIndexOutOfBoundsException aioob) {
+            }
+            if (request != null) {
                 try {
-                    Thread.currentThread().sleep(100);
+                    response = _hc.fetchResponse(request);
+                    response.flushContentStream();
+                    _responseQueue.add(response);
+                } catch (IOException ioe) {
+                    _logger.severe("IOException fetching " + request.getURL().toString() + " : " + ioe);
+                }
+            } else {
+                try {
+                    Thread.sleep(100);
                 } catch (InterruptedException ie) {}
             }
+        }
+        _stopped = true;
+    }
+    
+    public boolean stop() {
+        _stopping = true;
+        if (!_stopped) {
+            for (int i=0; i<20; i++) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ie) {}
+                if (_stopped) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return true;
         }
     }
     

@@ -6,33 +6,34 @@
 
 package org.owasp.webscarab.model;
 
-import java.net.URL;
 import java.util.Date;
 
 /**
+ * Represents a cookie received from a web server
  *
- * @author  rdawes
+ * From rfc 2109
+ *
+ *   The syntax for the Set-Cookie response header is
+ *
+ *   set-cookie      =       "Set-Cookie:" cookies
+ *   cookies         =       1#cookie
+ *   cookie          =       NAME "=" VALUE *(";" cookie-av)
+ *   NAME            =       attr
+ *   VALUE           =       value
+ *   cookie-av       =       "Comment" "=" value
+ *                   |       "Domain" "=" value
+ *                   |       "Max-Age" "=" value
+ *                   |       "Path" "=" value
+ *                   |       "Secure"
+ *                   |       "Version" "=" 1*DIGIT
+ *
+ *
+ * added support for Microsoft's new httponly flag - untested, and largely unused!
+ *
+ * @author rdawes
  */
-public class Cookie {
-    /* From rfc 2109
-     *
-     *   The syntax for the Set-Cookie response header is
-                                                                                
-   set-cookie      =       "Set-Cookie:" cookies
-   cookies         =       1#cookie
-   cookie          =       NAME "=" VALUE *(";" cookie-av)
-   NAME            =       attr
-   VALUE           =       value
-   cookie-av       =       "Comment" "=" value
-                   |       "Domain" "=" value
-                   |       "Max-Age" "=" value
-                   |       "Path" "=" value
-                   |       "Secure"
-                   |       "Version" "=" 1*DIGIT
 
-     *
-     * added support for Microsoft's new httponly flag - untested, and largely unused!
-     */
+public class Cookie {
     
     private Date _date = null;
     private String _name = null;
@@ -46,11 +47,16 @@ public class Cookie {
     private String _version = null;
     private boolean _httponly = false;
     
-    /** Creates a new instance of Cookie */
-    public Cookie(Date date, URL url, String setHeader) {
+    /**
+     * Creates a new instance of Cookie
+     * @param date the date the cookie was created/received
+     * @param url the URL the the cookie was sent back from
+     * @param setHeader the actual "Set-Cookie" header value
+     */
+    public Cookie(Date date, HttpUrl url, String setHeader) {
         _date = date;
         _domain = url.getHost();
-        _path = url.getPath(); // FIXME : should we try to eliminate parameters in the path?
+        _path = url.getPath();
         int index = _path.lastIndexOf("/");
         if (index > 0) {
             _path = _path.substring(0,index-1);
@@ -62,8 +68,12 @@ public class Cookie {
     }
     
     
-    /** This variant of the constuctor should only be called when we are sure that the
-     * setHeader already contains the domain and path. e.g. when we are reading the cookies from disk
+    /**
+     * This variant of the constuctor should only be called when we are sure that the
+     * Set-Cookie header already contains the domain and path.
+     * e.g. when we are reading the cookies from disk
+     * @param date The date the cookie was created or received
+     * @param setHeader a complete Set-Cookie header
      */    
     public Cookie(Date date, String setHeader) {
         _date = date;
@@ -110,50 +120,98 @@ public class Cookie {
         }
     }
     
+    /**
+     * an identifier for the cookie "name", made up of the domain, the path, and the name of the cookie
+     * @return the identifier
+     */    
     public String getKey() {
         return _key;
     }
     
+    /**
+     * returns the date/time the cookie was created
+     * @return the Date
+     */    
     public Date getDate() {
         return _date;
     }
     
+    /**
+     * returns the name of the cookie
+     * @return the name of the cookie
+     */    
     public String getName() {
         return _name;
     }
     
+    /**
+     * returns the value of the cookie
+     * @return the value of the cookie
+     */    
     public String getValue() {
         return _value;
     }
 
+    /**
+     * returns the domain of the cookie
+     * @return the domain of the cookie
+     */    
     public String getDomain() {
         return _domain;
     }
     
+    /**
+     * returns the maximum age of the cookie
+     * @return the maximum age of the cookie
+     */    
     public String getMaxAge() {
         return _maxage;
     }
     
+    /**
+     * returns the path of the cookie
+     * @return the path of the cookie
+     */    
     public String getPath() {
         return _path;
     }
     
+    /**
+     * indicates whether this cookie had the "secure" flag set
+     * @return true if the "secure" flag was set
+     */    
     public boolean getSecure() {
         return _secure;
     }
     
+    /**
+     * indicates whther this cookie had MS's "httpOnly" flag set
+     * @return true if the "httpOnly" flag was set
+     */    
     public boolean getHTTPOnly() {
         return _httponly;
     }
     
+    /**
+     * returns the version of the cookie
+     * @return the version of the cookie
+     */    
     public String getVersion() {
         return _version;
     }
     
+    /**
+     * returns the comment of the cookie
+     * @return the comment of the cookie
+     */    
     public String getComment() {
         return _comment;
     }
     
+    /**
+     * returns a string equivalent to the complete "Set-Cookie" header that would have been sent.
+     * @return a string equivalent to the complete "Set-Cookie" header that would have been sent.
+     */    
     public String setCookie() {
         StringBuffer buf = new StringBuffer();
         buf.append(_name + "=" + _value);
@@ -181,4 +239,14 @@ public class Cookie {
         return buf.toString();
     }
     
+    /**
+     *
+     */    
+    public String toString() {
+        StringBuffer buff = new StringBuffer();
+        buff.append(_date.getTime()).append(" ");
+        buff.append(setCookie());
+        return buff.toString();
+    }
+
 }

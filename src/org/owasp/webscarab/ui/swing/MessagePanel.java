@@ -8,7 +8,6 @@ package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.model.Message;
 
-import java.awt.Dimension;
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
@@ -72,7 +71,6 @@ public class MessagePanel extends javax.swing.JPanel {
         } else {
             _tableModel.setHeaders(new String[0][2]);
             _cp.setContent("", null, false);
-            _cp.setVisible(false);
         }
         invalidate();
         _modified = false;
@@ -80,6 +78,7 @@ public class MessagePanel extends javax.swing.JPanel {
     
     public Message getMessage() {
         if (_editable) {
+            if (headerTable.isEditing()) headerTable.getCellEditor().stopCellEditing();
             if (_modified) {
                 _message.setHeaders(_tableModel.getHeaders());
             }
@@ -115,18 +114,16 @@ public class MessagePanel extends javax.swing.JPanel {
 
         setLayout(new java.awt.GridBagLayout());
 
-        setPreferredSize(new java.awt.Dimension(402, 102));
+        setPreferredSize(new java.awt.Dimension(400, 200));
         messageSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         messageSplitPane.setResizeWeight(0.2);
         messageSplitPane.setContinuousLayout(true);
         messageSplitPane.setDoubleBuffered(true);
-        messageSplitPane.setMaximumSize(null);
-        messageSplitPane.setMinimumSize(new java.awt.Dimension(402, 102));
         messageSplitPane.setOneTouchExpandable(true);
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
-        jPanel1.setMinimumSize(new java.awt.Dimension(200, 50));
-        jPanel1.setPreferredSize(new java.awt.Dimension(200, 50));
+        jPanel1.setMinimumSize(new java.awt.Dimension(200, 65));
+        jPanel1.setPreferredSize(new java.awt.Dimension(200, 100));
         jScrollPane1.setMinimumSize(new java.awt.Dimension(200, 50));
         headerTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -161,6 +158,7 @@ public class MessagePanel extends javax.swing.JPanel {
         buttonPanel.setLayout(new java.awt.GridBagLayout());
 
         insertButton.setText("Insert");
+        insertButton.setMinimumSize(new java.awt.Dimension(70, 25));
         insertButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 insertButtonActionPerformed(evt);
@@ -175,6 +173,7 @@ public class MessagePanel extends javax.swing.JPanel {
         buttonPanel.add(insertButton, gridBagConstraints);
 
         deleteButton.setText("Delete");
+        deleteButton.setMinimumSize(new java.awt.Dimension(74, 25));
         deleteButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 deleteButtonActionPerformed(evt);
@@ -224,7 +223,7 @@ public class MessagePanel extends javax.swing.JPanel {
         byte[] content = new byte[0];
         org.owasp.webscarab.model.Response response = new org.owasp.webscarab.model.Response();
         try {
-            String resp = "l3/conversations/1-response";
+            String resp = "/home/rogan/workspace/webscarab/test/data/index-resp";
             if (args.length == 1) {
                 resp = args[0];
             }
@@ -252,7 +251,8 @@ public class MessagePanel extends javax.swing.JPanel {
                 System.out.println(mp.getMessage());
             }
         });
-        top.setBounds(100,100,600,400);
+        // top.setBounds(100,100,600,400);
+        top.pack();
         top.show();
         try {
             mp.setMessage(response, false);

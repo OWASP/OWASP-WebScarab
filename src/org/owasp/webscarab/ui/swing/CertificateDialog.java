@@ -6,22 +6,20 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import org.owasp.webscarab.plugin.Framework;
+
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.JOptionPane;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
-
-import javax.net.ssl.KeyManagerFactory;
-import java.security.KeyStore;
 
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import org.owasp.webscarab.httpclient.URLFetcher;
+import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
 /**
  *
@@ -31,14 +29,27 @@ public class CertificateDialog extends javax.swing.JDialog {
     
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
+    private Framework _framework;
+    
+    private HTTPClientFactory _factory = HTTPClientFactory.getInstance();
+    
+    private Properties _props;
+    
     /** Creates new form CertificateDialog */
-    public CertificateDialog(java.awt.Frame parent, boolean modal) {
-        super(parent, modal);
+    public CertificateDialog(java.awt.Frame parent, Framework framework) {
+        super(parent, true);
+        _framework = framework;
+        _props = _framework.getProperties();
+        
         initComponents();
         initValues();
     }
     
     private void initValues() {
+        useCertCheckBox.setSelected(!_factory.getClientCertificateFile().equals(""));
+        keystoreTextField.setText(_factory.getClientCertificateFile());
+        keystorePassTextField.setText(_factory.getClientKeystorePassword());
+        keyPassTextField.setText(_factory.getClientKeyPassword());
     }
     
     /** This method is called from within the constructor to
@@ -193,27 +204,31 @@ public class CertificateDialog extends javax.swing.JDialog {
 
         pack();
     }//GEN-END:initComponents
-
+    
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         setVisible(false);
         dispose();
     }//GEN-LAST:event_cancelButtonActionPerformed
-
+    
     private void applyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyButtonActionPerformed
-        String file = null;
-        String keystorePass = "";
-        String keyPass = "";
-        if (useCertCheckBox.isSelected()) {
-            file = keystoreTextField.getText();
-            keystorePass = keystorePassTextField.getText();
-            keyPass = keyPassTextField.getText();
-            if (file.equals("")) {
-                JOptionPane.showMessageDialog(null, new String[] {"Provide a file to read the certificate from!"}, "Error", JOptionPane.ERROR_MESSAGE);
+        String file = keystoreTextField.getText().trim();
+        String keystorePass = keystorePassTextField.getText();
+        String keyPass = keyPassTextField.getText();
+        if (useCertCheckBox.isSelected() && file.equals("")) {
+            JOptionPane.showMessageDialog(null, new String[] {"Provide a file to read the certificate from!"}, "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        boolean running = _framework.isRunning();
+        if (running) {
+            if (_framework.isBusy()) {
+                String[] status = _framework.getStatus();
+                JOptionPane.showMessageDialog(this, status, "Error - plugins are busy", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            _framework.stopPlugins();
         }
         try {
-            URLFetcher.setClientCertificateFile(file, keystorePass, keyPass);
+            _factory.setClientCertificateFile(file, keystorePass, keyPass);
         } catch (FileNotFoundException fnfe) {
             JOptionPane.showMessageDialog(null, new String[] {"File not found!", fnfe.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
             return;
@@ -224,10 +239,18 @@ public class CertificateDialog extends javax.swing.JDialog {
             JOptionPane.showMessageDialog(null, new String[] {"Unable to load client cert from " + file, e.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        if (running) {
+            _framework.startPlugins();
+        }
+        
+        _props.setProperty("WebScarab.clientCertificateFile",  file);
+        _props.setProperty("WebScarab.keystorePassword", keystorePass);
+        _props.setProperty("WebScarab.keyPassword", keyPass);
+        
         setVisible(false);
         dispose();
     }//GEN-LAST:event_applyButtonActionPerformed
-
+    
     private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseButtonActionPerformed
         JFileChooser jfc = new JFileChooser();
         jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -248,7 +271,7 @@ public class CertificateDialog extends javax.swing.JDialog {
             }
         }
     }//GEN-LAST:event_browseButtonActionPerformed
-
+    
     private void useCertCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_useCertCheckBoxActionPerformed
         jLabel1.setEnabled(useCertCheckBox.isSelected());
         keystoreTextField.setEnabled(useCertCheckBox.isSelected());
@@ -264,14 +287,6 @@ public class CertificateDialog extends javax.swing.JDialog {
         setVisible(false);
         dispose();
     }//GEN-LAST:event_closeDialog
-    
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        new CertificateDialog(new javax.swing.JFrame(), true).show();
-    }
-    
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton applyButton;

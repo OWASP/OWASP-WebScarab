@@ -7,7 +7,16 @@
 package org.owasp.webscarab.ui.swing;
 
 import java.awt.event.WindowEvent;
-import org.owasp.webscarab.httpclient.URLFetcher;
+
+import org.owasp.webscarab.plugin.Framework;
+import org.owasp.webscarab.httpclient.HTTPClientFactory;
+
+import org.owasp.webscarab.model.Preferences;
+import java.util.Properties;
+
+import java.util.logging.Logger;
+
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -15,18 +24,26 @@ import org.owasp.webscarab.httpclient.URLFetcher;
  */
 public class ProxyConfig extends javax.swing.JDialog {
     
+    private HTTPClientFactory _factory = HTTPClientFactory.getInstance();
+    private Framework _framework;
+    
+    private Properties _props = Preferences.getPreferences();
+    
+    private Logger _logger = Logger.getLogger(getClass().getName());
+    
     /** Creates new form ProxyConfig */
-    public ProxyConfig(java.awt.Frame parent, boolean modal) {
-        super(parent, modal);
+    public ProxyConfig(java.awt.Frame parent, Framework framework) {
+        super(parent, true);
+        _framework = framework;
         initComponents();
         
-        httpProxyServerTextField.setText(URLFetcher.getHttpProxyServer());
-        httpProxyPortTextField.setText(Integer.toString(URLFetcher.getHttpProxyPort()));
+        httpProxyServerTextField.setText(_factory.getHttpProxy());
+        httpProxyPortTextField.setText(Integer.toString(_factory.getHttpProxyPort()));
         
-        httpsProxyServerTextField.setText(URLFetcher.getHttpsProxyServer());
-        httpsProxyPortTextField.setText(Integer.toString(URLFetcher.getHttpsProxyPort()));
+        httpsProxyServerTextField.setText(_factory.getHttpsProxy());
+        httpsProxyPortTextField.setText(Integer.toString(_factory.getHttpsProxyPort()));
         
-        String[] noproxies = URLFetcher.getNoProxy();
+        String[] noproxies = _factory.getNoProxy();
         if (noproxies.length>0) {
             StringBuffer buff = new StringBuffer();
             buff.append(noproxies[0]);
@@ -197,9 +214,9 @@ public class ProxyConfig extends javax.swing.JDialog {
             String p = httpProxyPortTextField.getText().trim();
             if (!p.equals("")) 
                 httpport = Integer.parseInt(p);
-            // check that the port is acceptable (1..65535)
+            // FIXME check that the port is acceptable (1..65535)
         } catch (NumberFormatException nfe) {
-            System.err.println("Error parsing the upstream HTTP Proxy port");
+            _logger.severe("Error parsing the upstream HTTP Proxy port");
             return;
         }
         
@@ -209,15 +226,33 @@ public class ProxyConfig extends javax.swing.JDialog {
             String p = httpsProxyPortTextField.getText().trim();
             if (!p.equals(""))
                 httpsport = Integer.parseInt(p);
+            // FIXME check that the port is acceptable (1..65535)
         } catch (NumberFormatException nfe) {
-            System.err.println("Error parsing the upstream HTTPS Proxy port");
+            _logger.severe("Error parsing the upstream HTTPS Proxy port");
             return;
         }
         
         String[] noproxies = noProxyTextArea.getText().trim().split(" *, *");
-        URLFetcher.setHttpProxy(httpserver, httpport);
-        URLFetcher.setHttpsProxy(httpsserver, httpsport);
-        URLFetcher.setNoProxy(noproxies);
+        
+        boolean running = _framework.isRunning();
+        if (running) {
+            if (_framework.isBusy()) {
+                String[] status = _framework.getStatus();
+                JOptionPane.showMessageDialog(this, status, "Error - plugins are busy", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            _framework.stopPlugins();
+        }
+        _factory.setHttpProxy(httpserver, httpport);
+        _factory.setHttpsProxy(httpsserver, httpsport);
+        _factory.setNoProxy(noproxies);
+        if (running) {
+            _framework.startPlugins();
+        }
+        
+        _props.setProperty("WebScarab.httpProxy", httpserver+":"+httpport);
+        _props.setProperty("WebScarab.httpsProxy", httpsserver+":"+httpsport);
+        _props.setProperty("WebScarab.noProxy", noProxyTextArea.getText());
         
         this.closeDialog(new WindowEvent(this,WindowEvent.WINDOW_CLOSED));
     }//GEN-LAST:event_applyButtonActionPerformed

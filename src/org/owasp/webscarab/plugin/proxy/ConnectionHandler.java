@@ -1,62 +1,84 @@
 package org.owasp.webscarab.plugin.proxy;
 
-import java.io.*;
-import java.net.*;
-import javax.net.ssl.*;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.IOException;
+
+import java.net.Socket;
+import java.net.SocketException;
+
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+
 import java.security.KeyStore;
-import java.util.List;
 import java.util.logging.Logger;
 
 import org.owasp.webscarab.httpclient.HTTPClient;
-import org.owasp.webscarab.httpclient.FixedLengthInputStream;
+import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
-import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.model.CookieJar;
-
-import org.owasp.webscarab.httpclient.URLFetcher;
-
-import org.owasp.webscarab.util.LogInputStream;
-import org.owasp.webscarab.util.LogOutputStream;
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
 
 public class ConnectionHandler implements Runnable {
     
-    private Plug _plug;
-    private List _plugins;
+    private static SSLSocketFactory _factory = null;
+    
+    private static String _keystore = "/server.p12";
+    private static char[] _keystorepass = "password".toCharArray();
+    private static char[] _keypassword = "password".toCharArray();
+    
+    static {
+        KeyStore ks = null;
+        KeyManagerFactory kmf = null;
+        SSLContext sslcontext = null;
+        try {
+            ks = KeyStore.getInstance("PKCS12");
+            ks.load(ClassLoader.getSystemResourceAsStream(_keystore), _keystorepass);
+            kmf = KeyManagerFactory.getInstance("SunX509");
+            kmf.init(ks, _keypassword);
+            sslcontext = SSLContext.getInstance("SSLv3");
+            sslcontext.init(kmf.getKeyManagers(), null, null);
+            _factory = sslcontext.getSocketFactory();
+        } catch (Exception e) {
+            Logger logger = Logger.getLogger("org.owasp.webscarab.plugin.proxy.ConnectionHandler");
+            logger.severe("Exception accessing keystore: " + e);
+            _factory = null;
+        }
+    }
+    
+    private ProxyPlugin[] _plugins = null;
+    private Listener _listener;
     private Socket _sock = null;
-    private String _base;
+    private HttpUrl _base;
     private NetworkSimulator _simulator;
     
     private HTTPClient _httpClient = null;
     
-    private Logger _logger = Logger.getLogger(this.getClass().getName());
+    private Logger _logger = Logger.getLogger(getClass().getName());
     
     private InputStream _clientIn = null;
     private OutputStream _clientOut = null;
     private InputStream _serverIn = null;
     private OutputStream _serverOut = null;
     
-    String keystore = "/server.p12";
-    char keystorepass[] = "password".toCharArray();
-    char keypassword[] = "password".toCharArray();
-    
-    public ConnectionHandler(Socket sock, Plug plug, String base, NetworkSimulator simulator, List plugins) {
+    public ConnectionHandler(Listener listener, Socket sock, HttpUrl base, NetworkSimulator simulator, boolean usePlugins) {
         _sock = sock;
-        _plug = plug;
+        _listener = listener;
         _base = base;
         _simulator = simulator;
-        _plugins = plugins;
+        if (usePlugins) {
+            _plugins = _listener.getPlugins();
+        }
         try {
             _sock.setTcpNoDelay(true);
             _sock.setSoTimeout(30 * 1000);
         } catch (SocketException se) {
             _logger.warning("Error setting socket parameters");
         }
-    }
-    
-    public void setHttpClient(HTTPClient httpClient) {
-        _httpClient = httpClient;
     }
     
     public void run() {
@@ -105,7 +127,7 @@ public class ConnectionHandler implements Runnable {
                             return;
                         }
                     }
-                    _base = request.getURL().toString();
+                    _base = request.getURL();
                     proxyAuth = request.getHeader("Proxy-Authorization");
                     request = null;
                 }
@@ -115,7 +137,7 @@ public class ConnectionHandler implements Runnable {
             if (_base != null) {
                 // we check isConnected for UnitTest purposes
                 // We provide a fake socket, but can't negotiate SSL on it!
-                if (_base.startsWith("https://") && _sock.isConnected() ) {
+                if (_base.getScheme().equals("https") && _sock.isConnected() ) {
                     _logger.fine("Intercepting SSL connection!");
                     _sock = negotiateSSL(_sock);
                     _clientIn = _sock.getInputStream();
@@ -125,13 +147,9 @@ public class ConnectionHandler implements Runnable {
                         _clientOut = _simulator.wrapOutputStream(_clientOut);
                     }
                 }
-                // make sure that the base does not end with a "/"
-                while (_base.endsWith("/")) {
-                    _base = _base.substring(0,_base.length()-1);
-                }
             }
             
-            if (_httpClient == null) _httpClient = new URLFetcher();
+            if (_httpClient == null) _httpClient = HTTPClientFactory.getInstance().getHTTPClient();
             
             HTTPClient hc = _httpClient;
             
@@ -144,9 +162,8 @@ public class ConnectionHandler implements Runnable {
             // the first plugin in the array gets the first chance to modify
             // the request, and the last chance to modify the response
             if (_plugins != null) {
-                for (int i=_plugins.size()-1; i>=0; i--) {
-                    ProxyPlugin pp = (ProxyPlugin) _plugins.get(i);
-                    hc = pp.getProxyPlugin(hc);
+                for (int i=_plugins.length-1; i>=0; i--) {
+                    hc = _plugins[i].getProxyPlugin(hc);
                 }
             }
             
@@ -157,15 +174,16 @@ public class ConnectionHandler implements Runnable {
             // do we keep-alive?
             String connection = null;
             String version = null;
+            
+            ConversationID id = null;
             do {
                 // if we are reading the first from a reverse proxy, or the
                 // continuation of a CONNECT from a normal proxy
                 // read the request, otherwise we already have it.
                 if (request == null) {
                     request = new Request();
-                    if (_base != null) request.setBaseURL(_base);
                     _logger.fine("Reading request from the browser");
-                    request.read(_clientIn);
+                    request.read(_clientIn, _base);
                     if (request.getMethod() == null) {
                         return;
                     }
@@ -176,7 +194,9 @@ public class ConnectionHandler implements Runnable {
                 if (from != null) {
                     request.addHeader("X-Forwarded-For", from);
                 }
-                _logger.info("Browser requested : " + request.getMethod() + " " + request.getURL().toString());
+                _logger.fine("Browser requested : " + request.getMethod() + " " + request.getURL().toString());
+                
+                id = _listener.gotRequest(request);
                 
                 // pass the request through the plugins, and return the response
                 Response response = null;
@@ -187,13 +207,14 @@ public class ConnectionHandler implements Runnable {
                     _logger.severe("IOException retrieving the response for " + request.getURL() + " : " + ioe);
                     response = errorResponse(request, "IOException retrieving the response: " + ioe);
                     // prevent the conversation from being submitted/recorded
-                    _plug = null;
+                    _listener.failedResponse(id, ioe.toString());
+                    _listener = null;
                 }
                 if (response == null) {
                     _logger.severe("Got a null response from the fetcher");
                     return;
                 }
-                _logger.info("Response : " + response.getStatusLine());
+                _logger.fine("Response : " + response.getStatusLine());
                 try {
                     if (_clientOut != null) {
                         _logger.fine("Writing the response to the browser");
@@ -205,8 +226,8 @@ public class ConnectionHandler implements Runnable {
                 } finally {
                     response.flushContentStream(); // this simply flushes the content from the server
                 }
-                if (_plug != null && request != null && !request.getMethod().equals("CONNECT") && response != null) {
-                    _plug.addConversation("Proxy", request, response);
+                if (_listener != null && request != null && !request.getMethod().equals("CONNECT")) {
+                    _listener.gotResponse(id, request, response);
                 }
                 
                 connection = response.getHeader("Connection");
@@ -233,29 +254,11 @@ public class ConnectionHandler implements Runnable {
     }
     
     private Socket negotiateSSL(Socket sock) throws Exception {
-        KeyStore ks = null;
-        KeyManagerFactory kmf = null;
-        SSLContext sslcontext = null;
-        try {
-            ks = KeyStore.getInstance("PKCS12");
-            ks.load(this.getClass().getResourceAsStream(keystore), keystorepass);
-            kmf = KeyManagerFactory.getInstance("SunX509");
-            kmf.init(ks, keypassword);
-            sslcontext = SSLContext.getInstance("SSLv3");
-            sslcontext.init(kmf.getKeyManagers(), null, null);
-        } catch (Exception e) {
-            _logger.severe("Exception accessing keystore: " + e);
-            throw e;
-        }
-        SSLSocketFactory factory = sslcontext.getSocketFactory();
         SSLSocket sslsock;
-        
         try {
-            sslsock=(SSLSocket)factory.createSocket(sock,sock.getInetAddress().getHostName(),sock.getPort(),true);
+            sslsock=(SSLSocket)_factory.createSocket(sock,sock.getInetAddress().getHostName(),sock.getPort(),true);
             sslsock.setUseClientMode(false);
-            
             _logger.fine("Finished negotiating SSL - algorithm is " + sslsock.getSession().getCipherSuite());
-            
             return sslsock;
         } catch (Exception e) {
             _logger.severe("Error layering SSL over the socket");

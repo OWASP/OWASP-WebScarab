@@ -10,7 +10,6 @@ import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.util.ConversationCriteria;
 
 import java.util.ArrayList;
-import javax.swing.table.TableModel;
 import javax.swing.table.AbstractTableModel;
 
 /**
@@ -21,7 +20,7 @@ public class ConversationSearchFrame extends javax.swing.JFrame {
     
     private SiteModel _siteModel;
     private CriteriaTableModel _criteriaTableModel;
-    private ConversationTablePanel _conversationTablePanel;
+    // private ConversationTablePanel _conversationTablePanel;
     
     /** Creates new form ConversationSearchFrame */
     public ConversationSearchFrame(SiteModel siteModel) {
@@ -29,9 +28,9 @@ public class ConversationSearchFrame extends javax.swing.JFrame {
         initComponents();
         _criteriaTableModel = new CriteriaTableModel();
         criteriaTable.setModel(_criteriaTableModel);
-        _conversationTablePanel = new ConversationTablePanel(siteModel);
+        // _conversationTablePanel = new ConversationTablePanel(siteModel);
         
-        conversationTablePanel.add(_conversationTablePanel);
+        // conversationTablePanel.add(_conversationTablePanel);
     }
     
     /** This method is called from within the constructor to
@@ -167,7 +166,7 @@ public class ConversationSearchFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
-        _conversationTablePanel.setFilterCriteria(_criteriaTableModel.getCriteria());
+        // _conversationTablePanel.setFilterCriteria(_criteriaTableModel.getCriteria());
     }//GEN-LAST:event_searchButtonActionPerformed
 
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed

@@ -33,7 +33,16 @@ public class TextFormatter extends Formatter {
         }
         buff.append("(").append(className).append(".");
         buff.append(record.getSourceMethodName()).append("): ");
-        buff.append(record.getMessage()).append("\n");
+        buff.append(record.getMessage());
+        if (record.getParameters() != null) {
+            Object[] params = record.getParameters();
+            buff.append(" { ").append(params[0]);
+            for (int i=1; i<params.length; i++) {
+                buff.append(", ").append(params[i]);
+            }
+            buff.append(" }");
+        }
+        buff.append("\n");
         return buff.toString();
     }
     

@@ -21,7 +21,7 @@ import java.awt.Rectangle;
 import java.awt.Graphics;
 
 /** We need to override the Default HTMLEditorKit to stop it from trying to follow
- * embedded links, such as images, and framesets. This is because we don't know the
+ * embedded links, such as framesets. This is because we don't know the
  * base URL of the HTML content we are rendering, and besides, we probably don't
  * want to go fetching embedded frames, which could possibly affect things on the
  * server. The ideal would probably be to get the most recent conversation for the
@@ -43,7 +43,6 @@ public class MyHTMLEditorKit extends javax.swing.text.html.HTMLEditorKit {
                 HTML.Tag kind = (HTML.Tag) o;
                 if (kind == HTML.Tag.FRAME || 
                     kind == HTML.Tag.FRAMESET || 
-                    kind == HTML.Tag.IMG || 
                     kind == HTML.Tag.OBJECT || 
                     kind == HTML.Tag.APPLET) {
                     return new NoView(elem);

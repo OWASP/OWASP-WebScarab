@@ -6,7 +6,7 @@
 
 package org.owasp.webscarab.plugin.spider;
 
-import java.net.URL;
+import org.owasp.webscarab.model.HttpUrl;
 
 /**
  *
@@ -14,30 +14,24 @@ import java.net.URL;
  */
 public class Link {
     
-    private URL _url;
-    private URL _referer;
-    private String _type = null; // href, img, frame, etc
+    private HttpUrl _url;
+    private String _referer;
     
     /** Creates a new instance of Link */
-    public Link(URL url, URL referer) {
+    public Link(HttpUrl url, String referer) {
         _url = url;
         _referer = referer;
     }
     
-    public URL getURL() {
+    public HttpUrl getURL() {
         return _url;
     }
     
-    public URL getReferer() {
+    public String getReferer() {
         return _referer;
     }
     
-    public void setType(String type) {
-        _type = type;
+    public String toString() {
+        return _url.toString() + " via " + _referer;
     }
-    
-    public String getType() {
-        return _type;
-    }
-
 }

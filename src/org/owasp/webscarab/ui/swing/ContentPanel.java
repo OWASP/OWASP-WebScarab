@@ -9,7 +9,11 @@ package org.owasp.webscarab.ui.swing;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import java.awt.Component;
+import org.owasp.webscarab.ui.swing.editors.SerializedObjectPanel;
+import org.owasp.webscarab.ui.swing.editors.ImagePanel;
+import org.owasp.webscarab.ui.swing.editors.UrlEncodedPanel;
+import org.owasp.webscarab.ui.swing.editors.HTMLPanel;
+import org.owasp.webscarab.ui.swing.editors.TextPanel;
 
 import org.owasp.webscarab.ui.swing.editors.EditorWrapper;
 import org.owasp.webscarab.ui.swing.editors.ByteArrayEditor;
@@ -18,12 +22,12 @@ import org.owasp.webscarab.ui.swing.editors.HexPanel;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.SwingUtilities;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.Dimension;
 
 // for main()
-import java.io.IOException;
-import java.io.FileInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.ByteArrayInputStream;
 
 /**
  *
@@ -198,8 +202,7 @@ public class ContentPanel extends javax.swing.JPanel {
 
         setLayout(new java.awt.GridBagLayout());
 
-        viewTabbedPane.setMinimumSize(new java.awt.Dimension(200, 50));
-        viewTabbedPane.setPreferredSize(new java.awt.Dimension(200, 50));
+        viewTabbedPane.setPreferredSize(new java.awt.Dimension(300, 100));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
@@ -222,7 +225,7 @@ public class ContentPanel extends javax.swing.JPanel {
             }
             content = baos.toByteArray();
              */
-            String filename = "l1/conversations/1-response";
+            String filename = "/home/rogan/workspace/webscarab/test/data/index-resp";
             if (args.length == 1) {
                 filename = args[0];
             }
@@ -250,7 +253,9 @@ public class ContentPanel extends javax.swing.JPanel {
                 System.out.println(new String(cp.getContent()));
             }
         });
-        top.setBounds(100,100,600,400);
+        top.pack();
+        top.setSize(cp.getPreferredSize());
+        // top.setBounds(100,100,600,400);
         top.show();
         try {
             cp.setContent(response.getHeader("Content-Type"), response.getContent(), false);
