@@ -24,6 +24,7 @@ import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysisUI;
 import org.owasp.webscarab.util.swing.ListComboBoxModel;
 import org.owasp.webscarab.util.swing.SwingWorker;
 import org.owasp.webscarab.util.swing.TableSorter;
+import org.owasp.webscarab.util.swing.ColumnDataModel;
 
 import javax.swing.ListModel;
 import javax.swing.ComboBoxModel;
@@ -333,7 +334,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         add(mainTabbedPane, java.awt.BorderLayout.CENTER);
 
     }//GEN-END:initComponents
-
+    
     private void testButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testButtonActionPerformed
         final Request request = _requestPanel.getRequest();
         if (request == null) {
@@ -435,54 +436,54 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         int count = ((Integer)sampleSpinner.getValue()).intValue();
         _sa.fetch(request, name, pattern, count);
     }//GEN-LAST:event_fetchButtonActionPerformed
-        
+    
     public void sessionIDAdded(final String key, final int index) {
-        try {
-            SwingUtilities.invokeAndWait(new Runnable() {
+        if (SwingUtilities.isEventDispatchThread()) {
+            if (index == 0) {
+                _sessionIDNames.addElement(key);
+            }
+            if (key.equals(_key)) {
+                _sidd.fireDatasetChanged();
+                _tableModel.fireTableRowsInserted(index, index);
+            }
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    if (index == 0) {
-                        _sessionIDNames.addElement(key);
-                    }
-                    if (key.equals(_key)) {
-                        _sidd.fireDatasetChanged();
-                        _tableModel.fireTableRowsInserted(index, index);
-                    }
+                    sessionIDAdded(key, index);
                 }
             });
-        } catch (InterruptedException ie) {
-        } catch (InvocationTargetException ite) {
         }
     }
     
     public void sessionIDsChanged() {
-        try {
-            SwingUtilities.invokeAndWait(new Runnable() {
+        if (SwingUtilities.isEventDispatchThread()) {
+            _key = null;
+            int count = _sa.getSessionIDNameCount();
+            for (int i=0; i<count; i++) {
+                _sessionIDNames.addElement(_sa.getSessionIDName(i));
+            }
+            _sidd.fireDatasetChanged();
+            _tableModel.fireTableDataChanged();
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    _key = null;
-                    int count = _sa.getSessionIDNameCount();
-                    for (int i=0; i<count; i++) {
-                        _sessionIDNames.addElement(_sa.getSessionIDName(i));
-                    }
-                    _sidd.fireDatasetChanged();
-                    _tableModel.fireTableDataChanged();
+                    sessionIDsChanged();
                 }
             });
-        } catch (InterruptedException ie) {
-        } catch (InvocationTargetException ite) {
         }
     }
     
     public void calculatorChanged(final String key) {
         if (key.equals(_key)) {
-           try {
-                SwingUtilities.invokeAndWait(new Runnable() {
+            if (SwingUtilities.isEventDispatchThread()) {
+                _sidd.fireDatasetChanged();
+                _tableModel.fireTableDataChanged();
+            } else {
+                SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        _sidd.fireDatasetChanged();
-                        _tableModel.fireTableDataChanged();
+                        calculatorChanged(key);
                     }
                 });
-            } catch (InterruptedException ie) {
-            } catch (InvocationTargetException ite) {
             }
         }
     }
@@ -499,30 +500,53 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         return null;
     }
     
-    public javax.swing.Action[] getURLActions() {
+    public javax.swing.Action[] getUrlActions() {
         return null;
     }
     
-    public void setModel(SiteModel model) {
-        _model = model;
-        requestComboBox.setRenderer(null);
-        _conversationList.setModel(_model);
-        requestComboBox.setRenderer(new ConversationRenderer(_model));
-        
-        _sessionIDNames.clear();
-        for (int i=0; i<_sa.getSessionIDNameCount(); i++) {
-            _sessionIDNames.addElement(_sa.getSessionIDName(i));
+    public void setModel(final SiteModel model) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            _model = model;
+            requestComboBox.setRenderer(null);
+            _conversationList.setModel(_model);
+            requestComboBox.setRenderer(new ConversationRenderer(_model));
+            
+            _sessionIDNames.clear();
+            for (int i=0; i<_sa.getSessionIDNameCount(); i++) {
+                _sessionIDNames.addElement(_sa.getSessionIDName(i));
+            }
+            _sidd.fireDatasetChanged();
+            _tableModel.fireTableDataChanged();
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    setModel(model);
+                }
+            });
         }
-        _sidd.fireDatasetChanged();
-        _tableModel.fireTableDataChanged();
     }
     
-    public void setEnabled(boolean enabled) {
-        super.setEnabled(enabled);
-        mainTabbedPane.setEnabled(enabled);
-        testButton.setEnabled(enabled);
-        fetchButton.setEnabled(enabled);
-        // FIXME do the rest
+    public void setEnabled(final boolean enabled) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            mainTabbedPane.setEnabled(enabled);
+            testButton.setEnabled(enabled);
+            fetchButton.setEnabled(enabled);
+            // FIXME do the rest
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    setEnabled(enabled);
+                }
+            });
+        }
+    }
+    
+    public ColumnDataModel[] getConversationColumns() {
+        return null;
+    }
+    
+    public ColumnDataModel[] getUrlColumns() {
+        return null;
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
