@@ -16,6 +16,8 @@ import java.security.NoSuchAlgorithmException;
 import org.owasp.util.Convert;
 import org.owasp.util.URLUtil;
 
+import org.htmlparser.util.NodeList;
+
 /**
  *
  * @author  rdawes
@@ -24,6 +26,7 @@ public class Conversation {
     
     private Request _request;
     private Response _response;
+    private NodeList _nodelist;
     private Properties _props;
     
     /** Creates a new instance of Conversation */
@@ -71,6 +74,15 @@ public class Conversation {
     public void flush() {
         _request = null;
         _response = null;
+        _nodelist = null;
+    }
+    
+    public void setNodeList(NodeList nodelist) {
+        _nodelist = nodelist;
+    }
+    
+    public NodeList getNodeList() {
+        return _nodelist;
     }
     
     public void setProperty(String key, String value) {
