@@ -12,7 +12,7 @@ import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.Conversation;
 import org.owasp.webscarab.model.URLInfo;
-import java.io.FileNotFoundException;
+import org.owasp.webscarab.model.StoreException;
 
 /** This interface describes the requirements that a WebScarab plugin must implement
  * @author rdawes
@@ -68,30 +68,24 @@ public abstract class AbstractWebScarabPlugin implements WebScarabPlugin {
     public void analyse(Request request, Response response, Conversation conversation, URLInfo urlinfo, Object parsed) {
     }
     
-    /** called to create any directory structures required by this plugin.
-     * @param dir a String representing the base directory under which this session's
-     * data will be saved
-     * @throws FileNotFoundException if there is any problem creating the initial structure
-     */    
-    public void initDirectory(String dir) throws FileNotFoundException {
-    }
-    
-    /** Instructs the plugin to discard any session specific data that it may hold */
-    public void discardSessionData() {
-    }
-    
     /** called to instruct the plugin to save its current state to the specified directory.
-     * @param dir a String representing the base directory under which this plugin can save its data
-     * @throws FileNotFoundException if there is any problem saving the session data
+     * @throws StoreException if there is any problem saving the session data
      */    
-    public void saveSessionData(String dir) throws FileNotFoundException {
+    public void saveSessionData() throws StoreException {
     }
     
-    /** called to instruct the plugin to read any saved state data from the specified directory.
-     * @param dir a String representing the base directory under which this plugin can save its data
-     * @throws FileNotFoundException if there is any problem reading the session data
+    /** Configures a session store for the plugin to use to save any persistent data.
+     * The Plugin defines the interface for the store, the store implements the
+     * interfaces of each plugin, so that it can be cast to each type in each plugin.
+     * This allows us to define the methods that the plugin needs to save its data,
+     * without specifying how or where that data is saved. That detail is implemented
+     * in a concrete implementation of the various interfaces.
+     * The plugin is expected to read any existing data from the store as part of this
+     * method, or at any other time that the plugin prefers
+     * @param store Store is an object that implements the interface specified by each plugin
+     * @throws StoreException if there are any problems reading the existing data out of the store
      */    
-    public void loadSessionData(String dir) throws FileNotFoundException {
+    public void setSessionStore(Object store) throws org.owasp.webscarab.model.StoreException {
     }
     
 }

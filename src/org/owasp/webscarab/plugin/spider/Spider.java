@@ -10,6 +10,7 @@ import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.Conversation;
 import org.owasp.webscarab.model.URLInfo;
+import org.owasp.webscarab.model.StoreException;
 
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
@@ -19,6 +20,8 @@ import org.htmlparser.Node;
 
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.tags.CompositeTag;
+import org.htmlparser.tags.FrameSetTag;
+import org.htmlparser.tags.Tag;
 
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
@@ -28,6 +31,9 @@ import java.util.logging.Logger;
 import java.util.Vector;
 import java.lang.ArrayIndexOutOfBoundsException;
 import java.util.TreeMap;
+import java.util.Map;
+import java.util.Collections;
+import java.util.Iterator;
 
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -37,6 +43,11 @@ import java.lang.Runnable;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
+
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 
 import org.owasp.util.URLUtil;
 
@@ -65,10 +76,12 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     private UnseenLinkTableModel _unseenLinkTableModel = new Spider.UnseenLinkTableModel();
     
+    private SpiderStore _store = null;
+    
     /** Creates a new instance of Spider */
     public Spider(Plug plug) {
         _plug = plug;
-
+        
         _logger.info("Spider initialised");
         Thread me = new Thread(this);
         me.setDaemon(true);
@@ -157,23 +170,23 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
             }
             _seenLinks.put(referer,""); // actual value is irrelevant, could be a sequence no, for amusement
         }
+        if (response.getStatus().equals("302")) {
+            addUnseenLink(response.getHeader("Location"), referer);
+            return;
+        }
         if (parsed != null && parsed instanceof NodeList) { // the parsed content is HTML
             NodeList nodelist = (NodeList) parsed;
-            if (response.getStatus().equals("302")) {
-                addUnseenLink(response.getHeader("Location"), referer);
-                return;
-            }
-            recurseNodes(nodelist, referer);
+            recurseHtmlNodes(nodelist, referer);
         } // else maybe it is a parsed Flash document? Anyone? :-)
     }
     
-    private void recurseNodes(NodeList nodelist, String referer) {
+    private void recurseHtmlNodes(NodeList nodelist, String referer) {
         try {
             for (NodeIterator ni = nodelist.elements(); ni.hasMoreNodes();) {
                 Node node = ni.nextNode();
                 if (node instanceof LinkTag) {
                     LinkTag linkTag = (LinkTag) node;
-                    if (! linkTag.isHTTPLikeLink() ) 
+                    if (! linkTag.isHTTPLikeLink() )
                         continue;
                     String url = linkTag.getLink();
                     if (url.startsWith("irc://")) // for some reason the htmlparser thinks IRC:// links are httpLike()
@@ -181,13 +194,28 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                     addUnseenLink(url, referer);
                 } else if (node instanceof CompositeTag) {
                     CompositeTag ctag = (CompositeTag) node;
-                    recurseNodes(ctag.getChildren(), referer);
+                    recurseHtmlNodes(ctag.getChildren(), referer);
+                } else if (node instanceof Tag) { // this is horrendous! Why is this not a FrameTag?!
+                    Tag tag = (Tag) node;
+                    if (tag.getTagName().equals("FRAME")) {
+                        String url = tag.getAttribute("src");
+                        if (url.startsWith("http:") || url.startsWith("https://")) {
+                            addUnseenLink(url, referer);
+                        } else if (!url.startsWith("about:")) {
+                            // eeeww! icky!
+                            try {
+                                addUnseenLink(new URL(new URL(referer), url).toString(), referer);
+                            } catch (MalformedURLException mue) {
+                                System.out.println("Bad URL " + url);
+                            }
+                        }
+                    }
                 }
             }
         } catch (ParserException pe) {
             _logger.severe("ParserException : " + pe);
         }
-    }        
+    }
     
     private void addUnseenLink(String url, String referer) {
         int anchor = url.indexOf("#");
@@ -209,7 +237,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
             }
         }
     }
-
+    
     private Request newGetRequest(Link link) {
         return newGetRequest(link.getURL(), link.getReferer());
     }
@@ -237,10 +265,10 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         // This only applies to the automated recursive spidering. If the operator
         // really wants to fetch something offsite, more power to them
         // Yes, this is effectively the classifier from websphinx, we can use that if it fits nicely
-
+        
         // OK if the URL matches the domain
         if (_allowedDomains!= null && !_allowedDomains.equals("") && url.matches(_allowedDomains)) {
-            // NOT OK if it matches the path 
+            // NOT OK if it matches the path
             if (_forbiddenPaths != null && !_forbiddenPaths.equals("") && url.matches(_forbiddenPaths)) {
                 return false;
             }
@@ -269,8 +297,54 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         return _unseenLinkTableModel;
     }
     
-    private class UnseenLinkTableModel extends AbstractTableModel {
+    public void setSessionStore(Object store) throws StoreException {
+        if (store != null && store instanceof SpiderStore) {
+            _store = (SpiderStore) store;
+            synchronized (_unseenLinks) {
+                _unseenLinks.clear();
+                Link[] links = _store.readUnseenLinks();
+                for (int i=0; i<links.length; i++) {
+                    _unseenLinks.put(links[i].getURL(),links[i]);
+                }
+                _unseenLinkTableModel.fireTableDataChanged();
+                // FIXME : we also need to update the tree here, once it is implemented
+            }
+            synchronized (_seenLinks) {
+                _seenLinks.clear();
+                String[] seen = _store.readSeenLinks();
+                for (int i=0; i<seen.length; i++) {
+                    _seenLinks.put(seen[i], "");
+                }
+            }
+        } else {
+            throw new StoreException("object passed does not implement SpiderStore!");
+        }
+    }
     
+    public void saveSessionData() throws StoreException {
+        if (_store != null) {
+            synchronized (_unseenLinks) {
+                Link[] links = new Link[_unseenLinks.size()];
+                for (int i=0; i<links.length; i++) {
+                    links[i] = (Link) _unseenLinks.get(i);
+                }
+                _store.writeUnseenLinks(links);
+            }
+            synchronized (_seenLinks) {
+                String[] seen = new String[_seenLinks.size()];
+                Iterator keys = _seenLinks.keySet().iterator();
+                for (int i=0; i<seen.length; i++) {
+                    seen[i] = (String) keys.next();
+                }
+                _store.writeSeenLinks(seen);
+            }
+        } else {
+            throw new StoreException("save called on a null session!");
+        }
+    }
+    
+    private class UnseenLinkTableModel extends AbstractTableModel {
+        
         protected String [] columnNames = {
             "ID", "URL", "Referer", "Link source"
         };
@@ -309,4 +383,102 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         }
         
     }
+    
+    private class UnseenLinkTreeModel extends DefaultTreeModel {
+        
+        private DefaultTreeModel treeModel;
+        private DefaultMutableTreeNode root;
+        private Map treeNodes = Collections.synchronizedMap(new TreeMap());
+        
+        /** Creates a new instance of WebTreeModel */
+        public UnseenLinkTreeModel() {
+            super(null, true);
+            root = new DefaultMutableTreeNode(null);
+            super.setRoot(root);
+            root.setAllowsChildren(true);
+            treeNodes.put("",root);
+        }
+        
+        public void clear() {
+            root.removeAllChildren();
+        }
+        
+        protected TreePath addNode(Link link) {
+            try {
+                URL url = new URL(link.getURL());
+                String shpp = URLUtil.schemeAuthPath(url);
+                String shp = URLUtil.schemeAuth(url);
+                DefaultMutableTreeNode un;
+                synchronized (treeNodes) {
+                    un = (DefaultMutableTreeNode)treeNodes.get(shpp);
+                    if (un != null) {
+                        un.setUserObject(link);
+                        treeNodes.put(shpp,un);
+                        fireTreeNodesChanged(un, un.getPath(), null, null);
+                        return new TreePath(un.getPath());
+                    }
+                }
+                
+            } catch (MalformedURLException mue) {
+                System.err.println("Error creating an URL from '" + link.getURL() + "'");
+            }
+            //            String shp = link.getURL()
+            //            String[] elements = ui.getURLElements();
+            //            String path = "";
+            //            synchronized (treeNodes) {
+            //                DefaultMutableTreeNode parent = root;
+            //                for (int i = 0; i<elements.length-1; i++) {
+            //                    path = path + elements[i];
+            //                    parent = (DefaultMutableTreeNode)treeNodes.get(path);
+            //                    if (parent == null) {
+            //                        logger.severe("ERROR: an intermediate node was null! path is \"" + path + "\"");
+            //                        System.exit(0);
+            //                    }
+            //                }
+            //                path = path + elements[elements.length-1];
+            //                un = new DefaultMutableTreeNode(ui);
+            //                if (path.endsWith("/")) {
+            //                    un.setAllowsChildren(true);
+            //                } else {
+            //                    un.setAllowsChildren(false);
+            //                }
+            //                treeNodes.put(path,un);
+            //
+            //                int numChildren = parent.getChildCount();
+            //                if (numChildren == 0) { // this is the first child, just add it
+            //                    parent.add(un);
+            //                    fireTreeNodesInserted(parent, parent.getPath(), new int[] {numChildren}, new Object[] {un});
+            //                } else { // work out where to put it
+            //                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)parent.getLastChild();
+            //                    URLInfo urlinfo = (URLInfo)node.getUserObject();
+            //                    String siblingPath = urlinfo.getURL().toString();
+            //                    if (path.compareTo(siblingPath) > 0 ) { // If it is greater than the last node, add it and be done
+            //                        parent.add(un);
+            //                        fireTreeNodesInserted(parent, parent.getPath(), new int[] {numChildren}, new Object[] {un});
+            //                    } else { // work out where to insert it
+            //                        for (int i = 0; i<numChildren; i++) {
+            //                            node = (DefaultMutableTreeNode)parent.getChildAt(i);
+            //                            urlinfo = (URLInfo)node.getUserObject();
+            //                            siblingPath = urlinfo.getURL().toString();
+            //                            int c = path.compareTo(siblingPath);
+            //                            if (c < 0) {
+            //                                parent.insert(un,i);
+            //                                fireTreeNodesInserted(parent, parent.getPath(), new int[] {i}, new Object[] {un});
+            //                                break;
+            //                            } else if ( c == 0) {
+            //                                break;
+            //                            }
+            //                        }
+            //                    }
+            //                }
+            //            }
+            //            if (un != null) {
+            //                return new TreePath(un.getPath());
+            //            } else {
+            return new TreePath(root);
+            //            }
+        }
+        
+    }
+    
 }
