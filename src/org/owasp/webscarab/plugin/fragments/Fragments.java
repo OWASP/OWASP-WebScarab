@@ -280,19 +280,19 @@ public class Fragments implements Plugin {
                 for (NodeIterator ni = comments.elements(); ni.hasMoreNodes(); ) {
                     String fragment = ni.nextNode().toHtml();
                     String key = Encoding.hashMD5(fragment);
-                    int pos = _store.putFragment("COMMENTS", key, fragment);
+                    boolean change = (_store.putFragment("COMMENTS", key, fragment) != -1);
                     _model.addConversationProperty(id, "COMMENTS", key);
                     _model.addUrlProperty(url, "COMMENTS", key);
-                    if (_ui != null) _ui.fragmentAdded(url, id, "COMMENTS", key);
+                    if (change && _ui != null) _ui.fragmentAdded(url, id, "COMMENTS", key);
                 }
                 NodeList scripts = nodes.searchFor(ScriptTag.class);
                 for (NodeIterator ni = scripts.elements(); ni.hasMoreNodes(); ) {
                     String fragment = ni.nextNode().toHtml();
                     String key = Encoding.hashMD5(fragment);
-                    int pos = _store.putFragment("SCRIPTS", key, fragment);
+                    boolean change = (_store.putFragment("SCRIPTS", key, fragment) != -1);
                     _model.addConversationProperty(id, "SCRIPTS", key);
                     _model.addUrlProperty(url, "SCRIPTS", key);
-                    if (_ui != null) _ui.fragmentAdded(url, id, "SCRIPTS", key);
+                    if (change && _ui != null) _ui.fragmentAdded(url, id, "SCRIPTS", key);
                 }
             } catch (ParserException pe) {
                 _logger.warning("Looking for fragments, got '" + pe + "'");
