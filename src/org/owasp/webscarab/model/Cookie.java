@@ -95,7 +95,7 @@ public class Cookie {
         _path = url.getPath();
         int index = _path.lastIndexOf("/");
         if (index > 0) {
-            _path = _path.substring(0,index-1);
+            _path = _path.substring(0,index);
         } else {
             _path = "/";
         }
