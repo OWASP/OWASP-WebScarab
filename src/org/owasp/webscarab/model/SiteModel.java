@@ -115,32 +115,12 @@ public class SiteModel {
             return null;
         }
     }
-
-    private URLInfo createURLInfo(String url) {
-        URLInfo ui;
-        synchronized (_urlinfo) {
-            ui = (URLInfo) _urlinfo.get(url);
-            if (ui == null) {
-                ui = new URLInfo(url);
-                _urlinfo.put(url, ui);
-            }
-        }
-        return ui;
-    }
     
     public URLInfo getURLInfo(URL url) {
-        return getURLInfo(canonicalURL(url));
+        return getURLInfo(URLUtil.schemeAuthPath(url));
     }
 
-    private String canonicalURL(URL url) {
-        String u = URLUtil.schemeAuthPathQry(url);
-        if (url.getPath().equals("")) {
-            u=u+"/";
-        }
-        return u;
-    }
-
-    public URLInfo getURLInfo(String url) {
+    private URLInfo getURLInfo(String url) {
         URLInfo ui;
         synchronized (_urlinfo) {
             ui = (URLInfo) _urlinfo.get(url);
