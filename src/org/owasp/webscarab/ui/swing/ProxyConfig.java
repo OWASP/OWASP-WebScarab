@@ -7,7 +7,7 @@
 package org.owasp.webscarab.ui.swing;
 
 import java.awt.event.WindowEvent;
-import java.util.Properties;
+import org.owasp.webscarab.httpclient.URLFetcher;
 
 /**
  *
@@ -15,32 +15,28 @@ import java.util.Properties;
  */
 public class ProxyConfig extends javax.swing.JDialog {
     
-    private Properties _props;
-    
     /** Creates new form ProxyConfig */
-    public ProxyConfig(java.awt.Frame parent, boolean modal, Properties props) {
+    public ProxyConfig(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
-        _props = props;
         initComponents();
         
-        String prop = "WebScarab.httpProxy";
-        String value = props.getProperty(prop);
-        if (value == null) value = "";
-        String[] httpProxy = value.split(":");
-        httpProxyServerTextField.setText(httpProxy.length == 2 ? httpProxy[0] : "");
-        httpProxyPortTextField.setText(httpProxy.length == 2 ? httpProxy[1] : "");
+        httpProxyServerTextField.setText(URLFetcher.getHttpProxyServer());
+        httpProxyPortTextField.setText(Integer.toString(URLFetcher.getHttpProxyPort()));
         
-        prop = "WebScarab.httpsProxy";
-        value = props.getProperty(prop);
-        if (value == null) value = "";
-        String[] httpsProxy = value.split(":");
-        httpsProxyServerTextField.setText(httpsProxy.length == 2 ? httpsProxy[0] : "");
-        httpsProxyPortTextField.setText(httpsProxy.length == 2 ? httpsProxy[1] : "");
+        httpsProxyServerTextField.setText(URLFetcher.getHttpsProxyServer());
+        httpsProxyPortTextField.setText(Integer.toString(URLFetcher.getHttpsProxyPort()));
         
-        prop = "WebScarab.noProxy";
-        value = props.getProperty(prop);
-        if (value == null) value = "";
-        noProxyTextArea.setText(value);
+        String[] noproxies = URLFetcher.getNoProxy();
+        if (noproxies.length>0) {
+            StringBuffer buff = new StringBuffer();
+            buff.append(noproxies[0]);
+            for (int i=1; i<noproxies.length;i++) {
+                buff.append(", ").append(noproxies[i]);
+            }
+            noProxyTextArea.setText(buff.toString());
+        } else {
+            noProxyTextArea.setText("");
+        }
     }
     
     /** This method is called from within the constructor to
@@ -63,8 +59,8 @@ public class ProxyConfig extends javax.swing.JDialog {
         jScrollPane1 = new javax.swing.JScrollPane();
         noProxyTextArea = new javax.swing.JTextArea();
         jPanel1 = new javax.swing.JPanel();
-        cancelButton = new javax.swing.JButton();
         applyButton = new javax.swing.JButton();
+        cancelButton = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -166,15 +162,6 @@ public class ProxyConfig extends javax.swing.JDialog {
         gridBagConstraints.weighty = 1.0;
         getContentPane().add(jScrollPane1, gridBagConstraints);
 
-        cancelButton.setText("Cancel");
-        cancelButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancelButtonActionPerformed(evt);
-            }
-        });
-
-        jPanel1.add(cancelButton);
-
         applyButton.setText("Apply");
         applyButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -184,78 +171,53 @@ public class ProxyConfig extends javax.swing.JDialog {
 
         jPanel1.add(applyButton);
 
+        cancelButton.setText("Cancel");
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelButtonActionPerformed(evt);
+            }
+        });
+
+        jPanel1.add(cancelButton);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         getContentPane().add(jPanel1, gridBagConstraints);
 
-        pack();
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        setSize(new java.awt.Dimension(400, 120));
-        setLocation((screenSize.width-400)/2,(screenSize.height-120)/2);
+        setBounds((screenSize.width-400)/2, (screenSize.height-120)/2, 400, 120);
     }//GEN-END:initComponents
     
     private void applyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyButtonActionPerformed
-        String prop;
-        String value;
+        String httpserver = httpProxyServerTextField.getText().trim();
+        int httpport = -1;
         try {
-            String server = httpProxyServerTextField.getText().trim();
-            String port = httpProxyPortTextField.getText().trim();
-            value = server + ":" + port;
-            prop = "WebScarab.httpProxy";
-            if (!server.equals("") && !port.equals("")) {
-                int p = Integer.parseInt(port);
-                if (!value.equals(_props.getProperty(prop))) {
-                    _props.setProperty(prop,value);
-                }
-            } else if (port.equals("") && !server.equals("")) {
-                System.err.println("The http Proxy port must also be provided");
-                return;
-            } else if (server.equals("") && !port.equals("")) {
-                System.err.println("The http Proxy server must also be provided");
-                return;
-            } else {
-                if (!_props.getProperty(prop).equals("")) {
-                    _props.setProperty(prop, "");
-                }
-            }
+            String p = httpProxyPortTextField.getText().trim();
+            if (!p.equals("")) 
+                httpport = Integer.parseInt(p);
+            // check that the port is acceptable (1..65535)
         } catch (NumberFormatException nfe) {
             System.err.println("Error parsing the upstream HTTP Proxy port");
             return;
         }
         
+        String httpsserver = httpsProxyServerTextField.getText().trim();
+        int httpsport = -1;
         try {
-            String server = httpsProxyServerTextField.getText().trim();
-            String port = httpsProxyPortTextField.getText().trim();
-            value = server + ":" + port;
-            prop = "WebScarab.httpsProxy";
-            if (!server.equals("") && !port.equals("")) {
-                int p = Integer.parseInt(port);
-                if (!value.equals(_props.getProperty(prop))) {
-                    _props.setProperty(prop,value);
-                }
-            } else if (port.equals("") && !server.equals("")) {
-                System.err.println("The https Proxy port must also be provided");
-                return;
-            } else if (server.equals("") && !port.equals("")) {
-                System.err.println("The https Proxy server must also be provided");
-                return;
-            } else {
-                if (!_props.getProperty(prop).equals("")) {
-                    _props.setProperty(prop, "");
-                }
-            }
+            String p = httpsProxyPortTextField.getText().trim();
+            if (!p.equals(""))
+                httpsport = Integer.parseInt(p);
         } catch (NumberFormatException nfe) {
             System.err.println("Error parsing the upstream HTTPS Proxy port");
             return;
         }
         
-        value = noProxyTextArea.getText();
-        prop = "WebScarab.noProxy";
-        if (!value.equals(_props.getProperty(prop))) {
-            _props.setProperty(prop,value);
-        }
+        String[] noproxies = noProxyTextArea.getText().trim().split(" *, *");
+        URLFetcher.setHttpProxy(httpserver, httpport);
+        URLFetcher.setHttpsProxy(httpsserver, httpsport);
+        URLFetcher.setNoProxy(noproxies);
         
         this.closeDialog(new WindowEvent(this,WindowEvent.WINDOW_CLOSED));
     }//GEN-LAST:event_applyButtonActionPerformed
@@ -271,20 +233,20 @@ public class ProxyConfig extends javax.swing.JDialog {
     }//GEN-LAST:event_closeDialog
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JTextField httpsProxyServerTextField;
-    private javax.swing.JTextField httpsProxyPortTextField;
+    private javax.swing.JButton applyButton;
     private javax.swing.JButton cancelButton;
     private javax.swing.JTextField httpProxyPortTextField;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JButton applyButton;
-    private javax.swing.JTextArea noProxyTextArea;
     private javax.swing.JTextField httpProxyServerTextField;
+    private javax.swing.JTextField httpsProxyPortTextField;
+    private javax.swing.JTextField httpsProxyServerTextField;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea noProxyTextArea;
     // End of variables declaration//GEN-END:variables
     
 }
