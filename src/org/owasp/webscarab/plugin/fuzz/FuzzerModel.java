@@ -7,6 +7,8 @@
 package org.owasp.webscarab.plugin.fuzz;
 
 import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.SiteModelAdapter;
+import org.owasp.webscarab.model.SiteModelEvent;
 import org.owasp.webscarab.model.FilteredSiteModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
@@ -41,8 +43,7 @@ public class FuzzerModel extends FilteredSiteModel {
         return url.getParameters() != null || _model.getConversationCount(url) == 0;
     }
     
-    public void addSignature(HttpUrl url, Signature signature) {
-        _logger.info("Adding a signature for " + url + " = " + signature);
+    public void addSignature(HttpUrl url, Signature signature, ConversationID id) {
         List signatures = (List) _signatures.get(url);
         if (signatures == null) {
             signatures = new ArrayList();
@@ -81,12 +82,35 @@ public class FuzzerModel extends FilteredSiteModel {
         _model.setUrlProperty(url, "BLANKREQUEST", "true");
     }
     
+    public boolean hasBlankRequest(HttpUrl url) {
+        String blank = _model.getUrlProperty(url, "BLANKREQUEST");
+        if (blank == null) return false;
+        return (Boolean.valueOf(blank).equals(Boolean.TRUE));
+    }
+    
+    public void setAuthenticationRequired(HttpUrl url, boolean required) {
+        _model.setUrlProperty(url,  "AUTHREQUIRED", Boolean.toString(required));
+    }
+    
+    public boolean isAuthenticationRequired(HttpUrl url) {
+        String auth = _model.getUrlProperty(url, "AUTHREQUIRED");
+        if (auth == null) return false;
+        return (Boolean.valueOf(auth).equals(Boolean.TRUE));
+    }
+    
     public void setConversationError(ConversationID id) {
         _model.setConversationProperty(id, "ERRORS", "true");
         _model.setUrlProperty(_model.getUrlOf(id), "ERRORS", "true");
+        
     }
     
-    public boolean isApp(HttpUrl url) {
+    public boolean hasErrors(HttpUrl url) {
+        String error = _model.getUrlProperty(url, "ERRORS");
+        if (error == null) return false;
+        return (Boolean.valueOf(error).equals(Boolean.TRUE));
+    }
+    
+    public boolean hasDynamicContent(HttpUrl url) {
         return _model.getUrlProperties(url, "CHECKSUM").length > 1;
     }
     
@@ -112,11 +136,19 @@ public class FuzzerModel extends FilteredSiteModel {
         _queuedUrls.clear();
     }
     
+    public int getConversationCount(HttpUrl url, Signature signature) {
+        return 0;
+    }
+    
+    public ConversationID getConversationAt(HttpUrl url, Signature signature, int index) {
+        return null;
+    }
+    
     /**
      * tells listeners that the url's app status has changed
      * @param url the url
      */
-    protected void fireAppStatusChanged(HttpUrl url, boolean status) {
+    protected void fireAppStatusChanged(HttpUrl url) {
         // Guaranteed to return a non-null array
         Object[] listeners = _listenerList.getListenerList();
         // Process the listeners last to first, notifying
@@ -159,8 +191,66 @@ public class FuzzerModel extends FilteredSiteModel {
         }
     }
     
-    public void dataChanged() {
-        _signatures.clear();
+    /**
+     * tells listeners that the url's app status has changed
+     * @param url the url
+     */
+    protected void fireAuthenticationRequired(HttpUrl url) {
+        // Guaranteed to return a non-null array
+        Object[] listeners = _listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        FuzzerEvent evt = new FuzzerEvent(this, FuzzerEvent.URL_AUTHENTICATION_REQUIRED, url);
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==FuzzerListener.class) {
+                try {
+                    ((FuzzerListener)listeners[i+1]).authenticationRequired(evt);
+                } catch (Exception e) {
+                    _logger.severe("Unhandled exception: " + e);
+                }
+            }
+        }
     }
     
+    /**
+     * tells listeners that the url's app status has changed
+     * @param url the url
+     */
+    protected void fireUrlError(HttpUrl url) {
+        // Guaranteed to return a non-null array
+        Object[] listeners = _listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        FuzzerEvent evt = new FuzzerEvent(this, FuzzerEvent.URL_ERROR, url);
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==FuzzerListener.class) {
+                try {
+                    ((FuzzerListener)listeners[i+1]).urlError(evt);
+                } catch (Exception e) {
+                    _logger.severe("Unhandled exception: " + e);
+                }
+            }
+        }
+    }
+    
+    private class Listener extends SiteModelAdapter {
+        
+        public Listener() {
+        }
+        
+        public void urlChanged(SiteModelEvent evt) {
+            HttpUrl url = evt.getUrl();
+            String property = evt.getPropertyName();
+            if (property == null) return;
+            if (property.equals("SET-COOKIE")) fireAppStatusChanged(url);
+            if (property.equals("BLANKREQUEST")) fireAppStatusChanged(url);
+            if (property.equals("CHECKSUM")) fireAppStatusChanged(url);
+            if (property.equals("ERRORS")) fireUrlError(url);
+            if (property.equals("AUTHREQUIRED")) fireAuthenticationRequired(url);
+        }
+        
+        public void dataChanged(SiteModelEvent evt) {
+        }
+        
+    }
 }

@@ -47,6 +47,8 @@ import org.owasp.webscarab.plugin.fuzz.Fuzzer;
 import org.owasp.webscarab.plugin.fuzz.FuzzerEvent;
 import org.owasp.webscarab.plugin.fuzz.FuzzerListener;
 import org.owasp.webscarab.plugin.fuzz.FuzzerModel;
+import org.owasp.webscarab.plugin.fuzz.Parameter;
+import org.owasp.webscarab.plugin.fuzz.Signature;
 
 import org.owasp.webscarab.util.swing.JTreeTable;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
@@ -62,6 +64,10 @@ import javax.swing.tree.TreeSelectionModel;
 import javax.swing.tree.TreePath;
 import javax.swing.ListSelectionModel;
 
+import javax.swing.table.AbstractTableModel;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+
 import java.util.logging.Logger;
 
 /**
@@ -74,10 +80,13 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     private FuzzerModel _model;
     private SiteTreeTableModelAdapter _sttm;
     
-    private ColumnDataModel _appColumn;
+    private ColumnDataModel _dynamicColumn;
     private ColumnDataModel _potentialAppColumn;
+    private ColumnDataModel _authColumn;
+    private ColumnDataModel _errorColumn;
     
     private JTreeTable _siteTreeTable;
+    private SignatureTableModel _signatureTableModel;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -87,12 +96,19 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         _model = fuzzer.getModel();
         initComponents();
         _potentialAppColumn = new FuzzerPanel.PotentialAppColumn();
-        _appColumn = new FuzzerPanel.AppColumn();
+        _dynamicColumn = new FuzzerPanel.DynamicColumn();
+        _authColumn = new FuzzerPanel.AuthColumn();
+        _errorColumn = new FuzzerPanel.ErrorColumn();
         _model.addModelListener(new Listener());
+        
+        _signatureTableModel = new SignatureTableModel();
+        signatureTable.setModel(_signatureTableModel);
         
         _sttm = new SiteTreeTableModelAdapter(_model);
         _sttm.addColumn(_potentialAppColumn);
-        _sttm.addColumn(_appColumn);
+        _sttm.addColumn(_dynamicColumn);
+        _sttm.addColumn(_authColumn);
+        _sttm.addColumn(_errorColumn);
         _siteTreeTable = new JTreeTable(_sttm);
         
         treeScrollPane.getViewport().remove(urlTree);
@@ -104,6 +120,15 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         urlTree.setCellRenderer(new UrlTreeRenderer());
         
         treeScrollPane.getViewport().add(_siteTreeTable);
+        
+        urlTree.addTreeSelectionListener(new TreeSelectionListener() {
+            public void valueChanged(TreeSelectionEvent e) {
+                HttpUrl url = null;
+                TreePath selection = urlTree.getSelectionPath();
+                if (selection != null) url = (HttpUrl) selection.getLastPathComponent();
+                _signatureTableModel.setUrl(url);
+            }
+        });
     }
     
     /** This method is called from within the constructor to
@@ -120,7 +145,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         treeScrollPane = new javax.swing.JScrollPane();
         urlTree = new javax.swing.JTree();
         jScrollPane3 = new javax.swing.JScrollPane();
-        signatureList = new javax.swing.JList();
+        signatureTable = new javax.swing.JTable();
         jScrollPane1 = new javax.swing.JScrollPane();
         conversationTable = new javax.swing.JTable();
         jPanel2 = new javax.swing.JPanel();
@@ -150,7 +175,18 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         gridBagConstraints.weighty = 1.0;
         jPanel1.add(treeScrollPane, gridBagConstraints);
 
-        jScrollPane3.setViewportView(signatureList);
+        signatureTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane3.setViewportView(signatureTable);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -308,7 +344,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     }
     
     public ColumnDataModel[] getUrlColumns() {
-        return new ColumnDataModel[] { _potentialAppColumn, _appColumn };
+        return new ColumnDataModel[] { _potentialAppColumn, _dynamicColumn, _authColumn, _errorColumn };
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -325,7 +361,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField remainingTextField;
-    private javax.swing.JList signatureList;
+    private javax.swing.JTable signatureTable;
     private javax.swing.JButton startButton;
     private javax.swing.JButton stopButton;
     private javax.swing.JButton testAppButton;
@@ -353,13 +389,13 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         
     }
     
-    private class AppColumn extends ColumnDataModel {
+    private class DynamicColumn extends ColumnDataModel {
         
-        public AppColumn() {
+        public DynamicColumn() {
         }
         
         public String getColumnName() {
-            return "App";
+            return "Dynamic";
         }
         
         public Class getColumnClass() {
@@ -367,7 +403,94 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         }
         
         public Object getValue(Object key) {
-            return new Boolean(_model.isApp((HttpUrl) key));
+            return new Boolean(_model.hasDynamicContent((HttpUrl) key));
+        }
+        
+    }
+    
+    private class AuthColumn extends ColumnDataModel {
+        
+        public AuthColumn() {
+        }
+        
+        public String getColumnName() {
+            return "Auth Req?";
+        }
+        
+        public Class getColumnClass() {
+            return Boolean.class;
+        }
+        
+        public Object getValue(Object key) {
+            return new Boolean(_model.isAuthenticationRequired((HttpUrl) key));
+        }
+        
+    }
+    
+    private class ErrorColumn extends ColumnDataModel {
+        
+        public ErrorColumn() {
+        }
+        
+        public String getColumnName() {
+            return "Errors";
+        }
+        
+        public Class getColumnClass() {
+            return Boolean.class;
+        }
+        
+        public Object getValue(Object key) {
+            return new Boolean(_model.hasErrors((HttpUrl) key));
+        }
+        
+    }
+    
+    private class SignatureTableModel extends AbstractTableModel {
+        
+        private HttpUrl _url = null;
+        private String[] _columnNames = new String[] {"Method", "ContentType", "Parameters" };
+        
+        public SignatureTableModel() {
+        }
+        
+        public String getColumnName(int columnIndex) {
+            return _columnNames[columnIndex];
+        }
+        
+        public void setUrl(HttpUrl url) {
+            _url = url;
+            fireTableDataChanged();
+        }
+        
+        public HttpUrl getUrl() {
+            return _url;
+        }
+        
+        public int getColumnCount() {
+            return 3;
+        }
+        
+        public int getRowCount() {
+            if (_url == null) return 0;
+            return _model.getSignatureCount(_url);
+        }
+        
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            if (_url == null) return null;
+            Signature signature = _model.getSignature(_url, rowIndex);
+            switch (columnIndex) {
+                case 0: return signature.getMethod();
+                case 1: return signature.getContentType();
+                case 2: 
+                    Parameter[] parameters = signature.getParameters();
+                    StringBuffer buff = new StringBuffer();
+                    for (int i=0; i< parameters.length; i++) {
+                        buff.append(parameters[i].getName()).append("[").append(parameters[i].getLocation()).append("] ");
+                    }
+                    return buff.toString();
+            }
+            return null;
         }
         
     }
@@ -379,11 +502,34 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         
         public void appStatusChanged(FuzzerEvent evt) {
             HttpUrl url = evt.getUrl();
-            _appColumn.fireValueChanged(url);
+            _logger.info("AppStatus Changed " + url);
+            _dynamicColumn.fireValueChanged(url);
             _potentialAppColumn.fireValueChanged(url);
         }
         
         public void signatureAdded(FuzzerEvent evt) {
+            HttpUrl url = evt.getUrl();
+            _potentialAppColumn.fireValueChanged(url);
+            _dynamicColumn.fireValueChanged(url);
+            HttpUrl selected = _signatureTableModel.getUrl();
+            if (selected != null && selected.equals(url)) 
+                _signatureTableModel.fireTableDataChanged();
+        }
+        
+        public void authenticationRequired(FuzzerEvent evt) {
+            HttpUrl url = evt.getUrl();
+            _authColumn.fireValueChanged(url);
+        }
+        
+        public void urlError(FuzzerEvent evt) {
+            HttpUrl url = evt.getUrl();
+            _errorColumn.fireValueChanged(url);
+        }
+        
+        public void fuzzerStarted(FuzzerEvent evt) {
+        }
+        
+        public void fuzzerStopped(FuzzerEvent evt) {
         }
         
     }

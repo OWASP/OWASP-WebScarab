@@ -19,4 +19,12 @@ public abstract class FuzzerListener extends SiteModelAdapter {
     
     public abstract void signatureAdded(FuzzerEvent evt);
     
+    public abstract void authenticationRequired(FuzzerEvent evt);
+    
+    public abstract void urlError(FuzzerEvent evt);
+    
+    public abstract void fuzzerStarted(FuzzerEvent evt);
+    
+    public abstract void fuzzerStopped(FuzzerEvent evt);
+    
 }

@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: Fuzzer.java,v 1.1 2005/03/11 16:58:11 rogan Exp $
+ * $Id: Fuzzer.java,v 1.2 2005/03/24 07:12:03 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.fuzz;
@@ -104,7 +104,7 @@ public class Fuzzer implements Plugin {
             // queue them as fast as they come, sleep a bit otherwise
             if (!queueRequests() && !dequeueResponses()) {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(100);
                 } catch (InterruptedException ie) {}
             } else {
                 Thread.yield();
@@ -118,14 +118,8 @@ public class Fuzzer implements Plugin {
     }
     
     public void queueUrls(HttpUrl[] urls) {
-        _logger.info("Got " + urls.length + " to queue");
         for (int i=0; i<urls.length; i++) {
-            if (_model.isAppCandidate(urls[i])) {
-                _logger.info("Queueing " + urls[i]);
-                _model.queueUrl(urls[i]);
-            } else {
-                _logger.info(urls[i] + " is not a candidate");
-            }
+            _model.queueUrl(urls[i]);
         }
     }
     
@@ -139,13 +133,19 @@ public class Fuzzer implements Plugin {
         if (! _fetcher.hasCapacity()) return false;
         while (_model.getQueuedUrlCount() > 0 && _fetcher.hasCapacity()) {
             HttpUrl url = _model.getQueuedUrl();
-            Request request = new Request();
-            request.setMethod("GET");
-            request.setURL(url);
-            request.setVersion("HTTP/1.0");
-            request.setHeader("Host", url.getHost());
-            _fetcher.submit(request);
-            _logger.info("Submitted " + url);
+            if (_model.isAppCandidate(url)) {
+                Request request = new Request();
+                request.setMethod("GET");
+                request.setURL(url);
+                request.setVersion("HTTP/1.0");
+                request.setHeader("Host", url.getHost());
+                if (_model.isAuthenticationRequired(url)) {
+                    String auth = "Basic d2ViZ29hdDp3ZWJnb2F0";
+                    request.addHeader("Authorization", auth);
+                }
+                _fetcher.submit(request);
+                _logger.info("Submitted " + url);
+            }
         }
         return true;
     }
@@ -168,7 +168,11 @@ public class Fuzzer implements Plugin {
             _logger.warning("Got a null request from the response!");
             return false;
         }
-        _framework.addConversation(request, response, "Fuzzer");
+        if (response.getStatus().startsWith("401")) {
+            _model.setAuthenticationRequired(request.getURL(), true);
+        } else {
+            _framework.addConversation(request, response, "Fuzzer");
+        }
         return true;
     }
     
@@ -204,10 +208,15 @@ public class Fuzzer implements Plugin {
     public void analyse(ConversationID id, Request request, Response response, String origin) {
         String method = request.getMethod();
         HttpUrl url = request.getURL();
+        String status = response.getStatus();
+        if (status.startsWith("401")) {
+            _model.setAuthenticationRequired(url, true);
+            return;
+        }
         String query = url.getQuery();
         String fragments = url.getFragment();
         if (url.getParameters() != null) url = url.getParentUrl();
-        String contentType = request.getHeader("ContentType");
+        String contentType = request.getHeader("Content-Type");
         
         Signature signature = new Signature(method, url, contentType);
         
@@ -241,7 +250,7 @@ public class Fuzzer implements Plugin {
             }
         }
         if (signature.getParameters().length > 0 || method.equals("POST")) {
-            _model.addSignature(url, signature);
+            _model.addSignature(url, signature, id);
         } else {
             _model.setBlankRequest(url);
         }
