@@ -38,6 +38,8 @@ public class EditorFactory {
         registerEditor("image/.*", "org.owasp.webscarab.ui.swing.editors.ImagePanel");
         registerEditor("application/x-www-form-urlencoded", "org.owasp.webscarab.ui.swing.editors.UrlEncodedPanel");
         registerEditor("text/html.*","org.owasp.webscarab.ui.swing.editors.HTMLPanel");
+        registerEditor("text/html.*","org.owasp.webscarab.ui.swing.editors.XMLPanel");
+        registerEditor("text/xml.*","org.owasp.webscarab.ui.swing.editors.XMLPanel");
         registerEditor("text/.*","org.owasp.webscarab.ui.swing.editors.TextPanel");
         registerEditor("application/x-javascript","org.owasp.webscarab.ui.swing.editors.TextPanel");
         registerEditor("application/x-www-form-urlencoded","org.owasp.webscarab.ui.swing.editors.TextPanel");
