@@ -60,8 +60,7 @@
 	</target>
 	<path id="vpath">
 		<path refid="cpath"/>
-		<pathelement location="/opt/owasp/vulnxml/build/vulnxml.jar"/>
-		<pathelement path="/opt/owasp/vulnxml/src/org/owasp/vulnxml/model/vuln/VulnXML-1.4.dtd"/>
+		<pathelement location="lib/vulnxml.jar"/>
 		<pathelement path="/opt/owasp/vulnxml/lib/commons-collections.jar"/>
 		<pathelement path="/opt/owasp/vulnxml/lib/commons-digester.jar"/>
 		<pathelement path="/opt/owasp/vulnxml/lib/commons-logging.jar"/>
