@@ -55,6 +55,7 @@
                 </jar>
 	</target>
 	<target depends="compile" name="run" description="run the program">
+                <copy file="server.p12" todir="${classes}"/>
 		<java classname="${mainclass}" classpathref="cpath" fork="on">
 		</java>
 	</target>
