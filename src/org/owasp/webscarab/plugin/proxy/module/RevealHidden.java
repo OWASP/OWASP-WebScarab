@@ -14,10 +14,7 @@ import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.proxy.AbstractProxyPlugin;
 
 import java.util.Properties;
-import java.util.Enumeration;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
 
 /**
@@ -66,7 +63,7 @@ public class RevealHidden extends AbstractProxyPlugin {
             _in = in;
         }
         
-        public Response fetchResponse(Request request) {
+        public Response fetchResponse(Request request) throws IOException {
             Response response = _in.fetchResponse(request);
             if (_enabled) {
                 String ct = response.getHeader("Content-Type");
@@ -74,6 +71,7 @@ public class RevealHidden extends AbstractProxyPlugin {
                     byte[] content = response.getContent();
                     if (content != null) {
                         response.setContent(revealHidden(content));
+                        response.addHeader("X-RevealHidden", "possibly modified");
                     }
                 }
             }

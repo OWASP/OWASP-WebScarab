@@ -145,7 +145,7 @@ public class ManualEdit extends AbstractProxyPlugin {
             _in = in;
         }
         
-        public Response fetchResponse(Request request) {
+        public Response fetchResponse(Request request) throws IOException {
             if (interceptRequest) {
                 String url = request.getURL().toString();
                 if (! url.matches(excludeRegex) && url.matches(includeRegex)) {
@@ -162,11 +162,12 @@ public class ManualEdit extends AbstractProxyPlugin {
             Response response = _in.fetchResponse(request);
             if (interceptResponse) {
                 String contentType = response.getHeader("Content-Type");
-                if (!contentType.matches("text/.*")) {
+                if (! "text/.*".matches(contentType)) {
                     return response;
                 }
                 if (_cef != null) {
                     response = _cef.getEditor().editResponse(request, response);
+                    response.addHeader("X-ManualEdit", "possibly modified");
                 }
             }
             return response;

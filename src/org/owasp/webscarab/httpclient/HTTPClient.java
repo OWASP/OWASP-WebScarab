@@ -8,6 +8,7 @@ package org.owasp.webscarab.httpclient;
 
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
+import java.io.IOException;
 
 /**
  *
@@ -15,6 +16,6 @@ import org.owasp.webscarab.model.Response;
  */
 public interface HTTPClient {
     
-    Response fetchResponse(Request request);
+    Response fetchResponse(Request request) throws IOException;
     
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: BeanShellPanel.java,v 1.2 2003/12/20 14:17:23 rogan Exp $
+ * $Id: BeanShellPanel.java,v 1.3 2004/04/19 07:45:30 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -7,6 +7,7 @@
 
 package org.owasp.webscarab.ui.swing.proxy;
 
+import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.proxy.module.BeanShell;
 
 import org.owasp.webscarab.ui.swing.SwingPlugin;
@@ -34,8 +35,10 @@ public class BeanShellPanel extends javax.swing.JPanel implements SwingPlugin {
     private BeanShell _beanShell;
     
     /** Creates new form ManualEditPanel */
-    public BeanShellPanel(BeanShell beanshell) {
-        _beanShell = beanshell;
+    public BeanShellPanel(Proxy proxy) {
+        _beanShell = new BeanShell();
+        proxy.addPlugin(_beanShell);
+        
         initComponents();
         configure();
     }
@@ -87,16 +90,16 @@ public class BeanShellPanel extends javax.swing.JPanel implements SwingPlugin {
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         interceptrequestPanel.add(enableCheckBox, gridBagConstraints);
 
         ScriptFileLabel.setText("Script File : ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         interceptrequestPanel.add(ScriptFileLabel, gridBagConstraints);
 
         scriptFileTextField.setToolTipText("Use a regular expression to select which URLs to intercept. Leave blank to ignore.");
@@ -111,16 +114,16 @@ public class BeanShellPanel extends javax.swing.JPanel implements SwingPlugin {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         interceptrequestPanel.add(scriptFileTextField, gridBagConstraints);
 
         scriptLabel.setText("Script : ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         interceptrequestPanel.add(scriptLabel, gridBagConstraints);
 
         jScrollPane1.setViewportView(scriptTextArea);
@@ -129,9 +132,9 @@ public class BeanShellPanel extends javax.swing.JPanel implements SwingPlugin {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         interceptrequestPanel.add(jScrollPane1, gridBagConstraints);
 
         commitButton.setText("Commit");
@@ -186,14 +189,14 @@ public class BeanShellPanel extends javax.swing.JPanel implements SwingPlugin {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel interceptrequestPanel;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JLabel scriptLabel;
-    private javax.swing.JCheckBox enableCheckBox;
     private javax.swing.JLabel ScriptFileLabel;
     private javax.swing.JButton commitButton;
-    private javax.swing.JTextArea scriptTextArea;
+    private javax.swing.JCheckBox enableCheckBox;
+    private javax.swing.JPanel interceptrequestPanel;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextField scriptFileTextField;
+    private javax.swing.JLabel scriptLabel;
+    private javax.swing.JTextArea scriptTextArea;
     // End of variables declaration//GEN-END:variables
     
 }

@@ -146,7 +146,7 @@ public class WASExecutor {
         return new String[0];
     }
     
-    public TestResult[] execute() {
+    public TestResult[] execute() throws IOException {
         TestResult[] results = new TestResult[getVariations()];
         for (int variation=0; variation<getVariations(); variation++) {
             results[variation] = execute(variation);
@@ -154,7 +154,7 @@ public class WASExecutor {
         return results;
     }
     
-    public TestResult execute(int variation) {
+    public TestResult execute(int variation) throws IOException {
         TreeMap variables = new TreeMap(_base);
         for (int j=0; j<_variableNames.length; j++) {
             variables.put(_variableNames[j], _variableValues[variation][j]);
@@ -162,7 +162,7 @@ public class WASExecutor {
         return execute(variables);
     }
     
-    private TestResult execute(Map variables) {
+    private TestResult execute(Map variables) throws IOException {
         Object[] o = _test.get( WebApplicationTest.MMB_CONNECTION);
         Envelope[] conns = new Envelope[o.length];
         for (int z=0; z<o.length; z++) { conns[z] = (Envelope) o[z]; }
@@ -379,20 +379,27 @@ public class WASExecutor {
                 System.err.println("Malformed URL " + mue);
                 System.exit(1);
             }
+            WASExecutor we = null;
             try {
                 FileInputStream fis = new FileInputStream(args[1]);
                 Node node = VulnFactory.slurp(fis);
-                WASExecutor we = new WASExecutor(node, url);
+                we = new WASExecutor(node, url);
                 System.out.println("test has " + we.getVariations() + " variations");
-                TestResult[] results = we.execute();
-                if (results.length>0) {
-                    for (int i=0; i<results.length; i++) {
-                        System.out.println(i + ": " + results[i].isSuccess() + " - " + results[i].getMessage());
-                    }
-                }
             } catch (IOException ioe) {
                 System.err.println("Error reading the test from " + args[0]);
                 System.exit(1);
+            }
+            if (we != null) {
+                try {
+                    TestResult[] results = we.execute();
+                    if (results.length>0) {
+                        for (int i=0; i<results.length; i++) {
+                            System.out.println(i + ": " + results[i].isSuccess() + " - " + results[i].getMessage());
+                        }
+                    }
+                } catch (IOException ioe) {
+                    System.out.println("IOException executing the test: " + ioe);
+                }
             }
         } else {
             System.out.println("Usage: WASExecutor http://host:port/path/file test.xml");

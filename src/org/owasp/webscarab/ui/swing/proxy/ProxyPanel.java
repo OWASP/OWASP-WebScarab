@@ -9,9 +9,6 @@ package org.owasp.webscarab.ui.swing.proxy;
 import org.owasp.webscarab.ui.swing.SwingPlugin;
 import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.proxy.module.ManualEdit;
-import org.owasp.webscarab.plugin.proxy.module.CookieTracker;
-import org.owasp.webscarab.plugin.proxy.module.RevealHidden;
-import org.owasp.webscarab.plugin.proxy.module.BrowserCache;
 import org.owasp.webscarab.plugin.proxy.module.BeanShell;
 
 import org.owasp.webscarab.ui.Framework;
@@ -42,28 +39,11 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
         listenerTable.setModel(_ltm);
         listenerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
-        // load the proxy modules
-        ManualEdit me = new ManualEdit();
-        _proxy.addPlugin(me);
-        
-        RevealHidden rh = new RevealHidden();
-        _proxy.addPlugin(rh);
-        
-        BrowserCache bc = new BrowserCache();
-        _proxy.addPlugin(bc);
-        
-        CookieTracker ct = new CookieTracker(_proxy.getCookieJar());
-        _proxy.addPlugin(ct);
-        
-        BeanShell bs = new BeanShell();
-        _proxy.addPlugin(bs);
-        
-        // add their GUI's.
-        // FIXME - this should be changed so that the GUI panel creates the underlying plugin, 
-        // similarly to how we load the GUI plugins into the WebScarab GUI
-        addPlugin(new ManualEditPanel(me));
-        addPlugin(new MiscPanel(rh, bc, ct));
-        addPlugin(new BeanShellPanel(bs));
+        // load the GUI modules, which in turn reate their underlying proxy modules
+        // and register them with the proxy
+        addPlugin(new ManualEditPanel(_proxy));
+        addPlugin(new MiscPanel(_proxy));
+        addPlugin(new BeanShellPanel(_proxy));
 
     }
 

@@ -118,7 +118,7 @@ public class BeanShell extends AbstractProxyPlugin {
             _script = _beanScript;
         }
         
-        public Response fetchResponse(Request request) {
+        public Response fetchResponse(Request request) throws IOException {
             if (_enabled) {
                 try {
                     Interpreter interpreter = new Interpreter();
@@ -127,7 +127,8 @@ public class BeanShell extends AbstractProxyPlugin {
                     interpreter.eval(_fetchResponse);
                     interpreter.set("request", request);
                     interpreter.eval(_script);
-                    return (Response) interpreter.get("response");
+                    Response response = (Response) interpreter.get("response");
+                    response.addHeader("X-BeanShell", "possibly modified");
                 } catch (EvalError e) {
                     System.out.println("Error evaluating bean script : " + e);
                     return null;

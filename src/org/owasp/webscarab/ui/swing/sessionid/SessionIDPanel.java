@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.ByteArrayInputStream;
 
 import javax.swing.ListModel;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
@@ -37,6 +38,7 @@ import javax.swing.event.ChangeEvent;
 
 import java.util.TreeMap;
 import java.util.Date;
+import java.util.logging.Logger;
 
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartPanel;
@@ -61,6 +63,8 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
     SessionIDAnalysis _sa;
     ListTableModelAdaptor _ltma = new ListTableModelAdaptor(null, new SessionIDRow());
     SessionIDDataset _sidd = new SessionIDDataset(null);
+    
+    private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     /** Creates new form SessionIDPanel */
     public SessionIDPanel(Framework framework) {
@@ -435,26 +439,37 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         } else {
             location = -1;
         }
-        Response response = _sa.fetchResponse(request);
-        if (response == null) {
-            return;
-        }
+        testButton.setEnabled(false);
         new SwingWorker() {
             public Object construct() {
-                return _sa.fetchResponse(request);
+                try {
+                    return _sa.fetchResponse(request);
+                } catch (IOException ioe) {
+                    return ioe.toString();
+                }
             }
             
             //Runs on the event-dispatching thread.
             public void finished() {
-                Response response = (Response) getValue();
-                if (response != null) {
-                    _responsePanel.setResponse(response);
-                    SessionID sessid = _sa.getIDfromResponse(response, location, nameTextField.getText(), regexTextField.getText());
-                    if (sessid != null) {
-                        dateTextField.setText(sessid.getDate().toString());
-                        valueTextField.setText(sessid.getValue());
+                Object obj = getValue();
+                if (obj instanceof Response) {
+                    Response response = (Response) getValue();
+                    if (response != null) {
+                        _responsePanel.setResponse(response);
+                        SessionID sessid = _sa.getIDfromResponse(response, location, nameTextField.getText(), regexTextField.getText());
+                        if (sessid != null) {
+                            dateTextField.setText(sessid.getDate().toString());
+                            valueTextField.setText(sessid.getValue());
+                        } else {
+                            dateTextField.setText("");
+                            valueTextField.setText("");
+                        }
                     }
+                } else if (obj instanceof String) {
+                    JOptionPane.showMessageDialog(null, new String[] {"Error fetching response: ", obj.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+                    _logger.severe("IOException fetching response: " + obj);
                 }
+                testButton.setEnabled(true);
             }
         }.start();
     }//GEN-LAST:event_testButtonActionPerformed

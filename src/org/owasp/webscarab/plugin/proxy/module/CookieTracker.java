@@ -15,10 +15,7 @@ import org.owasp.webscarab.model.CookieJar;
 import org.owasp.webscarab.plugin.proxy.AbstractProxyPlugin;
 
 import java.util.Properties;
-import java.util.Enumeration;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
 
 /**
@@ -84,7 +81,7 @@ public class CookieTracker extends AbstractProxyPlugin {
             _in = in;
         }
         
-        public Response fetchResponse(Request request) {
+        public Response fetchResponse(Request request) throws IOException {
             if (_injectRequests) {
                 // FIXME we should do something about any existing cookies that are in the Request
                 // they could have been set via JavaScript, or some such!

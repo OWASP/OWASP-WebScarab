@@ -30,7 +30,7 @@ public class AsyncFetcher implements Runnable {
     private Vector _requestQueue;
     private Vector _responseQueue;
     private URLFetcher _uf = new URLFetcher();
-    private Logger _logger = Logger.getLogger("AsyncFetcher");
+    private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     /** Creates a new instance of AsyncFetcher */
     public AsyncFetcher(Vector requestQueue, Vector responseQueue) {
@@ -56,9 +56,13 @@ public class AsyncFetcher implements Runnable {
             try {
                 request = (Request) _requestQueue.remove(0);
                 if (request != null) {
-                    response = _uf.fetchResponse(request);
-                    response.getContent();
-                    _responseQueue.add(response);
+                    try {
+                        response = _uf.fetchResponse(request);
+                        response.flushContentStream();
+                        _responseQueue.add(response);
+                    } catch (IOException ioe) {
+                        _logger.severe("IOException fetching " + request.getURL().toString() + " : " + ioe);
+                    }
                 }
             } catch (ArrayIndexOutOfBoundsException aioob) {
                 try {

@@ -19,6 +19,11 @@ import org.owasp.webscarab.ui.Framework;
 
 import javax.swing.border.TitledBorder;
 
+import java.io.IOException;
+import javax.swing.JOptionPane;
+
+import java.util.logging.Logger;
+
 /**
  *
  * @author  rdawes
@@ -30,6 +35,8 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
     
     private RequestPanel requestPanel;
     private ResponsePanel responsePanel;
+    
+    private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     /** Creates new form ManualRequestPanel */
     public ManualRequestPanel(Framework framework) {
@@ -128,20 +135,30 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
             responsePanel.setResponse(null);
             new SwingWorker() {
                 public Object construct() {
-                    return _manualRequest.fetchResponse(request);
+                    try {
+                        return _manualRequest.fetchResponse(request);
+                    } catch (IOException ioe) {
+                        return ioe.toString();
+                    }
                 }
 
                 //Runs on the event-dispatching thread.
                 public void finished() {
-                    Response response = (Response) getValue();
-                    if (response != null) {
-                        responsePanel.setResponse(response);
+                    Object obj = getValue();
+                    if (obj instanceof Response) {
+                        Response response = (Response) getValue();
+                        if (response != null) {
+                            responsePanel.setResponse(response);
+                        }
+                    } else if (obj instanceof String) {
+                        JOptionPane.showMessageDialog(null, new String[] {"Error fetching response: ", obj.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+                        _logger.severe("IOException fetching response: " + obj);
                     }
                     fetchResponseButton.setEnabled(true);
                 }
             }.start();
         } else {
-            System.err.println("Can't fetch a null request");
+            _logger.severe("Can't fetch a null request");
         }
     }//GEN-LAST:event_fetchResponseButtonActionPerformed
 

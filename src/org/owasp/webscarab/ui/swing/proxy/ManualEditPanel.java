@@ -1,5 +1,5 @@
 /*
- * $Id: ManualEditPanel.java,v 1.6 2003/12/20 14:17:23 rogan Exp $
+ * $Id: ManualEditPanel.java,v 1.7 2004/04/19 07:45:30 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -7,6 +7,7 @@
 
 package org.owasp.webscarab.ui.swing.proxy;
 
+import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.proxy.module.ManualEdit;
 
 import org.owasp.webscarab.ui.swing.SwingPlugin;
@@ -34,8 +35,10 @@ public class ManualEditPanel extends javax.swing.JPanel implements SwingPlugin {
     private ManualEdit _manualEdit;
     
     /** Creates new form ManualEditPanel */
-    public ManualEditPanel(ManualEdit manualEdit) {
-        _manualEdit = manualEdit;
+    public ManualEditPanel(Proxy proxy) {
+        _manualEdit = new ManualEdit();
+        proxy.addPlugin(_manualEdit);
+        
         initComponents();
         configure();
         interceptMethodList.addListSelectionListener(new ListSelectionListener() {

@@ -31,13 +31,20 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.KeyManagerFactory;
 import java.security.KeyStore;
 
+import java.util.logging.Logger;
+
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.util.LogInputStream;
+import org.owasp.webscarab.util.LogOutputStream;
+
 
 /** Creates a new instance of URLFetcher
  * @author rdawes
  */
 public class URLFetcher implements HTTPClient {
+    
+    private Logger _logger = Logger.getLogger("org.owasp.webscarab");
     
     static private String _httpProxy = "";
     static private int _httpProxyPort = 0;
@@ -52,10 +59,10 @@ public class URLFetcher implements HTTPClient {
     String keystore = "/client.p12";
     char keystorepass[] = "password".toCharArray();
     char keypassword[] = "password".toCharArray();
-
-    private Socket _proxysocket = null;
-    private Socket _serversocket = null;
-    private SSLSocket _sslsocket = null;
+    
+    private Socket _socket = null;
+    private boolean _direct = false;
+    private Response _response = null;
     
     // these represent an already connected socket, and the end point thereof.
     private InputStream _in = null;
@@ -64,9 +71,46 @@ public class URLFetcher implements HTTPClient {
     private int _port = 0;
     private long _lastRequestTime = 0;
     
+    private boolean _debug = false;
+    private boolean _quiet = false;
+    
+    // used to make a copy of the communication with the server
+    // primarily used by the proxy, to divert a copy of what is 
+    // sent between client and server, without impacting streaming performance (much?)
+    private OutputStream _serverOutput = null;
+    private OutputStream _serverInput = null;
+
     /** Creates a new instance of URLFetcher
      */
     public URLFetcher() {
+    }
+    
+    
+    /** Creates a new instance of URLFetcher, that reads its response from the 
+     * supplied inputstream. This must obviously be carefully arranged, but is 
+     * typically done in conjunction with a second URLFetcher that is copying
+     * whatever it reads from the server to a PipedOutputStream, or previously 
+     * saved it to a FileOutputStream, which is now being read from.
+     * This is used for the Proxy plugin, to separate the response
+     * read from the server from the (possibly modified) response that is
+     * sent to the browser.
+     */
+    public URLFetcher(InputStream fromServer) {
+        _debug = true;
+        _quiet = true;
+        _in = fromServer;
+    }
+     
+    
+    /** Creates a new instance of URLFetcher, that copies all data written to 
+     * the server to "toServer", and copies all data read from the server to
+     * "fromServer". This is used for the Proxy plugin, to separate the response
+     * read from the server from the (possibly modified) response that is 
+     * sent to the browser.
+     */
+    public URLFetcher(OutputStream toServer, OutputStream fromServer) {
+        _serverOutput = toServer;
+        _serverInput = fromServer;
     }
     
     /** Create and install a trust manager that does not verify server SSL certificates
@@ -96,7 +140,7 @@ public class URLFetcher implements HTTPClient {
             sc.init(kmf.getKeyManagers(), _trustAllCerts, new java.security.SecureRandom());
             _factory = (SSLSocketFactory)sc.getSocketFactory();
         } catch (Exception e) {
-            System.err.println("Error setting up SSL support : " + e);
+            _logger.severe("Error setting up SSL support : " + e);
             throw e;
         }
     }
@@ -175,84 +219,92 @@ public class URLFetcher implements HTTPClient {
      * @return the retrieved response
      * @param request the request to retrieve.
      */
-    public Response fetchResponse(Request request) {
+    public Response fetchResponse(Request request) throws IOException {
+        if (_response != null) {
+            _response.flushContentStream(); // flush the content stream, just in case it wasn't read
+            _response = null;
+        };
         if (request == null) {
-            System.err.println("Request is null");
+            _logger.severe("Asked to fetch a null request");
             return null;
         }
         URL url = request.getURL();
         if (url == null) {
-            System.err.println("URL is null");
+            _logger.severe("Asked to fetch a request with a null URL");
             return null;
         }
         
-        try {
-            if (_in == null || _out == null || invalidSocket(url)) {
-                String proxyAuth = request.getHeader("Proxy-Authentication");
-                Response response = opensocket(url, proxyAuth);
-                if (response != null) {
-                    return response;
+        if (invalidSocket(url)) {
+            String proxyAuth = request.getHeader("Proxy-Authentication");
+            _socket = opensocket(url, proxyAuth);
+            if (_response != null) {
+                return _response;
+            } else {
+                if (!_debug) {
+                    _in = _socket.getInputStream();
+                    _out = _socket.getOutputStream();
+                    if (_serverInput != null) {
+                        _in = new LogInputStream(_in, new PrintStream(_serverInput, true));
+                    }
+                    if (_serverOutput != null) {
+                        _out = new LogOutputStream(_out, new PrintStream(_serverOutput, true));
+                    }
                 }
             }
-        } catch (UnknownHostException uhe) {
-            return errorResponse(request, "Unknown host exception " + uhe);
-        } catch (IOException ioe) {
-            // ioe.printStackTrace();
-            return errorResponse(request, "IOException " + ioe);
         }
         // Still send the real request
-        try {
-            
+        if (_out != null) { // we are connected to a live server
+            _logger.fine("Writing the request");
             // depending on whether we are connected directly to the server, or via a proxy
-            if (_proxysocket != null) {
-                request.write(_out);
-            } else if (_serversocket != null) {
+            if (_direct) {
                 request.writeDirect(_out);
+            } else {
+                request.write(_out);
             }
             _out.flush();
-            
-            Response response = new Response();
-            response.setRequest(request);
+            _logger.fine("Finished writing the request");
+        } else {
+            // we make sure that the request body has been read (if any)
+            request.flushContentStream();
+        }
 
-            // test for spurious 100 header from IIS 4 and 5. 
-            // See http://mail.python.org/pipermail/python-list/2000-December/023204.html
-            do {
-                response.read(_in);
-            } while (response.getStatus().equals("100"));
-            
-            System.err.println(request.getURL() +" : " + response.getStatusLine());
-            
-            String connection = response.getHeader("Proxy-Connection");
-            if (connection != null && "close".equalsIgnoreCase(connection)) {
+        _response = new Response();
+        _response.setRequest(request);
+
+        // test for spurious 100 header from IIS 4 and 5. 
+        // See http://mail.python.org/pipermail/python-list/2000-December/023204.html
+        _logger.fine("Reading the response");
+        do {
+            _response.read(_in);
+        } while (_response.getStatus().equals("100"));
+
+        _logger.info(request.getURL() +" : " + _response.getStatusLine());
+
+        String connection = _response.getHeader("Proxy-Connection");
+        if (connection != null && "close".equalsIgnoreCase(connection)) {
+            _in = null;
+            _out = null;
+            // do NOT close the socket itself, since the message body has not yet been read!
+        } else {
+            connection = _response.getHeader("Connection");
+            String version = request.getVersion();
+            if (version.equals("HTTP/1.0") && "Keep-alive".equalsIgnoreCase(connection)) {
+                _lastRequestTime = System.currentTimeMillis();
+            } else if (version.equals("HTTP/1.1") && (connection == null || !connection.equalsIgnoreCase("Close"))) {
+                _lastRequestTime = System.currentTimeMillis();
+            } else {
                 _in = null;
                 _out = null;
-            } else {
-                connection = response.getHeader("Connection");
-                String version = request.getVersion();
-                if (version.equals("HTTP/1.0") && connection != null && connection.equalsIgnoreCase("Keep-Alive")) {
-                    _lastRequestTime = System.currentTimeMillis();
-                } else if (version.equals("HTTP/1.1") && (connection == null || !connection.equalsIgnoreCase("Close"))) {
-                    _lastRequestTime = System.currentTimeMillis();
-                } else {
-                    _in = null;
-                    _out = null;
-                }
+                // do NOT close the socket itself, since the message body has not yet been read!
             }
-            
-            return response;
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            return errorResponse(request,"IOException " + ioe);
         }
+        return _response;
     }
     
-    private Response opensocket(URL url, String proxyAuth) throws UnknownHostException, IOException, SocketException  {
-        // We initialise all sockets to null;
-        _proxysocket = null;
-        _serversocket = null;
-        _sslsocket = null;
-        _in = null;
-        _out = null;
+    private Socket opensocket(URL url, String proxyAuth) throws IOException {
+        // We initialise to null;
+        Socket socket = null;
+        _direct = true;
         
         // We record where we are connected to, in case we might reuse this socket later
         _host = url.getHost();
@@ -261,48 +313,57 @@ public class URLFetcher implements HTTPClient {
         
         if (useProxy(url)) {
             if (!ssl) {
-                System.err.println("Connect to " + _httpProxy + ":" + _httpProxyPort);
-                _proxysocket = new Socket(_httpProxy, _httpProxyPort);
-                _proxysocket.setTcpNoDelay(true);
-                _proxysocket.setSoTimeout(60 * 1000);
-                _in = _proxysocket.getInputStream();
-                _out = _proxysocket.getOutputStream();
+                _logger.fine("Connect to " + _httpProxy + ":" + _httpProxyPort);
+                if (!_debug) {
+                    socket = new Socket(_httpProxy, _httpProxyPort);
+                    socket.setTcpNoDelay(true);
+                    socket.setSoTimeout(60 * 1000);
+                }
+                _direct = false;
+                return socket;
             } else {
                 // Send CONNECT, get OK, then we have a socket to the server
-                System.err.println("Connect to " + _httpsProxy + ":" + _httpsProxyPort);
-                _proxysocket = new Socket(_httpsProxy, _httpsProxyPort);
-                OutputStream proxyout = _proxysocket.getOutputStream();
-                InputStream proxyin = _proxysocket.getInputStream();
-                System.err.println("Proxy CONNECT to " + _host + ":" + _port);
-                proxyout.write(("CONNECT " + _host + ":" + _port + " HTTP/1.0\r\n").getBytes());
-                if (proxyAuth != null && !proxyAuth.equals("")) {
-                    proxyout.write(("Proxy-Authorization: " + proxyAuth + "\r\n").getBytes());
+                // _logger.fine("Connect to " + _httpsProxy + ":" + _httpsProxyPort);
+                if (!_debug) {
+                    // _logger.fine("Proxy CONNECT to " + _host + ":" + _port);
+                    socket = new Socket(_httpsProxy, _httpsProxyPort);
+                    _in = socket.getInputStream();
+                    _out = socket.getOutputStream();
+                    if (_serverInput != null) {
+                        _in = new LogInputStream(_in, new PrintStream(_serverInput, true));
+                    }
+                    if (_serverOutput != null) {
+                        _out = new LogOutputStream(_out, new PrintStream(_serverOutput, true));
+                    }
                 }
-                proxyout.write("\r\n".getBytes());
-                proxyout.flush();
-                System.err.println("Sent CONNECT, reading Proxy response");
+                if (_out != null) {
+                    _out.write(("CONNECT " + _host + ":" + _port + " HTTP/1.0\r\n").getBytes());
+                    if (proxyAuth != null && !proxyAuth.equals("")) {
+                        _out.write(("Proxy-Authorization: " + proxyAuth + "\r\n").getBytes());
+                    }
+                    _out.write("\r\n".getBytes());
+                    _out.flush();
+                    _logger.fine("Sent CONNECT, reading Proxy response");
+                }
                 Response response = new Response();
-                response.read(proxyin);
-                System.err.println("Got response " + response.getStatusLine());
+                response.read(_in);
+                _logger.fine("Got proxy response " + response.getStatusLine());
                 if (!response.getStatus().equals("200")) {
-                    return response;
+                    _response = response;
+                    return null;
                 }
-                System.err.println("HTTPS CONNECT successful");
-                _serversocket = _proxysocket;
-                _proxysocket = null;
+                _logger.fine("HTTPS CONNECT successful");
             }
         } else {
-            System.err.println("Connect to " + _host + ":" + _port );
-            _serversocket = new Socket(_host, _port);
-            _serversocket.setTcpNoDelay(true);
-            _serversocket.setSoTimeout(60 * 1000);
-            if (!ssl) {
-                _in = _serversocket.getInputStream();
-                _out = _serversocket.getOutputStream();
+            if (!_debug) {
+                _logger.fine("Connect to " + _host + ":" + _port );
+                socket = new Socket(_host, _port);
+                socket.setTcpNoDelay(true);
+                socket.setSoTimeout(60 * 1000);
             }
         }
         
-        if (ssl && _serversocket != null) {
+        if (!_debug && ssl && socket != null) {
             if (_factory == null) {
                 try {
                     initSSL();
@@ -313,21 +374,17 @@ public class URLFetcher implements HTTPClient {
             // Use the factory to create a secure socket connected to the
             // HTTPS port of the specified web server.
             try {
-                _sslsocket=(SSLSocket)_factory.createSocket(_serversocket,_serversocket.getInetAddress().getHostName(),_serversocket.getPort(),true);
-                _sslsocket.setUseClientMode(true);
+                SSLSocket sslsocket=(SSLSocket)_factory.createSocket(socket,socket.getInetAddress().getHostName(),socket.getPort(),true);
+                sslsocket.setUseClientMode(true);
+                socket = sslsocket;
             } catch (IOException ioe) {
-                System.err.println("Error layering SSL over the existing socket");
+                _logger.severe("Error layering SSL over the existing socket");
                 ioe.printStackTrace();
                 throw new SocketException("Error layering SSL over the socket " + ioe);
             }
-            _in = _sslsocket.getInputStream();
-            _out = _sslsocket.getOutputStream();
-            System.err.println("Finished negotiating SSL");
+            _logger.fine("Finished negotiating SSL");
         }
-        if (_out == null || _in == null) {
-            throw new IOException("no Input or OutputStream to talk to the server");
-        }
-        return null;
+        return socket;
     }
     
     private boolean useProxy(URL url) {
@@ -350,59 +407,32 @@ public class URLFetcher implements HTTPClient {
         return true;
     }
     
-    private Response errorResponse(Request request, String message) {
-        Response response = new Response();
-        response.setRequest(request);
-        response.setVersion("HTTP/1.0");
-        response.setStatus("500");
-        response.setMessage("WebScarab error");
-        response.setHeader("Content-Type","text/html");
-        response.setHeader("Connection","Close");
-        String template = "<HTML><HEAD><TITLE>WebScarab Error</TITLE></HEAD>";
-        template = template + "<BODY>WebScarab encountered an error trying to retrieve <P><pre>" + request.toString() + "</pre><P>";
-        template = template + "The error was : <P><pre>" + message + "</pre><P></HTML>";
-        response.setContent(template.getBytes());
-        return response;
-    }
-    
     private boolean invalidSocket(URL url) {
+        if (_host == null || _in == null) return true; // _out may be null if we are testing
         // the right host
         if (url.getHost().equals(_host)) {
             int urlport = url.getPort()==-1?url.getDefaultPort():url.getPort();
             // and the right port
             if (urlport == _port) {
                 // in the last 1 second, it could still be valid
-                if (System.currentTimeMillis() - _lastRequestTime > 1000) {
-                    System.err.println("Socket has expired, open a new one!");
+                long now = System.currentTimeMillis();
+                if (!_debug && (now - _lastRequestTime > 1000)) {
+                    _logger.fine("Socket has expired (" + (now - _lastRequestTime) + "), open a new one!");
+                    return true;
+                } else if (!_debug && (_socket.isOutputShutdown() || _socket.isClosed())) {
+                    _logger.fine("Existing socket is closed");
                     return true;
                 } else {
-                    System.err.println("Existing socket is valid, reusing it!");
+                    _logger.fine("Existing socket is valid, reusing it!");
                     return false;
                 }
             } else {
-                System.err.println("Previous request was to a different port");
+                _logger.fine("Previous request was to a different port");
             }
         } else {
-            System.err.println("Previous request was to a different host");
+            _logger.fine("Previous request was to a different host");
         }
         return true;
     }
-    
-    public static void main(String[] args) {
-        try {
-            URLFetcher.setHttpsProxy("proxy.czprg.atrema.deloitte.com", 3128);
-            Request req = new Request();
-            req.setMethod("GET");
-            req.setURL("https://mystic.pca.dfn.de/cgi/sslcheck.cgi");
-            // req.setURL("https://localhost:4433/cgi/sslcheck.cgi");
-            req.setVersion("HTTP/1.0");
-            URLFetcher uf = new URLFetcher();
-            Response resp = uf.fetchResponse(req);
-            System.out.println(resp.toString());
-        } catch (MalformedURLException mue) {
-            System.out.println("MUE " + mue);
-        } catch (IOException ioe) {
-            System.out.println("IOException " + ioe);
-        }
-    }
+
 }

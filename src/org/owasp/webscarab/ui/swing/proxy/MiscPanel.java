@@ -6,6 +6,7 @@
 
 package org.owasp.webscarab.ui.swing.proxy;
 
+import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.proxy.module.*;
 
 import org.owasp.webscarab.ui.swing.SwingPlugin;
@@ -20,12 +21,22 @@ public class MiscPanel extends javax.swing.JPanel implements SwingPlugin {
     private RevealHidden _revealHidden;
     private BrowserCache _browsercache;
     private CookieTracker _cookieTracker;
+    private NTLMFilter _ntlmFilter;
     
     /** Creates new form RevealHiddenPanel */
-    public MiscPanel(RevealHidden revealHidden, BrowserCache browserCache, CookieTracker cookieTracker) {
-        _revealHidden = revealHidden;
-        _browsercache = browserCache;
-        _cookieTracker = cookieTracker;
+    public MiscPanel(Proxy proxy) {
+        _revealHidden = new RevealHidden();
+        proxy.addPlugin(_revealHidden);
+        
+        _browsercache = new BrowserCache();
+        proxy.addPlugin(_browsercache);
+        
+        _cookieTracker = new CookieTracker(proxy.getCookieJar());
+        proxy.addPlugin(_cookieTracker);
+        
+        _ntlmFilter = new NTLMFilter();
+        proxy.addPlugin(_ntlmFilter);
+        
         initComponents();
         configure();
     }
@@ -43,6 +54,7 @@ public class MiscPanel extends javax.swing.JPanel implements SwingPlugin {
         browserCacheCheckBox.setSelected(_browsercache.getEnabled());
         injectRequestCookiesCheckBox.setSelected(_cookieTracker.getInjectRequests());
         readResponseCookiesCheckBox.setSelected(_cookieTracker.getReadResponses());
+        ntlmCheckBox.setSelected(_ntlmFilter.getEnabled());
     }
     
     /** This method is called from within the constructor to
@@ -58,6 +70,7 @@ public class MiscPanel extends javax.swing.JPanel implements SwingPlugin {
         spacerLabel = new javax.swing.JLabel();
         injectRequestCookiesCheckBox = new javax.swing.JCheckBox();
         readResponseCookiesCheckBox = new javax.swing.JCheckBox();
+        ntlmCheckBox = new javax.swing.JCheckBox();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -91,7 +104,7 @@ public class MiscPanel extends javax.swing.JPanel implements SwingPlugin {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
@@ -128,7 +141,26 @@ public class MiscPanel extends javax.swing.JPanel implements SwingPlugin {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         add(readResponseCookiesCheckBox, gridBagConstraints);
 
+        ntlmCheckBox.setSelected(true);
+        ntlmCheckBox.setText("Filter NTLM headers");
+        ntlmCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+        ntlmCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ntlmCheckBoxActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(ntlmCheckBox, gridBagConstraints);
+
     }//GEN-END:initComponents
+
+    private void ntlmCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ntlmCheckBoxActionPerformed
+        _ntlmFilter.setEnabled(ntlmCheckBox.isSelected());
+    }//GEN-LAST:event_ntlmCheckBoxActionPerformed
 
     private void readResponseCookiesCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readResponseCookiesCheckBoxActionPerformed
         _cookieTracker.setReadResponses(readResponseCookiesCheckBox.isSelected());
@@ -158,6 +190,7 @@ public class MiscPanel extends javax.swing.JPanel implements SwingPlugin {
     private javax.swing.JCheckBox browserCacheCheckBox;
     private javax.swing.JCheckBox injectRequestCookiesCheckBox;
     private javax.swing.JCheckBox interceptHiddenFieldCheckBox;
+    private javax.swing.JCheckBox ntlmCheckBox;
     private javax.swing.JCheckBox readResponseCookiesCheckBox;
     private javax.swing.JLabel spacerLabel;
     // End of variables declaration//GEN-END:variables

@@ -17,7 +17,6 @@ import java.util.Properties;
 import java.util.Enumeration;
 
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
 
 /**
@@ -66,7 +65,7 @@ public class BrowserCache extends AbstractProxyPlugin {
             _in = in;
         }
         
-        public Response fetchResponse(Request request) {
+        public Response fetchResponse(Request request) throws IOException {
             if (_enabled) {
                 // we could be smarter about this, and keep a record of the pages that we 
                 // have seen so far, and only remove headers for those that we have not?
