@@ -83,10 +83,7 @@ public class WebScarab extends javax.swing.JFrame {
         // load the properties
         _prop = Preferences.getPreferences();
         
-        // load the conversation log GUI plugin
-        addPlugin(new ConversationLog(_framework));
-        // load the TreeView GUI plugin
-        addPlugin(new URLTreePanel(_framework));
+        addPlugin(new SummaryPanel(_framework));
         
         // create the plugins, and their GUI's
         
@@ -128,9 +125,9 @@ public class WebScarab extends javax.swing.JFrame {
         addPlugin(new ManualRequestPanel(manualrequest));
         
         // SessionID Analysis plugin
-        SessionIDAnalysis sa = new SessionIDAnalysis(_framework);
-        _framework.addPlugin(sa);
-        addPlugin(new SessionIDPanel(sa));
+//        SessionIDAnalysis sa = new SessionIDAnalysis(_framework);
+//        _framework.addPlugin(sa);
+//        addPlugin(new SessionIDPanel(sa));
         
     }
     
