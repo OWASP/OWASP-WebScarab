@@ -11,14 +11,23 @@ import org.owasp.webscarab.plugin.spider.Spider;
 import org.owasp.webscarab.ui.Framework;
 import org.owasp.webscarab.model.StoreException;
 
-import org.owasp.webscarab.ui.swing.*;
+import org.owasp.webscarab.ui.swing.SwingPlugin;
 import org.owasp.webscarab.ui.swing.proxy.ProxyPanel;
 import org.owasp.webscarab.ui.swing.spider.SpiderPanel;
 
 import org.owasp.webscarab.backend.FileSystemStore;
 
+import java.util.Properties;
+
 import java.util.ArrayList;
 import java.io.File;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.io.IOException;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 
 import javax.swing.JFileChooser;
 
@@ -30,16 +39,20 @@ public class WebScarab extends javax.swing.JFrame {
     
     private Framework _framework;
     private ArrayList _plugins;
-    private SwingPlugin[] _pluginArray = new SwingPlugin[0];
+
     private File _defaultDir = null;
+    private Properties _prop = null;
     
     /** Creates new form WebScarab */
     public WebScarab(Framework framework) {
         _framework = framework;
+        _prop = loadProperties();
+        _framework.setProperties(_prop);
+
         initComponents();
         
-        // should instantiate a listener for Logger messages here, and insert it into the 
-        // bottom part of the split pane . . .
+        System.setOut(new PrintStream(new DocumentOutputStream(stdoutTextArea.getDocument())));
+        System.setErr(new PrintStream(new DocumentOutputStream(stderrTextArea.getDocument())));
         
         addPlugin(new ConversationLog(_framework));
 
@@ -51,7 +64,71 @@ public class WebScarab extends javax.swing.JFrame {
         Spider spider = new Spider(_framework);
         _framework.addPlugin(spider);
         addPlugin(new SpiderPanel(spider));
+        
+        System.out.println("Data will not be saved unless you create or open a session");
+    }
+    
+    private Properties loadProperties() {
+        // Properties work as follows :
+        //    Read the defaults from the .jar.
+        //    Then look for a props file in the user's home directory, and load it if it exists
+        
+        String sep = System.getProperty("file.separator");
+        String props = "WebScarab.properties";
+        String home = System.getProperty("user.home");
 
+        InputStream is = null;
+        
+        Properties defaults = new Properties();
+        is = ClassLoader.getSystemResourceAsStream(props);
+        if (is == null) {
+            System.err.println("Couldn't find the default props file!");
+        } else {
+            try {
+                defaults.load(is);
+            } catch (IOException ioe) {
+                System.err.println("Error reading default properties file " + ioe);
+            }
+        }
+        
+        Properties homeProps = new Properties(defaults);
+        try {
+            is = new FileInputStream(home + sep + props);
+        } catch (FileNotFoundException fnfe) {
+            is = null;
+        }
+        if (is != null) {
+            try {
+                homeProps.load(is);
+            } catch (IOException ioe) {
+                System.err.println("IOError reading " + home + sep + props + " : " + ioe);
+            }
+        }
+
+        return homeProps;
+    }
+    
+    public void writeProperties(Properties props) {
+        String home = System.getProperty("user.home");
+        String sep = System.getProperty("file.separator");
+        String propfile = home + sep + "WebScarab.properties";
+
+        FileOutputStream fos;
+        try {
+            fos = new FileOutputStream(propfile);
+        } catch (Exception e) {
+            fos = null;
+        }
+        if (fos == null) {
+            System.err.println("Couldn't write to " + propfile);
+        } else {
+            try {
+                props.store(fos,"WebScarab Properties");
+                fos.close();
+            } catch (IOException ioe) {
+                System.err.println("IOException writing to " + propfile + " : " + ioe);
+            }
+        }
     }
 
     public void addPlugin(SwingPlugin plugin) {
@@ -59,7 +136,6 @@ public class WebScarab extends javax.swing.JFrame {
             _plugins = new ArrayList();
         }
         _plugins.add(plugin);
-        _pluginArray = (SwingPlugin[]) _plugins.toArray(_pluginArray);
         mainTabbedPane.add(plugin.getPanel(), plugin.getPluginName());
     }
 
@@ -74,14 +150,18 @@ public class WebScarab extends javax.swing.JFrame {
 
         mainSplitPane = new javax.swing.JSplitPane();
         mainTabbedPane = new javax.swing.JTabbedPane();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
         jScrollPane1 = new javax.swing.JScrollPane();
-        logTextArea = new javax.swing.JTextArea();
+        stdoutTextArea = new javax.swing.JTextArea();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        stderrTextArea = new javax.swing.JTextArea();
         mainMenuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         newMenuItem = new javax.swing.JMenuItem();
         openMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
         toolsMenu = new javax.swing.JMenu();
+        proxyMenuItem = new javax.swing.JMenuItem();
         optionsMenuItem = new javax.swing.JMenuItem();
         saveConfigMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
@@ -100,13 +180,24 @@ public class WebScarab extends javax.swing.JFrame {
         mainSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         mainSplitPane.setResizeWeight(1.0);
         mainSplitPane.setOneTouchExpandable(true);
+        mainTabbedPane.setMinimumSize(new java.awt.Dimension(300, 300));
+        mainTabbedPane.setPreferredSize(new java.awt.Dimension(800, 500));
         mainSplitPane.setLeftComponent(mainTabbedPane);
 
-        logTextArea.setBackground(new java.awt.Color(204, 204, 204));
-        logTextArea.setEditable(false);
-        jScrollPane1.setViewportView(logTextArea);
+        jTabbedPane1.setTabPlacement(javax.swing.JTabbedPane.LEFT);
+        stdoutTextArea.setBackground(new java.awt.Color(204, 204, 204));
+        stdoutTextArea.setEditable(false);
+        jScrollPane1.setViewportView(stdoutTextArea);
 
-        mainSplitPane.setRightComponent(jScrollPane1);
+        jTabbedPane1.addTab("stdout", jScrollPane1);
+
+        stderrTextArea.setBackground(new java.awt.Color(204, 204, 204));
+        stderrTextArea.setEditable(false);
+        jScrollPane2.setViewportView(stderrTextArea);
+
+        jTabbedPane1.addTab("stderr", jScrollPane2);
+
+        mainSplitPane.setRightComponent(jTabbedPane1);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -150,6 +241,15 @@ public class WebScarab extends javax.swing.JFrame {
 
         toolsMenu.setMnemonic('T');
         toolsMenu.setText("Tools");
+        proxyMenuItem.setText("Proxies");
+        proxyMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                proxyMenuItemActionPerformed(evt);
+            }
+        });
+
+        toolsMenu.add(proxyMenuItem);
+
         optionsMenuItem.setText("Options");
         toolsMenu.add(optionsMenuItem);
 
@@ -177,6 +277,12 @@ public class WebScarab extends javax.swing.JFrame {
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width-640)/2, (screenSize.height-480)/2, 640, 480);
     }//GEN-END:initComponents
+
+    private void proxyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_proxyMenuItemActionPerformed
+        new ProxyConfig(this, true, _prop).show();
+        System.out.println("ProxyConfig has returned");
+        _framework.setProxies(_prop);
+    }//GEN-LAST:event_proxyMenuItemActionPerformed
 
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
         // Should check to see if the model has been saved (somewhere where the 
@@ -274,14 +380,18 @@ public class WebScarab extends javax.swing.JFrame {
     private javax.swing.JMenu fileMenu;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea logTextArea;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JMenuBar mainMenuBar;
     private javax.swing.JSplitPane mainSplitPane;
     private javax.swing.JTabbedPane mainTabbedPane;
     private javax.swing.JMenuItem newMenuItem;
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem optionsMenuItem;
+    private javax.swing.JMenuItem proxyMenuItem;
     private javax.swing.JMenuItem saveConfigMenuItem;
+    private javax.swing.JTextArea stderrTextArea;
+    private javax.swing.JTextArea stdoutTextArea;
     private javax.swing.JMenu toolsMenu;
     // End of variables declaration//GEN-END:variables
     
