@@ -188,7 +188,7 @@ public class ManualEdit extends ProxyPlugin {
         Preferences.setPreference(prop,Boolean.toString(bool));
     }
     
-    public boolean getCaseSensitive() {
+    public boolean isCaseSensitive() {
         return _caseSensitive;
     }
     

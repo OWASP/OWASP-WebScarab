@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: ManualEditPanel.java,v 1.6 2005/02/04 15:36:32 rogan Exp $
+ * $Id: ManualEditPanel.java,v 1.7 2005/02/22 18:57:55 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -81,7 +81,7 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         boolean enabled = _manualEdit.getInterceptRequest();
         interceptRequestCheckBox.setSelected(enabled);
         
-        sensitiveCheckBox.setSelected(_manualEdit.getCaseSensitive());
+        sensitiveCheckBox.setSelected(_manualEdit.isCaseSensitive());
         
         interceptIncludeRegexTextField.setEnabled(enabled);
         interceptIncludeRegexTextField.setText(_manualEdit.getIncludeRegex());
@@ -151,8 +151,8 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         interceptrequestPanel.add(interceptRequestCheckBox, gridBagConstraints);
 
         sensitiveCheckBox.setText("Case Sensitive Regular Expressions ?");
@@ -169,8 +169,8 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         interceptrequestPanel.add(interceptIncludeLabel, gridBagConstraints);
 
         interceptIncludeRegexTextField.setToolTipText("Use a regular expression to select which URLs to intercept. Leave blank to ignore.");
@@ -199,8 +199,8 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         interceptrequestPanel.add(interceptExcludeLabel, gridBagConstraints);
 
         interceptExcludeRegexTextField.setToolTipText("Use a regular expression to select which URLs not to intercept. Leave blank to ignore.");
