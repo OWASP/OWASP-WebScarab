@@ -43,10 +43,14 @@ public class Response extends Message {
     public void read(InputStream is) throws IOException {
         String line = readLine(is);
         String[] parts = line.split(" ", 3);
-        if (parts.length == 3) {
+        if (parts.length >= 2) {
             setVersion(parts[0]);
             setStatus(parts[1]);
+        }
+        if (parts.length == 3) {
             setMessage(parts[2]);
+        } else {
+            setMessage("");
         }
         super.read(is);
         if (status.startsWith("1") || status.equals("304") || status.equals("204")) {
