@@ -1,5 +1,5 @@
 /*
- * $Id: ManualEditPanel.java,v 1.1 2004/10/31 21:10:22 rogan Exp $
+ * $Id: ManualEditPanel.java,v 1.2 2004/12/15 10:24:39 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -13,8 +13,6 @@ import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.proxy.ManualEdit;
 import org.owasp.webscarab.plugin.proxy.ManualEditUI;
 
-import org.owasp.webscarab.ui.swing.SwingPluginUI;
-
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 
@@ -25,7 +23,7 @@ import javax.swing.JPanel;
  *
  * @author  rdawes
  */
-public class ManualEditPanel extends javax.swing.JPanel implements SwingPluginUI, ManualEditUI {
+public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI, ManualEditUI {
     
     private ManualEdit _manualEdit;
     
@@ -383,14 +381,6 @@ public class ManualEditPanel extends javax.swing.JPanel implements SwingPluginUI
     
     public JPanel getPanel() {
         return this;
-    }
-    
-    public javax.swing.Action[] getConversationActions() {
-        return null;
-    }
-    
-    public javax.swing.Action[] getURLActions() {
-        return null;
     }
     
     public Request editRequest(Request request) {

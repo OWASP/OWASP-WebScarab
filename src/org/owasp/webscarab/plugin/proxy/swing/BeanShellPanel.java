@@ -1,5 +1,5 @@
 /*
- * $Id: BeanShellPanel.java,v 1.1 2004/10/31 21:10:22 rogan Exp $
+ * $Id: BeanShellPanel.java,v 1.2 2004/12/15 10:24:39 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -11,7 +11,6 @@ import bsh.EvalError;
 
 import org.owasp.webscarab.plugin.proxy.BeanShell;
 import org.owasp.webscarab.plugin.proxy.BeanShellUI;
-import org.owasp.webscarab.ui.swing.SwingPluginUI;
 
 import org.owasp.webscarab.util.swing.DocumentOutputStream;
 
@@ -25,7 +24,7 @@ import javax.swing.JPanel;
  *
  * @author  rdawes
  */
-public class BeanShellPanel extends javax.swing.JPanel implements SwingPluginUI, BeanShellUI {
+public class BeanShellPanel extends javax.swing.JPanel implements ProxyPluginUI,  BeanShellUI {
     
     private BeanShell _beanShell;
     
@@ -204,14 +203,6 @@ public class BeanShellPanel extends javax.swing.JPanel implements SwingPluginUI,
     public JPanel getPanel() {
         return this;
     }    
-    
-    public javax.swing.Action[] getConversationActions() {
-        return null;
-    }
-    
-    public javax.swing.Action[] getURLActions() {
-        return null;
-    }
     
     public PrintStream getErr() {
         return _docStream;

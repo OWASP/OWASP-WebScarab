@@ -11,14 +11,11 @@ import org.owasp.webscarab.plugin.proxy.BrowserCache;
 import org.owasp.webscarab.plugin.proxy.CookieTracker;
 import org.owasp.webscarab.plugin.proxy.NTLMFilter;
 
-import org.owasp.webscarab.ui.swing.SwingPluginUI;
-
-
 /**
  *
  * @author  rdawes
  */
-public class MiscPanel extends javax.swing.JPanel implements SwingPluginUI {
+public class MiscPanel extends javax.swing.JPanel implements ProxyPluginUI {
     
     private RevealHidden _revealHidden;
     private BrowserCache _browsercache;
@@ -173,14 +170,6 @@ public class MiscPanel extends javax.swing.JPanel implements SwingPluginUI {
         _revealHidden.setEnabled(interceptHiddenFieldCheckBox.isSelected());
     }//GEN-LAST:event_interceptHiddenFieldCheckBoxActionPerformed
 
-    public javax.swing.Action[] getConversationActions() {
-        return null;
-    }    
-    
-    public javax.swing.Action[] getURLActions() {
-        return null;
-    }
-    
     public void setModel(org.owasp.webscarab.model.SiteModel model) {
     }
     
