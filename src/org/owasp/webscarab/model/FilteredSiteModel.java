@@ -321,12 +321,12 @@ public class FilteredSiteModel implements SiteModel {
         return _model.getUrlOf(id);
     }
     
-    public void addConversationProperty(ConversationID conversation, String property, String value) {
-        _model.addConversationProperty(conversation, property, value);
+    public boolean addConversationProperty(ConversationID conversation, String property, String value) {
+        return _model.addConversationProperty(conversation, property, value);
     }
     
-    public void addUrlProperty(HttpUrl url, String property, String value) {
-        _model.addUrlProperty(url, property, value);
+    public boolean addUrlProperty(HttpUrl url, String property, String value) {
+        return _model.addUrlProperty(url, property, value);
     }
     
     public ConversationID getConversationAt(int index) {
@@ -694,6 +694,24 @@ public class FilteredSiteModel implements SiteModel {
                     setFiltered(url, false);
                 }
             }
+        }
+        
+        public void conversationsChanged(org.owasp.webscarab.model.SiteModelEvent evt) {
+        }
+        
+        public void cookiesChanged(org.owasp.webscarab.model.SiteModelEvent evt) {
+        }
+        
+        public void urlsChanged(org.owasp.webscarab.model.SiteModelEvent evt) {
+        }
+        
+        public void credentialAdded(org.owasp.webscarab.model.SiteModelEvent evt) {
+        }
+        
+        public void credentialRemoved(org.owasp.webscarab.model.SiteModelEvent evt) {
+        }
+        
+        public void credentialsChanged(org.owasp.webscarab.model.SiteModelEvent evt) {
         }
         
     }

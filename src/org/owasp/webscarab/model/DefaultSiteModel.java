@@ -237,18 +237,20 @@ public class DefaultSiteModel implements SiteModel {
      * @param property the name of the property
      * @param value the value to add
      */    
-    public void addConversationProperty(ConversationID conversation, String property, String value) {
+    public boolean addConversationProperty(ConversationID conversation, String property, String value) {
+        boolean change = false;
         try {
             _rwl.writeLock().acquire();
-            _store.addConversationProperty(conversation, property, value);
+            change = _store.addConversationProperty(conversation, property, value);
             _rwl.readLock().acquire(); // downgrade to read lock
             _rwl.writeLock().release();
-            fireConversationChanged(conversation, property);
+            if (change) fireConversationChanged(conversation, property);
             _rwl.readLock().release();
         } catch (InterruptedException ie) {
             _logger.severe("Interrupted! " + ie);
         }
-        _modified = true;
+        _modified = _modified || change;
+        return change;
     }
     
     /**
@@ -452,19 +454,21 @@ public class DefaultSiteModel implements SiteModel {
      * @param property the name of the property
      * @param value the value to add
      */
-    public void addUrlProperty(HttpUrl url, String property, String value) {
+    public boolean addUrlProperty(HttpUrl url, String property, String value) {
+        boolean change = false;
         addUrl(url);
         try {
             _rwl.writeLock().acquire();
-            _store.addUrlProperty(url, property, value);
+            change = _store.addUrlProperty(url, property, value);
             _rwl.readLock().acquire();
             _rwl.writeLock().release();
-            fireUrlChanged(url, property);
+            if (change) fireUrlChanged(url, property);
             _rwl.readLock().release();
         } catch (InterruptedException ie) {
             _logger.severe("Interrupted! " + ie);
         }
-        _modified = true;
+        _modified = _modified || change;
+        return change;
     }
     
     /**

@@ -98,7 +98,7 @@ public interface SiteModel {
      * @param property the name of the property
      * @param value the value to add
      */    
-    void addConversationProperty(ConversationID conversation, String property, String value);
+    boolean addConversationProperty(ConversationID conversation, String property, String value);
     
     /**
      * returns a String containing the value that has been identified for a particular conversation property
@@ -182,7 +182,7 @@ public interface SiteModel {
      * @param property the name of the property
      * @param value the value to add
      */
-    void addUrlProperty(HttpUrl url, String property, String value);
+    boolean addUrlProperty(HttpUrl url, String property, String value);
     
     /**
      * returns a String array containing the values that has been set for a particular url property

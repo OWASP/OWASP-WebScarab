@@ -69,7 +69,7 @@ public interface SiteModelStore {
      * @param property the name of the property
      * @param value the value to add
      */    
-    void addConversationProperty(ConversationID id, String property, String value);
+    boolean addConversationProperty(ConversationID id, String property, String value);
     
     /**
      * returns an array of strings containing the values that have been set for the
@@ -137,7 +137,7 @@ public interface SiteModelStore {
      * @param property the name of the property
      * @param value the value to add
      */
-    void addUrlProperty(HttpUrl url, String property, String value);
+    boolean addUrlProperty(HttpUrl url, String property, String value);
     
     /**
      * returns an array of strings containing the values that have been set for the

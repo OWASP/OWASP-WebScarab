@@ -267,31 +267,34 @@ public class FileSystemStore implements SiteModelStore {
      * @param property the name of the property
      * @param value the value to add
      */
-    public void addConversationProperty(ConversationID id, String property, String value) {
+    public boolean addConversationProperty(ConversationID id, String property, String value) {
         Map map = (Map) _conversationProperties.get(id);
         if (map == null) throw new NullPointerException("No conversation Map for " + id);
-        addProperty(map, property, value);
+        return addProperty(map, property, value);
     }
     
-    private void addProperty(Map map, String property, String value) {
+    private boolean addProperty(Map map, String property, String value) {
         Object previous = map.get(property);
         if (previous == null) {
             map.put(property, value);
+            return true;
         } else if (previous instanceof String) {
-            if (previous.equals(value)) return;
+            if (previous.equals(value)) return false;
             String[] newval = new String[2];
             newval[0] = (String) previous;
             newval[1] = value;
             map.put(property, newval);
+            return true;
         } else {
             String[] old = (String[]) previous;
             for (int i=0; i<old.length; i++)
                 if (old[i].equals(value))
-                    return;
+                    return false;
             String[] newval = new String[old.length + 1];
             System.arraycopy(old, 0, newval, 0, old.length);
             newval[old.length] = value;
             map.put(property, newval);
+            return true;
         }
     }
     
@@ -383,10 +386,10 @@ public class FileSystemStore implements SiteModelStore {
      * @param property the name of the property
      * @param value the value to add
      */
-    public void addUrlProperty(HttpUrl url, String property, String value) {
+    public boolean addUrlProperty(HttpUrl url, String property, String value) {
         Map map = (Map) _urlProperties.get(url);
         if (map == null) throw new NullPointerException("No URL Map for " + url);
-        addProperty(map, property, value);
+        return addProperty(map, property, value);
     }
     
     /**
