@@ -94,12 +94,12 @@ public class RequestPanel extends javax.swing.JPanel {
         if (request != null) {
             if (panel == 0) {
                 rawTextArea.setText(this.request.toString());
+                rawTextArea.setCaretPosition(0);
             } else if (panel == 1) {
                 methodTextField.setText(this.request.getMethod());
-								URL url = request.getURL();
+                URL url = request.getURL();
                 pathTextField.setText(URLUtil.schemeAuth(url)+url.getPath());
                 ((ParameterTableModel)parameterTable.getModel()).setParameters(this.request.getParameters());
-                System.out.println("parameter table has " + parameterTable.getModel().getRowCount());
                 if (!editable && parameterTable.getModel().getRowCount() == 0) {
                     parameterPanel.setVisible(false);
                 } else {
@@ -137,6 +137,7 @@ public class RequestPanel extends javax.swing.JPanel {
                 }
                 validPanel[panel] = false;
             } catch (Exception e) {
+                System.err.println("Error trying to parse the text area : " + e);
                 e.printStackTrace();
                 request = null;
                 error = true;
@@ -154,6 +155,7 @@ public class RequestPanel extends javax.swing.JPanel {
                 // request.setParameters(params);
                 validPanel[panel] = false;
             } catch (Exception e) {
+                System.err.println("Error trying to parse the tabular view : " + e);
                 e.printStackTrace();
                 error = true;
                 displayTabbedPane.setSelectedIndex(1);
@@ -373,22 +375,22 @@ public class RequestPanel extends javax.swing.JPanel {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JTextArea rawTextArea;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JTextField methodTextField;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTextField pathTextField;
-    private javax.swing.JTable parameterTable;
-    private javax.swing.JPanel editPanel;
-    private javax.swing.JPanel parameterPanel;
     private javax.swing.JButton addParameterButton;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JTabbedPane displayTabbedPane;
     private javax.swing.JButton deleteParameterButton;
+    private javax.swing.JTabbedPane displayTabbedPane;
+    private javax.swing.JPanel editPanel;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTextField methodTextField;
+    private javax.swing.JPanel parameterPanel;
+    private javax.swing.JTable parameterTable;
+    private javax.swing.JTextField pathTextField;
+    private javax.swing.JTextArea rawTextArea;
     // End of variables declaration//GEN-END:variables
     
     private class ParameterTableModel extends javax.swing.table.AbstractTableModel {
@@ -398,7 +400,6 @@ public class RequestPanel extends javax.swing.JPanel {
         };
         
         protected java.util.Vector data = new java.util.Vector(1);
-        private java.util.logging.Logger logger = java.util.logging.Logger.getLogger("za.org.dragon.exodus.ParameterTableModel");
         private boolean editable = false;
         
         public ParameterTableModel() {
@@ -416,7 +417,7 @@ public class RequestPanel extends javax.swing.JPanel {
             data.removeAllElements();
             for (int i=0; i<params.length; i++) {
                 if (params[i].length < 3) {
-                    logger.warning("ParameterTableModel called with short data! Only got " +
+                    System.err.println("ParameterTableModel called with short data! Only got " +
                     params[i].length + " entries in parameter " + i);
                 } else {
                     data.add(params[i]);
