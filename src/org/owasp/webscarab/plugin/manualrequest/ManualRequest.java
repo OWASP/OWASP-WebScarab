@@ -1,7 +1,7 @@
 package org.owasp.webscarab.plugin.manualrequest;
 
 /*
- * $Id: ManualRequest.java,v 1.6 2004/03/18 08:13:20 rogan Exp $
+ * $Id: ManualRequest.java,v 1.7 2004/04/19 07:56:44 rogan Exp $
  */
 
 import org.owasp.webscarab.httpclient.URLFetcher;
@@ -10,6 +10,8 @@ import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.CookieJar;
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
+
+import java.io.IOException;
 
 public class ManualRequest extends AbstractWebScarabPlugin {
     
@@ -33,7 +35,7 @@ public class ManualRequest extends AbstractWebScarabPlugin {
         return new String("Manual Request");
     }
     
-    public Response fetchResponse(Request request) {
+    public Response fetchResponse(Request request) throws IOException {
         if (request != null) {
             URLFetcher uf = new URLFetcher();
             _response = uf.fetchResponse(request);
