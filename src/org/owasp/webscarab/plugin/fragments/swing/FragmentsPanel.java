@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -92,9 +92,13 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
     /** Creates new form FragmentsPanel */
     public FragmentsPanel(Fragments fragments) {
         initComponents();
+        _model = fragments.getModel();
+        
         fragmentList.setCellRenderer(new MultiLineCellRenderer());
         fragmentList.setModel(_flm);
         
+        _typeListModel.addElement("COMMENTS");
+        _typeListModel.addElement("SCRIPTS");
         typeComboBox.setModel(new ListComboBoxModel(_typeListModel));
         typeComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -105,6 +109,8 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         
         _fragments = fragments;
         createActions();
+        
+        _model.addSiteModelListener(_listener);
         _fragments.setUI(this);
     }
     
@@ -212,7 +218,7 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
     }//GEN-END:initComponents
-
+    
     public Action[] getConversationActions() {
         return _conversationActions;
     }
@@ -239,20 +245,6 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
     
     public ColumnDataModel[] getUrlColumns() {
         return (ColumnDataModel[]) _urlColumns.values().toArray(CDM);
-    }
-    
-    public void setModel(SiteModel model) {
-        if (_model != null) {
-            _model.removeSiteModelListener(_listener);
-            _typeListModel.clear();
-        }
-        _model = model;
-        if (model != null) {
-            _model.addSiteModelListener(_listener);
-            int count = _fragments.getFragmentTypeCount();
-            for (int i=0; i<count; i++) 
-                _typeListModel.addElement(_fragments.getFragmentType(i));
-        }
     }
     
     public void fragmentAdded(HttpUrl url, ConversationID id, final String type, final String key) {
@@ -340,12 +332,16 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
             if (cdm != null) cdm.fireValueChanged(url);
         }
         
+        public void dataChanged() {
+            _flm.fireContentsChanged();
+        }
     }
     
     private class FragmentListModel extends AbstractListModel {
         
         private String _type = null;
         private Object _id = null;
+        private int _size = 0;
         
         public FragmentListModel() {
         }
@@ -364,7 +360,8 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         
         public int getSize() {
             if (_type == null) return 0;
-            return _fragments.getFragmentCount(_type);
+            _size = _fragments.getFragmentCount(_type);
+            return _size;
         }
         
         public void fragmentAdded(String type, String key) {
@@ -372,6 +369,12 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
             int row = _fragments.indexOfFragment(type, key);
             fireIntervalAdded(this, row, row);
         }
+        
+        public void fireContentsChanged() {
+            if (_size > 0) fireIntervalRemoved(this, 0, _size);
+            if (getSize()>0) fireIntervalAdded(this, 0, getSize());
+        }
+        
     }
     
 }
