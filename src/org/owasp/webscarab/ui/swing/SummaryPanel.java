@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -50,6 +50,8 @@ import org.owasp.webscarab.util.swing.TableSorter;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
+
 import javax.swing.table.TableModel;
 
 import javax.swing.tree.TreeModel;
@@ -91,8 +93,6 @@ public class SummaryPanel extends javax.swing.JPanel {
     
     private ShowConversationAction _showConversationAction = new ShowConversationAction();
     
-    private Listener _listener = new Listener();
-    
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates new form SummaryPanel */
@@ -112,14 +112,12 @@ public class SummaryPanel extends javax.swing.JPanel {
             _urlTreeTableModel.setModel(null);
             _conversationTableModel.setModel(null);
             _showConversationAction.setModel(null);
-            _model.removeSiteModelListener(_listener);
         }
         _model = model;
         if (model != null) {
             _urlTreeTableModel.setModel(_model);
             _conversationTableModel.setModel(_model);
             _showConversationAction.setModel(_model);
-            _model.addSiteModelListener(_listener);
         }
     }
     
@@ -446,14 +444,6 @@ public class SummaryPanel extends javax.swing.JPanel {
     private javax.swing.JPanel urlPanel;
     private javax.swing.JPopupMenu urlPopupMenu;
     // End of variables declaration//GEN-END:variables
-
-    private class Listener extends SiteModelAdapter {
-        
-        public void urlChanged(HttpUrl url, String property) {
-            ColumnDataModel cdm = (ColumnDataModel) _urlColumns.get(property);
-            if (cdm != null) cdm.fireValueChanged(url);
-        }
-        
-    }
+    
     
 }
