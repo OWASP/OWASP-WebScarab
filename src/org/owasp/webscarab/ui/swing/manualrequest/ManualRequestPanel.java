@@ -27,10 +27,7 @@ import java.io.IOException;
 import javax.swing.JOptionPane;
 import javax.swing.ComboBoxModel;
 import javax.swing.ListModel;
-import javax.swing.JLabel;
-import java.awt.Component;
-import javax.swing.JList;
-import javax.swing.ListCellRenderer;
+
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -62,7 +59,6 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         ListModel conversationList = _siteModel.getConversationListModel();
         ComboBoxModel requestModel = new ListComboBoxModel(conversationList);
         requestComboBox.setModel(requestModel);
-        requestComboBox.setRenderer(new ConversationRenderer());
         requestComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Object o = requestComboBox.getSelectedItem();
@@ -254,38 +250,4 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
     private javax.swing.JButton updateCookiesButton;
     // End of variables declaration//GEN-END:variables
     
-    private class ConversationRenderer extends JLabel implements ListCellRenderer {
-        public ConversationRenderer() {
-            setOpaque(true);
-            setHorizontalAlignment(LEFT);
-            setVerticalAlignment(CENTER);
-        }
-        
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            if (isSelected) {
-                setBackground(list.getSelectionBackground());
-                setForeground(list.getSelectionForeground());
-            } else {
-                setBackground(list.getBackground());
-                setForeground(list.getForeground());
-            }
-            if (value instanceof Conversation) {
-                Conversation c = (Conversation) value;
-                StringBuffer buff = new StringBuffer(30);
-                buff.append(c.getProperty("ID")).append(" - ");
-                buff.append(c.getProperty("METHOD")).append(" ");
-                buff.append(c.getProperty("URL"));
-                String comment = c.getProperty("COMMENT");
-                if (comment != null && !comment.equals("")) {
-                    buff.append(" - ").append(comment);
-                }
-                setText(buff.toString());
-            } else if (value != null) {
-                setText(value.toString());
-            } else {
-                setText("");
-            }
-            return this;
-        }
-    }
 }
