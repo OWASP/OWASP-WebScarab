@@ -21,6 +21,8 @@ import org.owasp.webscarab.util.Util;
 import org.owasp.webscarab.util.NotifiableListModel;
 import javax.swing.ListModel;
 
+import java.io.IOException;
+
 import java.util.Vector;
 import java.util.Date;
 import java.util.TreeMap;
@@ -176,7 +178,7 @@ public class SessionIDAnalysis implements WebScarabPlugin, Runnable {
         System.err.println("Fell off the end adding a sessionid!");
     }
     
-    public Response fetchResponse(Request request) {
+    public Response fetchResponse(Request request) throws IOException {
         return new URLFetcher().fetchResponse(request);
     }
     
