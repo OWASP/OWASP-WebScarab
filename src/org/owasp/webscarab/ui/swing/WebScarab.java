@@ -13,11 +13,13 @@ import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.plugin.Preferences;
 import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.spider.Spider;
+import org.owasp.webscarab.plugin.manualrequest.ManualRequest;
 
 import org.owasp.webscarab.ui.Framework;
 import org.owasp.webscarab.ui.swing.SwingPlugin;
 import org.owasp.webscarab.ui.swing.proxy.ProxyPanel;
 import org.owasp.webscarab.ui.swing.spider.SpiderPanel;
+import org.owasp.webscarab.ui.swing.manualrequest.ManualRequestPanel;
 
 import java.util.Properties;
 import java.util.ArrayList;
@@ -75,6 +77,11 @@ public class WebScarab extends javax.swing.JFrame {
         Spider spider = new Spider(_framework);
         _framework.addPlugin(spider);
         addPlugin(new SpiderPanel(spider));
+        
+        // ManualRequest Plugin
+        ManualRequest manualrequest = new ManualRequest(_framework);
+        _framework.addPlugin(manualrequest);
+        addPlugin(new ManualRequestPanel(manualrequest));
         
         // This could/should be done as a pop-up alert, or a File/Open or File/New dialog?
         System.out.println("Data will not be saved unless you create or open a session");
