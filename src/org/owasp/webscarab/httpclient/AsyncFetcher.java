@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -42,13 +42,7 @@ package org.owasp.webscarab.httpclient;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
-import java.util.Vector;
-import java.lang.ArrayIndexOutOfBoundsException;
-
 import java.util.logging.Logger;
-
-import java.lang.Runnable;
-import java.lang.Thread;
 
 import java.io.IOException;
 
@@ -56,68 +50,146 @@ import java.io.IOException;
  *
  * @author  rdawes
  */
-public class AsyncFetcher implements Runnable {
+public class AsyncFetcher {
     
-    private boolean _stopping = false;
-    private boolean _stopped = false;
+    private Logger _logger = Logger.getLogger(getClass().getName());
     
-    private Vector _requestQueue;
-    private Vector _responseQueue;
-    private HTTPClient _hc = HTTPClientFactory.getInstance().getHTTPClient();
-    private Logger _logger = Logger.getLogger(this.getClass().getName());
+    private Fetcher[] _fetchers;
+    private boolean[] _pending;
     
-    public AsyncFetcher(Vector requestQueue, Vector responseQueue) {
-        _requestQueue = requestQueue;
-        _responseQueue = responseQueue;
+    public AsyncFetcher(String basename, int threads) {
+        _fetchers = new Fetcher[threads];
+        _pending = new boolean[threads];
+        for (int i=0; i<threads; i++) {
+            _fetchers[i] = new Fetcher(basename + "-" + i);
+            _fetchers[i].start();
+            _pending[i] = false;
+        }
+        // give the threads a chance to start, and wait()
+        Thread.yield();
     }
     
-    public void run() {
-        Request request;
-        Response response;
-        
-        _stopping = false;
-        _stopped = false;
-        
-        while (! _stopping) {
-            synchronized(_requestQueue) {
-                if (_requestQueue.size()>0) {
-                    request = (Request) _requestQueue.remove(0);
-                } else {
-                    request = null;
-                }
-            }
-            if (request != null) {
-                try {
-                    response = _hc.fetchResponse(request);
-                    response.flushContentStream();
-                    _responseQueue.add(response);
-                } catch (IOException ioe) {
-                    _logger.severe("IOException fetching " + request.getURL().toString() + " : " + ioe);
-                }
-            } else {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException ie) {}
-            }
+    public boolean hasCapacity() {
+        for (int i=0; i<_fetchers.length; i++) {
+            if (_fetchers[i].hasCapacity()) return true;
         }
-        _stopped = true;
+        return false;
     }
     
-    public boolean stop() {
-        _stopping = true;
-        if (!_stopped) {
-            for (int i=0; i<20; i++) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException ie) {}
-                if (_stopped) {
-                    return true;
-                }
+    public boolean submit(Request request) {
+        for (int i=0; i<_fetchers.length; i++) {
+            if (_fetchers[i].hasCapacity()) {
+                _fetchers[i].submit(request);
+                return true;
             }
-            return false;
-        } else {
-            return true;
         }
+        return false;
+    }
+    
+    public boolean hasResponse() {
+        for (int i=0; i<_fetchers.length; i++) {
+            if (_fetchers[i].hasResponse()) return true;
+        }
+        return false;
+    }
+    
+    public Response receive() throws IOException {
+        for (int i=0; i<_fetchers.length; i++) {
+            if (_fetchers[i].hasResponse()) {
+                return _fetchers[i].receive();
+            }
+        }
+        return null;
+    }
+    
+    public boolean isBusy() {
+        for (int i=0; i<_fetchers.length; i++) {
+            if (_fetchers[i].isBusy()) return true;
+        }
+        return false;
+    }
+    
+    public void stop() {
+        for (int i=0; i<_fetchers.length; i++) {
+            _fetchers[i].interrupt();
+        }
+    }
+    
+    private class Fetcher extends Thread {
+        
+        private HTTPClient _hc = HTTPClientFactory.getInstance().getHTTPClient();
+        private Request _request = null;
+        private Response _response = null;
+        private IOException _error = null;
+        private boolean _occupied = false;
+        private boolean _busy = false;
+        
+        public Fetcher(String name) {
+            super(name);
+            setDaemon(true);
+        }
+        
+        public synchronized boolean hasCapacity() {
+            return ! _occupied;
+        }
+        
+        public void submit(Request request) {
+            synchronized (this) {
+                _request = request;
+                _response = null;
+                _error = null;
+                _occupied = true;
+                _busy = true;
+                this.notifyAll();
+                // System.out.println("Notifying!");
+            }
+            Thread.yield();
+        }
+        
+        public void run() {
+            try {
+                while (true) {
+                    synchronized (this) {
+                        this.wait();
+                    }
+                    // System.out.println("Got notified");
+                    Response response = null;
+                    try {
+                        response = _hc.fetchResponse(_request);
+                        response.flushContentStream();
+                    } catch (IOException ioe) {
+                        _error = ioe;
+                        _response = null;
+                    }
+                    synchronized (this) {
+                        _response = response;
+                        _busy = false;
+                        this.notifyAll();
+                    }
+                }
+            } catch (InterruptedException ie) {}
+        }
+        
+        public synchronized boolean hasResponse() {
+            return _occupied && (_response != null || _error != null);
+        }
+        
+        public synchronized Response receive() throws IOException {
+            if (_request != null && ! hasResponse()) {
+                try {
+                    this.wait();
+                } catch (InterruptedException ie) {}
+            }
+            
+            _occupied = false;
+            if (_error != null) throw _error;
+            return _response;
+        }
+        
+        public synchronized boolean isBusy() {
+            return _busy;
+        }
+        
     }
     
 }

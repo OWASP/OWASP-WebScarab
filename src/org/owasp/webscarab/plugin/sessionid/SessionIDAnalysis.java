@@ -61,8 +61,6 @@ import java.io.IOException;
 
 import java.math.BigInteger;
 
-import java.util.Vector;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.Iterator;
@@ -88,10 +86,8 @@ public class SessionIDAnalysis extends Plugin {
     private Map _sessionIDs = new TreeMap();
     private Map _calculators = new TreeMap();
     
-    private AsyncFetcher[] _fetchers;
+    private AsyncFetcher _fetcher;
     private int _threads = 4;
-    private Vector _requestQueue;
-    private Vector _responseQueue;
     
     private String _name = null;
     private Pattern _regex = null;
@@ -108,7 +104,7 @@ public class SessionIDAnalysis extends Plugin {
     
     private HTTPClient _hc = null;
     
-    private Logger _logger = Logger.getLogger(this.getClass().getName());
+    private Logger _logger = Logger.getLogger(getClass().getName());
     
     private SessionIDAnalysisUI _ui = null;
     
@@ -119,6 +115,10 @@ public class SessionIDAnalysis extends Plugin {
     /** Creates a new instance of SessionidAnalysis */
     public SessionIDAnalysis(Framework framework) {
         _framework = framework;
+    }
+    
+    public SiteModel getModel() {
+        return _framework.getModel();
     }
     
     public void setSession(SiteModel model, String storeType, Object connection) throws StoreException {
@@ -137,7 +137,7 @@ public class SessionIDAnalysis extends Plugin {
                 calc.add(_store.getSessionIDAt(key, j));
             }
         }
-        if (_ui != null) _ui.setModel(model);
+        if (_ui != null) _ui.sessionIDsChanged();
         _modified = false;
     }
     
@@ -159,17 +159,7 @@ public class SessionIDAnalysis extends Plugin {
         _status = "Started";
         _hc = HTTPClientFactory.getInstance().getHTTPClient();
         
-        _requestQueue = new Vector();
-        _responseQueue = new Vector();
-        _fetchers = new AsyncFetcher[_threads];
-        for (int i=0; i<_threads; i++) {
-            _fetchers[i] = new AsyncFetcher(_requestQueue, _responseQueue);
-            Thread thread = new Thread(_fetchers[i]);
-            thread.setPriority(Thread.MIN_PRIORITY);
-            thread.setDaemon(true);
-            thread.setName("SessionID-" + i);
-            thread.start();
-        }
+        _fetcher = new AsyncFetcher("SessionID", _threads);
         
         Timer requestTimer = new Timer(true);
         requestTimer.schedule(new TimerTask() {
@@ -185,20 +175,19 @@ public class SessionIDAnalysis extends Plugin {
         Response response;
         if (_ui != null) _ui.setEnabled(_running);
         while (! _stopping) {
-            // see if there are any responses waiting for us
-            synchronized (_responseQueue) {
-                while (_responseQueue.size()>0) {
-                    response = (Response) _responseQueue.remove(0);
-                    if (response != null) {
-                        Map ids = getIDsFromResponse(response, _name, _regex);
-                        Iterator it = ids.keySet().iterator();
-                        while (it.hasNext()) {
-                            String key = (String) it.next();
-                            SessionID id = (SessionID) ids.get(key);
-                            addSessionID(key, id);
-                        }
+            try {
+                response = _fetcher.receive();
+                if (response != null) {
+                    Map ids = getIDsFromResponse(response, _name, _regex);
+                    Iterator it = ids.keySet().iterator();
+                    while (it.hasNext()) {
+                        String key = (String) it.next();
+                        SessionID id = (SessionID) ids.get(key);
+                        addSessionID(key, id);
                     }
                 }
+            } catch (IOException ioe) {
+                _logger.info("IOException " + ioe.getMessage());
             }
             try {
                 Thread.sleep(100);
@@ -207,9 +196,7 @@ public class SessionIDAnalysis extends Plugin {
         requestTimer.cancel();
         _request = null;
         _response = null;
-        for (int i=0; i<_threads; i++) {
-            _fetchers[i].stop();
-        }
+        _fetcher.stop();
         _hc = null;
         _running = false;
         if (_ui != null) _ui.setEnabled(_running);
@@ -264,9 +251,9 @@ public class SessionIDAnalysis extends Plugin {
     
     private void queueRequest() {
         if (_request != null && _count > 0) { // if we have a request to fetch, and there are some outstanding
-            if (_requestQueue.size() == 0) {
-                _requestQueue.add(_request);
-                _count--; // maybe decrement the counter when we get a sessionid from the response?
+            if (_fetcher.hasCapacity() && _fetcher.submit(_request)) {
+                _count --;
+                return;
             }
         }
     }
@@ -319,6 +306,7 @@ public class SessionIDAnalysis extends Plugin {
     }
     
     public int getSessionIDNameCount() {
+        if (_store == null) return 0;
         return _store.getSessionIDNameCount();
     }
     
@@ -368,6 +356,9 @@ public class SessionIDAnalysis extends Plugin {
     }
     
     public void analyse(ConversationID id, Request request, Response response, String origin) {
+    }
+    
+    public void setSession(String type, Object session, String id) throws StoreException {
     }
     
 }

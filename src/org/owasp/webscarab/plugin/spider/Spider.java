@@ -80,6 +80,8 @@ import java.net.MalformedURLException;
 
 import java.lang.Thread;
 
+import java.io.IOException;
+
 /**
  *
  * @author  rdawes
@@ -92,13 +94,12 @@ public class Spider extends Plugin {
     
     private SpiderUI _ui = null;
     
-    private Vector _requestQueue = new Vector();
-    private Vector _responseQueue = new Vector();
     private Vector _linkQueue = new Vector();
     private Vector _conversationQueue = new Vector();
     
-    private AsyncFetcher[] _fetchers = new AsyncFetcher[0];
+    private AsyncFetcher _fetcher = null;
     private int _threads = 4;
+    
     private boolean _recursive = false;
     private boolean _cookieSync = true;
     
@@ -116,12 +117,12 @@ public class Spider extends Plugin {
     /** Creates a new instance of Spider */
     public Spider(Framework framework) {
         _framework = framework;
+        _model = _framework.getModel();
         parseProperties();
     }
     
-    public void setSession(SiteModel model, String type, Object connection) throws StoreException {
-        _model = model;
-        if (_ui != null) _ui.setModel(model);
+    public SiteModel getModel() {
+        return _model;
     }
     
     public void setUI(SpiderUI ui) {
@@ -157,14 +158,7 @@ public class Spider extends Plugin {
         _runThread = Thread.currentThread();
         
         // start the fetchers
-        _fetchers = new AsyncFetcher[_threads];
-        for (int i=0; i<_threads; i++) {
-            _fetchers[i] = new AsyncFetcher(_requestQueue, _responseQueue);
-            Thread t = new Thread(_fetchers[i], "Spider-" + Integer.toString(i));
-            t.setDaemon(true);
-            t.setPriority(Thread.MIN_PRIORITY);
-            t.start();
-        }
+        _fetcher = new AsyncFetcher("Spider", _threads);
         
         _running = true;
         if (_ui != null) _ui.setEnabled(_running);
@@ -178,9 +172,7 @@ public class Spider extends Plugin {
                 Thread.yield();
             }
         }
-        for (int i=0; i<_fetchers.length; i++) {
-            _fetchers[i].stop();
-        }
+        _fetcher.stop();
         _running = false;
         _runThread = null;
         if (_ui != null) _ui.setEnabled(_running);
@@ -192,7 +184,7 @@ public class Spider extends Plugin {
         // request and submit it
         Link link;
         synchronized (_linkQueue) {
-            if (_linkQueue.size() > 0 && _requestQueue.size() == 0) {
+            if (_linkQueue.size() > 0 && _fetcher.hasCapacity()) {
                 link = (Link) _linkQueue.remove(0);
                 if (_ui != null) _ui.linkDequeued(link, _linkQueue.size());
             } else {
@@ -215,24 +207,18 @@ public class Spider extends Plugin {
                 request.setHeader("Cookie", buff.toString());
             }
         }
-        synchronized(_requestQueue) {
-            _requestQueue.add(request);
-        }
+        _fetcher.submit(request);
         return true;
     }
     
     private boolean dequeueResponses() {
         // see if there are any responses waiting for us
-        Response response;
-        synchronized (_responseQueue) {
-            if (_responseQueue.size() > 0) {
-                response = (Response) _responseQueue.remove(0);
-            } else {
+        Response response = null;
+        try {
+            response = _fetcher.receive();
+            if (response == null)
                 return false;
-            }
-        }
-        if (response == null) {
-            _logger.warning("Got a null response from the response queue!");
+        } catch (IOException ioe) {
             return false;
         }
         Request request = response.getRequest();
@@ -331,9 +317,6 @@ public class Spider extends Plugin {
             while(_linkQueue.size()>0) {
                 link = (Link) _linkQueue.remove(0);
             }
-        }
-        synchronized(_requestQueue) {
-            _requestQueue.clear();
         }
         if (_ui != null) _ui.linkDequeued(null, 0);
     }
@@ -546,6 +529,9 @@ public class Spider extends Plugin {
     
     public boolean isModified() {
         return false; // our modifications are kept in the SiteModel
+    }
+    
+    public void setSession(String type, Object session, String id) throws StoreException {
     }
     
 }
