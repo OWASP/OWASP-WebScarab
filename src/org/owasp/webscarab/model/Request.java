@@ -129,7 +129,7 @@ public class Request extends Message {
      */    
     public void write(OutputStream os, String crlf) throws IOException {
         if (method == null || url == null || version == null) {
-            System.err.println("Unitialised Request!");
+            System.err.println("Uninitialised Request!");
             return;
         }
         os = new BufferedOutputStream(os);
@@ -154,14 +154,16 @@ public class Request extends Message {
      */    
     public void writeDirect(OutputStream os, String crlf) throws IOException {
         if (method == null || url == null || version == null) {
-            System.err.println("Unitialised Request!");
+            System.err.println("Uninitialised Request!");
             return;
         }
+        os = new BufferedOutputStream(os);
         os.write((method+" ").getBytes());
         os.write(new String((url==null?"null":(url.getPath()==null?"/":url.getPath()))).getBytes());
         os.write(new String((url==null?"null":url.getQuery()==null?"":"?"+url.getQuery())).getBytes());
         os.write(new String(" " + version + crlf).getBytes());
         super.write(os, crlf);
+        os.flush();
     }
     
     /** Sets the request method */    
