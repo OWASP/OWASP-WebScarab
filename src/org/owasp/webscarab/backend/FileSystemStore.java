@@ -31,6 +31,9 @@ import java.util.Set;
 import java.util.Iterator;
 import java.util.ArrayList;
 
+import java.net.URL;
+import java.net.MalformedURLException;
+
 /**
  *
  * @author  rdawes
@@ -431,8 +434,8 @@ public class FileSystemStore implements SiteModelStore, SpiderStore {
         String type;
         try {
             for (int i=0; i<links.length; i++) {
-                fw.write(links[i].getURL() + "\r\n");
-                fw.write(links[i].getReferer() + "\r\n");
+                fw.write(links[i].getURL().toString() + "\r\n");
+                fw.write(links[i].getReferer().toString() + "\r\n");
                 type = links[i].getType();
                 if (type != null) {
                     fw.write(type + "\r\n");
@@ -461,7 +464,11 @@ public class FileSystemStore implements SiteModelStore, SpiderStore {
         try {
             while ((url=br.readLine()) != null) {
                 referer=br.readLine();
-                link = new Link(url, referer);
+                try {
+                    link = new Link(new URL(url), new URL(referer));
+                } catch (MalformedURLException mue) {
+                    System.err.println("Malformed Link data : " + mue);
+                }
                 type = br.readLine();
                 if (type.equals("")) {
                     unseen.add(link);
