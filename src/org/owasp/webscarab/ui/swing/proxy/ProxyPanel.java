@@ -277,8 +277,19 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
         String[] keys = _proxy.getProxies();
         int row = listenerTable.getSelectedRow();
         if (row > -1 && row < keys.length) {
+            String address = _proxy.getAddress(keys[row]);
+            String port = Integer.toString(_proxy.getPort(keys[row]));
+            String base = _proxy.getBase(keys[row]);
+            String simulator = _proxy.getSimulator(keys[row]);
+            boolean usePlugins = _proxy.getPlugins(keys[row]);
             if (!_proxy.stopProxy(keys[row])) {
                 _logger.severe("Failed to stop " + keys[row]);
+            } else {
+                addressTextField.setText(address);
+                portTextField.setText(port);
+                baseTextField.setText(base);
+                networkComboBox.setSelectedItem(simulator);
+                pluginsCheckBox.setSelected(usePlugins);
             }
             _ltm.fireTableDataChanged();
         }
