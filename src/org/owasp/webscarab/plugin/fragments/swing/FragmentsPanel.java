@@ -250,14 +250,13 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         if (model != null) {
             _model.addSiteModelListener(_listener);
             int count = _fragments.getFragmentTypeCount();
-            _logger.info("Model has " + count + " fragment types");
             for (int i=0; i<count; i++) 
                 _typeListModel.addElement(_fragments.getFragmentType(i));
         }
     }
     
     public void fragmentAdded(HttpUrl url, ConversationID id, final String type, final String key) {
-        _logger.info(type + " added " + id + " key = " + key);
+        // _logger.info(type + " added " + id + " key = " + key);
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 if (_typeListModel.indexOf(type) < 0) _typeListModel.addElement(type);
