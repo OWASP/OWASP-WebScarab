@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: Proxy.java,v 1.21 2005/02/04 15:12:32 rogan Exp $
+ * $Id: Proxy.java,v 1.22 2005/02/04 15:50:44 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.proxy;
@@ -86,9 +86,24 @@ public class Proxy implements Plugin {
     private String _status = "Stopped";
     private int _pending = 0;
     
-    private Proxy.AllowConnection _allowConnection = new AllowConnection();
-    private Hook _interceptRequest = null;
-    private Hook _interceptResponse = null;
+    private Proxy.ConnectionHook _allowConnection = new ConnectionHook(
+    "Allow connection", 
+    "Called when a new connection is received from a browser\n" +
+    "use connection.getAddress() and connection.closeConnection() to decide and react"
+    );
+    
+    private Proxy.ConnectionHook _interceptRequest = new ConnectionHook(
+    "Intercept request", 
+    "Called when a new request has been submitted by the browser\n" +
+    "use connection.getRequest() and connection.setRequest(request) to perform changes"
+    );
+    
+    private Proxy.ConnectionHook _interceptResponse = new ConnectionHook(
+    "Intercept response", 
+    "Called when the request has been submitted to the server, and the response " + 
+    "has been recieved.\n" +
+    "use connection.getResponse() and connection.setResponse(response) to perform changes"
+    );
     
     /**
      * Creates a Proxy Object with a reference to the SiteModel. Creates (but does not
@@ -102,7 +117,7 @@ public class Proxy implements Plugin {
     }
     
     public Hook[] getScriptingHooks() {
-        return new Hook[] { _allowConnection };
+        return new Hook[] { _allowConnection, _interceptRequest, _interceptResponse };
     }
     
     public Object getScriptableObject() {
@@ -121,6 +136,7 @@ public class Proxy implements Plugin {
      * modifications to the Request
      */
     public void interceptRequest(ScriptableConnection connection) {
+        _interceptRequest.runScripts(connection);
     }
     
     /**
@@ -128,6 +144,7 @@ public class Proxy implements Plugin {
      * modifications to the Response
      */
     public void interceptResponse(ScriptableConnection connection) {
+        _interceptResponse.runScripts(connection);
     }
     
     public void setUI(ProxyUI ui) {
@@ -528,10 +545,10 @@ public class Proxy implements Plugin {
         return _running;
     }
     
-    private class AllowConnection extends Hook {
+    private class ConnectionHook extends Hook {
         
-        public AllowConnection() {
-            super("Allow connection", "Called when a new connection is received from a browser");
+        public ConnectionHook(String name, String description) {
+            super(name, description);
         }
         
         public void runScripts(ScriptableConnection connection) {
