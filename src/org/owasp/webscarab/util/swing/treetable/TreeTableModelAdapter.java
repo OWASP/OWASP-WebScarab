@@ -58,15 +58,37 @@ public class TreeTableModelAdapter extends AbstractTableModel
 	// tree changes. We use delayedFireTableDataChanged as we can
 	// not be guaranteed the tree will have finished processing
 	// the event before us.
+        //
+        // FIXME we are ignoring the above warning, and trying to do the
+        // relevant calculations directly. This may break something
+        // but I guess we won't know if we don't try!
 	treeTableModel.addTreeModelListener(new TreeModelListener() {
 	    public void treeNodesChanged(TreeModelEvent e) {
                 int row = TreeTableModelAdapter.this.tree.getRowForPath(e.getTreePath());
-                if (row < 0) return;
-                if (e instanceof TreeTableModelEvent) {
+                if (row < 0) return; // parent is not visible
+                
+                // This is painful! Why does the relevant TreePath constructor have to be protected?!
+                Object[] children = e.getChildren();
+                Object[] path = e.getTreePath().getPath();
+                Object[] childPath = new Object[path.length+1];
+                System.arraycopy(path, 0, childPath, 0, path.length);
+                
+                childPath[childPath.length - 1] = children[0];
+                TreePath firstChildChanged = new TreePath(childPath);
+                int firstRow = TreeTableModelAdapter.this.tree.getRowForPath(firstChildChanged);
+                
+                childPath[childPath.length - 1] = children[children.length-1];
+                TreePath lastChildChanged = new TreePath(childPath);
+                int lastRow = TreeTableModelAdapter.this.tree.getRowForPath(lastChildChanged);
+                
+                if (firstRow * lastRow < 0) System.err.println("First row is " + firstRow + " and last row is " + lastRow);
+                if (firstRow < 0 || lastRow < 0) return;
+                
+                if (e instanceof TreeTableModelEvent && firstRow == lastRow) {
                     int column = ((TreeTableModelEvent) e).getColumn();
-                    delayedFireTableCellUpdated(row, column);
+                    delayedFireTableCellUpdated(firstRow, column);
                 } else {
-                    delayedFireTableRowsUpdated(row, row);
+                    delayedFireTableRowsUpdated(firstRow, lastRow);
                 }
 	    }
 
@@ -79,7 +101,6 @@ public class TreeTableModelAdapter extends AbstractTableModel
 	    }
 
 	    public void treeStructureChanged(TreeModelEvent e) {
-		// delayedFireTableDataChanged();
                 delayedFireTableStructureChanged();
 	    }
 	});
