@@ -6,13 +6,16 @@
   
   <shortcut
      name="WebScarab"
-     target="$INSTALL_PATH\webscarab.jar"
+     target="java"
+     commandLine="-jar &quot;$INSTALL_PATH/webscarab.jar&quot;"
      initialState="noShow"
      programGroup="yes"
      desktop="yes"
      applications="no"
      startMenu="no"
      startup="no"
+     type="Application"
+     encoding="UTF-8"
      description="WebScarab Web Application testing tool" >
    
    </shortcut>
@@ -24,8 +27,10 @@
      applications="no"
      startMenu="no"
      startup="no"
-     target="$INSTALL_PATH\Uninstaller\uninstaller.jar"
-     commandLine=""
+     target="java"
+     commandLine="-jar &quot;$INSTALL_PATH/Uninstaller/uninstaller.jar&quot;"
+     type="Application"
+     encoding="UTF-8"
      description="WebScarab uninstaller">
      
    </shortcut>
