@@ -31,10 +31,15 @@ import javax.swing.event.ChangeEvent;
 
 import java.util.TreeMap;
 
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.XYDataset;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.StandardXYItemRenderer;
 
 /**
  *
@@ -61,7 +66,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
                 if(mainTabbedPane.getTitleAt(selected).equals("Visualisation")) {
                     String name = (String) nameComboBox.getSelectedItem();
                     if (_chart == null) {
-                        _chart = ChartFactory.createScatterPlot("Title", "Time", "Value", null, PlotOrientation.VERTICAL, false, false, false);
+                        _chart = createChart(null);
                         visualisationPanel.add(new ChartPanel(_chart));
                     }
                     if (name == null) {
@@ -95,6 +100,18 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         nameComboBox.setModel(new ListComboBoxModel(_sa.getSessionIDNames()));
         idTable.setModel(new IDTableModel(null));
         
+    }
+    
+    private JFreeChart createChart(XYDataset data) {
+        ValueAxis timeAxis = new DateAxis("Date/Time");
+        timeAxis.setLowerMargin(0.02);  // reduce the default margins on the time axis
+        timeAxis.setUpperMargin(0.02);
+        NumberAxis valueAxis = new NumberAxis("Value");
+        valueAxis.setAutoRangeIncludesZero(false);  // override default
+        XYPlot plot = new XYPlot(data, timeAxis, valueAxis, null);
+        plot.setRenderer(new StandardXYItemRenderer(StandardXYItemRenderer.SHAPES, null, null));
+        JFreeChart chart = new JFreeChart("Title", JFreeChart.DEFAULT_TITLE_FONT, plot, false);
+        return chart;
     }
     
     /** This method is called from within the constructor to
@@ -155,6 +172,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
 
         bodyRadioButton.setText("Body");
         locationButtonGroup.add(bodyRadioButton);
+        bodyRadioButton.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -171,6 +189,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         specPanel.add(jLabel1, gridBagConstraints);
 
         nameTextField.setText("localhost/ JSESSIONID");
+        nameTextField.setToolTipText("use 'host.domain/path name' for cookies");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -179,6 +198,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         specPanel.add(nameTextField, gridBagConstraints);
 
         jLabel2.setText("Regex");
+        jLabel2.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
@@ -186,6 +206,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         specPanel.add(jLabel2, gridBagConstraints);
 
+        regexTextField.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
@@ -357,7 +378,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         add(mainTabbedPane, java.awt.BorderLayout.CENTER);
 
     }//GEN-END:initComponents
-
+    
     private void nameComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameComboBoxActionPerformed
         String name = (String)nameComboBox.getSelectedItem();
         TableModel tm = (TableModel) _idTableCache.get(name);
@@ -367,14 +388,14 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         }
         idTable.setModel(tm);
     }//GEN-LAST:event_nameComboBoxActionPerformed
-
+    
     private void calculateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_calculateButtonActionPerformed
         String name = (String)nameComboBox.getSelectedItem();
         if (name != null && !name.equals("")) {
             _sa.calculate(name);
         }
     }//GEN-LAST:event_calculateButtonActionPerformed
-
+    
     private void fetchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fetchButtonActionPerformed
         Request request = parseRequestPanel();
         if (request == null) {
@@ -395,7 +416,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         ListModel listModel = _sa.getSessionIDs(request, location, nameTextField.getText(), regexTextField.getText(), count);
         listModel.addListDataListener(this);
     }//GEN-LAST:event_fetchButtonActionPerformed
-
+    
     private void testButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testButtonActionPerformed
         final Request request = parseRequestPanel();
         if (request == null) {
@@ -432,7 +453,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
             }
         }.start();
     }//GEN-LAST:event_testButtonActionPerformed
-
+    
     private Request parseRequestPanel() {
         try {
             ByteArrayInputStream bais = new ByteArrayInputStream(_requestTextPanel.getBytes());
@@ -448,11 +469,11 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
     
     public javax.swing.JPanel getPanel() {
         return this;
-    }    
+    }
     
     public String getPluginName() {
         return "SessionID Analysis";
-    }    
+    }
     
     public static void main(String[] args) {
         javax.swing.JFrame top = new javax.swing.JFrame("SessionID Analysis");
@@ -507,9 +528,9 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
     private javax.swing.JTable idTable;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel analysisPanel;
-    private javax.swing.JRadioButton bodyRadioButton;
     private javax.swing.JButton fetchButton;
     private javax.swing.JButton testButton;
+    private javax.swing.JRadioButton bodyRadioButton;
     private javax.swing.JComboBox nameComboBox;
     private javax.swing.ButtonGroup locationButtonGroup;
     private javax.swing.JPanel conversationPanel;
