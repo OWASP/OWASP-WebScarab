@@ -62,25 +62,25 @@ public class ConversationID implements Comparable {
         }
     }
     
+    public ConversationID(int id) {
+        synchronized (_lock) {
+            _id = id;
+            if (_id >= _next) {
+                _next = _id + 1;
+            } else if (_id <= 0) {
+                throw new IllegalArgumentException("Cannot use a negative ConversationID");
+            } 
+        }        
+    }
+    
     /**
      * creates a Conversation ID based on the string provided.
      * The next no-parameter ConversationID created will be "greater" than this one.
      * @param id a string representation of the ConversationID
-     * @throws ParseException if there are any errors parsing the string
+     * @throws NumberFormatException if there are any errors parsing the string
      */    
-    public ConversationID(String id) throws ParseException {
-        synchronized (_lock) {
-            try {
-                _id = Integer.parseInt(id.trim());
-                if (_id >= _next) {
-                    _next = _id + 1;
-                } else if (_id <= 0) {
-                    throw new ParseException("Cannot parse '" + id + "' as a ConversationID",0);
-                } 
-            } catch (NumberFormatException nfe) {
-                throw new ParseException("Cannot parse '" + id + "' as a ConversationID",0);
-            }
-        }
+    public ConversationID(String id) throws NumberFormatException {
+        this(Integer.parseInt(id.trim()));
     }
     
     /**
