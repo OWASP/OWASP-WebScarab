@@ -23,6 +23,7 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
     /** Creates new form HexEditor */
     public HexPanel() {
         initComponents();
+        setName("Hex");
         
         _tableModel = new HexTableModel(_columns);
         hexTable.setModel(_tableModel);
@@ -36,10 +37,6 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
         }
         colModel.getColumn(0).setPreferredWidth(8*9);
         colModel.getColumn(_columns+1).setPreferredWidth(_columns*9);
-    }
-    
-    public String getName() {
-        return "Hex";
     }
     
     public String[] getContentTypes() {

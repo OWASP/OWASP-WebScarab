@@ -24,7 +24,6 @@ import javax.swing.JFrame;
 public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
     private boolean _editable = false;
-    // we assume it is modified - we need to add a keystroke listener to do this properly
     private boolean _modified = false;
     
     private byte[] _data = new byte[0];
@@ -34,6 +33,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     /** Creates new form HexEditor */
     public TextPanel() {
         initComponents();
+        setName("Text");
         Keymap keymap = textTextArea.addKeymap("MySearchBindings",
                                            textTextArea.getKeymap());
         //Ctrl-f to open the search dialog
@@ -76,10 +76,6 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
 		_modified = true;
             }
         });
-    }
-    
-    public String getName() {
-        return "Text";
     }
     
     public String[] getContentTypes() {

@@ -39,6 +39,7 @@ public class ObjectPanel extends javax.swing.JPanel {
     /** Creates new form ObjectPanel */
     public ObjectPanel() {
         initComponents();
+        setName("Object");
         _ottm = new ObjectTreeTableModel();
         _tt = new JTreeTable(_ottm) {
             public TableCellRenderer getCellRenderer(int row, int column) {

@@ -26,10 +26,7 @@ public class SerializedObjectPanel extends ObjectPanel implements ByteArrayEdito
     
     /** Creates new form SerializedObjectPanel */
     public SerializedObjectPanel() {
-    }
-    
-    public String getName() {
-        return "SerializedObject";
+        setName("Serialized Object");
     }
     
     public String[] getContentTypes() {

@@ -27,10 +27,7 @@ public class ImagePanel extends javax.swing.JPanel implements ByteArrayEditor {
     /** Creates new form HexEditor */
     public ImagePanel() {
         initComponents();
-    }
-    
-    public String getName() {
-        return "Image";
+        setName("Image");
     }
     
     public String[] getContentTypes() {

@@ -38,6 +38,7 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
     /** Creates new form HexEditor */
     public HTMLPanel() {
         initComponents();
+        setName("HTML");
         
         // a special editor kit that overrides all elements that would lead to loading from the server
         // e.g. frames, images, applets, objects, etc. This is because we don't know what the right
@@ -76,10 +77,6 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
                 
         htmlEditorPane.setKeymap(keymap);
         htmlEditorPane.addHyperlinkListener(new HTMLPanel.LinkToolTipListener());
-    }
-    
-    public String getName() {
-        return "HTML";
     }
     
     public String[] getContentTypes() {
