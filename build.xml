@@ -59,14 +59,19 @@
 		<java classname="${mainclass}" classpathref="cpath" fork="on">
 		</java>
 	</target>
+    <!-- ${basedir}/izpack should contain the expanded IzPack distribution
+      == as created by the IzPack installer. It could be a link to the real
+      == directory, etc. 
+      == IzPack is available from http://www.izforge.com/izpack/
+      -->
 	<target depends="build" name="installer">
                 <taskdef name="izpack" classpath="${basedir}/izpack/lib/compiler.jar"
                      classname="com.izforge.izpack.ant.IzPackTask"/>
-		<izpack input="installer/izpack.xml"
-			output="WebScarab-${DSTAMP}-${TSTAMP}.jar"
+		<izpack input="${basedir}/installer/izpack.xml"
+			output="${basedir}/WebScarab-${DSTAMP}-${TSTAMP}.jar"
 			installerType="standard"
 			basedir="${basedir}"
-			izPackDir="./izpack/"
+			izPackDir="${basedir}/izpack/"
                 />
 	</target>
 </project>
