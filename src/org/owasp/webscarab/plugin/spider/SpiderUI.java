@@ -14,8 +14,8 @@ import org.owasp.webscarab.plugin.PluginUI;
  */
 public interface SpiderUI extends PluginUI {
     
-    void linkQueued(Link link);
+    void linkQueued(Link link, int queueSize);
     
-    void linkDequeued(Link link);
+    void linkDequeued(Link link, int queueSize);
     
 }
