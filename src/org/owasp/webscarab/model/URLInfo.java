@@ -8,12 +8,13 @@ package org.owasp.webscarab.model;
 
 import java.util.Properties;
 import java.util.Set;
+import java.util.Observable;
 
 /**
  *
  * @author  rdawes
  */
-public class URLInfo {
+public class URLInfo extends Observable {
 
     private Properties _props = new Properties();
     private String _url;
@@ -37,10 +38,15 @@ public class URLInfo {
     
     public void setProperty(String key, String value) {
         synchronized (_props) {
-            if (value == null) {
-                _props.remove(key);
-            } else {
+            String previous = getProperty(key);
+            if (value != null && (previous == null || !value.equals(previous))) {
                 _props.setProperty(key,value);
+                setChanged();
+                notifyObservers(key);
+            } else if (value == null) {
+                _props.remove(key);
+                setChanged();
+                notifyObservers();
             }
         }
     }

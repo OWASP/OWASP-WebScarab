@@ -19,11 +19,13 @@ import org.owasp.util.URLUtil;
 
 import org.htmlparser.util.NodeList;
 
+import java.util.Observable;
+
 /**
  *
  * @author  rdawes
  */
-public class Conversation {
+public class Conversation extends Observable {
     
     private Prop _props;
     
@@ -71,7 +73,12 @@ public class Conversation {
     }
     
     public void setProperty(String key, String value) {
-        _props.put(key, value);
+        String previous = getProperty(key);
+        if (previous == null || !previous.equals(value)) {
+            _props.put(key, value);
+            setChanged();
+            notifyObservers(key);
+        }
     }
     
     public String getProperty(String key) {
