@@ -17,6 +17,16 @@ import java.io.FileNotFoundException;
 
 import java.util.logging.Logger;
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.Iterator;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+
 /**
  *
  * @author  knoppix
@@ -24,6 +34,10 @@ import java.util.logging.Logger;
 public class FileSystemStore implements FragmentsStore {
     
     private File _dir;
+    
+    private static final String[] NONE = new String[0];
+    
+    private Map _types = new TreeMap();
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -43,10 +57,33 @@ public class FileSystemStore implements FragmentsStore {
         } else if (!_dir.isDirectory()) {
             throw new StoreException(_dir + " exists, and is not a directory!");
         }
+        load();
     }
     
     private void load() throws StoreException {
-        // nothing to load - mostly in the SiteModel
+        File index = new File(_dir, "index");
+        try {
+            String type = null;
+            String line;
+            List list = null;
+            BufferedReader br = new BufferedReader(new FileReader(index));
+            while ((line = br.readLine()) != null) {
+                System.out.println(">" + line);
+                if (line.equals("")) {
+                    type = null;
+                } else if (type == null) {
+                    type = line;
+                    list = new ArrayList();
+                    _types.put(type, list);
+                } else {
+                    list.add(line);
+                }
+            }
+            br.close();
+        } catch (FileNotFoundException fnfe) { // nothing to do
+        } catch (IOException ioe) {
+            throw new StoreException("IOException reading the index: " + ioe);
+        }
     }
     
     /** retrieves a saved text fragment
@@ -79,20 +116,25 @@ public class FileSystemStore implements FragmentsStore {
     }
     
     /** Stores a text fragment for future retrieval
-     * @param key a string which can be used to request the fragment in the future
+     * @param type The type of the fragment
+     * @param key the key that identifies the fragment.
      * @param fragment The fragment string that should be stored.
      * @throws StoreException if there are any problems writing to the Store
      *
+     * @return the position of the new key in the list, or -1 if it was already there
      */
     
-    public String putFragment(String fragment) {
-        String key = Encoding.hashMD5(fragment);
+    public int putFragment(String type, String key, String fragment) {
+        List list = (List) _types.get(type);
+        if (list == null) {
+            list = new ArrayList();
+            _types.put(type, list);
+        }
+        if (list.indexOf(key)>-1) return -1;
+        list.add(key);
         File f = new File(_dir, key);
         FileWriter fw = null;
         try {
-            if (f.exists()) {
-                return key;
-            }
             fw = new FileWriter(f);
             fw.write(fragment);
             fw.flush();
@@ -100,11 +142,60 @@ public class FileSystemStore implements FragmentsStore {
         } catch (IOException ioe) {
             _logger.warning("Error writing fragment " + key + " : " + ioe);
         }
-        return key;
+        return list.size()-1;
     }
     
     public void flush() throws StoreException {
-        // nothing to do, we write them out as we see them
+        File index = new File(_dir, "index");
+        if (_types.size() == 0) return;
+        try {
+            String type = null;
+            String line;
+            List list;
+            BufferedWriter bw = new BufferedWriter(new FileWriter(index));
+            Iterator it = _types.keySet().iterator();
+            while (it.hasNext()) {
+                type = (String) it.next();
+                bw.write(type + "\r\n");
+                list = (List) _types.get(type);
+                Iterator it2 = list.iterator();
+                while (it2.hasNext()) {
+                    String fragment = (String) it2.next();
+                    bw.write(fragment + "\r\n");
+                }
+                bw.write("\r\n");
+            }
+            bw.close();
+        } catch (FileNotFoundException fnfe) { // nothing to do
+        } catch (IOException ioe) {
+            throw new StoreException("IOException reading the index: " + ioe);
+        }
+    }
+    
+    public int getFragmentCount(String type) {
+        List fragments = (List) _types.get(type);
+        if (fragments == null) return 0;
+        return fragments.size();
+    }
+    
+    public String getFragmentKeyAt(String type, int position) {
+        List fragments = (List) _types.get(type);
+        if (fragments == null) return null;
+        return (String) fragments.get(position);
+    }
+    
+    public String getFragmentType(int index) {
+        return ((String[]) _types.keySet().toArray(NONE))[index];
+    }
+    
+    public int getFragmentTypeCount() {
+        return _types.size();
+    }
+    
+    public int indexOfFragment(String type, String key) {
+        List list = (List) _types.get(type);
+        if (list == null) return -1;
+        return list.indexOf(key);
     }
     
 }

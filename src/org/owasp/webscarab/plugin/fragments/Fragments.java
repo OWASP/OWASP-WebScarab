@@ -10,11 +10,11 @@ import java.io.File;
 
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.Date;
 
-import org.htmlparser.RemarkNode;
+import org.htmlparser.nodes.RemarkNode;
 import org.htmlparser.tags.ScriptTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
@@ -22,12 +22,17 @@ import org.htmlparser.util.ParserException;
 
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.SiteModelAdapter;
 import org.owasp.webscarab.parser.Parser;
 import org.owasp.webscarab.plugin.Plugin;
+import org.owasp.webscarab.plugin.PluginUI;
+
+import org.owasp.webscarab.util.Encoding;
 
 /**
  * This plugin looks for comments and scripts in the source of HTML pages.
@@ -37,7 +42,6 @@ public class Fragments extends Plugin {
     
     private Thread _runThread = null;
     
-    private LinkedList _queue = new LinkedList();
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     private boolean _stopping = false;
@@ -49,12 +53,13 @@ public class Fragments extends Plugin {
     
     private String _status = "Stopped";
     
+    private FragmentsUI _ui = null;
+    
     /**
      * Creates a new instance of Fragments
      * @param props contains the user's configuration properties
      */
-    public Fragments(Properties props) {
-        super(props);
+    public Fragments() {
     }
     
     /**
@@ -71,6 +76,35 @@ public class Fragments extends Plugin {
         } else {
             throw new StoreException("Store type '" + storeType + "' is not supported in " + getClass().getName());
         }
+        if (_ui != null) _ui.setModel(model);
+    }
+    
+    public void setUI(FragmentsUI ui) {
+        _ui = ui;
+    }
+    
+    public int getFragmentTypeCount() {
+        return _store.getFragmentTypeCount();
+    }
+    
+    public String getFragmentType(int index) {
+        return _store.getFragmentType(index);
+    }
+    
+    public int getFragmentCount(String type) {
+        return _store.getFragmentCount(type);
+    }
+    
+    public String getFragment(String key) {
+        return _store.getFragment(key);
+    }
+    
+    public String getFragmentKeyAt(String type, int position) {
+        return _store.getFragmentKeyAt(type, position);
+    }
+    
+    public int indexOfFragment(String type, String key) {
+        return _store.indexOfFragment(type, key);
     }
     
     /**
@@ -177,30 +211,9 @@ public class Fragments extends Plugin {
     
     /**
      * calls the main loop of the plugin
-     */    
+     */
     public void run() {
-        _runThread = Thread.currentThread();
-        _stopping = false;
         _running = true;
-        _status = "Started";
-        // if (_ui != null) _ui.setEnabled(_running);
-        while (!_stopping) {
-            ConversationID id = null;
-            if (_queue.size() > 0) { 
-                id = (ConversationID) _queue.removeFirst();
-                _status = "Analysing " + id + ", " + _queue.size() + " remaining";
-                analyse(id);
-            } else {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException ie) {}
-                _status = "Started, Idle";
-            }
-        }
-        _running = false;
-        _runThread = null;
-        // if (_ui != null) _ui.setEnabled(_running);
-        _status = "Stopped";
     }
     
     /**
@@ -208,34 +221,43 @@ public class Fragments extends Plugin {
      * @return true if the plugin could be stopped within a (unspecified) timeout period, false otherwise
      */    
     public boolean stop() {
-        if (isBusy()) return false;
-        _stopping = true;
-        try {
-            _runThread.join(5000);
-        } catch (InterruptedException ie) {
-            _logger.warning("Interrupted!");
-        }
-        return !_running;
+        _running = false;
+        return ! _running;
     }
     
     private void analyse(ConversationID id) {
         HttpUrl url = _model.getUrlOf(id);
+        Request request = _model.getRequest(id);
+        String cookie = request.getHeader("Cookie");
+        if (cookie != null) _model.addConversationProperty(id, "COOKIE", cookie);
         Response response = _model.getResponse(id);
+        cookie = response.getHeader("Set-Cookie");
+        if (cookie != null) {
+            Cookie c = new Cookie(new Date(), cookie);
+            _model.addConversationProperty(id, "SET-COOKIE", c.getName() + "=" + c.getValue());
+            _model.addUrlProperty(url, "SET-COOKIE", c.getName());
+        }
         Object parsed = Parser.parse(url, response);
         if (parsed != null && parsed instanceof NodeList) {
             NodeList nodes = (NodeList) parsed;
             try {
                 NodeList comments = nodes.searchFor(RemarkNode.class);
                 for (NodeIterator ni = comments.elements(); ni.hasMoreNodes(); ) {
-                    String key = _store.putFragment(ni.nextNode().toHtml());
+                    String fragment = ni.nextNode().toHtml();
+                    String key = Encoding.hashMD5(fragment);
+                    int pos = _store.putFragment("COMMENTS", key, fragment);
                     _model.addConversationProperty(id, "COMMENTS", key);
                     _model.addUrlProperty(url, "COMMENTS", key);
+                    if (_ui != null) _ui.fragmentAdded(url, id, "COMMENTS", key);
                 }
                 NodeList scripts = nodes.searchFor(ScriptTag.class);
                 for (NodeIterator ni = scripts.elements(); ni.hasMoreNodes(); ) {
-                    String key = _store.putFragment(ni.nextNode().toHtml());
+                    String fragment = ni.nextNode().toHtml();
+                    String key = Encoding.hashMD5(fragment);
+                    int pos = _store.putFragment("SCRIPTS", key, fragment);
                     _model.addConversationProperty(id, "SCRIPTS", key);
                     _model.addUrlProperty(url, "SCRIPTS", key);
+                    if (_ui != null) _ui.fragmentAdded(url, id, "SCRIPTS", key);
                 }
             } catch (ParserException pe) {
                 _logger.warning("Looking for fragments, got '" + pe + "'");
@@ -249,7 +271,7 @@ public class Fragments extends Plugin {
     }
     
     public boolean isBusy() {
-        return _queue.size() > 0;
+        return false;
     }
     
     public String getStatus() {
@@ -259,10 +281,7 @@ public class Fragments extends Plugin {
     private class Listener extends SiteModelAdapter {
         
         public void conversationAdded(ConversationID id) {
-            // queue it for checking
-            synchronized(_queue) {
-                _queue.addLast(id);
-            }
+            analyse(id);
         }
         
     }

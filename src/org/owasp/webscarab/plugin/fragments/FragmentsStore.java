@@ -13,8 +13,18 @@ import org.owasp.webscarab.model.StoreException;
  * @author  knoppix
  */
 public interface FragmentsStore {
-
-    String putFragment(String content);
+    
+    int getFragmentTypeCount();
+    
+    String getFragmentType(int index);
+    
+    int getFragmentCount(String type);
+    
+    String getFragmentKeyAt(String type, int position);
+    
+    int indexOfFragment(String type, String key);
+    
+    int putFragment(String type, String key, String fragment);
     
     String getFragment(String key);
     
