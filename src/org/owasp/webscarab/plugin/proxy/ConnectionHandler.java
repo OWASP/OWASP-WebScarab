@@ -213,7 +213,7 @@ public class ConnectionHandler implements Runnable {
                 Response response = hc.fetchResponse(request);
                 if (response == null) {
                     System.err.println("Got a null response from the fetcher");
-                    throw new NullPointerException("response was null");
+                    return;
                 }
                 System.out.println("Response : " + response.getStatusLine());
                 try {
