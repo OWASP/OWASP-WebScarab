@@ -34,10 +34,17 @@ public class AsyncFetcher implements Runnable {
     
     /** Creates a new instance of AsyncFetcher */
     public AsyncFetcher(Vector requestQueue, Vector responseQueue) {
+        this(requestQueue, responseQueue, null);
+    }
+    
+    public AsyncFetcher(Vector requestQueue, Vector responseQueue, String threadName) {
         _requestQueue = requestQueue;
         _responseQueue = responseQueue;
         Thread me = new Thread(this);
         me.setDaemon(true);
+        if (threadName != null) {
+            me.setName(threadName);
+        }
         me.start();
     }
     
