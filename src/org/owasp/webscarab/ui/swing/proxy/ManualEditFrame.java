@@ -47,14 +47,14 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
             _request = request;
             _requestPanel.setEditable(true);
             _requestPanel.setRequest(request);
-            show();
+            setVisible(true);
             try {
                 this.wait();
             } catch (InterruptedException ie) {
                 System.out.println("Wait interrupted");
             }
-            _requestPanel.setEditable(false);
             setVisible(false);
+            _requestPanel.setEditable(false);
             return _request;
         }
     }
