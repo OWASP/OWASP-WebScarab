@@ -49,6 +49,8 @@ import org.owasp.webscarab.ui.swing.editors.TextPanel;
 
 import java.awt.Component;
 
+import java.util.logging.Logger;
+
 /**
  *
  * @author  rdawes
@@ -67,6 +69,8 @@ public class RequestPanel extends javax.swing.JPanel {
     private TextPanel _textPanel;
     
     private static int _preferred = -1;
+    
+    private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates new form RequestPanel */
     public RequestPanel() {
@@ -142,10 +146,10 @@ public class RequestPanel extends javax.swing.JPanel {
             if (_textPanel.isModified()) {
                 try {
                     Request r = new Request();
-                    r.parse(new String(_textPanel.getBytes()));
+                    r.parse(_textPanel.getText());
                     _request = r;
                 } catch (Exception e) {
-                    System.err.println("Error parsing the rawTextArea, abandoning changes : " + e);
+                    _logger.severe("Error parsing the rawTextArea, abandoning changes : " + e);
                 }
                 _modified = true;
                 invalidatePanels();
