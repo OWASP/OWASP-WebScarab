@@ -16,10 +16,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
+import org.owasp.webscarab.model.Preferences;
 
 /**
  *
@@ -33,23 +33,36 @@ public class CertificateDialog extends javax.swing.JDialog {
     
     private HTTPClientFactory _factory = HTTPClientFactory.getInstance();
     
-    private Properties _props;
-    
     /** Creates new form CertificateDialog */
     public CertificateDialog(java.awt.Frame parent, Framework framework) {
         super(parent, true);
         _framework = framework;
-        _props = _framework.getProperties();
         
         initComponents();
         initValues();
+        enableFields();
     }
     
     private void initValues() {
-        useCertCheckBox.setSelected(!_factory.getClientCertificateFile().equals(""));
-        keystoreTextField.setText(_factory.getClientCertificateFile());
-        keystorePassTextField.setText(_factory.getClientKeystorePassword());
-        keyPassTextField.setText(_factory.getClientKeyPassword());
+        boolean useCert = Preferences.getPreference("WebScarab.clientCertificate", "false").equals("true");
+        String file = Preferences.getPreference("WebScarab.clientCertificateFile",  "");
+        String keystorePass = Preferences.getPreference("WebScarab.keystorePassword", "");
+        String keyPass = Preferences.getPreference("WebScarab.keyPassword", "");
+        
+        useCertCheckBox.setSelected(useCert);
+        keystoreTextField.setText(file);
+        keystorePassTextField.setText(keystorePass);
+        keyPassTextField.setText(keyPass);
+    }
+    
+    private void enableFields() {
+        jLabel1.setEnabled(useCertCheckBox.isSelected());
+        keystoreTextField.setEnabled(useCertCheckBox.isSelected());
+        jLabel2.setEnabled(useCertCheckBox.isSelected());
+        keystorePassTextField.setEnabled(useCertCheckBox.isSelected());
+        jLabel3.setEnabled(useCertCheckBox.isSelected());
+        keyPassTextField.setEnabled(useCertCheckBox.isSelected());
+        browseButton.setEnabled(useCertCheckBox.isSelected());
     }
     
     /** This method is called from within the constructor to
@@ -211,10 +224,11 @@ public class CertificateDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_cancelButtonActionPerformed
     
     private void applyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyButtonActionPerformed
+        boolean useCert = useCertCheckBox.isSelected();
         String file = keystoreTextField.getText().trim();
         String keystorePass = keystorePassTextField.getText();
         String keyPass = keyPassTextField.getText();
-        if (useCertCheckBox.isSelected() && file.equals("")) {
+        if (useCert && file.equals("")) {
             JOptionPane.showMessageDialog(null, new String[] {"Provide a file to read the certificate from!"}, "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -228,7 +242,11 @@ public class CertificateDialog extends javax.swing.JDialog {
             _framework.stopPlugins();
         }
         try {
-            _factory.setClientCertificateFile(file, keystorePass, keyPass);
+            if (useCert) {
+                _factory.setClientCertificateFile(file, keystorePass, keyPass);
+            } else {
+                _factory.setClientCertificateFile(null, null, null);
+            }
         } catch (FileNotFoundException fnfe) {
             JOptionPane.showMessageDialog(null, new String[] {"File not found!", fnfe.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
             return;
@@ -243,9 +261,10 @@ public class CertificateDialog extends javax.swing.JDialog {
             _framework.startPlugins();
         }
         
-        _props.setProperty("WebScarab.clientCertificateFile",  file);
-        _props.setProperty("WebScarab.keystorePassword", keystorePass);
-        _props.setProperty("WebScarab.keyPassword", keyPass);
+        Preferences.setPreference("WebScarab.clientCertificate", useCertCheckBox.isSelected() ? "true" : "false");
+        Preferences.setPreference("WebScarab.clientCertificateFile",  file);
+        Preferences.setPreference("WebScarab.keystorePassword", keystorePass);
+        Preferences.setPreference("WebScarab.keyPassword", keyPass);
         
         setVisible(false);
         dispose();
@@ -273,13 +292,7 @@ public class CertificateDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_browseButtonActionPerformed
     
     private void useCertCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_useCertCheckBoxActionPerformed
-        jLabel1.setEnabled(useCertCheckBox.isSelected());
-        keystoreTextField.setEnabled(useCertCheckBox.isSelected());
-        jLabel2.setEnabled(useCertCheckBox.isSelected());
-        keystorePassTextField.setEnabled(useCertCheckBox.isSelected());
-        jLabel3.setEnabled(useCertCheckBox.isSelected());
-        keyPassTextField.setEnabled(useCertCheckBox.isSelected());
-        browseButton.setEnabled(useCertCheckBox.isSelected());
+        enableFields();
     }//GEN-LAST:event_useCertCheckBoxActionPerformed
     
     /** Closes the dialog */
