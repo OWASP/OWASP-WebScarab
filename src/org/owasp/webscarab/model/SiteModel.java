@@ -141,7 +141,10 @@ public class SiteModel {
     public void setSessionStore(Object store) throws StoreException {
         if (store != null && store instanceof SiteModelStore) {
             _store = (SiteModelStore) store;
-			_cookieJar.clear();
+            synchronized(_cookieJar) {
+                _cookieJar.clear();
+                _cookieJar.addCookies(_store.readCookies());
+            }
             synchronized (_conversationList) {
                 _conversationList.clear();
                 Conversation[] conversation = _store.readConversations();
