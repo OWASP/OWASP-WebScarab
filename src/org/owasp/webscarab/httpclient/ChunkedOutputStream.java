@@ -43,6 +43,7 @@ public class ChunkedOutputStream extends FilterOutputStream {
     public void write(int b) throws IOException {
         out.write("1\r\n".getBytes());
         out.write(b);
+        out.write("\r\n".getBytes());
     }
     
     public void write(byte[] b) throws IOException {
@@ -52,6 +53,7 @@ public class ChunkedOutputStream extends FilterOutputStream {
     public void write(byte[] b, int off, int len) throws IOException {
         out.write((Integer.toString(len - off, 16) + "\r\n").getBytes());
         out.write(b, off, len);
+        out.write("\r\n".getBytes());
     }
     
 }
