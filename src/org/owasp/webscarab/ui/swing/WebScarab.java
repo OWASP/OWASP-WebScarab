@@ -38,6 +38,10 @@ public class WebScarab
         _sitemodel = new SiteModel();
     }
     
+    public SiteModel getSiteModel() {
+        return _sitemodel;
+    }
+    
     public void addPlugin(WebScarabPlugin plugin) {
         if (_plugins == null) {
             _plugins = new ArrayList();
@@ -50,7 +54,7 @@ public class WebScarab
         // add the conversation to the model
         String id = _sitemodel.addConversation(conversation);
         // get a summary of the URL so far.
-        URLInfo urlinfo = _sitemodel.getURLInfo(conversation);
+        URLInfo urlinfo = _sitemodel.createURLInfo(conversation);
         
         // call the plugins
         for (int i=0; i<_pluginArray.length; i++) {
