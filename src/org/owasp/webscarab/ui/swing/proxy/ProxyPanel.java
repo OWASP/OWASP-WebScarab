@@ -8,6 +8,13 @@ package org.owasp.webscarab.ui.swing.proxy;
 
 import org.owasp.webscarab.ui.swing.SwingPlugin;
 import org.owasp.webscarab.plugin.proxy.Proxy;
+import org.owasp.webscarab.plugin.proxy.module.ManualEdit;
+import org.owasp.webscarab.plugin.proxy.module.CookieTracker;
+import org.owasp.webscarab.plugin.proxy.module.RevealHidden;
+import org.owasp.webscarab.plugin.proxy.module.BrowserCache;
+import org.owasp.webscarab.plugin.proxy.module.BeanShell;
+
+import org.owasp.webscarab.ui.Framework;
 
 import java.util.ArrayList;
 import javax.swing.ListSelectionModel;
@@ -25,12 +32,39 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
     private SwingPlugin[] _pluginArray = new SwingPlugin[0];
     
     /** Creates new form ProxyPanel */
-    public ProxyPanel(Proxy proxy) {
-        _proxy = proxy;
+    public ProxyPanel(Framework framework) {
+        _proxy = new Proxy(framework);
+        framework.addPlugin(_proxy);
+        
         initComponents();
-        _ltm = new ListenerTableModel(proxy);
+        
+        _ltm = new ListenerTableModel(_proxy);
         listenerTable.setModel(_ltm);
         listenerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        // load the proxy modules
+        ManualEdit me = new ManualEdit();
+        _proxy.addPlugin(me);
+        
+        RevealHidden rh = new RevealHidden();
+        _proxy.addPlugin(rh);
+        
+        BrowserCache bc = new BrowserCache();
+        _proxy.addPlugin(bc);
+        
+        CookieTracker ct = new CookieTracker(_proxy.getCookieJar());
+        _proxy.addPlugin(ct);
+        
+        BeanShell bs = new BeanShell();
+        _proxy.addPlugin(bs);
+        
+        // add their GUI's.
+        // FIXME - this should be changed so that the GUI panel creates the underlying plugin, 
+        // similarly to how we load the GUI plugins into the WebScarab GUI
+        addPlugin(new ManualEditPanel(me));
+        addPlugin(new MiscPanel(rh, bc, ct));
+        addPlugin(new BeanShellPanel(bs));
+
     }
 
     public javax.swing.JPanel getPanel() {

@@ -15,6 +15,7 @@ import org.owasp.webscarab.ui.swing.SwingPlugin;
 import org.owasp.webscarab.ui.swing.SwingWorker;
 import org.owasp.webscarab.ui.swing.RequestPanel;
 import org.owasp.webscarab.ui.swing.ResponsePanel;
+import org.owasp.webscarab.ui.Framework;
 
 import javax.swing.border.TitledBorder;
 
@@ -31,8 +32,9 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
     private ResponsePanel responsePanel;
     
     /** Creates new form ManualRequestPanel */
-    public ManualRequestPanel(ManualRequest manualRequest) {
-        _manualRequest = manualRequest;
+    public ManualRequestPanel(Framework framework) {
+        _manualRequest = new ManualRequest(framework);
+        framework.addPlugin(_manualRequest);
         
         initComponents();
 
@@ -150,6 +152,20 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
     public String getPluginName() {
         return new String("Manual Request");
     }    
+    
+    public static void main(String[] args) {
+        SwingPlugin sp = new ManualRequestPanel(new Framework());
+        javax.swing.JFrame top = new javax.swing.JFrame(sp.getPluginName());
+        top.getContentPane().setLayout(new java.awt.BorderLayout());
+        top.addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                System.exit(0);
+            }
+        });
+        top.getContentPane().add(sp.getPanel());
+        top.setBounds(100,100,800,600);
+        top.show();
+    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JSplitPane conversationSplitPane;

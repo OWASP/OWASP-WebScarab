@@ -6,6 +6,7 @@
 
 package org.owasp.webscarab.ui.swing.spider;
 
+import org.owasp.webscarab.ui.Framework;
 
 import org.owasp.webscarab.model.URLTreeModel;
 import org.owasp.webscarab.ui.swing.SwingPlugin;
@@ -22,8 +23,10 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
     private Spider _spider;
     
     /** Creates new form SpiderPanel */
-    public SpiderPanel(Spider spider) {
-        _spider = spider;
+    public SpiderPanel(Framework framework) {
+        _spider = new Spider(framework);
+        framework.addPlugin(_spider);
+        
         initComponents();
         unseenLinkTable.setModel(_spider.getUnseenLinkTableModel());
         unseenLinkTree.setModel(_spider.getUnseenLinkTreeModel());

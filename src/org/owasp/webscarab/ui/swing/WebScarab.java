@@ -14,11 +14,6 @@ import org.owasp.webscarab.plugin.Preferences;
 
 import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.proxy.ConnectionHandler;
-import org.owasp.webscarab.plugin.proxy.module.ManualEdit;
-import org.owasp.webscarab.plugin.proxy.module.CookieTracker;
-import org.owasp.webscarab.plugin.proxy.module.RevealHidden;
-import org.owasp.webscarab.plugin.proxy.module.BrowserCache;
-import org.owasp.webscarab.plugin.proxy.module.BeanShell;
 
 import org.owasp.webscarab.plugin.spider.Spider;
 import org.owasp.webscarab.plugin.manualrequest.ManualRequest;
@@ -39,6 +34,7 @@ import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysis;
 
 import java.util.Properties;
 import java.util.ArrayList;
+import java.lang.Runnable;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -50,6 +46,8 @@ import javax.swing.text.Document;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -70,73 +68,35 @@ public class WebScarab extends javax.swing.JFrame {
     
     
     /** Creates new form WebScarab */
-    public WebScarab() {
+    public WebScarab(Framework framework) {
         initComponents();
         
         // capture STDOUT and STDERR to a TextArea
         System.setOut(redirectOutput(stdoutTextArea, System.out));
         System.setErr(redirectOutput(stderrTextArea, System.err));
         
-        // create the framework
-        _framework = new Framework();
+        _framework = framework;
         
         // load the properties
         _prop = Preferences.getPreferences();
         
         addPlugin(new SummaryPanel(_framework));
         
-        // create the plugins, and their GUI's
-        
-        // Proxy plugin
-        Proxy proxy = new Proxy(_framework);
-        _framework.addPlugin(proxy);
-        
-        // load the proxy modules
-        ManualEdit me = new ManualEdit();
-        proxy.addPlugin(me);
-        
-        RevealHidden rh = new RevealHidden();
-        proxy.addPlugin(rh);
-        
-        BrowserCache bc = new BrowserCache();
-        proxy.addPlugin(bc);
-        
-        CookieTracker ct = new CookieTracker(proxy.getCookieJar());
-        proxy.addPlugin(ct);
-        
-        BeanShell bs = new BeanShell();
-        proxy.addPlugin(bs);
-        
-        // create the proxy GUI panels
-        ProxyPanel proxyPanel = new ProxyPanel(proxy);
-        proxyPanel.addPlugin(new ManualEditPanel(me));
-        proxyPanel.addPlugin(new MiscPanel(rh, bc, ct));
-        proxyPanel.addPlugin(new BeanShellPanel(bs));
-        addPlugin(proxyPanel);
-        
-        // Spider plugin
-        Spider spider = new Spider(_framework);
-        _framework.addPlugin(spider);
-        addPlugin(new SpiderPanel(spider));
-        
-        // ManualRequest Plugin
-        ManualRequest manualrequest = new ManualRequest(_framework);
-        _framework.addPlugin(manualrequest);
-        addPlugin(new ManualRequestPanel(manualrequest));
-        
-        // SessionID Analysis plugin
-//        SessionIDAnalysis sa = new SessionIDAnalysis(_framework);
-//        _framework.addPlugin(sa);
-//        addPlugin(new SessionIDPanel(sa));
-        
     }
     
-    public void addPlugin(SwingPlugin plugin) {
+    public void addPlugin(final SwingPlugin plugin) {
         if (_plugins == null) {
             _plugins = new ArrayList();
         }
         _plugins.add(plugin);
-        mainTabbedPane.add(plugin.getPanel(), plugin.getPluginName());
+        final JPanel panel = plugin.getPanel();
+        if (panel != null) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    mainTabbedPane.add(panel, plugin.getPluginName());
+                }
+            });
+        }
     }
     
     
@@ -540,8 +500,16 @@ public class WebScarab extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        WebScarab ws = new WebScarab();
+        Framework framework = new Framework();
+        
+        WebScarab ws = new WebScarab(framework);
         ws.show();
+        
+        ws.addPlugin(new ProxyPanel(framework));
+        ws.addPlugin(new SpiderPanel(framework));
+        ws.addPlugin(new ManualRequestPanel(framework));
+        ws.addPlugin(new SessionIDPanel(framework));
+        
         boolean loaded = false;
         if (args != null && args.length == 1 && !args[0].equals("")) {
             loaded = ws.loadSession(args[0]);

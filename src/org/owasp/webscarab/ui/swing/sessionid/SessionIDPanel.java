@@ -14,6 +14,7 @@ import org.owasp.webscarab.ui.swing.SwingWorker;
 import org.owasp.webscarab.ui.swing.ListComboBoxModel;
 import org.owasp.webscarab.ui.swing.editors.TextPanel;
 import org.owasp.webscarab.ui.swing.ResponsePanel;
+import org.owasp.webscarab.ui.Framework;
 
 import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysis;
 import org.owasp.webscarab.plugin.sessionid.SessionID;
@@ -56,8 +57,10 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
     TreeMap _idDatasetCache = new TreeMap();
     
     /** Creates new form SessionIDPanel */
-    public SessionIDPanel(SessionIDAnalysis sa) {
-        _sa = sa;
+    public SessionIDPanel(Framework framework) {
+        _sa = new SessionIDAnalysis(framework);
+        framework.addPlugin(_sa);
+        
         initComponents();
         
         mainTabbedPane.getModel().addChangeListener(new ChangeListener() {
@@ -484,7 +487,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
             }
         });
         javax.swing.JButton button = new javax.swing.JButton("GET");
-        SessionIDPanel sp = new SessionIDPanel(new SessionIDAnalysis(null));
+        SessionIDPanel sp = new SessionIDPanel(new Framework());
         top.getContentPane().add(sp);
         top.setBounds(100,100,800,600);
         top.show();
