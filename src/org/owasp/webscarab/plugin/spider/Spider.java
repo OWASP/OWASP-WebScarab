@@ -12,6 +12,7 @@ import org.owasp.webscarab.model.Conversation;
 import org.owasp.webscarab.model.URLInfo;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.CookieJar;
+import org.owasp.webscarab.model.URLTreeModel;
 
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
@@ -75,6 +76,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     private String _forbiddenPaths = null;
     
     private UnseenLinkTableModel _unseenLinkTableModel = new Spider.UnseenLinkTableModel();
+    private URLTreeModel _unseenLinkTreeModel = new URLTreeModel();
     
     private SpiderStore _store = null;
     
@@ -145,6 +147,19 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 try {
                     Thread.currentThread().sleep(100);
                 } catch (InterruptedException ie) {}
+            }
+        }
+    }
+    
+    public void queueRequestsUnder(String root) {
+        synchronized(_unseenLinks) {
+            Iterator it = _unseenLinks.keySet().iterator();
+            while (it.hasNext()) {
+                String url = (String) it.next();
+                if (url.startsWith(root)) {
+                    Link link = (Link) _unseenLinks.get(url);
+                    queueRequest(newGetRequest(link));
+                }
             }
         }
     }
@@ -220,9 +235,8 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
             if (_unseenLinks.containsKey(referer)) {
                 int index = _unseenLinks.indexOf(referer);
                 _unseenLinks.remove(referer);
-                synchronized (_unseenLinkTableModel) {
-                    _unseenLinkTableModel.fireTableRowsDeleted(index, index);
-                }
+                _unseenLinkTableModel.fireTableRowsDeleted(index, index);
+                _unseenLinkTreeModel.remove(referer);
             }
             _seenLinks.put(referer,""); // actual value is irrelevant, could be a sequence no, for amusement
         }
@@ -283,9 +297,8 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 Link link = new Link(url, referer);
                 _unseenLinks.put(url, link);
                 int index = _unseenLinks.size()-1;
-                synchronized (_unseenLinkTableModel) {
-                    _unseenLinkTableModel.fireTableRowsInserted(index, index);
-                }
+                _unseenLinkTableModel.fireTableRowsInserted(index, index);
+                _unseenLinkTreeModel.add(url);
                 if (_recursive && allowedURL(url)) {
                     queueRequest(newGetRequest(link));
                 }
@@ -356,6 +369,10 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         return _unseenLinkTableModel;
     }
     
+    public TreeModel getUnseenLinkTreeModel() {
+        return _unseenLinkTreeModel;
+    }
+        
     public void setSessionStore(Object store) throws StoreException {
         if (store != null && store instanceof SpiderStore) {
             _store = (SpiderStore) store;
@@ -422,66 +439,25 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         }
         
         public Object getValueAt(int rowIndex, int columnIndex) {
-            if (rowIndex <0 || rowIndex >= getRowCount()) {
-                throw new ArrayIndexOutOfBoundsException("Attempt to get row " + rowIndex + ", column " + columnIndex + " : row does not exist!");
-            }
-            Link link = (Link) _unseenLinks.get(rowIndex);
-            if (columnIndex <= columnNames.length) {
-                switch (columnIndex) {
-                    case 0 : return new Integer(rowIndex+1).toString();
-                    case 1 : return link.getURL();
-                    case 2 : return link.getReferer();
-                    case 3 : return link.getType();
+            synchronized (_unseenLinks) {
+                if (rowIndex <0 || rowIndex >= getRowCount()) {
+                    throw new ArrayIndexOutOfBoundsException("Attempt to get row " + rowIndex + ", column " + columnIndex + " : row does not exist!");
                 }
-                return "";
-            } else {
-                throw new ArrayIndexOutOfBoundsException("Attempt to get row " + rowIndex + ", column " + columnIndex + " : column does not exist!");
-            }
-        }
-        
-    }
-    
-    private class UnseenLinkTreeModel extends DefaultTreeModel {
-        
-        private DefaultTreeModel treeModel;
-        private DefaultMutableTreeNode root;
-        private Map treeNodes = Collections.synchronizedMap(new TreeMap());
-        
-        /** Creates a new instance of WebTreeModel */
-        public UnseenLinkTreeModel() {
-            super(null, true);
-            root = new DefaultMutableTreeNode(null);
-            super.setRoot(root);
-            root.setAllowsChildren(true);
-            treeNodes.put("",root);
-        }
-        
-        public void clear() {
-            root.removeAllChildren();
-        }
-        
-        protected TreePath addNode(Link link) {
-            try {
-                URL url = new URL(link.getURL());
-                String shpp = URLUtil.schemeAuthPath(url);
-                String shp = URLUtil.schemeAuth(url);
-                DefaultMutableTreeNode un;
-                synchronized (treeNodes) {
-                    un = (DefaultMutableTreeNode)treeNodes.get(shpp);
-                    if (un != null) {
-                        un.setUserObject(link);
-                        treeNodes.put(shpp,un);
-                        fireTreeNodesChanged(un, un.getPath(), null, null);
-                        return new TreePath(un.getPath());
+                Link link = (Link) _unseenLinks.get(rowIndex);
+                if (columnIndex <= columnNames.length) {
+                    switch (columnIndex) {
+                        case 0 : return new Integer(rowIndex+1).toString();
+                        case 1 : return link.getURL();
+                        case 2 : return link.getReferer();
+                        case 3 : return link.getType();
                     }
+                    return "";
+                } else {
+                    throw new ArrayIndexOutOfBoundsException("Attempt to get row " + rowIndex + ", column " + columnIndex + " : column does not exist!");
                 }
-                
-            } catch (MalformedURLException mue) {
-                System.err.println("Error creating an URL from '" + link.getURL() + "'");
             }
-            return new TreePath(root);
         }
         
     }
-    
+        
 }

@@ -6,8 +6,12 @@
 
 package org.owasp.webscarab.ui.swing.spider;
 
+
+import org.owasp.webscarab.model.URLTreeModel;
 import org.owasp.webscarab.ui.swing.SwingPlugin;
 import org.owasp.webscarab.plugin.spider.Spider;
+
+import javax.swing.tree.TreePath;
 
 /**
  *
@@ -22,6 +26,9 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
         _spider = spider;
         initComponents();
         unseenLinkTable.setModel(_spider.getUnseenLinkTableModel());
+        unseenLinkTree.setModel(_spider.getUnseenLinkTreeModel());
+        unseenLinkTree.setRootVisible(false);
+        unseenLinkTree.setShowsRootHandles(true);
         configure();
     }
     
@@ -47,48 +54,24 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        unseenLinkTable = new javax.swing.JTable();
-        fetchButton = new javax.swing.JButton();
         stopButton = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         domainRegexTextField = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         pathRegexTextField = new javax.swing.JTextField();
         recursiveCheckBox = new javax.swing.JCheckBox();
+        unseenTabbedPane = new javax.swing.JTabbedPane();
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        unseenLinkTable = new javax.swing.JTable();
+        linkTableFetchButton = new javax.swing.JButton();
+        jPanel2 = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        unseenLinkTree = new javax.swing.JTree();
+        linkTreeFetchSelectionButton = new javax.swing.JButton();
+        linkTreeFetchTreeButton = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
-
-        unseenLinkTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
-        jScrollPane1.setViewportView(unseenLinkTable);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        add(jScrollPane1, gridBagConstraints);
-
-        fetchButton.setText("Fetch");
-        fetchButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fetchButtonActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        add(fetchButton, gridBagConstraints);
 
         stopButton.setText("Stop");
         stopButton.addActionListener(new java.awt.event.ActionListener() {
@@ -98,8 +81,9 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         add(stopButton, gridBagConstraints);
 
         jLabel1.setText("Allowed Domains");
@@ -149,6 +133,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
 
         recursiveCheckBox.setText("Recursive");
         recursiveCheckBox.setToolTipText("Enables recursive fetching of Links");
+        recursiveCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
         recursiveCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 recursiveCheckBoxActionPerformed(evt);
@@ -156,11 +141,109 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
         add(recursiveCheckBox, gridBagConstraints);
 
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        unseenLinkTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(unseenLinkTable);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        jPanel1.add(jScrollPane1, gridBagConstraints);
+
+        linkTableFetchButton.setText("Fetch Selection");
+        linkTableFetchButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                linkTableFetchButtonActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        jPanel1.add(linkTableFetchButton, gridBagConstraints);
+
+        unseenTabbedPane.addTab("tab3", jPanel1);
+
+        jPanel2.setLayout(new java.awt.GridBagLayout());
+
+        jScrollPane2.setViewportView(unseenLinkTree);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        jPanel2.add(jScrollPane2, gridBagConstraints);
+
+        linkTreeFetchSelectionButton.setText("Fetch Selection");
+        linkTreeFetchSelectionButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                linkTreeFetchSelectionButtonActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.weightx = 1.0;
+        jPanel2.add(linkTreeFetchSelectionButton, gridBagConstraints);
+
+        linkTreeFetchTreeButton.setText("Fetch Tree");
+        linkTreeFetchTreeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                linkTreeFetchTreeButtonActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.weightx = 1.0;
+        jPanel2.add(linkTreeFetchTreeButton, gridBagConstraints);
+
+        unseenTabbedPane.addTab("tab4", jPanel2);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        add(unseenTabbedPane, gridBagConstraints);
+
     }//GEN-END:initComponents
+
+    private void linkTreeFetchTreeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_linkTreeFetchTreeButtonActionPerformed
+        TreePath[] selection = unseenLinkTree.getSelectionPaths();
+        if (selection != null && selection.length==1) {
+            URLTreeModel.URLNode node = (URLTreeModel.URLNode) selection[0].getLastPathComponent();
+            String root = node.getURL();
+            _spider.queueRequestsUnder(root);
+        } else {
+            System.out.println("Cannot fetch a tree if there are 0 or many paths selected!");
+        }
+    }//GEN-LAST:event_linkTreeFetchTreeButtonActionPerformed
+
+    private void linkTreeFetchSelectionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_linkTreeFetchSelectionButtonActionPerformed
+        // Add your handling code here:
+    }//GEN-LAST:event_linkTreeFetchSelectionButtonActionPerformed
 
     private void pathRegexTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pathRegexTextFieldFocusLost
         _spider.setForbiddenPaths(pathRegexTextField.getText());
@@ -180,7 +263,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
         _spider.resetRequestQueue();
     }//GEN-LAST:event_stopButtonActionPerformed
 
-    private void fetchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fetchButtonActionPerformed
+    private void linkTableFetchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_linkTableFetchButtonActionPerformed
         int[] rows = unseenLinkTable.getSelectedRows();
         if (rows.length<1) return;
         unseenLinkTable.clearSelection();
@@ -189,7 +272,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
             urls[i] = (String) unseenLinkTable.getModel().getValueAt(rows[i], 1);
         }
         _spider.requestURLs(urls);
-    }//GEN-LAST:event_fetchButtonActionPerformed
+    }//GEN-LAST:event_linkTableFetchButtonActionPerformed
 
     private void recursiveCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recursiveCheckBoxActionPerformed
         _spider.setRecursive(recursiveCheckBox.isSelected());
@@ -197,14 +280,21 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
         
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField domainRegexTextField;
-    private javax.swing.JButton fetchButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JButton linkTableFetchButton;
+    private javax.swing.JButton linkTreeFetchSelectionButton;
+    private javax.swing.JButton linkTreeFetchTreeButton;
     private javax.swing.JTextField pathRegexTextField;
     private javax.swing.JCheckBox recursiveCheckBox;
     private javax.swing.JButton stopButton;
     private javax.swing.JTable unseenLinkTable;
+    private javax.swing.JTree unseenLinkTree;
+    private javax.swing.JTabbedPane unseenTabbedPane;
     // End of variables declaration//GEN-END:variables
     
 }
