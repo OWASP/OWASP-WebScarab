@@ -54,6 +54,8 @@ import javax.swing.AbstractAction;
 import javax.swing.text.Document;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.DocumentEvent;
 
 import javax.swing.event.UndoableEditListener;
 import javax.swing.event.UndoableEditEvent;
@@ -78,14 +80,12 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
     protected RedoAction redoAction;
     private Hashtable actions;
     
-    private static sun.misc.BASE64Decoder decoder = new sun.misc.BASE64Decoder();
-    private static sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
-    
     /** Creates new form TranscoderFrame */
     public TranscoderFrame() {
         initComponents();
         createActionTable(textPane);
-
+        
+        undo.setLimit(10);
         undoAction = new UndoAction();
         editMenu.add(undoAction);
         redoAction = new RedoAction();
@@ -103,8 +103,14 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
  
         editMenu.add(getActionByName(DefaultEditorKit.selectAllAction));
          
-        Document d = textPane.getDocument();
+        final Document d = textPane.getDocument();
         d.addUndoableEditListener(new MyUndoableEditListener());
+        d.addDocumentListener(new DocumentListener() {
+            public void changedUpdate(DocumentEvent evt) { update(); }
+            public void insertUpdate(DocumentEvent evt) { update(); }
+            public void removeUpdate(DocumentEvent evt) { update(); }
+            private void update() { countLabel.setText("Characters: " + d.getLength()); }
+        });
     }
     
     //The following two methods allow us to find an
@@ -139,22 +145,15 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
         base64DecodeButton = new javax.swing.JButton();
         md5hashButton = new javax.swing.JButton();
         sha1hashButton = new javax.swing.JButton();
+        countLabel = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         editMenu = new javax.swing.JMenu();
 
-        getContentPane().setLayout(new java.awt.GridBagLayout());
-
         setTitle("Transcoder");
+        textPane.setFont(new java.awt.Font("Monospaced", 0, 12));
         jScrollPane1.setViewportView(textPane);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        getContentPane().add(jScrollPane1, gridBagConstraints);
+        getContentPane().add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
@@ -236,13 +235,10 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
         gridBagConstraints.weightx = 1.0;
         jPanel1.add(sha1hashButton, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        getContentPane().add(jPanel1, gridBagConstraints);
+        getContentPane().add(jPanel1, java.awt.BorderLayout.SOUTH);
+
+        countLabel.setText("Characters: 0");
+        getContentPane().add(countLabel, java.awt.BorderLayout.NORTH);
 
         editMenu.setText("Edit");
         jMenuBar1.add(editMenu);
@@ -270,8 +266,10 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
             if (textPane.getSelectionEnd() == textPane.getSelectionStart())
                 textPane.select(0,textPane.getText().length());
             textPane.replaceSelection(new String(Encoding.base64decode(textPane.getSelectedText())));
-        } catch (Exception e) {
-            textPane.setText("Exception! " + e.toString());
+        } catch (Throwable t) {
+            Runtime.getRuntime().gc();
+            t.printStackTrace();
+            textPane.setText("Exception! " + t.toString());
         }
     }//GEN-LAST:event_base64DecodeButtonActionPerformed
     
@@ -288,9 +286,15 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
     }//GEN-LAST:event_urlEncodeButtonActionPerformed
     
     private void base64EncodeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_base64EncodeButtonActionPerformed
-        if (textPane.getSelectionEnd() == textPane.getSelectionStart())
-            textPane.select(0,textPane.getText().length());
-        textPane.replaceSelection(Encoding.base64encode(textPane.getSelectedText().getBytes()));
+        try { 
+            if (textPane.getSelectionEnd() == textPane.getSelectionStart())
+                textPane.select(0,textPane.getText().length());
+            textPane.replaceSelection(Encoding.base64encode(textPane.getSelectedText().getBytes()));
+        } catch (Throwable t) {
+            Runtime.getRuntime().gc();
+            t.printStackTrace();
+            textPane.setText("Exception! " + t.toString());
+        }
     }//GEN-LAST:event_base64EncodeButtonActionPerformed
     
     /** Notifies this object that it is no longer the owner of
@@ -399,6 +403,7 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton base64DecodeButton;
     private javax.swing.JButton base64EncodeButton;
+    private javax.swing.JLabel countLabel;
     private javax.swing.JMenu editMenu;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
