@@ -10,7 +10,7 @@ import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
 import java.util.Vector;
-import java.util.NoSuchElementException;
+import java.lang.ArrayIndexOutOfBoundsException;
 
 import java.util.logging.Logger;
 
@@ -37,7 +37,7 @@ public class AsyncFetcher implements Runnable {
         _requestQueue = requestQueue;
         _responseQueue = responseQueue;
         Thread me = new Thread(this);
-        me.setDaemon(false);
+        me.setDaemon(true);
         me.start();
     }
     
@@ -46,7 +46,7 @@ public class AsyncFetcher implements Runnable {
         Response response;
         while (true) {
             try {
-                request = (Request) _requestQueue.firstElement();
+                request = (Request) _requestQueue.remove(0);
                 if (request != null) {
                     response = _uf.fetchResponse(request);
                     InputStream cs = response.getContentStream();
@@ -55,7 +55,7 @@ public class AsyncFetcher implements Runnable {
                     }
                     _responseQueue.add(response);
                 }
-            } catch (NoSuchElementException nsee) {
+            } catch (ArrayIndexOutOfBoundsException aioob) {
                 try {
                     Thread.currentThread().sleep(100);
                 } catch (InterruptedException ie) {}
