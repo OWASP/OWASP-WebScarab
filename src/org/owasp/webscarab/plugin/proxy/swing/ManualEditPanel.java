@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: ManualEditPanel.java,v 1.5 2005/01/22 21:41:44 rogan Exp $
+ * $Id: ManualEditPanel.java,v 1.6 2005/02/04 15:36:32 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -191,8 +191,8 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         interceptrequestPanel.add(interceptIncludeRegexTextField, gridBagConstraints);
 
         interceptExcludeLabel.setText("Exclude paths matching : ");
@@ -221,8 +221,8 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         interceptrequestPanel.add(interceptExcludeRegexTextField, gridBagConstraints);
 
         jScrollPane3.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
