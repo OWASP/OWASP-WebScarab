@@ -50,10 +50,8 @@ public class Preferences {
             props.load(is);
             _props = props;
         } catch (FileNotFoundException fnfe) {
-            Properties props = new Properties();
-            InputStream is = props.getClass().getResourceAsStream("/WebScarab.properties");
-            props.load(is);
-            _props = props;
+            // we'll just use the defaults in each class
+            _props = new Properties();
         }
     }
     
