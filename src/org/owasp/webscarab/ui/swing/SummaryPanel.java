@@ -53,6 +53,8 @@ public class SummaryPanel extends javax.swing.JPanel {
     private TreeMap _windowCache = new TreeMap();
     private ArrayList _conversationActions = new ArrayList();
     private ArrayList _urlActions = new ArrayList();
+    private ConversationListFilter _listFilter;
+    private String _treeURL = null;
     
     /** Creates new form SummaryPanel */
     public SummaryPanel(Framework framework) {
@@ -94,13 +96,18 @@ public class SummaryPanel extends javax.swing.JPanel {
                     Object o = selection.getLastPathComponent();
                     if (o instanceof URLTreeModel.URLNode) {
                         URLTreeModel.URLNode un = (URLTreeModel.URLNode) o;
-                        String url = un.getURL();
+                        _treeURL = un.getURL();
                         try {
-                            u = _siteModel.getURLInfo(new URL(url));
+                            u = _siteModel.getURLInfo(new URL(_treeURL));
                         } catch (MalformedURLException mue) {
-                            System.err.println("Malformed URL " + url + " : " + mue);
+                            System.err.println("Malformed URL " + _treeURL + " : " + mue);
                         }
                     }
+                } else {
+                    _treeURL = null;
+                }
+                if (treeCheckBox.isSelected()) {
+                    _listFilter.setURL(_treeURL);
                 }
                 synchronized (_urlActions) {
                     for (int i=0; i<_urlActions.size(); i++) {
@@ -148,7 +155,8 @@ public class SummaryPanel extends javax.swing.JPanel {
     }
     
     private void initTable() {
-        _ctm = new ConversationTableModel(_siteModel.getConversationListModel());
+        _listFilter = new ConversationListFilter(_siteModel.getConversationListModel());
+        _ctm = new ConversationTableModel(_listFilter);
         conversationTable.setModel(_ctm);
         
         javax.swing.table.TableColumnModel columnModel = conversationTable.getColumnModel();
@@ -270,7 +278,7 @@ public class SummaryPanel extends javax.swing.JPanel {
         conversationPopupMenu = new javax.swing.JPopupMenu();
         jSplitPane1 = new javax.swing.JSplitPane();
         urlPanel = new javax.swing.JPanel();
-        jCheckBox1 = new javax.swing.JCheckBox();
+        treeCheckBox = new javax.swing.JCheckBox();
         treeTableScrollPane = new javax.swing.JScrollPane();
         conversationPanel = new javax.swing.JPanel();
         conversationTableScrollPane = new javax.swing.JScrollPane();
@@ -288,11 +296,16 @@ public class SummaryPanel extends javax.swing.JPanel {
 
         urlPanel.setMinimumSize(new java.awt.Dimension(283, 100));
         urlPanel.setPreferredSize(new java.awt.Dimension(264, 100));
-        jCheckBox1.setText("Tree Selection filters conversation list");
-        jCheckBox1.setEnabled(false);
+        treeCheckBox.setText("Tree Selection filters conversation list");
+        treeCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                treeCheckBoxActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        urlPanel.add(jCheckBox1, gridBagConstraints);
+        urlPanel.add(treeCheckBox, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -340,14 +353,22 @@ public class SummaryPanel extends javax.swing.JPanel {
         add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
     }//GEN-END:initComponents
+
+    private void treeCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_treeCheckBoxActionPerformed
+        if (treeCheckBox.isSelected() && _treeURL != null) {
+            _listFilter.setURL(_treeURL);
+        } else {
+            _listFilter.setURL(null);
+        }
+    }//GEN-LAST:event_treeCheckBoxActionPerformed
       
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel conversationPanel;
     private javax.swing.JPopupMenu conversationPopupMenu;
     private javax.swing.JTable conversationTable;
     private javax.swing.JScrollPane conversationTableScrollPane;
-    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JSplitPane jSplitPane1;
+    private javax.swing.JCheckBox treeCheckBox;
     private javax.swing.JScrollPane treeTableScrollPane;
     private javax.swing.JPanel urlPanel;
     private javax.swing.JPopupMenu urlPopupMenu;
