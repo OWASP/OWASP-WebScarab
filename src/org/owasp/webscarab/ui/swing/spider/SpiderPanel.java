@@ -180,7 +180,13 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
     }//GEN-LAST:event_stopButtonActionPerformed
 
     private void fetchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fetchButtonActionPerformed
-        // Add your handling code here:
+        int[] rows = unseenLinkTable.getSelectedRows();
+        if (rows.length<1) return;
+        String[] urls = new String[rows.length];
+        for (int i=0; i<rows.length; i++) {
+            urls[i] = (String) unseenLinkTable.getModel().getValueAt(rows[i], 1);
+        }
+        _spider.requestURLs(urls);
     }//GEN-LAST:event_fetchButtonActionPerformed
 
     private void recursiveCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recursiveCheckBoxActionPerformed
