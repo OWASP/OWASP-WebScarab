@@ -1,23 +1,23 @@
 <?xml version="1.0"?>
 <!-- (c) 2002 OWASP WebScarab project http://www.owasp.org/webscarab -->
-<project name="org.owasp.webscarab" default="all" basedir=".">
+<project name="org.owasp.webscarab" default="compile" basedir=".">
   <property name="root" value="../../../.."/>
 
-  <target name="all">
+  <target name="compile">
     <ant antfile="${root}/src/org/owasp/webscarab/util/build.xml" target="compile">
 			<property name="src" value="${root}/src/org/owasp/webscarab/util" />
 		</ant>
     <ant antfile="${root}/src/org/owasp/webscarab/data/build.xml" target="compile">
 			<property name="src" value="${root}/src/org/owasp/webscarab/data" />
 		</ant>
+    <ant antfile="${root}/src/org/owasp/webscarab/model/build.xml" target="compile">
+			<property name="src" value="${root}/src/org/owasp/webscarab/model" />
+		</ant>
     <ant antfile="${root}/src/org/owasp/webscarab/spider/build.xml" target="compile">
 			<property name="src" value="${root}/src/org/owasp/webscarab/spider" />
 		</ant>
-    <ant antfile="${root}/src/org/owasp/webscarab/proxy/build.xml" target="compile">
-			<property name="src" value="${root}/src/org/owasp/webscarab/proxy" />
-		</ant>
-    <ant antfile="${root}/src/org/owasp/webscarab/analyse/build.xml" target="compile">
-			<property name="src" value="${root}/src/org/owasp/webscarab/analyse" />
+    <ant antfile="${root}/src/org/owasp/webscarab/httpclient/build.xml" target="compile">
+			<property name="src" value="${root}/src/org/owasp/webscarab/httpclient" />
 		</ant>
     <ant antfile="${root}/src/org/owasp/webscarab/attack/build.xml" target="compile">
 			<property name="src" value="${root}/src/org/owasp/webscarab/attack" />
@@ -28,7 +28,7 @@
   </target> 
 
   <target name="jar">
-    <ant antfile="${root}/webscarab/build.xml" target="all">
+    <ant antfile="${root}/webscarab/build.xml" target="compile">
       <property name="production" value="yes" />
     </ant>  
     <ant antfile="${root}/config.build.xml" target="jar" />
@@ -40,7 +40,7 @@
     </ant>
   </target>  
 
-  <target name="rebuild" depends="clean,all" />
+  <target name="rebuild" depends="clean,compile" />
 
   <target name="up">
     <ant antfile="${root}/config.build.xml" target="up">
@@ -60,7 +60,7 @@
     </ant>
   </target>  
 
-  <target name="latest" depends="up,all" />
+  <target name="latest" depends="up,compile" />
 
   <target name="jdoc">
     <ant antfile="${root}/config.build.xml" target="jdoc">
@@ -74,7 +74,7 @@
     </ant>
   </target>  
 
-  <target name="test" depends="all">
+  <target name="test" depends="compile">
     <ant antfile="${root}/config.build.xml" target="test">
       <property name="root" value="${root}" />
     </ant>

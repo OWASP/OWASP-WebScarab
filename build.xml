@@ -1,82 +1,84 @@
 <?xml version="1.0"?>
-<!-- (c) 2002 OWASP WebScarab project http://www.owasp.org/webscarab -->
-<project name="org.owasp.webscarab" default="all" basedir=".">
+<project name="org.owasp.webscarab" default="compile" basedir=".">
   <property name="root" value="."/>
 
-  <target name="all">
-    <ant antfile="${root}/src/org/owasp/webscarab/util/build.xml" target="compile">
-			<property name="src" value="${root}/src/org/owasp/webscarab/util" />
-		</ant>
-    <ant antfile="${root}/src/org/owasp/webscarab/data/build.xml" target="compile">
-			<property name="src" value="${root}/src/org/owasp/webscarab/data" />
-		</ant>
-    <ant antfile="${root}/src/org/owasp/webscarab/spider/build.xml" target="compile">
-			<property name="src" value="${root}/src/org/owasp/webscarab/spider" />
-		</ant>
-    <ant antfile="${root}/src/org/owasp/webscarab/proxy/build.xml" target="compile">
-			<property name="src" value="${root}/src/org/owasp/webscarab/proxy" />
-		</ant>
-    <ant antfile="${root}/src/org/owasp/webscarab/analyse/build.xml" target="compile">
-			<property name="src" value="${root}/src/org/owasp/webscarab/analyse" />
-		</ant>
-    <ant antfile="${root}/src/org/owasp/webscarab/attack/build.xml" target="compile">
-			<property name="src" value="${root}/src/org/owasp/webscarab/attack" />
-		</ant>
-    <ant antfile="${root}/src/org/owasp/webscarab/ui/build.xml" target="compile">
-			<property name="src" value="${root}/src/org/owasp/webscarab/ui" />
-		</ant>
-  </target> 
-
-  <target name="jar">
-    <ant antfile="${root}/src/org/owasp/webscarab/build.xml" target="all">
-      <property name="production" value="yes" />
-    </ant>  
-    <ant antfile="${root}/config.build.xml" target="jar" />
-  </target>
-
+  <target name="compile">
+    <ant antfile="${root}/src/org/owasp/webscarab/build.xml" target="compile">
+      <property name="root" value="${root}"/>
+    </ant>
+  </target>  
+	
+  <target name="aux">
+    <ant antfile="${root}/src/org/owasp/build.xml" target="aux">
+      <property name="root" value="${root}"/>
+    </ant>
+  </target>  
+  
   <target name="clean">
     <ant antfile="${root}/config.build.xml" target="clean">
-      <property name="root" value="${root}" />
+      <property name="root" value="${root}"/>
     </ant>
   </target>  
 
-  <target name="rebuild" depends="clean,all" />
+  <target name="rebuild">
+    <ant antfile="${root}/config.build.xml" target="rebuild">
+      <property name="root" value="${root}"/>
+    </ant>
+  </target>
+
+
+	<target name="jar" depends="compile">
+		<ant antfile="${root}/config.build.xml" target="jar">
+			<property name="root" value="${root}"/>
+		</ant>
+	</target>
+	
+	<!--target name="jar">
+		<ant antfile="${root}/src/org/owasp/build.xml" target="compile">
+			<property name="production" value="no" />
+		</ant>
+		<ant antfile="${root}/config.build.xml" target="jar" />
+	</target-->
+	
+  <target name="install">
+    <ant antfile="${root}/config.build.xml" target="install">
+      <property name="root" value="${root}"/>
+    </ant>
+  </target> 
+	
+  <target name="jdoc">
+    <ant antfile="${root}/config.build.xml" target="jdoc">
+      <property name="root" value="${root}"/>
+    </ant>
+  </target>  
+
+  <target name="tjdoc">
+    <ant antfile="${root}/src/org/owasp/build.xml" target="tjdoc">
+      <property name="root" value="${root}"/>
+    </ant>
+  </target>  
 
   <target name="up">
     <ant antfile="${root}/config.build.xml" target="up">
-      <property name="root" value="${root}" />
+      <property name="root" value="${root}"/>
     </ant>
   </target>  
 
   <target name="cup">
     <ant antfile="${root}/config.build.xml" target="cup">
-      <property name="root" value="${root}" />
+      <property name="root" value="${root}"/>
     </ant>
   </target>  
 
   <target name="cit">
     <ant antfile="${root}/config.build.xml" target="cit">
-      <property name="root" value="${root}" />
+      <property name="root" value="${root}"/>
     </ant>
   </target>  
 
-  <target name="latest" depends="up,all" />
-
-  <target name="jdoc">
-    <ant antfile="${root}/config.build.xml" target="jdoc">
-      <property name="root" value="${root}" />
-    </ant>
-  </target>
-
-  <target name="tjdoc">
-    <ant antfile="${root}/config.build.xml" target="tjdoc">
-      <property name="root" value="${root}" />
-    </ant>
-  </target>  
-
-  <target name="test" depends="all">
-    <ant antfile="${root}/config.build.xml" target="test">
-      <property name="root" value="${root}" />
+  <target name="test">
+    <ant antfile="${root}/src/org/owasp/build.xml" target="test">
+      <property name="root" value="${root}"/>
     </ant>
   </target>  
 
