@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: ManualEditPanel.java,v 1.4 2005/01/05 11:21:56 rogan Exp $
+ * $Id: ManualEditPanel.java,v 1.5 2005/01/22 21:41:44 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -81,6 +81,8 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         boolean enabled = _manualEdit.getInterceptRequest();
         interceptRequestCheckBox.setSelected(enabled);
         
+        sensitiveCheckBox.setSelected(_manualEdit.getCaseSensitive());
+        
         interceptIncludeRegexTextField.setEnabled(enabled);
         interceptIncludeRegexTextField.setText(_manualEdit.getIncludeRegex());
         
@@ -123,6 +125,7 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
 
         interceptrequestPanel = new javax.swing.JPanel();
         interceptRequestCheckBox = new javax.swing.JCheckBox();
+        sensitiveCheckBox = new javax.swing.JCheckBox();
         interceptIncludeLabel = new javax.swing.JLabel();
         interceptIncludeRegexTextField = new javax.swing.JTextField();
         interceptExcludeLabel = new javax.swing.JLabel();
@@ -148,16 +151,26 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         interceptrequestPanel.add(interceptRequestCheckBox, gridBagConstraints);
+
+        sensitiveCheckBox.setText("Case Sensitive Regular Expressions ?");
+        sensitiveCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+        sensitiveCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sensitiveCheckBoxActionPerformed(evt);
+            }
+        });
+
+        interceptrequestPanel.add(sensitiveCheckBox, new java.awt.GridBagConstraints());
 
         interceptIncludeLabel.setText("Include Paths matching : ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         interceptrequestPanel.add(interceptIncludeLabel, gridBagConstraints);
 
         interceptIncludeRegexTextField.setToolTipText("Use a regular expression to select which URLs to intercept. Leave blank to ignore.");
@@ -186,8 +199,8 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         interceptrequestPanel.add(interceptExcludeLabel, gridBagConstraints);
 
         interceptExcludeRegexTextField.setToolTipText("Use a regular expression to select which URLs not to intercept. Leave blank to ignore.");
@@ -257,8 +270,8 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         interceptResponsePanel.add(interceptResponseCheckBox, gridBagConstraints);
 
         interceptResponseTextField.addActionListener(new java.awt.event.ActionListener() {
@@ -271,18 +284,18 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         interceptResponsePanel.add(interceptResponseTextField, gridBagConstraints);
 
         jLabel1.setText("Only MIME-Types matching :");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         interceptResponsePanel.add(jLabel1, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -294,6 +307,10 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         add(interceptResponsePanel, gridBagConstraints);
 
     }//GEN-END:initComponents
+
+    private void sensitiveCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sensitiveCheckBoxActionPerformed
+        _manualEdit.setCaseSensitive(sensitiveCheckBox.isSelected());
+    }//GEN-LAST:event_sensitiveCheckBoxActionPerformed
     
     private void interceptResponseTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_interceptResponseTextFieldActionPerformed
         _manualEdit.setInterceptResponseRegex(interceptResponseTextField.getText());
@@ -374,6 +391,7 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
     private javax.swing.JPanel interceptrequestPanel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JCheckBox sensitiveCheckBox;
     // End of variables declaration//GEN-END:variables
     
 }
