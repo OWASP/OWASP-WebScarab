@@ -176,7 +176,7 @@ public class Framework implements Plug {
             
             // This should not really be a Boolean, rather a list of the cookies, 
             // it is difficult to concatenate a list of Set-Cookies, though :-(
-            urlinfo.addProperty("SET-COOKIE", Boolean.toString(conversation.getProperty("SET-COOKIE")!=null));
+            urlinfo.setProperty("SET-COOKIE", Boolean.toString(conversation.getProperty("SET-COOKIE")!=null));
         }
     }
     
