@@ -39,6 +39,7 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -77,14 +78,26 @@ public class ContentPanel extends javax.swing.JPanel {
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
+    // This list is sorted in increasing order of preference
+    private static List _preferred = new ArrayList();
+    private boolean _creatingPanels = false;
+    
     /** Creates new form ContentPanel */
     public ContentPanel() {
         initComponents();
-        viewTabbedPane.getModel().addChangeListener(new ChangeListener() {
+        viewTabbedPane.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
+                if (_creatingPanels) return;
+                // update our view of the data, after (possible) modifications
+                // in the previously selected editor
                 updateData(_selected);
                 _selected = viewTabbedPane.getSelectedIndex();
-                updatePanel(_selected);
+                if (_selected>-1) {
+                    updatePanel(_selected);
+                    String name = _editors[_selected].getName();
+                    _preferred.remove(name);
+                    _preferred.add(name);
+                }
             }
         });
     }
@@ -113,15 +126,29 @@ public class ContentPanel extends javax.swing.JPanel {
                 }
             });
         } else {
+            _creatingPanels = true;
             viewTabbedPane.removeAll();
             _editors = EditorFactory.getEditors(contentType);
             for (int i=0; i<_editors.length; i++) {
                 _editors[i].setEditable(_editable);
                 viewTabbedPane.add((Component)_editors[i]);
             }
+            int preferred = -1;
+            for (int i=0; i<_preferred.size(); i++) {
+                for (int e=0; e<_editors.length; e++) {
+                    if (_editors[e].getName().equals(_preferred.get(i))) {
+                        preferred = e;
+                        break;
+                    }
+                }
+            }
             invalidateEditors();
             invalidate();
             revalidate();
+            if (preferred > -1) {
+                viewTabbedPane.setSelectedIndex(preferred);
+            }
+            _creatingPanels = false;
         }
     }
     
