@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -94,6 +94,7 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         initComponents();
         
         _manualRequest = manualRequest;
+        _model = _manualRequest.getModel();
         
         Request request = new Request();
         request.setMethod("GET");
@@ -110,13 +111,17 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         _responsePanel.setBorder(new TitledBorder("Response"));
         conversationSplitPane.setRightComponent(_responsePanel);
         
+        ListModel conversationList = new ConversationListModel(_model);
+        ComboBoxModel requestModel = new ListComboBoxModel(conversationList);
+        requestComboBox.setModel(requestModel);
+        requestComboBox.setRenderer(new ConversationRenderer(_model));
+        
         requestComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 requestComboBoxActionPerformed(e);
             }
         });
         
-        setModel(null);
         _manualRequest.setUI(this);
     }
     
@@ -290,22 +295,6 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
     
     public void responseChanged(Response response) {
         _respUpdater.setResponse(response);
-    }
-    
-    public void setModel(final SiteModel model) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            _model = model;
-            ListModel conversationList = new ConversationListModel(model);
-            ComboBoxModel requestModel = new ListComboBoxModel(conversationList);
-            requestComboBox.setModel(requestModel);
-            requestComboBox.setRenderer(new ConversationRenderer(_model));
-        } else {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    setModel(model);
-                }
-            });
-        }
     }
     
     public void setEnabled(final boolean enabled) {

@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: ManualRequest.java,v 1.11 2004/12/26 14:41:52 rogan Exp $
+ * $Id: ManualRequest.java,v 1.12 2005/01/05 11:15:43 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.manualrequest;
@@ -86,9 +86,8 @@ public class ManualRequest extends Plugin {
         return new String("Manual Request");
     }
     
-    public void setSession(SiteModel model, String type, Object connection) {
-        _model = model;
-        if (_ui != null) _ui.setModel(model);
+    public SiteModel getModel() {
+        return _framework.getModel();
     }
     
     public void setUI(ManualRequestUI ui) {
@@ -181,6 +180,10 @@ public class ManualRequest extends Plugin {
     
     public void analyse(ConversationID id, Request request, Response response, String origin) {
         // we do no analysis
+    }
+    
+    public void setSession(String type, Object session, String id) throws StoreException {
+        // we maintain no model of our own
     }
     
 }

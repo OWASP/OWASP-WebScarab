@@ -96,21 +96,24 @@ public class Fragments extends Plugin {
      * @param props contains the user's configuration properties
      */
     public Fragments(Framework framework) {
-        _framework = null;
+        _framework = framework;
+        _model = framework.getModel();
+    }
+    
+    public SiteModel getModel() {
+        return _model;
     }
     
     /**
-     * Sets the model that this plugin uses
-     * @param model the new SiteModel to listen to
+     * Sets the store that this plugin uses
+     * @param session the new session
      */    
-    public void setSession(SiteModel model, String storeType, Object connection) throws StoreException {
-        _model = model;
-        if (storeType.equals("FileSystem") && (connection instanceof File)) {
-            _store = new FileSystemStore((File) connection);
+    public void setSession(String type, Object session, String id) throws StoreException {
+        if (type.equals("FileSystem") && (session instanceof File)) {
+            _store = new FileSystemStore((File) session);
         } else {
-            throw new StoreException("Store type '" + storeType + "' is not supported in " + getClass().getName());
+            throw new StoreException("Store type '" + type + "' is not supported in " + getClass().getName());
         }
-        if (_ui != null) _ui.setModel(model);
     }
     
     public void setUI(FragmentsUI ui) {
@@ -118,6 +121,7 @@ public class Fragments extends Plugin {
     }
     
     public int getFragmentTypeCount() {
+        if (_store == null) return 0;
         return _store.getFragmentTypeCount();
     }
     

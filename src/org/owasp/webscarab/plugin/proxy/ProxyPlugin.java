@@ -50,7 +50,7 @@ import org.owasp.webscarab.httpclient.HTTPClient;
  */
 public abstract class ProxyPlugin {
     
-    public void setModel(SiteModel model, String type, Object connection) {
+    public void setSession(String type, Object store, String session)  {
     }
     
     public void flush() throws StoreException {

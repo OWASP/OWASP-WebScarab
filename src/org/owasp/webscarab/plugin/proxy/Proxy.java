@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: Proxy.java,v 1.19 2004/12/26 14:41:52 rogan Exp $
+ * $Id: Proxy.java,v 1.20 2005/01/05 11:18:59 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.proxy;
@@ -88,16 +88,6 @@ public class Proxy extends Plugin {
         _framework = framework;
         createSimulators();
         createListeners();
-    }
-    
-    public void setSession(SiteModel model, String type, Object connection) {
-        // we have no listeners to remove
-        Iterator it = _plugins.iterator();
-        while (it.hasNext()) {
-            ProxyPlugin plugin = (ProxyPlugin) it.next();
-            plugin.setModel(model, type, connection);
-        }
-        if (_ui != null) _ui.setModel(model);
     }
     
     public void setUI(ProxyUI ui) {
@@ -483,6 +473,15 @@ public class Proxy extends Plugin {
     
     public void analyse(ConversationID id, Request request, Response response, String origin) {
         // we do no analysis
+    }
+    
+    public void setSession(String type, Object store, String session) throws StoreException {
+        // we have no listeners to remove
+        Iterator it = _plugins.iterator();
+        while (it.hasNext()) {
+            ProxyPlugin plugin = (ProxyPlugin) it.next();
+            plugin.setSession(type, store, session);
+        }
     }
     
 }
