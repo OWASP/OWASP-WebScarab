@@ -16,7 +16,6 @@ import java.net.Socket;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
-import java.util.logging.Logger;
 
 import java.net.UnknownHostException;
 import java.net.SocketException;
@@ -56,12 +55,7 @@ public class URLFetcher implements HTTPClient {
     private String host = null;
     private int port = 0;
     private boolean ssl = false;
-    
-    private Request request = null;
-    private Response response = null;
-    
-    private static Logger logger = Logger.getLogger("WebScarab.URLFetcher");
-    
+            
     /** Creates a new instance of URLFetcher
      */
     public URLFetcher() {
@@ -90,9 +84,9 @@ public class URLFetcher implements HTTPClient {
             sc.init(null, trustAllCerts, new java.security.SecureRandom());
             factory = (SSLSocketFactory)sc.getSocketFactory();
         } catch (java.security.NoSuchAlgorithmException nsae) {
-            logger.severe("Error setting up SSL support - No Such Algorithm Exception " + nsae);
+            System.err.println("Error setting up SSL support - No Such Algorithm Exception " + nsae);
         } catch (java.security.KeyManagementException kme) {
-            logger.severe("Error setting up SSL Support - Key management exception " + kme);
+            System.err.println("Error setting up SSL Support - Key management exception " + kme);
         }
     }
  
@@ -172,20 +166,19 @@ public class URLFetcher implements HTTPClient {
      */    
     public Response fetchResponse(Request request) {
         if (request == null) {
-            logger.severe("Request is null");
+            System.err.println("Request is null");
             return null;
         }
-        this.request = request;
  
         try {
-            opensocket(request);
+            Response response = opensocket(request);
+			if (response != null) {
+				return response;
+			}
         } catch (UnknownHostException uhe) {
             return errorResponse(request, "Unknown host exception " + uhe);
         } catch (IOException ioe) {
             return errorResponse(request, "IOException " + ioe);
-        }
-        if (response != null) {
-            return response;
         }
         if (out == null || in == null) {
             return errorResponse(request, "Unknown error : in or out was null!");
@@ -203,7 +196,7 @@ public class URLFetcher implements HTTPClient {
             }
             out.flush();
             
-            response = new Response();
+            Response response = new Response();
             response.setRequest(request); 
             response.read(in);
             String length = response.getHeader("Content-Length");
@@ -212,7 +205,7 @@ public class URLFetcher implements HTTPClient {
                     int cl = Integer.parseInt(length);
                     response.setContentStream(new FixedLengthInputStream(response.getContentStream(),cl));
                 } catch (NumberFormatException nfe) {
-                    logger.severe("NumberFormatException parsing content length = '" + length + "'\n " + nfe);
+                    System.err.println("NumberFormatException parsing content length = '" + length + "'\n " + nfe);
                 }
             }
             String chunked = response.getHeader("Transfer-Encoding");
@@ -227,19 +220,18 @@ public class URLFetcher implements HTTPClient {
                 response.deleteHeader("Content-Encoding");
                 response.setHeader("X-Content-Encoding", gzipped);
             }
-            logger.info(request.getURL() +" : " + response.getStatusLine());
+            System.err.println(request.getURL() +" : " + response.getStatusLine());
             return response;
         } catch (IOException ioe) {
             return errorResponse(request,"IOException " + ioe);
         }
     }
     
-    private void opensocket(Request request) throws UnknownHostException, IOException, SocketException  {
+    private Response opensocket(Request request) throws UnknownHostException, IOException, SocketException  {
         // We initialise all sockets to null;
         proxysocket = null;
         serversocket = null;
         sslsocket = null;
-        response = null;
         in = null;
         out = null;
         
@@ -252,14 +244,14 @@ public class URLFetcher implements HTTPClient {
         if (!ssl) {
             // Check for a "noProxy" entry here
             if (httpProxy != null && !httpProxy.equals("")) {
-                logger.info("Connect to " + httpProxy + ":" + httpProxyPort);
+                System.err.println("Connect to " + httpProxy + ":" + httpProxyPort);
                 proxysocket = new Socket(httpProxy, httpProxyPort);
                 proxysocket.setTcpNoDelay(true);
                 proxysocket.setSoTimeout(60 * 1000);
                 in = proxysocket.getInputStream();
                 out = proxysocket.getOutputStream();
             } else {
-                logger.info("Connect to " + u.getHost() + ":" + port );
+                System.err.println("Connect to " + u.getHost() + ":" + port );
                 serversocket = new Socket(u.getHost(), port);
                 serversocket.setTcpNoDelay(true);
                 serversocket.setSoTimeout(60 * 1000);
@@ -270,9 +262,9 @@ public class URLFetcher implements HTTPClient {
             // check for a noProxy entry here
             if (httpsProxy != null && !httpsProxy.equals("")) {
                 // Send CONNECT, get OK, then we have a socket to the server
-                logger.info("Connect to " + httpsProxy + ":" + httpsProxyPort);
+                System.err.println("Connect to " + httpsProxy + ":" + httpsProxyPort);
                 proxysocket = new Socket(httpsProxy, httpsProxyPort);
-                logger.info("Proxy CONNECT to " + u.getHost() + ":" + port);
+                System.err.println("Proxy CONNECT to " + u.getHost() + ":" + port);
                 OutputStream proxyout = proxysocket.getOutputStream();
                 InputStream proxyin = proxysocket.getInputStream();
                 proxyout.write(("CONNECT " + host + ":" + port + " HTTP/1.0\r\n").getBytes());
@@ -283,15 +275,14 @@ public class URLFetcher implements HTTPClient {
                 }
                 proxyout.write("\r\n".getBytes());
                 proxyout.flush();
-                logger.info("Sent CONNECT, reading Proxy response");
-                response = new Response();
+                System.err.println("Sent CONNECT, reading Proxy response");
+                Response response = new Response();
                 response.read(proxyin);
-                logger.info("Got response " + response.getStatusLine());
+                System.err.println("Got response " + response.getStatusLine());
                 if (!response.getStatus().equals("200")) {
-                    return;
+                    return response;
                 }
-                logger.info("HTTPS CONNECT successful");
-                response = null;
+                System.err.println("HTTPS CONNECT successful");
                 serversocket = proxysocket;
             } else {
                 serversocket = new Socket(host , port);
@@ -307,49 +298,31 @@ public class URLFetcher implements HTTPClient {
             try {
                 sslsocket=(SSLSocket)factory.createSocket(serversocket,serversocket.getInetAddress().getHostName(),serversocket.getPort(),true);
                 sslsocket.setUseClientMode(true);
-                // Try comment this out to see if we reuse sessionids
-                // sslsocket.startHandshake();
             } catch (IOException ioe) {
-                logger.severe("Error layering SSL over the existing socket");
-                throw new SocketException("Error layering SSL over the existing socket " + ioe + 
-                "\nYou may want to uncomment the 'startHandshake' line above :-)");
+                System.err.println("Error layering SSL over the existing socket");
+                throw new SocketException("Error layering SSL over the socket " + ioe);
             }
             in = sslsocket.getInputStream();
             out = sslsocket.getOutputStream();
-            logger.info("Finished negotiating SSL");
+            System.err.println("Finished negotiating SSL");
         }
+		return null;
     }
     
     private Response errorResponse(Request request, String message) {
         Response response = new Response();
         response.setVersion("HTTP/1.0");
         response.setStatus("500");
-        response.setMessage("Exodus error");
+        response.setMessage("WebScarab error");
         response.setHeader("Content-Type","text/html");
         response.setHeader("Connection","Close");
-        String template = "<HTML><HEAD><TITLE>Exodus Error</TITLE></HEAD>";
-        template = template + "<BODY>Exodus caused an error trying to retrieve <pre>" + request.toString() + "</pre><P>";
+        String template = "<HTML><HEAD><TITLE>WebScarab Error</TITLE></HEAD>";
+        template = template + "<BODY>WebScarab encountered an error trying to retrieve <pre>" + request.toString() + "</pre><P>";
         template = template + "The error was : <pre>" + message + "</pre><P></HTML>";
         response.setContent(template.getBytes());
         return response;
     }
-    
-    public boolean requestChanged() {
-        return false;
-    }
-    
-    public boolean responseChanged() {
-        return false;
-    }
-    
-    public Request getRequest() {
-        return request;
-    }
-    
-    public Response getResponse() {
-        return response;
-    }
-        
+            
     public static void main(String[] args) {
         try {
             Request req = new Request();
