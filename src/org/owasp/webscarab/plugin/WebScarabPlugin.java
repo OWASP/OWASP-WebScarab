@@ -6,7 +6,7 @@
 
 package org.owasp.webscarab.plugin;
 
-import org.owasp.util.Prop;
+import java.util.Properties;
 
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
@@ -24,7 +24,7 @@ public interface WebScarabPlugin {
      * the default values into the supplied Properties class.
      * @param prop The properties read from a configuration file, or similar
      */    
-    void setProp ( Prop prop );
+    void setProperties ( Properties prop );
     
     /** The plugin name
      * @return The name of the plugin

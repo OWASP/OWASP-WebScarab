@@ -36,7 +36,7 @@ public class RevealHidden extends AbstractProxyPlugin {
     
     public void configure() {
         String prop = "RevealHidden.enabled";
-        String value = _prop.get(prop);
+        String value = _prop.getProperty(prop);
         setEnabled("true".equalsIgnoreCase( value ) || "yes".equalsIgnoreCase( value ));
     }
     
@@ -55,7 +55,7 @@ public class RevealHidden extends AbstractProxyPlugin {
     }
     
     private void setProperty(String prop, String value) {
-        String previous = _prop.get(prop);
+        String previous = _prop.getProperty(prop);
         if (previous == null || !previous.equals(value)) {
             _prop.put(prop,value);
         }

@@ -1,7 +1,7 @@
 package org.owasp.webscarab.plugin.proxy;
 
 /*
- * $Id: Proxy.java,v 1.5 2003/08/25 22:21:07 rogan Exp $
+ * $Id: Proxy.java,v 1.6 2003/08/28 20:46:11 rogan Exp $
  */
 
 import java.net.ServerSocket;
@@ -46,7 +46,7 @@ public class Proxy
     
     protected void configure() {
         String prop = "Proxy.listenAddress";
-        String value = _prop.get(prop);
+        String value = _prop.getProperty(prop);
         String[] listenAddress = value.split(":");
         if (listenAddress.length == 2) {
             try {

@@ -42,27 +42,27 @@ public class ManualEdit extends AbstractProxyPlugin {
     
     public void configure() {
         String prop = "ManualEdit.includeRegex";
-        String value = _prop.get(prop);
+        String value = _prop.getProperty(prop);
         if (value == null) value = "";
         setIncludeRegex(value);
         
         prop = "ManualEdit.excludeRegex";
-        value = _prop.get(prop);
+        value = _prop.getProperty(prop);
         if (value == null) value = "";
         setExcludeRegex(value);
         
         prop = "ManualEdit.interceptMethods";
-        value = _prop.get(prop);
+        value = _prop.getProperty(prop);
         if (value == null) value = "";
         setInterceptMethods(value.split(", *"));
             
         prop = "ManualEdit.interceptRequest";
-        value = _prop.get(prop);
+        value = _prop.getProperty(prop);
         if (value == null) value = "";
         setInterceptRequest(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
             
         prop = "ManualEdit.interceptResponse";
-        value = _prop.get(prop);
+        value = _prop.getProperty(prop);
         if (value == null) value = "";
         setInterceptResponse(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
     }
@@ -72,7 +72,7 @@ public class ManualEdit extends AbstractProxyPlugin {
     }
     
     private void setProperty(String prop, String value) {
-        String previous = _prop.get(prop);
+        String previous = _prop.getProperty(prop);
         if (previous == null || !previous.equals(value)) {
             _prop.put(prop,value);
         }

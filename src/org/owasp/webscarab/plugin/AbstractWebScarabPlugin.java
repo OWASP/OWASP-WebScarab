@@ -7,7 +7,8 @@
 package org.owasp.webscarab.plugin;
 
 import java.util.Iterator;
-import org.owasp.util.Prop;
+import java.util.Properties;
+
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.Conversation;
@@ -22,25 +23,26 @@ public abstract class AbstractWebScarabPlugin implements WebScarabPlugin {
     /** This variable is intended to hold any plugin specific properties that could be
      * written to a config file, or read from a config file.
      */    
-    protected Prop _prop = new Prop();
+    protected Properties _prop = new Properties();
     
     /** Configures the plugin, based on any properties read from a configuration file.
      * If any plugin specific properties were not set in the configuration file, copies
      * the default values into the supplied Prop instance.
      * @param prop The properties read from a configuration file, or similar
      */    
-    public void setProp(Prop prop) {
+    public void setProperties(Properties prop) {
         // This just allows us to copy our defaults over into
         // the main properties class, if they are not set already
         Iterator it = _prop.keySet().iterator();
         while (it.hasNext()) {
             String key = (String) it.next();
-            String value = prop.get(key);
+            String value = prop.getProperty(key);
             if (null == value) {
-                prop.put(key,_prop.get(key));
+                prop.put(key,_prop.getProperty(key));
             }
         }
-        _prop = (Prop) prop.clone();
+        // any future changes are made directly into the system wide props
+        _prop = prop;
         // Now perform plugin-specific configuration
         configure();
     }

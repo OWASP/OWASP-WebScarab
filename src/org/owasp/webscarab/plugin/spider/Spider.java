@@ -338,8 +338,6 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 }
                 _store.writeSeenLinks(seen);
             }
-        } else {
-            throw new StoreException("save called on a null session!");
         }
     }
     
