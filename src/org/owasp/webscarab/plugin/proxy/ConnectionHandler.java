@@ -171,7 +171,12 @@ public class ConnectionHandler implements Runnable {
                     throw new NullPointerException("response was null");
                 }
                 System.out.println("Response : " + response.getStatusLine());
-                response.write(clientout);
+                try {
+                    response.write(clientout);
+                } catch (Exception e) {
+                    System.err.println("Error writing back to the browser : " + e);
+                    e.printStackTrace();
+                }
                 if (_plug != null) {
                     Request req = recorder.getRequest();
                     Response resp = recorder.getResponse();
@@ -186,7 +191,7 @@ public class ConnectionHandler implements Runnable {
             } while (connection != null && connection.equals("Keep-Alive"));
         } catch (Exception e) {
             System.err.println("ConnectionHandler got an error : " + e);
-            // e.printStackTrace();
+            e.printStackTrace();
         } finally {
             try {
                 clientin.close();
