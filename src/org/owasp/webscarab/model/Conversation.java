@@ -133,4 +133,16 @@ public class Conversation extends Observable {
         return Convert.toHexString(md.digest(content));
     }
     
+    public String toString() {
+        StringBuffer buff = new StringBuffer(30);
+        buff.append(getProperty("ID")).append(" - ");
+        buff.append(getProperty("METHOD")).append(" ");
+        buff.append(getProperty("URL")).append(" (");
+        buff.append(getProperty("STATUS")).append(")");
+        String comment = getProperty("COMMENT");
+        if (comment != null && !comment.equals("")) {
+            buff.append(" - ").append(comment);
+        }
+        return buff.toString();
+    }
 }
