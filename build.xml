@@ -67,7 +67,7 @@
                 <taskdef name="izpack" classpath="${basedir}/izpack/lib/compiler.jar"
                      classname="com.izforge.izpack.ant.IzPackTask"/>
 		<izpack input="${basedir}/installer/izpack.xml"
-			output="${basedir}/WebScarab-${version}.jar"
+			output="${basedir}/WebScarab-installer-${version}.jar"
 			installerType="standard"
 			basedir="${basedir}"
 			izPackDir="${basedir}/izpack/"
@@ -79,7 +79,7 @@
       == Unfortunately, at this time, the configuration file is heavily
       == tied to a specific desktop, and installation directories
       -->
-        <target depends="build" name="proguard" description="Build a standalone self-contained jar">
+        <target depends="clean,build" name="proguard" description="Build a standalone self-contained jar">
             <taskdef resource="proguard/ant/task.properties"
          classpath="${basedir}/proguard/lib/proguard.jar" />
             <echo message="${user.dir}"/>
@@ -99,7 +99,7 @@
                 <libraryjar name="${basedir}/lib/bsf-2.3.0.jar"/>
                 <libraryjar name="/opt/eclipse/plugins/org.eclipse.tomcat_4.1.30/servlet.jar"/>
                 <outjar name="${basedir}/webscarab-${version}.jar"/>
-                <keep name="org.owasp.webscarab.ui.swing.Main">
+                <keep name="${mainclass}">
                     <method name="main"/>
                 </keep>
                 <keep implements="org.owasp.webscarab.ui.swing.editors.ByteArrayEditor"/>
