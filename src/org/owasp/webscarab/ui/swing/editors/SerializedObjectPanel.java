@@ -71,7 +71,7 @@ public class SerializedObjectPanel extends ObjectPanel implements ByteArrayEdito
         super.setEditable(editable);
     }
     
-    public void setBytes(byte[] bytes) {
+    public void setBytes(String type, byte[] bytes) {
         _data = bytes;
         try {
             ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
@@ -143,7 +143,7 @@ public class SerializedObjectPanel extends ObjectPanel implements ByteArrayEdito
         top.show();
         try {
             sop.setEditable(false);
-            sop.setBytes(response.getContent());
+            sop.setBytes(null, response.getContent());
         } catch (Exception e) {
             e.printStackTrace();
         }

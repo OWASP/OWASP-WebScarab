@@ -90,23 +90,23 @@ public class HTMLPanel extends JPanel implements ByteArrayEditor {
         // we could do things like make buttons visible and invisible here
     }
     
-    public void setBytes(final byte[] bytes) {
+    public void setBytes(final String contentType, final byte[] bytes) {
         if (SwingUtilities.isEventDispatchThread()) {
-            loadBytes(bytes);
+            loadBytes(contentType, bytes);
         } else {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    loadBytes(bytes);
+                    loadBytes(contentType, bytes);
                 }
             });
         }
     }
     
-    private void loadBytes(byte[] bytes) {
+    private void loadBytes(String contentType, byte[] bytes) {
         _bytes = bytes;
         // htmlEditorPane.getDocument().putProperty("base","");
         if (bytes != null) {
-            htmlEditorPane.setContentType("text/html");
+            htmlEditorPane.setContentType(contentType);
             // FIXME: may need to reset style sheets, etc here. Not sure how to do that, though
             // Maybe this will work?
             htmlEditorPane.setDocument(JEditorPane.createEditorKitForContentType("text/html").createDefaultDocument());

@@ -25,7 +25,7 @@
       <SubComponents>
         <Component class="javax.swing.JTable" name="headerTable">
           <Properties>
-            <Property name="autoResizeMode" type="int" value="0"/>
+            <Property name="autoResizeMode" type="int" value="4"/>
           </Properties>
         </Component>
       </SubComponents>

@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -43,12 +43,14 @@ import javax.swing.event.TableModelListener;
 import javax.swing.event.TableModelEvent;
 
 import javax.swing.table.DefaultTableModel;
+import java.io.UnsupportedEncodingException;
+
 import java.util.Vector;
 
 import java.awt.Component;
 import javax.swing.CellEditor;
 
-import org.owasp.webscarab.ui.swing.TranscoderFrame;
+import org.owasp.webscarab.util.Encoding;
 
 /**
  *
@@ -85,63 +87,53 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
         return new String[] { "application/x-www-form-urlencoded" };
     }
     
-    public void setBytes(byte[] bytes) {
+    public void setBytes(String contentType, byte[] bytes) {
         if (bytes == null) {
-            System.err.println("Got null");
             _data = null;
             _tableModel.setDataVector(null, _columns);
-            headerTable.getColumnModel().getColumn(0).setPreferredWidth(150);
-            headerTable.getColumnModel().getColumn(1).setPreferredWidth(500);
         } else {
-            System.err.println("Got " + bytes.length);
-            _data = new String(bytes);
+            try {
+                _data = new String(bytes, "UTF-8");
+            } catch (UnsupportedEncodingException e) {}
             String[] variables = _data.split("&");
             String[][] pairs = new String[variables.length][2];
             for (int i=0; i<variables.length; i++) {
                 String[] parts = variables[i].split("=",2);
                 if (parts.length > 0) {
-                    pairs[i][0] = parts[0];
+                    pairs[i][0] = Encoding.urlDecode(parts[0]);
                 }
                 if (parts.length > 1) {
-                    pairs[i][1] = TranscoderFrame.urlDecode(parts[1]);
+                    pairs[i][1] = Encoding.urlDecode(parts[1]);
                 }
             }
             _tableModel.setDataVector(pairs, _columns.toArray());
-            headerTable.getColumnModel().getColumn(0).setPreferredWidth(150);
-            headerTable.getColumnModel().getColumn(1).setPreferredWidth(500);
         }
         _modified = false;
     }
     
-    private void stopEditing() {
-        Component comp = headerTable.getEditorComponent();
-        if (comp != null && comp instanceof CellEditor) {
-            ((CellEditor)comp).stopCellEditing();
-        }
-    }
-    
     public byte[] getBytes() {
-        if (_editable) {
-            stopEditing();
-            if (_modified) {
-                StringBuffer buff = new StringBuffer();
-                Vector pairs = _tableModel.getDataVector();
-                for (int i=0; i<pairs.size(); i++) {
-                    Vector v = (Vector) pairs.elementAt(i);
-                    String name = (String) v.elementAt(0);
-                    if (name == null || name.equals("")) continue;
-                    String value = (String) v.elementAt(1);
-                    if (value == null) value = "";
-                    if (i>0) buff.append("&");
-                    buff.append(name).append("=").append(TranscoderFrame.urlEncode(value));
-                }
-                _data = buff.toString();
+        if (_editable && isModified()) {
+            StringBuffer buff = new StringBuffer();
+            Vector pairs = _tableModel.getDataVector();
+            for (int i=0; i<pairs.size(); i++) {
+                Vector v = (Vector) pairs.elementAt(i);
+                String name = (String) v.elementAt(0);
+                if (name == null || name.equals("")) continue;
+                String value = (String) v.elementAt(1);
+                if (value == null) value = "";
+                if (i>0) buff.append("&");
+                buff.append(Encoding.urlEncode(name)).append("=").append(Encoding.urlEncode(value));
             }
+            _data = buff.toString();
         }
         if (_data == null) {
             return new byte[0];
         } else {
-            return _data.getBytes();
+            try {
+                return _data.getBytes("UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                return new byte[0];
+            }
         }
     }
     
@@ -150,7 +142,7 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
         buttonPanel.setVisible(_editable);
         java.awt.Color color;
         if (_editable) {
-            color = new java.awt.Color(255, 255, 255);
+            color = java.awt.Color.WHITE;
         } else {
             color = new java.awt.Color(204, 204, 204);
         }
@@ -158,7 +150,9 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
     }
     
     public boolean isModified() {
-        if (_editable) stopEditing();
+        if (headerTable.isEditing()) {
+            headerTable.getCellEditor().stopCellEditing();
+        }
         return _editable && _modified;
     }
     
@@ -180,7 +174,7 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
 
         setPreferredSize(new java.awt.Dimension(402, 102));
         jScrollPane1.setMinimumSize(new java.awt.Dimension(200, 50));
-        headerTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        headerTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
         jScrollPane1.setViewportView(headerTable);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -244,49 +238,6 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
             _tableModel.insertRow(_tableModel.getRowCount(), new Object[2]);
         }
     }//GEN-LAST:event_insertButtonActionPerformed
-    
-    public static void main(String[] args) {
-        byte[] content = new byte[0];
-        org.owasp.webscarab.model.Request request = new org.owasp.webscarab.model.Request();
-        try {
-            String req = "/home/rdawes/santam/webscarab/conversations/147-request";
-            if (args.length == 1) {
-                req = args[0];
-            }
-            java.io.FileInputStream fis = new java.io.FileInputStream(req);
-            request.read(fis);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
-        }
-        
-        final UrlEncodedPanel panel = new UrlEncodedPanel();
-        
-        javax.swing.JFrame top = new javax.swing.JFrame(panel.getName());
-        top.getContentPane().setLayout(new java.awt.BorderLayout());
-        top.addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                System.exit(0);
-            }
-        });
-        
-        javax.swing.JButton button = new javax.swing.JButton("GET");
-        top.getContentPane().add(panel);
-        top.getContentPane().add(button, java.awt.BorderLayout.SOUTH);
-        button.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                System.out.println(new String(panel.getBytes()));
-            }
-        });
-        top.setBounds(100,100,600,400);
-        top.show();
-        try {
-            panel.setEditable(true);
-            panel.setBytes(request.getContent());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel buttonPanel;

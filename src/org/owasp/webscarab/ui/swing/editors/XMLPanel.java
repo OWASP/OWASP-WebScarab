@@ -69,7 +69,7 @@ public class XMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
     public void setEditable(boolean editable) {
     }
     
-    public void setBytes(byte[] bytes) {
+    public void setBytes(String contentType, byte[] bytes) {
         _data = bytes;
         if (bytes != null) {
             xmlTree.setModel(getTreeModel(bytes));

@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -39,12 +39,30 @@
 
 package org.owasp.webscarab.ui.swing.editors;
 
+import org.owasp.webscarab.model.Preferences;
+
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import java.awt.Font;
 
 import javax.swing.CellEditor;
 import java.awt.Component;
+import java.awt.Color;
+import java.awt.event.KeyEvent;
+import java.awt.Event;
+import javax.swing.AbstractAction;
+import java.awt.event.ActionEvent;
+
+import javax.swing.SwingUtilities;
+import javax.swing.KeyStroke;
+import javax.swing.InputMap;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 /**
  *
@@ -54,7 +72,10 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
     private HexTableModel _tableModel = null;
     private boolean _editable = false;
-    int _columns = 16;
+    private int _columns = 16;
+    private boolean _modified = false;
+    private byte[] _data = null;
+    private byte[] _original = null;
     
     /** Creates new form HexEditor */
     public HexPanel() {
@@ -73,6 +94,53 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
         }
         colModel.getColumn(0).setPreferredWidth(8*9);
         colModel.getColumn(_columns+1).setPreferredWidth(_columns*9);
+        InputMap im = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, Event.CTRL_MASK), "Save");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, Event.CTRL_MASK), "Load");
+        getActionMap().put("Save", new AbstractAction() {
+            public void actionPerformed(ActionEvent evt) {
+                String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
+                JFileChooser jfc = new JFileChooser(defaultDir);
+                jfc.setDialogTitle("Select a file to write the message content to");
+                int returnVal = jfc.showOpenDialog(HexPanel.this);
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    try {
+                        FileOutputStream fos = new FileOutputStream(jfc.getSelectedFile());
+                        fos.write(_data);
+                        fos.close();
+                    } catch (IOException ioe) {
+                        JOptionPane.showMessageDialog(HexPanel.this, "Error writing file: " + ioe.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+        getActionMap().put("Load", new AbstractAction() {
+            public void actionPerformed(ActionEvent evt) {
+                if (!_editable) return;
+                String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
+                JFileChooser jfc = new JFileChooser(defaultDir);
+                jfc.setDialogTitle("Select a file to read the message content from");
+                int returnVal = jfc.showOpenDialog(HexPanel.this);
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    try {
+                        FileInputStream fis = new FileInputStream(jfc.getSelectedFile());
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        byte[] buff = new byte[2048];
+                        int got;
+                        while ((got = fis.read(buff))>0) {
+                            baos.write(buff,0,got);
+                        }
+                        fis.close();
+                        baos.close();
+                        _data = baos.toByteArray();
+                        _tableModel.fireTableDataChanged();
+                        _modified = true;
+                    } catch (IOException ioe) {
+                        JOptionPane.showMessageDialog(HexPanel.this, "Error writing file: " + ioe.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
     }
     
     public String[] getContentTypes() {
@@ -81,29 +149,39 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
     public void setEditable(boolean editable) {
         _editable = editable;
-        _tableModel.setEditable(editable);
+        hexTable.setBackground(editable ? Color.WHITE : Color.LIGHT_GRAY );
         // we could do things like make insert and delete buttons visible and invisible here
     }
     
-    public void setBytes(byte[] bytes) {
-        _tableModel.setBytes(bytes);
+    public void setBytes(String contentType, byte[] bytes) {
+        _original = bytes;
+        if (bytes == null) {
+            _data = null;
+        } else {
+            _data = new byte[bytes.length];
+            System.arraycopy(bytes, 0, _data, 0, bytes.length);
+        }
+        if (SwingUtilities.isEventDispatchThread()) {
+            _tableModel.fireTableDataChanged();
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    _tableModel.fireTableDataChanged();
+                }
+            });
+        }
+        _modified = false;
     }
     
     public boolean isModified() {
-        if (_editable) stopEditing();
-        return _editable && _tableModel.isModified();
-    }
-    
-    private void stopEditing() {
-        Component comp = hexTable.getEditorComponent();
-        if (comp != null && comp instanceof CellEditor) {
-            ((CellEditor)comp).stopCellEditing();
-        }
+        if (hexTable.isEditing()) hexTable.getCellEditor().stopCellEditing();
+        return _editable && _modified;
     }
     
     public byte[] getBytes() {
-        if (_editable) stopEditing();
-        return _tableModel.getBytes();
+        if (_editable && isModified()) _original = _data;
+        _modified = false;
+        return _original;
     }
     
     /** This method is called from within the constructor to
@@ -158,9 +236,12 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
         top.getContentPane().add(hp);
         top.setBounds(100,100,600,400);
         try {
-            hp.setBytes(new byte[] {0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f});
+            hp.setBytes(null, new byte[] {
+                0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
+                0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
+                0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
+            });
             hp.setEditable(true);
-            // he.setModel(new DefaultHexDataModel(new byte[0], true));
             top.show();
         } catch (Exception e) {
             e.printStackTrace();
@@ -169,7 +250,6 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
     private class HexTableModel extends AbstractTableModel {
         
-        private byte[] _data = new byte[0];
         private int _columns = 8;
         private boolean _editable = false;
         private boolean _modified = false;
@@ -179,22 +259,6 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
         
         public HexTableModel(int columns) {
             _columns = columns;
-        }
-        
-        public void setBytes(byte[] bytes) {
-            _data = bytes;
-            fireTableDataChanged();
-        }
-        
-        public byte[] getBytes() {
-            return _data;
-        }
-        
-        public void setEditable(boolean editable) {
-            if (editable != _editable) {
-                _editable = editable;
-                fireTableDataChanged();
-            }
         }
         
         public String getColumnName(int columnIndex) {
@@ -259,10 +323,6 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
                 return _editable;
             }
             return false;
-        }
-        
-        public boolean isModified() {
-            return _modified;
         }
         
         public void setValueAt(Object aValue, int rowIndex, int columnIndex) {

@@ -49,7 +49,7 @@ public interface ByteArrayEditor {
     
     void setEditable(boolean editable);
     
-    void setBytes(byte[] bytes);
+    void setBytes(String contentType, byte[] bytes);
     
     boolean isModified();
     

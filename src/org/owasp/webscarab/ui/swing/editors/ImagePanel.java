@@ -75,7 +75,7 @@ public class ImagePanel extends javax.swing.JPanel implements ByteArrayEditor {
         return _data;
     }
     
-    public void setBytes(byte[] bytes) {
+    public void setBytes(String contentType, byte[] bytes) {
         imageLabel.setIcon(null);
         if (bytes != null && bytes.length > 0) {
             try {
@@ -153,7 +153,7 @@ public class ImagePanel extends javax.swing.JPanel implements ByteArrayEditor {
         top.getContentPane().add(ip);
         top.setBounds(100,100,600,400);
         try {
-            ip.setBytes(content);
+            ip.setBytes(null, content);
             ip.setEditable(false);
             top.show();
         } catch (Exception e) {

@@ -51,6 +51,8 @@ import javax.swing.text.Keymap;
 import java.awt.Container;
 import javax.swing.JFrame;
 
+import java.io.UnsupportedEncodingException;
+
 /**
  *
  * @author  rdawes
@@ -112,19 +114,26 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         });
     }
     
-    public String[] getContentTypes() {
-        return new String[] { "text/.*", "application/x-javascript", "application/x-www-form-urlencoded" };
-    }
-
     public void setEditable(boolean editable) {
         _editable = editable;
         textTextArea.setEditable(editable);
-        // we could do things like make buttons visible and invisible here
     }
     
-    public void setBytes(byte[] bytes) {
-        if (bytes != null) {
-            textTextArea.setText(new String(bytes));
+    public void setBytes(String contentType, byte[] bytes) {
+        if (bytes == null) {
+            setText(contentType, "");
+        } else {
+            try {
+                setText(contentType, new String(bytes, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                setText(contentType, e.getMessage());
+            }
+        }
+    }
+    
+    public void setText(String contentType, String content) {
+        if (content != null) {
+            textTextArea.setText(content);
         } else {
             textTextArea.setText("");
         }
@@ -134,12 +143,22 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         _modified = false;
     }
     
+    public String getText() {
+        _modified = false;
+        return textTextArea.getText();
+    }
+    
     public boolean isModified() {
         return _editable && _modified;
     }
 
     public byte[] getBytes() {
-        return textTextArea.getText().getBytes();
+        try {
+            return getText().getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            System.err.println("This should never happen!");
+            return null;
+        }
     }
     
     /** This method is called from within the constructor to
