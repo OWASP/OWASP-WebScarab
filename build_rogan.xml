@@ -12,6 +12,8 @@
              	<property name="htmlparserjar" value="lib/htmlparser.jar"/>
              	<property name="vulnxmljar" value="lib/vulnxml.jar"/>
              	<property name="beanshelljar" value="lib/bsh-2.0b1.jar"/>
+             	<property name="jfreechartjar" value="lib/jfreechart-0.9.12.jar"/>
+             	<property name="jcommonjar" value="lib/jcommon-0.8.7.jar"/>
        		
                 <path id="cpath">
 			<pathelement location="./classes/"/>
@@ -20,6 +22,8 @@
                         <pathelement path="${htmlparserjar}"/>
 			<pathelement location="${vulnxmljar}"/>
 			<pathelement location="${beanshelljar}"/>
+			<pathelement location="${jfreechartjar}"/>
+			<pathelement location="${jcommonjar}"/>
 			<pathelement path="/opt/owasp/vulnxml/lib/commons-collections.jar"/>
 			<pathelement path="/opt/owasp/vulnxml/lib/commons-digester.jar"/>
 			<pathelement path="/opt/owasp/vulnxml/lib/commons-logging.jar"/>
@@ -47,7 +51,7 @@
 		<jar basedir="${classes}" jarfile="${jarname}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
-                        <attribute name="Class-Path" value="${ocljar} ${htmlparserjar} ${vulnxmljar} ${beanshelljar}"/>
+                        <attribute name="Class-Path" value="${ocljar} ${htmlparserjar} ${vulnxmljar} ${beanshelljar} ${jfreechartjar} ${jcommonjar}"/>
                     </manifest>
                 </jar>
 	</target>
@@ -56,13 +60,13 @@
 		</java>
 	</target>
 	<target depends="build" name="installer">
-                <taskdef name="izpack" classpath="${basedir}/installer/compiler.jar"
+                <taskdef name="izpack" classpath="${basedir}/izpack/lib/compiler.jar"
                      classname="com.izforge.izpack.ant.IzPackTask"/>
 		<izpack input="installer/izpack.xml"
 			output="WebScarab-${DSTAMP}-${TSTAMP}.jar"
 			installerType="standard"
 			basedir="${basedir}"
-			izPackDir="/home/rdawes/IzPack/"
+			izPackDir="./izpack/"
                 />
 	</target>
 </project>
