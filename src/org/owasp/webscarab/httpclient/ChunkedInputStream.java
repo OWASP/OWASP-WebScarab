@@ -35,7 +35,7 @@ public class ChunkedInputStream extends FilterInputStream {
         String line = readLine().trim();
         try {
             size = Integer.parseInt(line,16);
-            System.err.println("Expecting " + size);
+            // System.err.println("Expecting " + size);
             chunk = new byte[size];
             int read = 0;
             while (read < size) {
@@ -53,7 +53,7 @@ public class ChunkedInputStream extends FilterInputStream {
             if (size == 0) { // read the trailer and the CRLF
                 readTrailer();
             }
-            System.err.println("Got " + size);
+            // System.err.println("Got " + size);
             start = 0;
         } catch (NumberFormatException nfe) {
             System.err.println("Error parsing chunk size from '" + line + "' : " + nfe);
