@@ -10,8 +10,11 @@ import org.owasp.webscarab.model.*;
 
 import org.owasp.webscarab.plugin.WebScarabPlugin;
 import org.owasp.webscarab.plugin.Plug;
+import org.owasp.webscarab.httpclient.URLFetcher;
 
 import java.util.ArrayList;
+import java.util.Properties;
+
 import java.lang.Thread;
 import java.util.logging.Logger;
 
@@ -32,19 +35,17 @@ import java.io.FileNotFoundException;
  *
  * @author  rdawes
  */
-public class Framework implements Plug
-{
-
+public class Framework implements Plug {
+    
     private Logger _logger = Logger.getLogger("WebScarab");
     
     private SiteModel _sitemodel;
     
     private Parser _parser;
     
-    ArrayList _plugins = null;
-    WebScarabPlugin[] _pluginArray = new WebScarabPlugin[0];
+    private ArrayList _plugins = null;
     
-    private String _sessionDir = null;
+    private Properties _props = null;
     
     /** Creates a new instance of WebScarab */
     public Framework() {
@@ -62,9 +63,21 @@ public class Framework implements Plug
             _plugins = new ArrayList();
         }
         _plugins.add(plugin);
-        _pluginArray = (WebScarabPlugin[]) _plugins.toArray(_pluginArray);
+        if (_props != null) {
+            plugin.setProperties(_props);
+        }
     }
-
+    
+    public void setProperties(Properties props) {
+        _props = props;
+        setProxies(props);
+        // Call the equivalent method for each plugin
+        if (_plugins == null) return;
+        for (int i=0; i< _plugins.size(); i++) {
+            ((WebScarabPlugin)_plugins.get(i)).setProperties(props);
+        }
+    }
+    
     public String addConversation(Request request, Response response) {
         // get a summary of the URL so far.
         URLInfo urlinfo = _sitemodel.getURLInfo(request.getURL().toString());
@@ -79,7 +92,7 @@ public class Framework implements Plug
         if (ct != null && ct.matches("text/html.*")) {
             byte[] content = response.getContent();
             String url = request.getURL().toString();
-        
+            
             if (content != null && content.length > 0) {
                 NodeReader reader = new NodeReader(new InputStreamReader(new ByteArrayInputStream(content)), url);
                 NodeList nodelist = new NodeList();
@@ -98,8 +111,8 @@ public class Framework implements Plug
         }
         
         // call the plugins
-        for (int i=0; i<_pluginArray.length; i++) {
-            _pluginArray[i].analyse(request, response, conversation, urlinfo, parsed);
+        for (int i=0; i< _plugins.size(); i++) {
+            ((WebScarabPlugin)_plugins.get(i)).analyse(request, response, conversation, urlinfo, parsed);
         }
         
         // add the conversation to the model
@@ -114,11 +127,11 @@ public class Framework implements Plug
             String property = "METHOD";
             String value = conversation.getProperty(property);
             if (value != null) urlinfo.setProperty(property, value); // should add it, so as not to override previous
-
+            
             property = "STATUS";
             value = conversation.getProperty(property);
             if (value != null) urlinfo.setProperty(property, value); // should add it, so as not to override previous
-
+            
             property = "CHECKSUM";
             value = conversation.getProperty(property);
             if (value != null) urlinfo.setProperty(property, value); // should add it, so as not to override previous
@@ -139,28 +152,70 @@ public class Framework implements Plug
             }
             urlinfo.setProperty("TOTALBYTES", Integer.toString(urlbytes+conversationbytes));
             
-            // should add it, so as not to override previous. This should not really be a Boolean, 
+            // should add it, so as not to override previous. This should not really be a Boolean,
             // rather a list of the cookies, it is difficult to concatenate a list of Set-Cookies, though :-(
-            urlinfo.setProperty("SET-COOKIE", Boolean.toString(conversation.getProperty("SET-COOKIE")!=null)); 
-        }        
+            urlinfo.setProperty("SET-COOKIE", Boolean.toString(conversation.getProperty("SET-COOKIE")!=null));
+        }
+    }
+    
+    public void setProxies(Properties props) {
+        String prop = "WebScarab.httpProxy";
+        String value = props.getProperty(prop);
+        if (value != null) {
+            String[] proxy = value.split(":");
+            if (proxy.length == 2) {
+                try {
+                    URLFetcher.setHttpProxy(proxy[0], Integer.parseInt(proxy[1]));
+                } catch (NumberFormatException nfe) {
+                    System.out.println("Error parsing " + prop + " from properties");
+                }
+            } else {
+                URLFetcher.setHttpProxy(null,0);
+            }
+        } else {
+            URLFetcher.setHttpProxy(null,0);
+        }
+        prop = "WebScarab.httpsProxy";
+        value = props.getProperty(prop);
+        if (value != null) {
+            String[] proxy = value.split(":");
+            if (proxy.length == 2) {
+                try {
+                    URLFetcher.setHttpsProxy(proxy[0], Integer.parseInt(proxy[1]));
+                } catch (NumberFormatException nfe) {
+                    System.out.println("Error parsing " + prop + " from properties");
+                }
+            } else {
+                URLFetcher.setHttpsProxy(null,0);
+            }
+        } else {
+            URLFetcher.setHttpsProxy(null,0);
+        }
+        prop = "WebScarab.noProxy";
+        value = props.getProperty(prop);
+        if (value != null) {
+            URLFetcher.setNoProxy(value.split(", *"));
+        } else {
+            URLFetcher.setNoProxy(new String[0]);
+        }
     }
     
     public void setSessionStore(Object store) throws StoreException {
         _sitemodel.setSessionStore(store);
         // Call the equivalent method for each plugin
-        for (int i=0; i< _pluginArray.length; i++) {
-            _pluginArray[i].setSessionStore(store);
+        for (int i=0; i< _plugins.size(); i++) {
+            ((WebScarabPlugin)_plugins.get(i)).setSessionStore(store);
         }
     }
     
     /** called to instruct the plugin to save its current state to the specified directory.
      * @param dir a String representing the base directory under which this plugin can save its data
-     */    
+     */
     public void saveSessionData() throws StoreException {
         _sitemodel.saveSessionData();
-        for (int i=0; i< _pluginArray.length; i++) {
-            _pluginArray[i].saveSessionData();
+        for (int i=0; i< _plugins.size(); i++) {
+            ((WebScarabPlugin)_plugins.get(i)).saveSessionData();
         }
     }
-
+    
 }
