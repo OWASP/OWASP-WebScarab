@@ -698,8 +698,8 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
     
     public class SessionIDTableModel extends AbstractTableModel {
         
-        private String[] _columnNames = new String[] { "Date", "Value", "Numeric" };
-        private Class[] _columnClass = new Class[] { Date.class, String.class, BigInteger.class };
+        private String[] _columnNames = new String[] { "Date", "Value", "Numeric", "Difference" };
+        private Class[] _columnClass = new Class[] { Date.class, String.class, BigInteger.class, BigInteger.class };
         
         public int getColumnCount() {
             return _columnNames.length;
@@ -717,6 +717,15 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
                 case 0: return id.getDate();
                 case 1: return id.getValue();
                 case 2: return _sa.getSessionIDValue(_key, id);
+                case 3: 
+                    if (rowIndex == 0) {
+                        return null;
+                    } else {
+                        SessionID prev = _sa.getSessionIDAt(_key, rowIndex - 1);
+                        BigInteger prevValue = _sa.getSessionIDValue(_key, prev);
+                        BigInteger now = _sa.getSessionIDValue(_key,  id);
+                        if (now != null && prevValue != null) return now.subtract(prevValue);
+                    };
                 default: return null;
             }
         }

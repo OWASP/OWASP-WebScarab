@@ -224,7 +224,11 @@ public class SessionIDAnalysis implements Plugin {
                 Pattern pattern = Pattern.compile(regex);
                 Matcher matcher = pattern.matcher(location);
                 if (matcher.matches() && matcher.groupCount() > 0) {
-                    SessionID id = new SessionID(date, matcher.group(1));
+                    StringBuffer match = new StringBuffer();
+                    for (int j=0; j<matcher.groupCount(); j++) {
+                        match.append(matcher.group(j+1));
+                    }
+                    SessionID id = new SessionID(date, match.toString());
                     ids.put(name, id);
                 }
             }
@@ -241,7 +245,11 @@ public class SessionIDAnalysis implements Plugin {
                 Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE | Pattern.DOTALL);
                 Matcher matcher = pattern.matcher(body);
                 if (matcher.matches() && matcher.groupCount() > 0) {
-                    SessionID id = new SessionID(date, matcher.group(1));
+                    StringBuffer match = new StringBuffer();
+                    for (int j=0; j<matcher.groupCount(); j++) {
+                        match.append(matcher.group(j+1));
+                    }
+                    SessionID id = new SessionID(date, match.toString());
                     ids.put(name, id);
                 }
             }
@@ -252,9 +260,12 @@ public class SessionIDAnalysis implements Plugin {
                 if (headers[i].getName().equalsIgnoreCase("Set-Cookie") || headers[i].getName().equalsIgnoreCase("Set-Cookie2")) {
                     Cookie cookie = new Cookie(date, url, headers[i].getValue());
                     Matcher matcher = pattern.matcher(cookie.getValue());
-                    System.out.println("Matches " + matcher.matches() + " count = " + matcher.groupCount());
                     if (matcher.matches() && matcher.groupCount() > 0) {
-                        SessionID id = new SessionID(date, matcher.group(1));
+                        StringBuffer match = new StringBuffer();
+                        for (int j=0; j<matcher.groupCount(); j++) {
+                            match.append(matcher.group(j+1));
+                        }
+                        SessionID id = new SessionID(date, match.toString());
                         ids.put(cookie.getKey(), id);
                     }
                 }
