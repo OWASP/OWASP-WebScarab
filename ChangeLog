@@ -1,3 +1,330 @@
+2005-02-17 09:20  rogan
+
+	* lib/jhbasic-2.0_02.jar: JavaHelp support library
+
+2005-02-17 09:16  rogan
+
+	* src/org/owasp/webscarab/ui/swing/editors/TextPanel.java: Added
+	  support for manually changing text/word wrap settings, with
+	  Ctrl-W
+
+2005-02-17 09:12  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: Main.java, UIFramework.java:
+	  Moved initialisation of the graphical exception handling to the
+	  ui.Main class
+
+2005-02-17 09:07  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: UIFramework.form,
+	  UIFramework.java: load the graphical exception handler class
+
+2005-02-17 09:06  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: ScriptManagerFrame.form,
+	  ScriptManagerFrame.java: Provides a graphical interface to the
+	  Script manager. Initial checkin
+
+2005-02-17 09:05  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ExceptionHandler.java: Class to
+	  support showing unhandled exceptions in a graphical manner
+
+2005-02-17 09:03  rogan
+
+	* src/org/owasp/webscarab/plugin/scripted/: Scripted.java,
+	  ScriptedObjectModel.java, ScriptedUI.java, script.bsh,
+	  swing/ScriptedPanel.form, swing/ScriptedPanel.java: Changes to
+	  support loading and saving of scripts
+
+2005-02-17 09:01  rogan
+
+	* build.xml: Minor changes to enhance the build process
+
+2005-02-04 18:19  rogan
+
+	* build.xml, installer/izpack.xml, installer/shortcutSpec.xml: Just
+	  updating the IzPack installer options
+
+2005-02-04 17:25  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/swing/:
+	  ManualEditFrame.form, ManualEditFrame.java: Add a "Cancel all
+	  edits" button, for when we have multiple intercepted windows
+	  open.  Selecting this button effectively closes all the pending
+	  edits.
+
+2005-02-04 17:23  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/ConnectionHandler.java: Fix
+	  a null pointer exception if we abort a request
+
+2005-02-04 16:50  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/Proxy.java: Added support
+	  for intercepting requests and responses too
+
+2005-02-04 16:37  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: UIFramework.form,
+	  UIFramework.java: support for viewing the Script Manager
+
+2005-02-04 16:36  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/swing/ManualEditPanel.java:
+	  Some artifacts caused by the form editor. No real changes.
+
+2005-02-04 16:35  rogan
+
+	* src/org/owasp/webscarab/plugin/scripted/swing/ScriptedPanel.java:
+	  Removed unused methods
+
+2005-02-04 16:14  rogan
+
+	* build.xml: reworked some of the targets, and initialisation
+	  scripts.  Added a "javadoc" target, for what it is worth.  Lots
+	  of documentation errors appear, will have to go through them and
+	  fix them eventually.
+
+2005-02-04 16:12  rogan
+
+	* src/org/owasp/webscarab/plugin/: Framework.java, Plugin.java,
+	  spider/Spider.java, scripted/Scripted.java,
+	  sessionid/SessionIDAnalysis.java, fragments/Fragments.java,
+	  manualrequest/ManualRequest.java, proxy/ConnectionHandler.java,
+	  proxy/Listener.java, proxy/Proxy.java: Changed Plugin from a
+	  class to an interface, and changed the various plugins to match
+	  (mostly just implementing isRunning()! )
+
+	  Added support for scripting to Plugin, and extended the various
+	  classes to match. Most simply return null or an empty array of
+	  Scriptable hooks. At this point, only Proxy.allowConnection is
+	  implemented.
+
+	  Added support for scripting to Framework to create and manage the
+	  script manager.
+
+2005-02-04 16:08  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/ScriptableConnection.java:
+	  Represents a connection from a browser, which can be controlled
+	  by the script framework
+
+2005-02-04 16:04  rogan
+
+	* src/org/owasp/webscarab/plugin/: Hook.java, Script.java,
+	  ScriptListener.java, ScriptManager.java: Basics for scripting
+	  support
+
+2005-02-04 15:24  rogan
+
+	*
+	  src/org/owasp/webscarab/util/swing/treetable/TreeTableModelAdapter.java:
+	  Correctly calculates the rows that have changed, based on the
+	  child nodes
+
+2005-02-02 18:52  rogan
+
+	* src/org/owasp/webscarab/model/FileSystemStore.java: fixed due to
+	  changes in ConversationID
+
+2005-02-02 18:51  rogan
+
+	* src/org/owasp/webscarab/model/ConversationID.java: Support new
+	  Conversation ID from an int
+
+2005-02-02 18:50  rogan
+
+	* src/org/owasp/webscarab/plugin/scripted/: Scripted.java,
+	  ScriptedObjectModel.java, ScriptedUI.java, script.bsh,
+	  swing/ScriptedPanel.form, swing/ScriptedPanel.java: Reworked
+	  scripting around an "object model"
+
+2005-02-02 15:34  rogan
+
+	* src/org/owasp/webscarab/: plugin/proxy/CookieTracker.java,
+	  ui/swing/Main.java: Fix stupid null pointer exception
+
+2005-02-02 15:23  rogan
+
+	* doc/new.webscarab.zargo: Obsolete file
+
+2005-02-02 15:22  rogan
+
+	* doc/architecture.html: [no log message]
+
+2005-02-02 15:19  rogan
+
+	* doc/userguide/: about.html, installing.html, requirements.html,
+	  session.html, starting.html, using.html: Some minor changes
+
+2005-01-22 22:41  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/: ManualEdit.java,
+	  swing/ManualEditPanel.form, swing/ManualEditPanel.java: Add
+	  support for case sensitive regular expressions in the Manual Edit
+	  proxy intercept
+
+2005-01-05 12:36  rogan
+
+	* build.xml: added build target descriptions, some support for the
+	  Scripted plugin default script
+
+2005-01-05 12:34  rogan
+
+	* src/org/owasp/webscarab/util/swing/: DocumentHandler.java,
+	  DocumentOutputStream.java: size limit the Documents
+
+2005-01-05 12:33  rogan
+
+	* src/org/owasp/webscarab/ui/swing/editors/TextPanel.java:
+	  implement a text wrap preference
+
+2005-01-05 12:33  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: UIFramework.form,
+	  UIFramework.java: added View menu, removed conversation search
+	  menu, updated session handling, limit the log window size
+
+2005-01-05 12:31  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ShowConversationAction.java:
+	  updated session handling
+
+2005-01-05 12:31  rogan
+
+	* src/org/owasp/webscarab/ui/swing/RequestPanel.java: improve error
+	  handling when parsing Raw requests
+
+2005-01-05 12:30  rogan
+
+	* src/org/owasp/webscarab/ui/swing/Main.java: load new Scripted
+	  plugin, tweak session handling
+
+2005-01-05 12:29  rogan
+
+	* src/org/owasp/webscarab/plugin/scripted/: Scripted.java,
+	  ScriptedUI.java, script.bsh, swing/ScriptedPanel.form,
+	  swing/ScriptedPanel.java: new scripted plugin
+
+2005-01-05 12:27  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ConversationPanel.java: tweaking
+	  some settings
+
+2005-01-05 12:24  rogan
+
+	* src/org/owasp/webscarab/:
+	  plugin/sessionid/swing/SessionIDPanel.java,
+	  plugin/spider/swing/SpiderPanel.java,
+	  ui/swing/ConversationListModel.java,
+	  ui/swing/ConversationTableModel.java,
+	  ui/swing/CookieJarViewer.java,
+	  ui/swing/SiteTreeModelAdapter.java,
+	  ui/swing/SiteTreeTableModelAdapter.java,
+	  ui/swing/SummaryPanel.java: updated session handling
+
+2005-01-05 12:22  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/swing/: ProxyPanel.form,
+	  ProxyPanel.java: updated session handling, implemented the
+	  Conversation status table
+
+2005-01-05 12:21  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/swing/:
+	  ManualEditPanel.form, ManualEditPanel.java: removed unused
+	  fields, implemented response mime-type regex
+
+2005-01-05 12:20  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/swing/: BeanShellPanel.form,
+	  BeanShellPanel.java: removed unused fields
+
+2005-01-05 12:18  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/: Proxy.java,
+	  ProxyPlugin.java: Updated session handling
+
+2005-01-05 12:18  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/ManualEdit.java: Implemented
+	  response mime-type regex matching
+
+2005-01-05 12:17  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/BeanShell.java: Improved
+	  error handling
+
+2005-01-05 12:14  rogan
+
+	*
+	  src/org/owasp/webscarab/plugin/fragments/swing/FragmentsPanel.java:
+	  Updated session handling code, and adding and removing of
+	  listeners
+
+2005-01-05 12:13  rogan
+
+	* src/org/owasp/webscarab/plugin/: fragments/Fragments.java,
+	  manualrequest/ManualRequest.java,
+	  manualrequest/swing/ManualRequestPanel.java: Updated session
+	  handling
+
+2005-01-05 12:13  rogan
+
+	* src/org/owasp/webscarab/plugin/PluginUI.java: Removed
+	  setModel(SiteModel) from the interface
+
+2005-01-05 12:12  rogan
+
+	* src/org/owasp/webscarab/plugin/Plugin.java: Changed the session
+	  handling interface
+
+2005-01-05 12:11  rogan
+
+	* src/org/owasp/webscarab/plugin/FrameworkUI.java: removed the
+	  notification that the model had changed, the model now makes that
+	  announcement
+
+2005-01-05 12:10  rogan
+
+	* src/org/owasp/webscarab/plugin/Framework.java: Changed how
+	  sessions are loaded
+
+2005-01-05 12:09  rogan
+
+	* src/org/owasp/webscarab/: httpclient/AsyncFetcher.java,
+	  plugin/spider/Spider.java,
+	  plugin/sessionid/SessionIDAnalysis.java: Changed AsyncFetcher to
+	  be a more capable helper class
+
+2005-01-05 12:07  rogan
+
+	* src/org/owasp/webscarab/model/SiteModel.java: SiteModel now
+	  supports a changing store
+
+2005-01-05 12:06  rogan
+
+	* src/org/owasp/webscarab/model/Message.java: fix a nullpointer
+	  exception
+
+2004-12-27 11:53  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: MessagePanel.form,
+	  MessagePanel.java: Added support for remembering the preferred
+	  split position between headers and content
+
+2004-12-27 11:53  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ConversationPanel.java: Added
+	  support for remembering the preferred split position between
+	  Request and Response
+
+2004-12-27 11:52  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ContentPanel.java: added support
+	  for remembering the preferred content viewer/editor
+
 2004-12-26 20:06  rogan
 
 	* src/org/owasp/webscarab/: model/SiteModel.java,
@@ -2004,11 +2331,6 @@
 
 	* build_rogan.xml: moved installer stuff around
 
-2003-09-27 18:20  rogan
-
-	* bin/webscarab.bat: make it DOS-style CR/LF, change parameter to %
-	  rther than $
-
 2003-09-27 18:19  rogan
 
 	* installer/: README, compiler.jar, izpack.xml, shortcutSpec.xml,
@@ -2025,11 +2347,6 @@
 2003-09-24 10:34  rogan
 
 	* build_rogan.xml: installer depends on a .jar file
-
-2003-09-24 10:29  rogan
-
-	* bin/: webscarab.bat, webscarab.sh: these will call the jar with
-	  the right classpath
 
 2003-09-24 10:27  rogan
 
@@ -2706,9 +3023,8 @@
 
 2002-12-08 19:12  istr
 
-	* bin/swing, src/org/owasp/webscarab/swing.sh,
-	  src/org/owasp/webscarab/ui/swing/EventRouter.java: adapted to new
-	  owasp.jar
+	* src/org/owasp/webscarab/: swing.sh, ui/swing/EventRouter.java:
+	  adapted to new owasp.jar
 
 2002-10-30 21:46  istr
 
@@ -2718,83 +3034,6 @@
 	  doc/uml/usecases/ConfigureWorkSpace.doc,
 	  doc/uml/usecases/webscarab-usecases.gif,
 	  doc/uml/usecases/ConfigureSpider.doc,
-	  doc/workbook/workproduct.xsl, doc/workbook/README,
-	  doc/workbook/build.xml, doc/workbook/workproduct.dtd,
-	  doc/workbook/html/index.html, doc/workbook/html/sample.html,
-	  doc/workbook/html/workbook.html,
-	  doc/workbook/html/User_Analysis/Conceptual_Model_Design.html,
-	  doc/workbook/html/User_Analysis/Detailed_User_Interface_Design.html,
-	  doc/workbook/html/User_Analysis/Screen_Design_Standards.html,
-	  doc/workbook/html/User_Analysis/Screen_Design_Standards_Prototyping.html,
-	  doc/workbook/html/Analysis_Design/Scenarios.html,
-	  doc/workbook/html/Analysis_Design/Subsystem_Model.html,
-	  doc/workbook/html/Analysis_Design/System_Architecture.html,
-	  doc/workbook/html/User_Analysis/Conceptual_Model_Design_Mock-ups.html,
-	  doc/workbook/html/Analysis_Design/API_Specification.html,
-	  doc/workbook/html/Analysis_Design/Class_Descriptions.html,
-	  doc/workbook/html/Analysis_Design/Object_Interaction_Diagram.html,
-	  doc/workbook/html/Analysis_Design/Object_Model.html,
-	  doc/workbook/html/Analysis_Design/State_Models.html,
-	  doc/workbook/html/Analysis_Design/Subject_Areas.html,
-	  doc/workbook/html/Analysis_Design/Target_Environment.html,
-	  doc/workbook/html/Implementation/Source_Code.html,
-	  doc/workbook/html/Testing/Blackbox_Tests.html,
-	  doc/workbook/html/Testing/Unit_Tests.html,
-	  doc/workbook/html/Testing/Build_Tests.html,
-	  doc/workbook/html/Testing/Install_Tests.html,
-	  doc/workbook/html/Testing/User_Interface_Tests.html,
-	  doc/workbook/html/Project_Management/Intended_Development_Process.html,
-	  doc/workbook/html/Project_Management/Issues.html,
-	  doc/workbook/html/Project_Management/Project_Dependencies.html,
-	  doc/workbook/html/Project_Management/Project_Workbook_Outline.html,
-	  doc/workbook/html/Project_Management/Schedule.html,
-	  doc/workbook/html/Project_Management/Test_Plan.html,
-	  doc/workbook/html/Requirements/Problem_Statement.html,
-	  doc/workbook/html/Requirements/Platform_Capabilities.html,
-	  doc/workbook/html/Requirements/Prioritized_Requirements.html,
-	  doc/workbook/html/Requirements/Use_Cases.html,
-	  doc/workbook/html/Requirements/General_Design_Principles.html,
-	  doc/workbook/html/Requirements/User_Profiles.html,
-	  doc/workbook/html/Requirements/Nonfunctional_Requirements.html,
-	  doc/workbook/src/index.xml, doc/workbook/src/sample.xml,
-	  doc/workbook/src/workbook.xml, doc/workbook/src/workproduct.dtd,
-	  doc/workbook/src/User_Analysis/Conceptual_Model_Design.xml,
-	  doc/workbook/src/User_Analysis/Conceptual_Model_Design_Mock-ups.xml,
-	  doc/workbook/src/User_Analysis/Detailed_User_Interface_Design.xml,
-	  doc/workbook/src/User_Analysis/Screen_Design_Standards.xml,
-	  doc/workbook/src/Analysis_Design/API_Specification.xml,
-	  doc/workbook/src/Analysis_Design/Class_Descriptions.xml,
-	  doc/workbook/src/Analysis_Design/Object_Interaction_Diagram.xml,
-	  doc/workbook/src/Analysis_Design/Object_Model.xml,
-	  doc/workbook/src/Analysis_Design/Scenarios.xml,
-	  doc/workbook/src/Analysis_Design/State_Models.xml,
-	  doc/workbook/src/Analysis_Design/Subject_Areas.xml,
-	  doc/workbook/src/Analysis_Design/Subsystem_Model.xml,
-	  doc/workbook/src/Analysis_Design/System_Architecture.xml,
-	  doc/workbook/src/Analysis_Design/Target_Environment.xml,
-	  doc/workbook/src/Analysis_Design/images/system_architecture.dia,
-	  doc/workbook/src/User_Analysis/Screen_Design_Standards_Prototyping.xml,
-	  doc/workbook/src/User_Analysis/images/conceptual_model_design.kil,
-	  doc/workbook/src/Implementation/Source_Code.xml,
-	  doc/workbook/src/Testing/Blackbox_Tests.xml,
-	  doc/workbook/src/Testing/Build_Tests.xml,
-	  doc/workbook/src/Testing/Install_Tests.xml,
-	  doc/workbook/src/Testing/Unit_Tests.xml,
-	  doc/workbook/src/Testing/User_Interface_Tests.xml,
-	  doc/workbook/src/Project_Management/Issues.xml,
-	  doc/workbook/src/Project_Management/Project_Workbook_Outline.xml,
-	  doc/workbook/src/Project_Management/Schedule.xml,
-	  doc/workbook/src/Project_Management/Test_Plan.xml,
-	  doc/workbook/src/Project_Management/project.mrproject,
-	  doc/workbook/src/Project_Management/Intended_Development_Process.xml,
-	  doc/workbook/src/Project_Management/Project_Dependencies.xml,
-	  doc/workbook/src/Requirements/Nonfunctional_Requirements.xml,
-	  doc/workbook/src/Requirements/Use_Cases.xml,
-	  doc/workbook/src/Requirements/User_Profiles.xml,
-	  doc/workbook/src/Requirements/General_Design_Principles.xml,
-	  doc/workbook/src/Requirements/Platform_Capabilities.xml,
-	  doc/workbook/src/Requirements/Prioritized_Requirements.xml,
-	  doc/workbook/src/Requirements/Problem_Statement.xml,
 	  src/org/owasp/webscarab/Class.tpl,
 	  src/org/owasp/webscarab/LICENSE.java,
 	  src/org/owasp/webscarab/RELEASE,
@@ -2826,83 +3065,6 @@
 	  doc/uml/usecases/ConfigureWorkSpace.doc,
 	  doc/uml/usecases/webscarab-usecases.gif,
 	  doc/uml/usecases/ConfigureSpider.doc,
-	  doc/workbook/workproduct.xsl, doc/workbook/README,
-	  doc/workbook/build.xml, doc/workbook/workproduct.dtd,
-	  doc/workbook/html/index.html, doc/workbook/html/sample.html,
-	  doc/workbook/html/workbook.html,
-	  doc/workbook/html/User_Analysis/Conceptual_Model_Design.html,
-	  doc/workbook/html/User_Analysis/Detailed_User_Interface_Design.html,
-	  doc/workbook/html/User_Analysis/Screen_Design_Standards.html,
-	  doc/workbook/html/User_Analysis/Screen_Design_Standards_Prototyping.html,
-	  doc/workbook/html/Analysis_Design/Scenarios.html,
-	  doc/workbook/html/Analysis_Design/Subsystem_Model.html,
-	  doc/workbook/html/Analysis_Design/System_Architecture.html,
-	  doc/workbook/html/User_Analysis/Conceptual_Model_Design_Mock-ups.html,
-	  doc/workbook/html/Analysis_Design/API_Specification.html,
-	  doc/workbook/html/Analysis_Design/Class_Descriptions.html,
-	  doc/workbook/html/Analysis_Design/Object_Interaction_Diagram.html,
-	  doc/workbook/html/Analysis_Design/Object_Model.html,
-	  doc/workbook/html/Analysis_Design/State_Models.html,
-	  doc/workbook/html/Analysis_Design/Subject_Areas.html,
-	  doc/workbook/html/Analysis_Design/Target_Environment.html,
-	  doc/workbook/html/Implementation/Source_Code.html,
-	  doc/workbook/html/Testing/Blackbox_Tests.html,
-	  doc/workbook/html/Testing/Unit_Tests.html,
-	  doc/workbook/html/Testing/Build_Tests.html,
-	  doc/workbook/html/Testing/Install_Tests.html,
-	  doc/workbook/html/Testing/User_Interface_Tests.html,
-	  doc/workbook/html/Project_Management/Intended_Development_Process.html,
-	  doc/workbook/html/Project_Management/Issues.html,
-	  doc/workbook/html/Project_Management/Project_Dependencies.html,
-	  doc/workbook/html/Project_Management/Project_Workbook_Outline.html,
-	  doc/workbook/html/Project_Management/Schedule.html,
-	  doc/workbook/html/Project_Management/Test_Plan.html,
-	  doc/workbook/html/Requirements/Problem_Statement.html,
-	  doc/workbook/html/Requirements/Platform_Capabilities.html,
-	  doc/workbook/html/Requirements/Prioritized_Requirements.html,
-	  doc/workbook/html/Requirements/Use_Cases.html,
-	  doc/workbook/html/Requirements/General_Design_Principles.html,
-	  doc/workbook/html/Requirements/User_Profiles.html,
-	  doc/workbook/html/Requirements/Nonfunctional_Requirements.html,
-	  doc/workbook/src/index.xml, doc/workbook/src/sample.xml,
-	  doc/workbook/src/workbook.xml, doc/workbook/src/workproduct.dtd,
-	  doc/workbook/src/User_Analysis/Conceptual_Model_Design.xml,
-	  doc/workbook/src/User_Analysis/Conceptual_Model_Design_Mock-ups.xml,
-	  doc/workbook/src/User_Analysis/Detailed_User_Interface_Design.xml,
-	  doc/workbook/src/User_Analysis/Screen_Design_Standards.xml,
-	  doc/workbook/src/Analysis_Design/API_Specification.xml,
-	  doc/workbook/src/Analysis_Design/Class_Descriptions.xml,
-	  doc/workbook/src/Analysis_Design/Object_Interaction_Diagram.xml,
-	  doc/workbook/src/Analysis_Design/Object_Model.xml,
-	  doc/workbook/src/Analysis_Design/Scenarios.xml,
-	  doc/workbook/src/Analysis_Design/State_Models.xml,
-	  doc/workbook/src/Analysis_Design/Subject_Areas.xml,
-	  doc/workbook/src/Analysis_Design/Subsystem_Model.xml,
-	  doc/workbook/src/Analysis_Design/System_Architecture.xml,
-	  doc/workbook/src/Analysis_Design/Target_Environment.xml,
-	  doc/workbook/src/Analysis_Design/images/system_architecture.dia,
-	  doc/workbook/src/User_Analysis/Screen_Design_Standards_Prototyping.xml,
-	  doc/workbook/src/User_Analysis/images/conceptual_model_design.kil,
-	  doc/workbook/src/Implementation/Source_Code.xml,
-	  doc/workbook/src/Testing/Blackbox_Tests.xml,
-	  doc/workbook/src/Testing/Build_Tests.xml,
-	  doc/workbook/src/Testing/Install_Tests.xml,
-	  doc/workbook/src/Testing/Unit_Tests.xml,
-	  doc/workbook/src/Testing/User_Interface_Tests.xml,
-	  doc/workbook/src/Project_Management/Issues.xml,
-	  doc/workbook/src/Project_Management/Project_Workbook_Outline.xml,
-	  doc/workbook/src/Project_Management/Schedule.xml,
-	  doc/workbook/src/Project_Management/Test_Plan.xml,
-	  doc/workbook/src/Project_Management/project.mrproject,
-	  doc/workbook/src/Project_Management/Intended_Development_Process.xml,
-	  doc/workbook/src/Project_Management/Project_Dependencies.xml,
-	  doc/workbook/src/Requirements/Nonfunctional_Requirements.xml,
-	  doc/workbook/src/Requirements/Use_Cases.xml,
-	  doc/workbook/src/Requirements/User_Profiles.xml,
-	  doc/workbook/src/Requirements/General_Design_Principles.xml,
-	  doc/workbook/src/Requirements/Platform_Capabilities.xml,
-	  doc/workbook/src/Requirements/Prioritized_Requirements.xml,
-	  doc/workbook/src/Requirements/Problem_Statement.xml,
 	  src/org/owasp/webscarab/Class.tpl,
 	  src/org/owasp/webscarab/LICENSE.java,
 	  src/org/owasp/webscarab/RELEASE,
