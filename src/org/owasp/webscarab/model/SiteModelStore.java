@@ -163,6 +163,8 @@ public interface SiteModelStore {
      */
     public HttpUrl getChildUrlAt(HttpUrl url, int index);
     
+    public int getIndexOfUrl(HttpUrl url);
+    
     /**
      * returns the number of URL's that are queries of the URL passed.
      * @param url the url
@@ -177,6 +179,8 @@ public interface SiteModelStore {
      * @return the query at position index.
      */
     public HttpUrl getUrlQueryAt(HttpUrl url, int index);
+    
+    public int getIndexOfQuery(HttpUrl url);
     
     /**
      * writes a specific Request instance to long-term storage.
