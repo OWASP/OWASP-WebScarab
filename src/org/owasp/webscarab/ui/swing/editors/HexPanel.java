@@ -240,7 +240,8 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
             }
             if (aValue instanceof String) {
                 try {
-                    _data[position] = new Integer(Integer.parseInt((String) aValue, 16)).byteValue();
+                    String s = (String) aValue;
+                    _data[position] = new Integer(Integer.parseInt(s.trim(), 16)).byteValue();
                     fireTableCellUpdated(rowIndex, _columns + 1);
                     _modified = true;
                 } catch (NumberFormatException nfe) {
