@@ -54,6 +54,23 @@ public class JTreeTable extends JTable {
     public JTreeTable(TreeTableModel treeTableModel) {
 	super();
 
+        setModel(treeTableModel);
+        
+	// No grid.
+	setShowGrid(false);
+
+	// No intercell spacing
+	setIntercellSpacing(new Dimension(0, 0));	
+
+	// And update the height of the trees row to match that of
+	// the table.
+	if (tree.getRowHeight() < 1) {
+	    // Metal looks better like this.
+	    setRowHeight(18);
+	}
+    }
+    
+    public void setModel(TreeTableModel treeTableModel) {
 	// Create the tree. It will be used as a renderer and editor. 
 	tree = new TreeTableCellRenderer(treeTableModel);
 
@@ -69,21 +86,8 @@ public class JTreeTable extends JTable {
 	// Install the tree editor renderer and editor. 
 	setDefaultRenderer(TreeTableModel.class, tree); 
 	setDefaultEditor(TreeTableModel.class, new TreeTableCellEditor());
-
-	// No grid.
-	setShowGrid(false);
-
-	// No intercell spacing
-	setIntercellSpacing(new Dimension(0, 0));	
-
-	// And update the height of the trees row to match that of
-	// the table.
-	if (tree.getRowHeight() < 1) {
-	    // Metal looks better like this.
-	    setRowHeight(18);
-	}
     }
-
+    
     /**
      * Overridden to message super and forward the method to the tree.
      * Since the tree is not actually in the component hieachy it will
