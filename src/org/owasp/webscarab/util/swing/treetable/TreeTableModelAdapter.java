@@ -60,7 +60,14 @@ public class TreeTableModelAdapter extends AbstractTableModel
 	// the event before us.
 	treeTableModel.addTreeModelListener(new TreeModelListener() {
 	    public void treeNodesChanged(TreeModelEvent e) {
-		delayedFireTableDataChanged();
+                int row = TreeTableModelAdapter.this.tree.getRowForPath(e.getTreePath());
+                if (row < 0) return;
+                if (e instanceof TreeTableModelEvent) {
+                    int column = ((TreeTableModelEvent) e).getColumn();
+                    delayedFireTableCellUpdated(row, column);
+                } else {
+                    delayedFireTableRowsUpdated(row, row);
+                }
 	    }
 
 	    public void treeNodesInserted(TreeModelEvent e) {
@@ -72,7 +79,8 @@ public class TreeTableModelAdapter extends AbstractTableModel
 	    }
 
 	    public void treeStructureChanged(TreeModelEvent e) {
-		delayedFireTableDataChanged();
+		// delayedFireTableDataChanged();
+                delayedFireTableStructureChanged();
 	    }
 	});
     }
@@ -120,6 +128,42 @@ public class TreeTableModelAdapter extends AbstractTableModel
 	SwingUtilities.invokeLater(new Runnable() {
 	    public void run() {
 		fireTableDataChanged();
+	    }
+	});
+    }
+
+    /**
+     * Invokes fireTableDataChanged after all the pending events have been
+     * processed. SwingUtilities.invokeLater is used to handle this.
+     */
+    protected void delayedFireTableCellUpdated(final int row, final int column) {
+	SwingUtilities.invokeLater(new Runnable() {
+	    public void run() {
+		fireTableCellUpdated(row, column);
+	    }
+	});
+    }
+
+    /**
+     * Invokes fireTableDataChanged after all the pending events have been
+     * processed. SwingUtilities.invokeLater is used to handle this.
+     */
+    protected void delayedFireTableRowsUpdated(final int first, final int last) {
+	SwingUtilities.invokeLater(new Runnable() {
+	    public void run() {
+		fireTableRowsUpdated(first, last);
+	    }
+	});
+    }
+
+    /**
+     * Invokes fireTableDataChanged after all the pending events have been
+     * processed. SwingUtilities.invokeLater is used to handle this.
+     */
+    protected void delayedFireTableStructureChanged() {
+	SwingUtilities.invokeLater(new Runnable() {
+	    public void run() {
+		fireTableStructureChanged();
 	    }
 	});
     }
