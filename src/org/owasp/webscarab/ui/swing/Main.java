@@ -182,26 +182,26 @@ public class Main {
     }
 
     public static void loadPlugins() {
-        Fragments fragments = new Fragments();
+        Fragments fragments = new Fragments(_framework);
         _framework.addPlugin(fragments);
         _uif.addPlugin(new FragmentsPanel(fragments));
         
-        Proxy proxy = new Proxy();
+        Proxy proxy = new Proxy(_framework);
         _framework.addPlugin(proxy);
         ProxyPanel proxyPanel = new ProxyPanel(proxy);
         _uif.addPlugin(proxyPanel);
         
         loadProxyPlugins(proxy, proxyPanel);
         
-        Spider spider = new Spider();
+        Spider spider = new Spider(_framework);
         _framework.addPlugin(spider);
         _uif.addPlugin(new SpiderPanel(spider));
         
-        ManualRequest manualRequest = new ManualRequest();
+        ManualRequest manualRequest = new ManualRequest(_framework);
         _framework.addPlugin(manualRequest);
         _uif.addPlugin(new ManualRequestPanel(manualRequest));
         
-        SessionIDAnalysis sessionIDAnalysis = new SessionIDAnalysis();
+        SessionIDAnalysis sessionIDAnalysis = new SessionIDAnalysis(_framework);
         _framework.addPlugin(sessionIDAnalysis);
         _uif.addPlugin(new SessionIDPanel(sessionIDAnalysis));
     }
