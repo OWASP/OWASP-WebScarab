@@ -19,7 +19,7 @@
 	<target depends="init" name="clean">
 		<delete dir="${classes}"/>
                 <delete file="${jarname}"/>
-                <delete file="${vainstall.archive.installClassName}.jar"/>
+                <delete file="WebScarab-*.jar"/>
 		<delete verbose="on">
 			<fileset dir="${source}" includes="**/*~"/>
 			<fileset dir="${source}" includes="**/*.class"/>
@@ -32,6 +32,7 @@
 		<javac classpathref="cpath" compiler="extJavac" deprecation="off" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}" listfiles="yes"/>
 	</target>
 	<target depends="compile" name="build">
+                <copy file="serverkeys" todir="${classes}"/>
 		<jar basedir="${classes}" jarfile="${jarname}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
