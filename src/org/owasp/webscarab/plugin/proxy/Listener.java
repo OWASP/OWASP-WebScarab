@@ -185,11 +185,10 @@ public class Listener implements Runnable {
      * handled a particular request and response, and that it should be logged and
      * analysed
      * @param id the Conversation ID
-     * @param request the request
      * @param response the Response
      */
-    protected void gotResponse(ConversationID id, Request request, Response response) {
-    	_proxy.gotResponse(id, request, response);
+    protected void gotResponse(ConversationID id, Response response) {
+    	_proxy.gotResponse(id, response);
     }
     
     /**

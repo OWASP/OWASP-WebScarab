@@ -31,10 +31,6 @@ public class ConnectionHandler implements Runnable {
     private static char[] _keystorepass = "password".toCharArray();
     private static char[] _keypassword = "password".toCharArray();
     
-//    static {
-//        initSSL();
-//    }
-    
     private ProxyPlugin[] _plugins = null;
     private Listener _listener;
     private Socket _sock = null;
@@ -120,9 +116,7 @@ public class ConnectionHandler implements Runnable {
             // if we are servicing a CONNECT, or operating as a reverse
             // proxy with an https:// base URL, negotiate SSL
             if (_base != null) {
-                // we check isConnected for UnitTest purposes
-                // We provide a fake socket, but can't negotiate SSL on it!
-                if (_base.getScheme().equals("https") && _sock.isConnected() ) {
+                if (_base.getScheme().equals("https")) {
                     _logger.fine("Intercepting SSL connection!");
                     _sock = negotiateSSL(_sock);
                     _clientIn = _sock.getInputStream();
@@ -181,6 +175,7 @@ public class ConnectionHandler implements Runnable {
                 }
                 _logger.fine("Browser requested : " + request.getMethod() + " " + request.getURL().toString());
                 
+                // report the request to the listener, and get the allocated ID
                 id = _listener.gotRequest(request);
                 
                 // pass the request through the plugins, and return the response
@@ -211,8 +206,13 @@ public class ConnectionHandler implements Runnable {
                 } finally {
                     response.flushContentStream(); // this simply flushes the content from the server
                 }
-                if (_listener != null && request != null && !request.getMethod().equals("CONNECT")) {
-                    _listener.gotResponse(id, request, response);
+                // this should not happen, but might if a proxy plugin is careless
+                if (response.getRequest() == null) {
+                    _logger.warning("Response had no associated request!");
+                    response.setRequest(request);
+                }
+                if (_listener != null && !request.getMethod().equals("CONNECT")) {
+                    _listener.gotResponse(id, response);
                 }
                 
                 connection = response.getHeader("Connection");
