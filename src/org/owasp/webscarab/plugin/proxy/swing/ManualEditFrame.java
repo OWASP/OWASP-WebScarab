@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -59,7 +59,10 @@ public class ManualEditFrame extends javax.swing.JFrame {
     
     private static Point _location = null;
     private static Dimension _size = new Dimension(600, 500);
+    private static boolean _cancelAll = false;
+    private static Object _lock = new Object();
     
+    private boolean _done = false;
     private Request _request = null;
     private RequestPanel _requestPanel = null;
     private Response _response = null;
@@ -83,9 +86,11 @@ public class ManualEditFrame extends javax.swing.JFrame {
         _responsePanel.setVisible(false);
         getContentPane().add(_responsePanel, gridBagConstraints);
     }
-
+    
     public Request editRequest(Request request) {
-        synchronized (this) {
+        synchronized (_lock) {
+            _cancelAll = false;
+            _done = false;
             _request = request;
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
@@ -98,17 +103,27 @@ public class ManualEditFrame extends javax.swing.JFrame {
                     requestFocus();
                 }
             });
-            try {
-                this.wait();
-            } catch (InterruptedException ie) {
-                System.out.println("Wait interrupted");
-            }
+            do {
+                try {
+                    _lock.wait();
+                } catch (InterruptedException ie) {
+                    System.out.println("Wait interrupted");
+                }
+            } while (! _cancelAll && ! _done);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    setVisible(false);
+                    dispose();
+                }
+            });
             return _request;
         }
     }
     
     public Response editResponse(final Request request, final Response response) {
-        synchronized (this) {
+        synchronized (_lock) {
+            _cancelAll = false;
+            _done = false;
             _response = response;
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
@@ -124,15 +139,23 @@ public class ManualEditFrame extends javax.swing.JFrame {
                     requestFocus();
                 }
             });
-            try {
-                this.wait();
-            } catch (InterruptedException ie) {
-                System.out.println("Wait interrupted");
-            }
+            do {
+                try {
+                    _lock.wait();
+                } catch (InterruptedException ie) {
+                    System.out.println("Wait interrupted");
+                }
+            } while (! _cancelAll && ! _done);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    setVisible(false);
+                    dispose();
+                }
+            });
             return _response;
         }
     }
-
+    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -143,6 +166,7 @@ public class ManualEditFrame extends javax.swing.JFrame {
 
         jPanel1 = new javax.swing.JPanel();
         cancelButton = new javax.swing.JButton();
+        cancelAllButton = new javax.swing.JButton();
         acceptButton = new javax.swing.JButton();
         abortButton = new javax.swing.JButton();
 
@@ -174,6 +198,15 @@ public class ManualEditFrame extends javax.swing.JFrame {
 
         jPanel1.add(cancelButton, new java.awt.GridBagConstraints());
 
+        cancelAllButton.setText("Cancel all edits");
+        cancelAllButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelAllButtonActionPerformed(evt);
+            }
+        });
+
+        jPanel1.add(cancelAllButton, new java.awt.GridBagConstraints());
+
         acceptButton.setText("Accept edits");
         acceptButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -201,58 +234,63 @@ public class ManualEditFrame extends javax.swing.JFrame {
 
         pack();
     }//GEN-END:initComponents
-
+    
+    private void cancelAllButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelAllButtonActionPerformed
+        _cancelAll = true;
+        _done = true;
+        synchronized(_lock) {
+            _lock.notifyAll();
+        }
+    }//GEN-LAST:event_cancelAllButtonActionPerformed
+    
     private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
         if (isVisible()) _size = getSize();
     }//GEN-LAST:event_formComponentResized
-
+    
     private void formComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentMoved
         if (isVisible()) _location = getLocation();
     }//GEN-LAST:event_formComponentMoved
-
+    
     private void abortButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_abortButtonActionPerformed
-        setVisible(false);
-        dispose();
+        _done = true;
         _request = null;
         _response = null;
-        synchronized (this) {
-            this.notify();
+        synchronized (_lock) {
+            _lock.notifyAll();
         }
     }//GEN-LAST:event_abortButtonActionPerformed
-
+    
     private void acceptButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_acceptButtonActionPerformed
         if (_response != null) {
             _response = _responsePanel.getResponse();
         } else if (_request != null) {
             _request = _requestPanel.getRequest();
         }
-        setVisible(false);
-        dispose();
-        synchronized (this) {
-            this.notify();
+        _done = true;
+        synchronized (_lock) {
+            _lock.notifyAll();
         }
     }//GEN-LAST:event_acceptButtonActionPerformed
-
+    
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
-        setVisible(false);
-        dispose();
-        synchronized (this) {
-            this.notify();
+        _done = true;
+        synchronized (_lock) {
+            _lock.notifyAll();
         }
     }//GEN-LAST:event_cancelButtonActionPerformed
     
     /** Exit the Application */
     private void exitForm(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_exitForm
-        setVisible(false);
-        dispose();
-        synchronized (this) {
-            this.notify();
+        _done = true;
+        synchronized (_lock) {
+            _lock.notifyAll();
         }
     }//GEN-LAST:event_exitForm
-        
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton abortButton;
     private javax.swing.JButton acceptButton;
+    private javax.swing.JButton cancelAllButton;
     private javax.swing.JButton cancelButton;
     private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
