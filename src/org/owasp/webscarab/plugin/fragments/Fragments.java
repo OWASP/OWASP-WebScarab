@@ -60,7 +60,6 @@ import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.SiteModel;
-import org.owasp.webscarab.model.SiteModelAdapter;
 import org.owasp.webscarab.parser.Parser;
 
 import org.owasp.webscarab.plugin.Framework;
