@@ -1,0 +1,211 @@
+WebScarab architecture
+
+WebScarab is designed as a framework that contains a number of plugins that
+perform various tasks. 
+
+The Plugins perform one or both of the following key functions:
+
+* Generating conversations
+* Analysing conversations
+
+For example, the Proxy plugin generates conversations by reading Requests
+from a browser. It does not perform any analysis of the conversations. The
+Spider plugin, on the other hand, parses HTML responses to identify links 
+to resources that have not yet been seen (and can be extended to extract 
+links from other content types, if desired). It then builds Requests based
+on those links. The Fragments plugin only does analysis, looking for 
+interesting text in (currently) HTML responses. "Interesting" is defined as
+"scripts and comments", at the moment! ;-)
+
+The basic framework performs the following major functions:
+
+* Keeps a record of the conversations, and URL's identified
+* Calls each plugin when a new conversation is added.
+
+It also does session management, to support creating and loading new sessions.
+
+The most important classes of WebScarab are:
+
+Request - represents an HTTP request.
+
+Response - represents the HTTP response that corresponds to an HTTP request
+
+Message - represents a byte stream or byte array, with a number of associated
+          Name-Value pairs. Extended by Request and Response, and also used to
+          represent individual parts of multi-part MIME messages.
+
+HttpUrl - an HTTP or HTTPS URL. This includes some useful functionality
+          that a standard java.net.URL does not offer.
+
+ConversationID - provides a reference to a particular Request/Response pair
+                 that has been added to the SiteModel.
+
+SiteModel - used to group all the conversations together, as well as providing
+            a "view" of all the URL's that have been identified. It provides
+            a simple means of storing some information about an HttpUrl, or
+            about a conversation, and retrieving that information. It also
+            provides notifications to registered listeners whenever something
+            changes. Finally, it acts as a shared CookieJar, which plugins
+            can use to synchronise cookies between themselves. For example,
+            the Proxy plugin extracts cookies that it sees in the Responses,
+	    and the Spider plugin uses those cookies when generating Requests.
+
+Framework - maintains a list of the loaded plugins, and acts as an intermediary
+            between the Plugins and the SiteModel, receiving conversations
+            from the Plugins, adding them to the SiteModel, and notifying
+            each plugin that a new conversation can be analysed.
+
+Then there are the classes that actually do the work of fetching a Response
+from an HTTP/S server.
+
+HTTPClientFactory - should be used to create properly parameterised 
+                    HTTPClient's. Parameterised means, already configured 
+                    with proxies, client certificates, etc.
+
+HTTPClient - defines the interface for an HTTPClient
+
+URLFetcher - does the "heavy lifting". This is an implementation of HTTPClient
+             which connects to the HTTP server, submits the Request, retrieves
+             the Response, and manages the socket for possible later reuse
+             (Connection: keep-alive)
+
+AsyncFetcher - allows the caller to submit a Request that can be executed by
+               one of a number of simultaneous threads. This provides a non-
+	       blocking interface that allows e.g. Spider to fetch a number
+               of Responses at the same time. This simply wraps a number of
+               URLFetchers.
+
+On top of this all is the user interface. I have tried to make WebScarab
+UI-neutral. In other words, it should be fairly easy to develop a SWT or
+browser-based user interface, without having to change too much existing
+code. I think I have done this reasonably well with the Framework, and
+the Swing UIFramework follows the MVC model, with the SiteModel as the "M",
+the UIFramework as the "V", and the UIFramework and Framework cooperating as
+the "C".
+
+However, I have not been as diligent in separating the model and the 
+controller classes in the various plugins. I'm sure that there is a lot that
+could be improved in this area.
+
+The Swing UIFramework provides a few basic facilities:
+
+It allows the user to create new sessions, and open old sessions.
+It allows the user to parameterise the HTTPClientFactory, setting upstream
+proxies, and client certificates.
+It provides . . . 
+
+Well, basically, it provides all the various menu options that you can see. ;-)
+
+It also provides a view of the URL's and the conversations that have been seen,
+in the "Summary". This panel shows all URL's that have a corresponding 
+conversation (i.e. an URL that has been "seen"). It also shows the 
+conversations. 
+
+Implementation Note:
+
+The SummaryPanel itself only creates a few of the columns that exist when 
+WebScarab is run. By default, the SummaryPanel shows which methods have 
+been used for a particular URL, and what status responses have been
+returned. For conversations, it shows the ID, Method, Url, Parameters and
+Response status. These are considered to be the basic minimum information.
+
+All other columns are provided by the various UI plugins, using a 
+ColumnDataModel, where information for the column is retrieved using the URL,
+or the ConversationID, depending on which table or treetable the column is in.
+
+Similarly, the only "right-click" action provided by the SummaryPanel is
+showing the conversation details. Other actions are provided by the Plugins.
+
+There are a number of useful classes provided in the ui.swing package, which
+can be used by the Swing UI plugins. Most likely, you will use the
+RequestPanel and the ResponsePanel to display and edit Requests and Responses.
+
+The RequestPanel and ResponsePanel offer two views of the data. One is a 
+"parsed" view, where the message is broken down into individual pieces, 
+making it easier for a human to comprehend, or access a specific part. The 
+other is a "raw" view, which is a direct representation of the characters and
+bytes.
+
+The "parsed" views of the RequestPanel and ResponsePanel each contain a 
+MessagePanel, which has a table for message headers, and a ContentPanel, 
+which, depending on the Message's Content-Type, creates and populates 
+various editors to display that content. It may make more sense, or be 
+"better" in some way to distinguish between Renderers and Editors, as 
+Sun has done for tables, etc. I just couldn't wrap my mind about how to 
+implement this, so I did it this way. Contributions are welcome! ;-)
+
+At the moment, there are editors for plain text, HTML, GIF and JPG images,
+Multi-part content (which actually just wraps another MessagePanel), and 
+arbitrary byte data (the Hex editor). Editors are registered with the 
+EditorFactory, by specifying the Content-Types that they can handle. The 
+ContentPanel then requests all editors for a particular Content-Type, and
+displays them in the tabs.
+
+Other useful classes are the ConversationListModel, ConversationTableModel,
+SiteTreeModelAdapter and SiteTreeTableModelAdapter classes. These basically
+wrap the SiteModel, and provide a Swing model interface, complete with
+dynamic listeners, etc. They do only provide a read-only view, though.
+
+The above classes should make it pretty easy to build a usable GUI for a 
+plugin in a short time.
+
+So, how do I write a Plugin?
+
+All plugins must implement the Plugin interface. (At the moment, they actually
+extend the Plugin class, but that should change. There is actually no 
+meaningful shared code in Plugin, so I plan to make it an interface instead.)
+
+Each plugin is instantiated once, at startup. A session is loaded, a new 
+Thread is created for each plugin, and the Thread is started. At this point,
+the plugin can start generating Requests, using an HTTPClient to fetch the
+Responses, possibly perform some local analysis of the Response, and 
+(optionally) submit it to the Framework for archiving, and distribution to
+all the plugins (including itself) for analysis.
+
+I say "optionally" above, because, for example, in the case of the 
+SessionIDAnalysis plugin, it simply receives thousands of near-identical 
+responses, and it takes care of extracting and recording the interesting 
+information from those responses itself.
+
+The analysis() method of each plugin is called for EVERY conversation that is
+submitted to the Framework. This allows, e.g. the Spider plugin to extract
+links from all responses, not just the ones that it generates.
+
+So how do I store my data in the session?
+
+Plugins are created with a reference to the Framework. From the Framework,
+one can get a reference to the SiteModel. Depending on the complexity of
+your requirements, you may simply choose to put your data into the SiteModel
+as a Conversation property, or an Url property. The SiteModel supports lists
+of Strings, referenced by a property name.
+
+If this is not adequate, you should define a PluginStore interface for your 
+plugin, which defines its requirements. Then implement a FileSystemStore that
+provides those requirements. When a new session is opened, or created, your
+plugin's setSession() method will be called, with a String stating the plugin
+type (currently only "FileSystem"), an Object representing the overall store
+(a java.io.File representing the session directory), and a session identifier,
+which might be used by a SQLStore to differentiate the rows for a number
+of different sessions. This is not currently used by the FileSystemStore.
+
+And how do I put a UI on top of my plugin?
+
+Swing plugin interfaces must implement the SwingPluginUI interface. This 
+defines methods for returning a JPanel which is added to the main 
+JTabbedPane (after the Summary), actions for the SummaryPanel's right-click
+menus,  and ColumnDataModel's for the URL and Conversation tables.
+
+At the moment, I have also defined a "PluginUI" interface for each plugin,
+allowing the plugin to interact directly with its user interface, for example,
+to pop up an error dialog, a Proxy intercept dialog, etc. This works, I 
+think, but I think I should also try to separate the "model" aspects out of
+each plugin, and provide "ModelListener" interfaces that the UI can implement
+to get notifications of changes to the model. For example, the 
+SessionIDAnalysis plugin calls SessionIDAnalysisUI methods for each session 
+id that it extracts. This means that the SessionID tablemodel and the XY 
+datamodel almost HAVE to be implemented as inner classes in the overall UI, 
+rather than registering as independent listeners of a hypothetical 
+SessionIDModel.
+
+This will be fixed in due course, where it makes sense.
+
