@@ -106,10 +106,7 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
     }//GEN-END:initComponents
 
     private void updateCookiesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateCookiesButtonActionPerformed
-        Response response = responsePanel.getResponse();
-        if (response != null) {
-            _manualRequest.updateCookies(response);
-        }
+        _manualRequest.updateCookies();
     }//GEN-LAST:event_updateCookiesButtonActionPerformed
 
     private void getCookieButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getCookieButtonActionPerformed
