@@ -16,6 +16,7 @@ import java.net.SocketException;
 import java.io.IOException;
 import java.lang.Thread;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -29,7 +30,7 @@ public class Listener implements Runnable {
     private int _port;
     private String _base;
     private NetworkSimulator _simulator;
-    private ProxyPlugin[] _plugins;
+    private List _plugins;
     
     private ServerSocket _serversocket;
 
@@ -41,7 +42,7 @@ public class Listener implements Runnable {
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     /** Creates a new instance of Listener */
-    public Listener(Plug plug, String address, int port, String base, NetworkSimulator simulator, ProxyPlugin[] plugins) throws IOException {
+    public Listener(Plug plug, String address, int port, String base, NetworkSimulator simulator, List plugins) throws IOException {
         _plug = plug;
         
         if (address == null) {
@@ -144,7 +145,7 @@ public class Listener implements Runnable {
         return _simulator.getName();
     }
     
-    public ProxyPlugin[] getPlugins() {
+    public List getPlugins() {
         return _plugins;
     }
 

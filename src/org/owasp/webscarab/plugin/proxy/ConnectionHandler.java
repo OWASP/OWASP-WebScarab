@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.*;
 import javax.net.ssl.*;
 import java.security.KeyStore;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.owasp.webscarab.httpclient.HTTPClient;
@@ -23,7 +23,7 @@ import org.owasp.webscarab.util.LogOutputStream;
 public class ConnectionHandler implements Runnable {
     
     private Plug _plug;
-    private ProxyPlugin[] _plugins;
+    private List _plugins;
     private Socket _sock = null;
     private String _base;
     private NetworkSimulator _simulator;
@@ -36,21 +36,17 @@ public class ConnectionHandler implements Runnable {
     private OutputStream _serverOut = null;
     
     private URLFetcher _uf = null;
-    private ParallelFetcher _pf = null;
     
     String keystore = "/server.p12";
     char keystorepass[] = "password".toCharArray();
     char keypassword[] = "password".toCharArray();
     
-    public ConnectionHandler(Socket sock, Plug plug, String base, NetworkSimulator simulator, ProxyPlugin[] plugins) {
+    public ConnectionHandler(Socket sock, Plug plug, String base, NetworkSimulator simulator, List plugins) {
         _sock = sock;
         _plug = plug;
         _base = base;
         _simulator = simulator;
         _plugins = plugins;
-        if (_plugins == null) {
-            _plugins = new ProxyPlugin[0];
-        }
         try {
             _sock.setTcpNoDelay(true);
             _sock.setSoTimeout(30 * 1000);
@@ -58,23 +54,12 @@ public class ConnectionHandler implements Runnable {
             _logger.warning("Error setting socket parameters");
         }
         
-        // try {
-        //     PipedInputStream scis = new PipedInputStream();
-        //     PipedOutputStream scos = new PipedOutputStream(scis);
-        //     // main (live) URLFetcher, writes a copy of what it reads from the server to scos
-        //     _uf = new URLFetcher(null, scos);
-        //     // copy URLFetcher, parses the response from scis, for submission to the model
-        //     _pf = new ParallelFetcher(scis);
-        // } catch (IOException ioe) {
-        //     _logger.severe("IOException creating the piped streams! " + ioe);
-            _logger.info("Recorded conversations will include any changes to the response by the plugins!");
-            _uf = new URLFetcher();
-        // }
+        _uf = new URLFetcher();
     }
     
     public ConnectionHandler(Plug plug, InputStream clientIn, InputStream serverIn) {
         _sock = null;
-        _plugins = new ProxyPlugin[0];
+        _plugins = null;
         _plug = plug;
         _clientIn = clientIn;
         _serverIn = serverIn;
@@ -97,7 +82,7 @@ public class ConnectionHandler implements Runnable {
         }
         try {
             Request request = null;
-            // if we do not already have a base URL (i.e. we operate as a normal 
+            // if we do not already have a base URL (i.e. we operate as a normal
             // proxy rather than a reverse proxy), check for a CONNECT
             if (_base == null) {
                 try {
@@ -163,8 +148,11 @@ public class ConnectionHandler implements Runnable {
             // in reverse order so that they operate intuitively
             // the first plugin in the array gets the first chance to modify
             // the request, and the last chance to modify the response
-            for (int i=_plugins.length-1; i>=0; i--) {
-                hc = _plugins[i].getProxyPlugin(hc);
+            if (_plugins != null) {
+                for (int i=_plugins.size()-1; i>=0; i--) {
+                    ProxyPlugin pp = (ProxyPlugin) _plugins.get(i);
+                    hc = pp.getProxyPlugin(hc);
+                }
             }
             
             // do we keep-alive?
@@ -191,11 +179,6 @@ public class ConnectionHandler implements Runnable {
                 }
                 _logger.info("Browser requested : " + request.getMethod() + " " + request.getURL().toString());
                 
-                // start a thread reading the copy of the server's response
-                if (_pf != null) {
-                    _pf.readResponse(request);
-                    _logger.fine("Started the parallel fetch");
-                }
                 // pass the request through the plugins, and return the response
                 Response response = null;
                 try {
@@ -204,7 +187,6 @@ public class ConnectionHandler implements Runnable {
                     _logger.severe("IOException retrieving the response for " + request.getURL() + " : " + ioe);
                     response = errorResponse(request, "IOException retrieving the response: " + ioe);
                     // prevent the conversation from being submitted/recorded
-                    _pf = null;
                     _plug = null;
                 }
                 if (response == null) {
@@ -212,7 +194,7 @@ public class ConnectionHandler implements Runnable {
                     return;
                 }
                 _logger.info("Response : " + response.getStatusLine());
-                try { 
+                try {
                     if (_clientOut != null) {
                         _logger.fine("Writing the response to the browser");
                         response.write(_clientOut);
@@ -222,18 +204,6 @@ public class ConnectionHandler implements Runnable {
                     _logger.severe("Error writing back to the browser : " + ioe);
                 } finally {
                     response.flushContentStream(); // this simply flushes the content from the server
-                }
-                // Now we read the response from the copy of the server input stream
-                // so that we avoid any possible changes made by the proxy plugins
-                // if there is an error, we submit the possibly modified response
-                // to the model
-                if (_pf != null) {
-                    Response resp = _pf.getResponse();
-                    if (resp != null) { 
-                        response = resp;
-                    } else {
-                        _logger.severe("Submitting the original, (possibly) modified response to the server");
-                    }
                 }
                 if (_plug != null && request != null && !request.getMethod().equals("CONNECT") && response != null) {
                     _plug.addConversation("Proxy", request, response);
@@ -245,8 +215,8 @@ public class ConnectionHandler implements Runnable {
                 request = null;
                 
                 _logger.fine("Version: " + version + " Connection: " + connection);
-            } while ((version.equals("HTTP/1.0") && "keep-alive".equalsIgnoreCase(connection)) || 
-                     (version.equals("HTTP/1.1") && !"close".equalsIgnoreCase(connection)));
+            } while ((version.equals("HTTP/1.0") && "keep-alive".equalsIgnoreCase(connection)) ||
+            (version.equals("HTTP/1.1") && !"close".equalsIgnoreCase(connection)));
             _logger.fine("Finished handling connection");
         } catch (Exception e) {
             _logger.severe("ConnectionHandler got an error : " + e);
@@ -279,7 +249,7 @@ public class ConnectionHandler implements Runnable {
         }
         SSLSocketFactory factory = sslcontext.getSocketFactory();
         SSLSocket sslsock;
-
+        
         try {
             sslsock=(SSLSocket)factory.createSocket(sock,sock.getInetAddress().getHostName(),sock.getPort(),true);
             sslsock.setUseClientMode(false);
@@ -369,7 +339,7 @@ public class ConnectionHandler implements Runnable {
                 return _response;
             }
         }
-
+        
     }
-
+    
 }

@@ -97,6 +97,12 @@ public class NetworkSimulator {
     
     private int reserveShared(int requested) {
         synchronized(_sharedLock) {
+            if (requested == 0) {
+                try {
+                    _sharedLock.wait();
+                } catch (InterruptedException ie) {}
+                return 0;
+            }
             while(_sharedAvailable == 0) {
                 try {
                     _sharedLock.wait();
@@ -113,6 +119,12 @@ public class NetworkSimulator {
             return reserveShared(requested);
         }
         synchronized(_readLock) {
+            if (requested == 0) {
+                try {
+                    _readLock.wait();
+                } catch (InterruptedException ie) {}
+                return 0;
+            }
             while(_readAvailable == 0) {
                 try {
                     _readLock.wait();
@@ -129,6 +141,12 @@ public class NetworkSimulator {
             return reserveShared(requested);
         }
         synchronized(_writeLock) {
+            if (requested == 0) {
+                try {
+                    _writeLock.wait();
+                } catch (InterruptedException ie) {}
+                return 0;
+            }
             while(_writeAvailable == 0) {
                 try {
                     _writeLock.wait();

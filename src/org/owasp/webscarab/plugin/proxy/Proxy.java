@@ -1,7 +1,7 @@
 package org.owasp.webscarab.plugin.proxy;
 
 /*
- * $Id: Proxy.java,v 1.11 2004/05/20 06:37:29 rogan Exp $
+ * $Id: Proxy.java,v 1.12 2004/06/01 07:17:43 rogan Exp $
  */
 
 import java.net.ServerSocket;
@@ -166,9 +166,7 @@ public class Proxy extends AbstractWebScarabPlugin {
                 simulator = "Unlimited";
             }
             NetworkSimulator netsim = (NetworkSimulator) _simulators.get(simulator);
-            ProxyPlugin[] plugins = new ProxyPlugin[_plugins.size()];
-            plugins = (ProxyPlugin[]) _plugins.toArray(plugins);
-            Listener l = new Listener(_plug, address, port, base, netsim, usePlugins ? plugins : null);
+            Listener l = new Listener(_plug, address, port, base, netsim, usePlugins ? _plugins : null);
             _listeners.put(key,l);
             
             _prop.setProperty("Proxy.listener." + key + ".base", base == null ? "" : base);
