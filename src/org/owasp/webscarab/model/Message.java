@@ -205,7 +205,7 @@ public class Message {
             }
         } else if (name.equalsIgnoreCase("Content-length")) {
             try {
-                _length = Integer.parseInt(value);
+                _length = Integer.parseInt(value.trim());
             } catch (NumberFormatException nfe) {
                 _logger.warning("Error parsing the content-length '" + value + "' : " + nfe);
             }

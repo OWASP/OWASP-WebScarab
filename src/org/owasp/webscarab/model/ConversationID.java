@@ -38,7 +38,7 @@ public class ConversationID implements Comparable {
     public ConversationID(String id) throws ParseException {
         synchronized (_lock) {
             try {
-                _id = Integer.parseInt(id);
+                _id = Integer.parseInt(id.trim());
                 if (_id >= _next) {
                     _next = _id + 1;
                 } else if (_id <= 0) {
