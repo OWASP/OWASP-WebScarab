@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -42,15 +42,8 @@ package org.owasp.webscarab.ui.swing;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.owasp.webscarab.ui.swing.editors.SerializedObjectPanel;
-import org.owasp.webscarab.ui.swing.editors.ImagePanel;
-import org.owasp.webscarab.ui.swing.editors.UrlEncodedPanel;
-import org.owasp.webscarab.ui.swing.editors.HTMLPanel;
-import org.owasp.webscarab.ui.swing.editors.TextPanel;
-
-import org.owasp.webscarab.ui.swing.editors.EditorWrapper;
 import org.owasp.webscarab.ui.swing.editors.ByteArrayEditor;
-import org.owasp.webscarab.ui.swing.editors.HexPanel;
+import org.owasp.webscarab.ui.swing.editors.EditorFactory;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -58,9 +51,12 @@ import javax.swing.SwingUtilities;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.Dimension;
+import java.awt.Component;
 
 // for main()
 import java.io.ByteArrayOutputStream;
+
+import java.util.logging.Logger;
 
 /**
  *
@@ -74,34 +70,12 @@ public class ContentPanel extends javax.swing.JPanel {
     
     private byte[] _data = null;
     
-    private ArrayList _editors = new ArrayList();
-    private HexPanel _hexPanel = new HexPanel();
+    private ByteArrayEditor[] _editors = null;
     
     private int _selected = -1;
     private boolean[] _upToDate = new boolean[] {false};
     
-    private static int _preferred = -1;
-    
-    private Object[] _editorClasses = new Object[] {
-        "org.owasp.webscarab.ui.swing.editors.SerializedObjectPanel",
-        new String[] {"application/x-serialized-object"},
-        
-        "org.owasp.webscarab.ui.swing.editors.ImagePanel",
-        new String[] {"image/.*"},
-        
-        "org.owasp.webscarab.ui.swing.editors.UrlEncodedPanel",
-        new String[] {"application/x-www-form-urlencoded"},
-        
-        "org.owasp.webscarab.ui.swing.editors.HTMLPanel",
-        new String[] {"text/html.*"},
-        
-        "org.owasp.webscarab.ui.swing.editors.TextPanel",
-        new String[] {
-            "text/.*", 
-            "application/x-javascript", 
-            "application/x-www-form-urlencoded"
-        },
-    };
+    private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates new form ContentPanel */
     public ContentPanel() {
@@ -109,26 +83,55 @@ public class ContentPanel extends javax.swing.JPanel {
         viewTabbedPane.getModel().addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 updateData(_selected);
-                _preferred = viewTabbedPane.getSelectedIndex();
-                updatePanel(viewTabbedPane.getSelectedIndex());
+                _selected = viewTabbedPane.getSelectedIndex();
+                updatePanel(_selected);
             }
         });
-        for (int i=0; i<_editorClasses.length; i+=2) {
-            try {
-                String name = (String) _editorClasses[i];
-                String[] types = (String[]) _editorClasses[i+1];
-                EditorWrapper wrapper = new EditorWrapper(name, types);
-                _editors.add(wrapper);
-            } catch (Exception e) {
-                System.err.println("Error instantiating " + _editorClasses[i] + " : " + e);
-            }
-        }
-        
-        if (_preferred > -1 && _preferred < viewTabbedPane.getTabCount()) viewTabbedPane.setSelectedIndex(_preferred);
     }
     
-    public void setContent(final String type, final byte[] content, final boolean editable) {
+    public void setEditable(boolean editable) {
         _editable = editable;
+        if (_editors != null) {
+            for (int i=0; i<_editors.length; i++) {
+                _editors[i].setEditable(editable);
+            }
+        }
+    }
+    
+    public void setContentType(String contentType) {
+        if (_contentType == null || !_contentType.equals(contentType)) {
+            _contentType = contentType;
+            createPanels(_contentType);
+        }
+    }
+    
+    private void createPanels(final String contentType) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    createPanels(contentType);
+                }
+            });
+        } else {
+            viewTabbedPane.removeAll();
+            _editors = EditorFactory.getEditors(contentType);
+            for (int i=0; i<_editors.length; i++) {
+                _editors[i].setEditable(_editable);
+                viewTabbedPane.add((Component)_editors[i]);
+            }
+            invalidateEditors();
+            invalidate();
+            revalidate();
+        }
+    }
+    
+    private void invalidateEditors() {
+        _upToDate = new boolean[_editors.length];
+        for (int i=0; i<_upToDate.length; i++)
+            _upToDate[i] = false;
+    }
+    
+    public void setContent(byte[] content) {
         _modified = false;
         if (content == null) {
             _data = null;
@@ -136,64 +139,34 @@ public class ContentPanel extends javax.swing.JPanel {
             _data = new byte[content.length];
             System.arraycopy(content, 0, _data, 0, content.length);
         }
-        if (SwingUtilities.isEventDispatchThread()) {
-            initPanels(type, content, editable);
-        } else {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    initPanels(type, content, editable);
-                }
-            });
+        
+        if (_editors == null || _editors.length == 0) {
+            return;
         }
+        invalidateEditors();
+        
+        _selected = viewTabbedPane.getSelectedIndex();
+        if (_selected < 0) {
+            _selected = 0;
+            viewTabbedPane.setSelectedIndex(_selected);
+        }
+        updatePanel(_selected);
     }
     
-    private void initPanels(String type, byte[] content, boolean editable) {
-        if (type == null || !type.equals(_contentType)) {
-            _contentType = type;
-            addEditors();
-            updatePanel(0);
-        } else {
-            updatePanel(viewTabbedPane.getSelectedIndex());
-        }
-    }
-    
-    private void addEditors() {
-        viewTabbedPane.removeAll();
-        if ((_data != null && _data.length > 0 ) || _editable) {
-            if (_contentType != null) {
-                Iterator it = _editors.iterator();
-                while (it.hasNext()) {
-                    EditorWrapper wrapper = (EditorWrapper) it.next();
-                    if (wrapper.canEdit(_contentType)) {
-                        viewTabbedPane.add(wrapper.getEditorComponent());
-                    }
-                }
-            }
-            viewTabbedPane.add(_hexPanel.getName(), _hexPanel);
-        }
-        _upToDate = new boolean[viewTabbedPane.getTabCount()];
-        invalidatePanels();
-        invalidate();
-    }
-
     public boolean isModified() {
-        ByteArrayEditor ed = ((ByteArrayEditor) viewTabbedPane.getSelectedComponent());
-        boolean selectedModified = false;
-        if (ed != null) {
-            selectedModified = ed.isModified();
-        }
-        return _editable && (_modified || selectedModified);
+        if (! _editable) return false;
+        int selected = viewTabbedPane.getSelectedIndex();
+        if (selected < 0) return false;
+        return _modified || _editors[selected].isModified();
     }
     
     public byte[] getContent() {
-        updateData(_selected);
-        return _data;
-    }
-    
-    private void invalidatePanels() {
-        for (int i=0; i<_upToDate.length; i++) {
-            _upToDate[i] = false;
+        if (isModified()) {
+            int selected = viewTabbedPane.getSelectedIndex();
+            _data = _editors[selected].getBytes();
+            _modified = false;
         }
+        return _data;
     }
     
     private void updatePanel(int panel) {
@@ -202,11 +175,8 @@ public class ContentPanel extends javax.swing.JPanel {
         } else if (panel >= _upToDate.length) {
             panel = 0;
         }
-        _selected = panel;
         if (!_upToDate[panel]) {
-            ByteArrayEditor editor = (ByteArrayEditor) viewTabbedPane.getComponentAt(panel);
-            editor.setEditable(_editable);
-            editor.setBytes(_data);
+            _editors[panel].setBytes(_contentType, _data);
             _upToDate[panel] = true;
         }
     }
@@ -217,11 +187,11 @@ public class ContentPanel extends javax.swing.JPanel {
             if (ed.isModified()) {
                 _modified = true;
                 _data = ed.getBytes();
-                invalidatePanels();
+                invalidateEditors();
                 _upToDate[panel] = true;
             }
         }
-    }        
+    }
     
     /** This method is called from within the constructor to
      * initialize the form.
@@ -287,11 +257,13 @@ public class ContentPanel extends javax.swing.JPanel {
             }
         });
         top.pack();
-        top.setSize(cp.getPreferredSize());
+        // top.setSize(cp.getPreferredSize());
         // top.setBounds(100,100,600,400);
         top.show();
         try {
-            cp.setContent(response.getHeader("Content-Type"), response.getContent(), false);
+            cp.setContentType(response.getHeader("Content-Type"));
+            cp.setEditable(false);
+            cp.setContent(response.getContent());
         } catch (Exception e) {
             e.printStackTrace();
         }
