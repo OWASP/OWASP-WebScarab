@@ -371,17 +371,16 @@ public class WASExecutor {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        args = new String[] {"/home/rdawes/test.xml"};
-        URL url = null;
-        try {
-            url = new URL("http://localhost:8080/");
-        } catch (MalformedURLException mue) {
-            System.err.println("Malformed URL " + mue);
-            System.exit(1);
-        }
-        try {
-            if (args.length > 0) {
-                FileInputStream fis = new FileInputStream(args[0]);
+        if (args.length == 2) {
+            URL url = null;
+            try {
+                url = new URL(args[0]);
+            } catch (MalformedURLException mue) {
+                System.err.println("Malformed URL " + mue);
+                System.exit(1);
+            }
+            try {
+                FileInputStream fis = new FileInputStream(args[1]);
                 Node node = VulnFactory.slurp(fis);
                 WASExecutor we = new WASExecutor(node, url);
                 System.out.println("test has " + we.getVariations() + " variations");
@@ -391,9 +390,12 @@ public class WASExecutor {
                         System.out.println(i + ": " + results[i].isSuccess() + " - " + results[i].getMessage());
                     }
                 }
+            } catch (IOException ioe) {
+                System.err.println("Error reading the test from " + args[0]);
+                System.exit(1);
             }
-        } catch (IOException ioe) {
-            System.err.println("Error reading the test from " + args[0]);
+        } else {
+            System.out.println("Usage: WASExecutor http://host:port/path/file test.xml");
             System.exit(1);
         }
     }

@@ -39,6 +39,7 @@
             <file src="bin/webscarab.bat" targetdir="$INSTALL_PATH" os="windows"/>
             <file src="lib/owasp.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/htmlparser.jar" targetdir="$INSTALL_PATH/lib/"/>
+            <file src="lib/vulnxml.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="doc/WebScarab-Howto.txt" targetdir="$INSTALL_PATH/doc/"/>
             <parsable targetfile="$INSTALL_PATH/webscarab.sh" os="unix"/>
             <executable targetfile="$INSTALL_PATH/webscarab.sh" os="unix"/>
