@@ -23,12 +23,13 @@ import java.net.SocketException;
 
 import javax.net.SocketFactory;
 
-import org.owasp.webscarab.model.*;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
 
 /** Creates a new instance of URLFetcher
  * @author rdawes
  */
-public class URLFetcher {
+public class URLFetcher implements HTTPClient {
     
     static private String httpProxy = "";
     static private int httpProxyPort = 0;
@@ -327,6 +328,7 @@ public class URLFetcher {
         response.setStatus("500");
         response.setMessage("Exodus error");
         response.setHeader("Content-Type","text/html");
+        response.setHeader("Connection","Close");
         String template = "<HTML><HEAD><TITLE>Exodus Error</TITLE></HEAD>";
         template = template + "<BODY>Exodus caused an error trying to retrieve <pre>" + request.toString() + "</pre><P>";
         template = template + "The error was : <pre>" + message + "</pre><P></HTML>";
