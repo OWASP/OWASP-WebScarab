@@ -145,6 +145,8 @@ public class ManualEdit extends AbstractProxyPlugin {
                         if (method.equals(interceptMethods[i])) {
                             if (_cef != null) {
                                 request = _cef.getEditor().editRequest(request);
+                                if (request == null) 
+                                    throw new IOException("Request aborted in Manual Edit");
                             }
                         }
                     }
