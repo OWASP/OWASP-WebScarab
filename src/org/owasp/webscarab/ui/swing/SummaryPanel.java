@@ -181,7 +181,7 @@ public class SummaryPanel extends javax.swing.JPanel {
         
         int[] preferredColumnWidths = {
             40, 60, 60, 300, 200, 200, 
-            100, 80, 150, 80, 50, 100, 100
+            80, 150, 80, 50, 100, 100
         };
 
         javax.swing.table.TableColumnModel columnModel = conversationTable.getColumnModel();
@@ -405,7 +405,7 @@ public class SummaryPanel extends javax.swing.JPanel {
 
         private final String[] _columnNames = new String[] {
             "ID", "Date", "Method", "Url", "Query",
-            "Cookie", "Body", "Status",
+            "Cookie", "Status",
             "Set-Cookie", "Checksum", "Size",
             "Origin", "Comment"
         };
