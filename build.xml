@@ -114,6 +114,7 @@
                 </keep>
                 <keep implements="org.owasp.webscarab.ui.swing.editors.ByteArrayEditor"/>
                 <keep implements="org.apache.bsf.BSFEngine"/>
+                <keep name="org.owasp.webscarab.*"/>
             </proguard>
         </target>
         <target name="source" depends="init,clean" description="packages up the source files">
