@@ -6,10 +6,12 @@
 		<property name="source" value="src"/>
 		<property name="classes" value="classes"/>
 		<property name="mainclass" value="org.owasp.webscarab.ui.swing.WebScarab"/>
-             	<property name="ocljar" value="lib/owasp.jar"/>
+
+                <property name="ocljar" value="lib/owasp.jar"/>
              	<property name="junitjar" value="lib/junit-3.7.jar"/>
              	<property name="htmlparserjar" value="lib/htmlparser.jar"/>
-       		<path id="cpath">
+       		
+                <path id="cpath">
 			<pathelement location="./classes/"/>
 			<pathelement path="${ocljar}"/>
                         <pathelement path="${junitjar}"/>
@@ -29,10 +31,12 @@
 		<mkdir dir="${classes}"/>
 	</target>
 	<target depends="prepare" name="compile">
-		<javac classpathref="cpath" compiler="extJavac" deprecation="off" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}" listfiles="yes"/>
+                <copy file="serverkeys" todir="${classes}"/>
+		<javac classpathref="cpath" compiler="extJavac" deprecation="off" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}" listfiles="yes">
+                    <exclude name="**/was/*"/>
+                </javac>
 	</target>
 	<target depends="compile" name="build">
-                <copy file="serverkeys" todir="${classes}"/>
 		<jar basedir="${classes}" jarfile="${jarname}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
@@ -54,4 +58,18 @@
 			izPackDir="/home/rdawes/IzPack/"
                 />
 	</target>
+	<path id="vpath">
+		<path refid="cpath"/>
+		<pathelement location="/opt/owasp/vulnxml/build/vulnxml.jar"/>
+		<pathelement path="/opt/owasp/vulnxml/src/org/owasp/vulnxml/model/vuln/VulnXML-1.4.dtd"/>
+		<pathelement path="/opt/owasp/vulnxml/lib/commons-collections.jar"/>
+		<pathelement path="/opt/owasp/vulnxml/lib/commons-digester.jar"/>
+		<pathelement path="/opt/owasp/vulnxml/lib/commons-logging.jar"/>
+		<pathelement path="/opt/owasp/vulnxml/lib/gnu-regexp-1.1.4.jar"/>
+	</path>
+	<target depends="compile" name="was">
+            <javac classpathref="cpath" compiler="extJavac" deprecation="off" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}" listfiles="yes">
+            </javac>
+            <java classname="org.owasp.webscarab.plugin.was.WASExecutor" classpathref="vpath" fork="on"/>
+        </target>
 </project>
