@@ -39,6 +39,8 @@
 
 package org.owasp.webscarab.ui.swing.editors;
 
+import org.owasp.webscarab.model.Preferences;
+
 import javax.swing.AbstractAction;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
@@ -70,6 +72,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     public TextPanel() {
         initComponents();
         setName("Text");
+        
         Keymap keymap = JTextArea.addKeymap("MySearchBindings",
                                            textTextArea.getKeymap());
         //Ctrl-f to open the search dialog
@@ -132,6 +135,9 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     public void setText(String contentType, String content) {
+        String wrap = Preferences.getPreference("TextPanel.wrap", "false");
+        if (wrap != null && wrap.equals("true")) textTextArea.setLineWrap(true);
+        
         if (content != null) {
             textTextArea.setText(content);
         } else {
