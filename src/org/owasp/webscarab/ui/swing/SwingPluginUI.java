@@ -7,6 +7,7 @@
 package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.plugin.PluginUI;
+import org.owasp.webscarab.util.swing.ColumnDataModel;
 
 import javax.swing.JPanel;
 import javax.swing.Action;
@@ -19,8 +20,13 @@ public interface SwingPluginUI extends PluginUI {
 
     JPanel getPanel();
     
-    Action[] getURLActions();
+    Action[] getUrlActions();
+    
+    ColumnDataModel[] getUrlColumns();
     
     Action[] getConversationActions();
+    
+    ColumnDataModel[] getConversationColumns();
+    
     
 }
