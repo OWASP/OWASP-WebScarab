@@ -241,6 +241,7 @@ public class CertificateDialog extends javax.swing.JDialog {
             }
             _framework.stopPlugins();
         }
+        boolean error = false;
         try {
             if (useCert) {
                 _factory.setClientCertificateFile(file, keystorePass, keyPass);
@@ -249,17 +250,18 @@ public class CertificateDialog extends javax.swing.JDialog {
             }
         } catch (FileNotFoundException fnfe) {
             JOptionPane.showMessageDialog(null, new String[] {"File not found!", fnfe.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+            error = true;
         } catch (IOException ioe) {
             JOptionPane.showMessageDialog(null, new String[] {"Error reading from " + file, ioe.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+            error = true;
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, new String[] {"Unable to load client cert from " + file, e.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+            error = true;
         }
         if (running) {
             _framework.startPlugins();
         }
+        if (error) return;
         
         Preferences.setPreference("WebScarab.clientCertificate", useCertCheckBox.isSelected() ? "true" : "false");
         Preferences.setPreference("WebScarab.clientCertificateFile",  file);
