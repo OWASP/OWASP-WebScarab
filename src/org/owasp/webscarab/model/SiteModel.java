@@ -58,18 +58,13 @@ public class SiteModel {
             int row = _conversationList.size();
             _ctm.fireTableRowsInserted(row, row);
         }
-        System.err.println("Conversation added");
         if (_store != null) {
             try {
-                System.err.println("Writing to the store");
                 _store.writeRequest(id, request);
                 _store.writeResponse(id, response);
-                System.err.println("Done writing");
             } catch (StoreException se) {
                 System.err.println("Error writing conversation " + id + " to the store : " + se);
             }
-        } else {
-            System.err.println("Added conversation " + id + " before the store was initialised!");
         }
         return id;
     }
@@ -168,8 +163,6 @@ public class SiteModel {
                 }
                 _store.writeURLInfo(urlinfo);
             }
-        } else {
-            throw new StoreException("save called on a null session!");
         }
     }
     
