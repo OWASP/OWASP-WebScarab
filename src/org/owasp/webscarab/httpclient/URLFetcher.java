@@ -44,7 +44,7 @@ public class URLFetcher implements HTTPClient {
     // These represent the SSL classes required to connect to the server.
     static private SSLSocketFactory factory = null;
     static private TrustManager[] trustAllCerts = null;
-
+    
     private Socket proxysocket = null;
     private Socket serversocket = null;
     private SSLSocket sslsocket = null;
@@ -55,14 +55,14 @@ public class URLFetcher implements HTTPClient {
     private String host = null;
     private int port = 0;
     private boolean ssl = false;
-            
+    
     /** Creates a new instance of URLFetcher
      */
     public URLFetcher() {
     }
     
     /** Create and install a trust manager that does not verify server SSL certificates
-     */    
+     */
     
     private void initSSL() {
         // Create a trust manager that does not validate certificate chains
@@ -89,11 +89,11 @@ public class URLFetcher implements HTTPClient {
             System.err.println("Error setting up SSL Support - Key management exception " + kme);
         }
     }
- 
+    
     /** Tells all instances of URLFetcher which HTTP proxy to use, if any
      * @param proxy The address or name of the proxy server to use for HTTP requests
      * @param proxyport The port on the proxy server to connect to
-     */    
+     */
     synchronized static public void setHttpProxy(String proxy, int proxyport) {
         httpProxy = proxy;
         httpProxyPort = proxyport;
@@ -102,7 +102,7 @@ public class URLFetcher implements HTTPClient {
     /** Returns the address of the HTTP proxy server that all instances of URLFetcher
      * will use
      * @return The address of the HTTP proxy configured, or null if none is configured
-     */    
+     */
     synchronized static public String getHttpProxyServer() {
         return httpProxy;
     }
@@ -110,7 +110,7 @@ public class URLFetcher implements HTTPClient {
     /** Returns the port of the HTTP proxy server that all instances of URLFetcher
      * will use
      * @return The port of the currently configured HTTP proxy, or 0 if none is configured
-     */    
+     */
     synchronized static public int getHttpProxyPort() {
         return httpProxyPort;
     }
@@ -118,7 +118,7 @@ public class URLFetcher implements HTTPClient {
     /** Tells all instances of URLFetcher which HTTPS proxy to use, if any
      * @param proxy The address or name of the proxy server to use for HTTPS requests
      * @param proxyport The port on the proxy server to connect to
-     */    
+     */
     synchronized static public void setHttpsProxy(String proxy, int proxyport) {
         httpsProxy = proxy;
         httpsProxyPort = proxyport;
@@ -127,7 +127,7 @@ public class URLFetcher implements HTTPClient {
     /** Returns the address of the HTTPs proxy server that all instances of URLFetcher
      * will use
      * @return The address of the HTTPs proxy configured, or null if none is configured
-     */    
+     */
     synchronized static public String getHttpsProxyServer() {
         return httpsProxy;
     }
@@ -135,7 +135,7 @@ public class URLFetcher implements HTTPClient {
     /** Returns the port of the HTTP proxy server that all instances of URLFetcher
      * will use
      * @return The port of the currently configured HTTP proxy, or 0 if none is configured
-     */    
+     */
     synchronized static public int getHttpsProxyPort() {
         return httpsProxyPort;
     }
@@ -145,7 +145,7 @@ public class URLFetcher implements HTTPClient {
      * ignore the configured proxies
      * @param noproxy A comma separated list of hosts or domains for which no proxy should be used.
      * Domains must start with a period (".")
-     */    
+     */
     synchronized static public void setNoProxy(String[] noproxy) {
         noProxy = noproxy;
     }
@@ -153,7 +153,7 @@ public class URLFetcher implements HTTPClient {
     /** returns the list of hosts and domains that bypass any configured proxies
      * @return Returns a comma separated list of hosts and domains for which no proxy should be
      * used (i.e. direct connection should be made)
-     */    
+     */
     synchronized static public String[] getNoProxy() {
         return noProxy;
     }
@@ -163,18 +163,18 @@ public class URLFetcher implements HTTPClient {
      * independant thread, and must wait for the response before continuing.
      * @return the retrieved response
      * @param request the request to retrieve.
-     */    
+     */
     public Response fetchResponse(Request request) {
         if (request == null) {
             System.err.println("Request is null");
             return null;
         }
- 
+        
         try {
             Response response = opensocket(request);
-			if (response != null) {
-				return response;
-			}
+            if (response != null) {
+                return response;
+            }
         } catch (UnknownHostException uhe) {
             return errorResponse(request, "Unknown host exception " + uhe);
         } catch (IOException ioe) {
@@ -197,7 +197,7 @@ public class URLFetcher implements HTTPClient {
             out.flush();
             
             Response response = new Response();
-            response.setRequest(request); 
+            response.setRequest(request);
             response.read(in);
             String length = response.getHeader("Content-Length");
             if (length != null) {
@@ -306,7 +306,7 @@ public class URLFetcher implements HTTPClient {
             out = sslsocket.getOutputStream();
             System.err.println("Finished negotiating SSL");
         }
-		return null;
+        return null;
     }
     
     private Response errorResponse(Request request, String message) {
@@ -322,7 +322,7 @@ public class URLFetcher implements HTTPClient {
         response.setContent(template.getBytes());
         return response;
     }
-            
+    
     public static void main(String[] args) {
         try {
             Request req = new Request();
