@@ -6,6 +6,8 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import java.net.URL;
+
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.JComboBox;
@@ -13,8 +15,8 @@ import javax.swing.DefaultCellEditor;
 
 import java.io.ByteArrayInputStream;
 
+import org.owasp.util.URLUtil;
 import org.owasp.webscarab.model.Request;
-import org.owasp.webscarab.util.Util;
 
 /**
  *
@@ -94,7 +96,8 @@ public class RequestPanel extends javax.swing.JPanel {
                 rawTextArea.setText(this.request.toString());
             } else if (panel == 1) {
                 methodTextField.setText(this.request.getMethod());
-                pathTextField.setText(Util.getURLSHPP(this.request.getURL()));
+								URL url = request.getURL();
+                pathTextField.setText(URLUtil.schemeAuth(url)+url.getPath());
                 ((ParameterTableModel)parameterTable.getModel()).setParameters(this.request.getParameters());
                 System.out.println("parameter table has " + parameterTable.getModel().getRowCount());
                 if (!editable && parameterTable.getModel().getRowCount() == 0) {

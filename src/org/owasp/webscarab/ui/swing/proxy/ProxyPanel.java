@@ -7,8 +7,8 @@
 package org.owasp.webscarab.ui.swing.proxy;
 
 import org.owasp.webscarab.ui.swing.SwingPlugin;
-import org.owasp.webscarab.plugins.proxy.Proxy;
-import org.owasp.webscarab.plugins.proxy.plugins.*;
+import org.owasp.webscarab.plugin.proxy.Proxy;
+import org.owasp.webscarab.plugin.proxy.module.*;
 
 import java.util.ArrayList;
 

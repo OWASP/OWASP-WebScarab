@@ -4,10 +4,12 @@
  * Created on July 13, 2003, 7:39 PM
  */
 
-package org.owasp.webscarab.plugins.proxy.plugins;
+package org.owasp.webscarab.plugin.proxy.module;
+
+import org.owasp.util.StringUtil;
 
 import org.owasp.webscarab.model.*;
-import org.owasp.webscarab.plugins.proxy.AbstractProxyPlugin;
+import org.owasp.webscarab.plugin.proxy.AbstractProxyPlugin;
 
 import java.util.Properties;
 import java.util.Enumeration;
@@ -22,20 +24,18 @@ import java.io.IOException;
  */
 public class RevealHidden extends AbstractProxyPlugin {
     
-    private Properties _props = new Properties();
     private boolean _enabled = false;
     
     /** Creates a new instance of RevealHidden */
     public RevealHidden() {
-        _props.setProperty("RevealHidden.enabled","false");
+        _prop.put("RevealHidden.enabled","false");
         configure();
     }
     
-    private void configure() {
+    public void configure() {
         String prop = "RevealHidden.enabled";
-        String value = _props.getProperty(prop);
-        if (value == null) value = "";
-        setEnabled(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
+        String value = _prop.get(prop);
+        setEnabled("true".equalsIgnoreCase( value ) || "yes".equalsIgnoreCase( value ));
     }
     
     public String getPluginName() {
@@ -79,22 +79,6 @@ public class RevealHidden extends AbstractProxyPlugin {
         return text.getBytes();
     }
     
-    public void setProperties(Properties properties) {
-        // This just allows us to copy our defaults over into
-        // the main properties class, if they are not set already
-        Enumeration propnames = _props.keys();
-        while (propnames.hasMoreElements()) {
-            String key = (String) propnames.nextElement();
-            String value = properties.getProperty(key);
-            if (value == null) {
-                properties.setProperty(key,_props.getProperty(key));
-            }
-        }
-        _props = properties;
-        // Now perform plugin-specific configuration
-        configure();
-    }
-    
     public void setEnabled(boolean bool) {
         _enabled = bool;
         String prop = "RevealHidden.enabled";
@@ -106,9 +90,9 @@ public class RevealHidden extends AbstractProxyPlugin {
     }
     
     private void setProperty(String prop, String value) {
-        String previous = _props.getProperty(prop);
+        String previous = _prop.get(prop);
         if (previous == null || !previous.equals(value)) {
-            _props.setProperty(prop,value);
+            _prop.put(prop,value);
         }
     }
     

@@ -1,25 +1,26 @@
-package org.owasp.webscarab.plugins.proxy;
+package org.owasp.webscarab.plugin.proxy;
 
 /*
- * $Id: Proxy.java,v 1.2 2003/07/29 22:10:38 rogan Exp $
+ * $Id: Proxy.java,v 1.1 2003/07/30 09:48:50 istr Exp $
  */
-import java.util.Properties;
-import java.util.Enumeration;
 import java.net.*;
 import java.io.*;
 import java.lang.NumberFormatException;
 import java.util.logging.Logger;
 import java.util.ArrayList;
 
-import org.owasp.webscarab.WebScarab;
-import org.owasp.webscarab.plugins.AbstractWebScarabPlugin;
+import org.owasp.webscarab.plugin.Plug;
+import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
 import org.owasp.webscarab.model.*;
 
-import org.owasp.webscarab.plugins.proxy.plugins.*;
+import org.owasp.webscarab.plugin.proxy.module.*;
 
-public class Proxy extends AbstractWebScarabPlugin implements Runnable {
+public class Proxy
+	extends AbstractWebScarabPlugin
+	implements Runnable
+{
     
-    private WebScarab _webscarab = null;
+    private Plug _plug = null;
     
     private ArrayList _plugins = null;
     private ProxyPlugin[] _pluginArray = new ProxyPlugin[0];
@@ -30,17 +31,17 @@ public class Proxy extends AbstractWebScarabPlugin implements Runnable {
     private int listenPort = 0;
     
     private ServerSocket serversocket;
-    private Logger logger = Logger.getLogger("WebScarab.Proxy");
+    private Logger logger = Logger.getLogger("Plug.Proxy");
     
-    public Proxy(WebScarab webscarab) {
-        _webscarab = webscarab;
-        _props.setProperty("Proxy.listenAddress", "127.0.0.1:8008");
+    public Proxy(Plug plug) {
+        _plug = plug;
+        _prop.put("Proxy.listenAddress", "127.0.0.1:8008");
         configure();
     }
     
     protected void configure() {
         String prop = "Proxy.listenAddress";
-        String value = _props.getProperty(prop);
+        String value = _prop.get(prop);
         String[] listenAddress = value.split(":");
         if (listenAddress.length == 2) {
             try {
@@ -58,7 +59,7 @@ public class Proxy extends AbstractWebScarabPlugin implements Runnable {
             this.listenPort = port;
             this.listenHost = server;
             this.portChanged = true;
-            _props.setProperty("Proxy.listenAddress",server + ":" + port);
+            _prop.put("Proxy.listenAddress",server + ":" + port);
         }
     }
     
@@ -112,7 +113,7 @@ public class Proxy extends AbstractWebScarabPlugin implements Runnable {
                 try {
                     sock = serversocket.accept();
                     logger.info("Connect from " + sock.getInetAddress().getHostAddress() + ":" + sock.getPort());
-                    new ConnectionHandler(sock, _webscarab, _pluginArray);
+                    new ConnectionHandler(sock, _plug, _pluginArray);
                 } catch (IOException e) {
                     if (!e.getMessage().equals("Accept timed out")) {
                         logger.severe("I/O error while waiting for a connection : " + e.getMessage());
@@ -178,8 +179,10 @@ public class Proxy extends AbstractWebScarabPlugin implements Runnable {
     /**
      * @param args the command line arguments
      */
+		/* NOT ALLOWED HERE
+		 
     public static void main(String[] args) {
-        WebScarab ws = new WebScarab();
+        Plug ws = new Plug();
         Proxy proxy = new Proxy(ws);
         ManualEdit me = new ManualEdit();
 
@@ -188,6 +191,6 @@ public class Proxy extends AbstractWebScarabPlugin implements Runnable {
         proxy.addPlugin(me);
         
         proxy.run();
-    }
+    }*/
 
 }

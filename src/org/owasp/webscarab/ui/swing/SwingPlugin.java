@@ -14,14 +14,14 @@ import javax.swing.JPanel;
  */
 public interface SwingPlugin {
 
-    public String getPluginName();
+    String getPluginName();
     
-    public JPanel getPanel();
+    JPanel getPanel();
     
-    public void newSession(String dir);
+    void newSession(String dir);
     
-    public void openSession(String dir);
+    void openSession(String dir);
     
-    public void saveSession(String dir);
+    void saveSession(String dir);
     
 }

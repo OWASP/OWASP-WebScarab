@@ -6,7 +6,7 @@
 
 package org.owasp.webscarab.ui.swing;
 
-import org.owasp.webscarab.plugins.proxy.*;
+import org.owasp.webscarab.plugin.proxy.*;
 import org.owasp.webscarab.*;
 import org.owasp.webscarab.ui.swing.*;
 import org.owasp.webscarab.ui.swing.proxy.*;
@@ -19,12 +19,12 @@ import java.util.ArrayList;
  */
 public class WebScarabUI extends javax.swing.JFrame {
     
-    private org.owasp.webscarab.WebScarab _webscarab;
+    private WebScarab _webscarab;
     private ArrayList _plugins;
     private SwingPlugin[] _pluginArray = new SwingPlugin[0];
     
     /** Creates new form WebScarab */
-    public WebScarabUI(org.owasp.webscarab.WebScarab webscarab) {
+    public WebScarabUI(WebScarab webscarab) {
         _webscarab = webscarab;
         initComponents();
         
@@ -200,7 +200,7 @@ public class WebScarabUI extends javax.swing.JFrame {
         System.out.println("OWASP WebScarab - part of the Open Web Application Security Project");
         System.out.println("See http://www.owasp.org/");
         System.out.println("Coders : Rogan Dawes (rdawes at telkomsa.net / rdawes at deloitte.co.za)");
-        System.out.println("         Ingo Struck ()");
+        System.out.println("         Ingo Struck (ingo at ingostruck.de)");
     }//GEN-LAST:event_aboutMenuItemActionPerformed
     
     /** Exit the Application */

@@ -13,7 +13,8 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import org.owasp.webscarab.util.Util;
+import org.owasp.util.Convert;
+import org.owasp.util.URLUtil;
 
 /**
  *
@@ -32,8 +33,8 @@ public class Conversation {
         _props = new Properties();
         URL url = request.getURL();
         setProperty("METHOD", request.getMethod());
-        setProperty("URL", Util.getURLSHPP(url));
-        String value = Util.getURLQuery(url);
+        setProperty("URL", URLUtil.schemeAuth(url));
+        String value = url.getQuery();
         if (value != null) {
             setProperty("QUERY", value);
         }
@@ -88,7 +89,7 @@ public class Conversation {
             System.err.println("Can't calculate MD5 sums! No such algorithm!");
             System.exit(1);
         }
-        return Util.hexEncode(md.digest(content));
+        return Convert.toHexString(md.digest(content));
     }
     
 }

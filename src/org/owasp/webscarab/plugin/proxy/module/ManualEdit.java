@@ -4,13 +4,13 @@
  * Created on July 10, 2003, 4:46 PM
  */
 
-package org.owasp.webscarab.plugins.proxy.plugins;
+package org.owasp.webscarab.plugin.proxy.module;
 
-import java.util.Properties;
-import java.util.Enumeration;
+import java.util.Iterator;
+import org.owasp.util.Prop;
 
 import org.owasp.webscarab.model.*;
-import org.owasp.webscarab.plugins.proxy.AbstractProxyPlugin;
+import org.owasp.webscarab.plugin.proxy.AbstractProxyPlugin;
 
 // this is not right. I guess we should define a callback interface for this, rather
 import org.owasp.webscarab.ui.swing.proxy.ManualEditFrame;
@@ -29,41 +29,39 @@ public class ManualEdit extends AbstractProxyPlugin {
     private boolean interceptRequest = false;
     private boolean interceptResponse = false;
     
-    private Properties _props = new Properties();
-    
     /** Creates a new instance of ManualEdit */
     public ManualEdit() {
-        _props.setProperty("ManualEdit.includeRegex",".*");
-        _props.setProperty("ManualEdit.excludeRegex",".*\\.(gif)|(jpg)|(css)|(js)$");
-        _props.setProperty("ManualEdit.interceptMethods","GET,POST");
-        _props.setProperty("ManualEdit.interceptRequest","false");
-        _props.setProperty("ManualEdit.interceptResponse","false");
+        _prop.put("ManualEdit.includeRegex",".*");
+        _prop.put("ManualEdit.excludeRegex",".*\\.(gif)|(jpg)|(css)|(js)$");
+        _prop.put("ManualEdit.interceptMethods","GET,POST");
+        _prop.put("ManualEdit.interceptRequest","false");
+        _prop.put("ManualEdit.interceptResponse","false");
         configure();
     }
     
-    private void configure() {
+    public void configure() {
         String prop = "ManualEdit.includeRegex";
-        String value = _props.getProperty(prop);
+        String value = _prop.get(prop);
         if (value == null) value = "";
         setIncludeRegex(value);
         
         prop = "ManualEdit.excludeRegex";
-        value = _props.getProperty(prop);
+        value = _prop.get(prop);
         if (value == null) value = "";
         setExcludeRegex(value);
         
         prop = "ManualEdit.interceptMethods";
-        value = _props.getProperty(prop);
+        value = _prop.get(prop);
         if (value == null) value = "";
         setInterceptMethods(value.split(", *"));
             
         prop = "ManualEdit.interceptRequest";
-        value = _props.getProperty(prop);
+        value = _prop.get(prop);
         if (value == null) value = "";
         setInterceptRequest(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
             
         prop = "ManualEdit.interceptResponse";
-        value = _props.getProperty(prop);
+        value = _prop.get(prop);
         if (value == null) value = "";
         setInterceptResponse(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
     }
@@ -116,26 +114,10 @@ public class ManualEdit extends AbstractProxyPlugin {
         return response;
     }
     
-    public void setProperties(Properties properties) {
-        // This just allows us to copy our defaults over into
-        // the main properties class, if they are not set already
-        Enumeration propnames = _props.keys();
-        while (propnames.hasMoreElements()) {
-            String key = (String) propnames.nextElement();
-            String value = properties.getProperty(key);
-            if (value == null) {
-                properties.setProperty(key,_props.getProperty(key));
-            }
-        }
-        _props = properties;
-        // Now perform plugin-specific configuration
-        configure();
-    }
-    
     private void setProperty(String prop, String value) {
-        String previous = _props.getProperty(prop);
+        String previous = _prop.get(prop);
         if (previous == null || !previous.equals(value)) {
-            _props.setProperty(prop,value);
+            _prop.put(prop,value);
         }
     }
     

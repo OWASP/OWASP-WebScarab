@@ -1,12 +1,12 @@
-package org.owasp.webscarab.plugins.proxy;
+package org.owasp.webscarab.plugin.proxy;
 
 import java.io.*;
 import java.net.*;
-import javax.net.ssl.*;
+//import javax.net.ssl.*;
 import java.security.KeyStore;
 import java.util.logging.Logger;
 
-import org.owasp.webscarab.WebScarab;
+import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.model.*;
 
 import org.owasp.webscarab.httpclient.URLFetcher;
@@ -17,13 +17,13 @@ public class ConnectionHandler implements Runnable {
 |  PRIVATE PART                                                          |
 +-----------------------------------------------------------------------*/
     
-    private Logger logger = Logger.getLogger("WebScarab.Proxy");
-    private WebScarab _webscarab;
+    private Logger logger = Logger.getLogger("Plug.Proxy");
+    private Plug _plug;
     private ProxyPlugin[] _plugins;
     private Socket sock;
     private InputStream clientin;
     private OutputStream clientout;
-    private SSLSocket sslsock;
+    //private SSLSocket sslsock;
     
     private boolean isSSL = false;
     
@@ -40,9 +40,9 @@ public class ConnectionHandler implements Runnable {
 /*-----------------------------------------------------------------------+
 |  PUBLIC INTERFACE                                                      |
 +-----------------------------------------------------------------------*/
-    public ConnectionHandler(Socket sock, WebScarab webscarab, ProxyPlugin[] plugins) {
+    public ConnectionHandler(Socket sock, Plug plug, ProxyPlugin[] plugins) {
         this.sock = sock;
-        _webscarab = webscarab;
+        _plug = plug;
         _plugins = plugins;
         
         try {
@@ -134,7 +134,7 @@ public class ConnectionHandler implements Runnable {
             logger.info("Finished writing response to the browser, now sending it to the model");
             
             // now call the model
-            if (_webscarab != null) {
+            if (_plug != null) {
                 if (responseContentStream != null) {
                     int available = responseContentStream.available();
                     if (available > 0) {
@@ -149,7 +149,7 @@ public class ConnectionHandler implements Runnable {
                 logger.info("Creating conversation");
                 Conversation c = new Conversation(request,copyResponse);
                 logger.info("Created conversation OK");
-                _webscarab.addConversation(c);
+                _plug.addConversation(c);
             }
         } catch (Exception e) {
             logger.warning("Got an error : " + e);
@@ -163,7 +163,7 @@ public class ConnectionHandler implements Runnable {
         }            
     }
     
-
+		/*
     private SSLSocket connectLocal(Socket sock) throws IOException {
         OutputStream out = sock.getOutputStream();
         InputStream in = sock.getInputStream();
@@ -218,7 +218,7 @@ public class ConnectionHandler implements Runnable {
 //            request.setHeader("Proxy-Authorization",proxyAuth);
 //        }
 //        return sslsock;
-    }        
+    } */        
     
     
     private static synchronized String readLine(InputStream is) throws IOException {

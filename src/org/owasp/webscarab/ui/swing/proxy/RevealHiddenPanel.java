@@ -6,7 +6,7 @@
 
 package org.owasp.webscarab.ui.swing.proxy;
 
-import org.owasp.webscarab.plugins.proxy.plugins.*;
+import org.owasp.webscarab.plugin.proxy.module.*;
 
 import org.owasp.webscarab.ui.swing.SwingPlugin;
 

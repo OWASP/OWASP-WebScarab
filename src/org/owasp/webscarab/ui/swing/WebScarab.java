@@ -4,13 +4,13 @@
  * Created on July 13, 2003, 8:25 PM
  */
 
-package src.org.owasp.webscarab;
+package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.model.*;
 
-import org.owasp.webscarab.plugins.*;
-import org.owasp.webscarab.plugins.proxy.*;
-import org.owasp.webscarab.plugins.proxy.plugins.*;
+import org.owasp.webscarab.plugin.*;
+import org.owasp.webscarab.plugin.proxy.*;
+import org.owasp.webscarab.plugin.proxy.module.*;
 
 import java.util.ArrayList;
 import java.lang.Thread;
@@ -19,7 +19,9 @@ import java.lang.Thread;
  *
  * @author  rdawes
  */
-public class WebScarab {
+public class WebScarab
+	implements Plug
+{
     
     private SiteModel _sitemodel;
     private Proxy _proxy;

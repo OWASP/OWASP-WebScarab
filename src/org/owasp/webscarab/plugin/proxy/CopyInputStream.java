@@ -4,7 +4,7 @@
  * Created on May 25, 2003, 10:59 AM
  */
 
-package org.owasp.webscarab.plugins.proxy;
+package org.owasp.webscarab.plugin.proxy;
 
 import java.io.InputStream;
 import java.io.FilterInputStream;

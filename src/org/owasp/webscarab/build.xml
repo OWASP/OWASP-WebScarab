@@ -16,6 +16,9 @@
     <ant antfile="${root}/src/org/owasp/webscarab/spider/build.xml" target="compile">
 			<property name="src" value="${root}/src/org/owasp/webscarab/spider" />
 		</ant>
+    <ant antfile="${root}/src/org/owasp/webscarab/plugin/build.xml" target="compile">
+			<property name="src" value="${root}/src/org/owasp/webscarab/plugin" />
+		</ant>
     <ant antfile="${root}/src/org/owasp/webscarab/httpclient/build.xml" target="compile">
 			<property name="src" value="${root}/src/org/owasp/webscarab/httpclient" />
 		</ant>
