@@ -54,11 +54,13 @@ import java.util.regex.PatternSyntaxException;
  */
 public class ManualEdit extends ProxyPlugin {
 
-    private String _includeRegex = "*";
+    private String _includeRegex = "";
     private String _excludeRegex = "";
     private String[] _interceptMethods = null;
     private boolean _interceptRequest = false;
     private boolean _interceptResponse = false;
+    private String _interceptResponseRegex = "";
+    
     private ManualEditUI _ui = null;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
@@ -84,10 +86,14 @@ public class ManualEdit extends ProxyPlugin {
         prop = "ManualEdit.interceptRequest";
         value = Preferences.getPreference(prop, "false");
         _interceptRequest = value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes");
-            
+        
         prop = "ManualEdit.interceptResponse";
         value = Preferences.getPreference(prop, "false");
         _interceptResponse = value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes");
+        
+        prop = "ManualEdit.interceptResponseRegex";
+        value = Preferences.getPreference(prop, "text/.*");
+        _interceptResponseRegex = value;
     }
     
     public String getPluginName() {
@@ -155,6 +161,15 @@ public class ManualEdit extends ProxyPlugin {
         return _interceptResponse;
     }
     
+    public void setInterceptResponseRegex(String regex) {
+        _interceptResponseRegex = regex;
+        Preferences.setPreference("ManualEdit.interceptResponseRegex", regex);
+    }
+    
+    public String getInterceptResponseRegex() {
+        return _interceptResponseRegex;
+    }
+    
     public HTTPClient getProxyPlugin(HTTPClient in) {
         return new Plugin(in);
     }
@@ -190,8 +205,12 @@ public class ManualEdit extends ProxyPlugin {
             Response response = _in.fetchResponse(request);
             if (_interceptResponse) {
                 String contentType = response.getHeader("Content-Type");
-                if (contentType == null || ! contentType.matches("text/.*")) {
-                    return response;
+                try {
+                    if (contentType == null || ! contentType.matches(_interceptResponseRegex)) {
+                        return response;
+                    }
+                } catch (PatternSyntaxException pse) {
+                    _logger.warning("Invalid Regular expression: '" + _interceptResponseRegex + "'");
                 }
                 if (_ui != null) {
                     request = response.getRequest();
