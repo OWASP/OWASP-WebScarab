@@ -28,6 +28,10 @@ public class CookieJar {
     public CookieJar() {
     }
     
+	public void clear() {
+		_cookies.clear();
+	}
+
     /** Looks in the headers of the supplied Response for any Set-Cookie headers.
      * Creates a new Cookie based on the Request URL embedded in the Response, and the
      * value of the Set-Cookie header, and appends it to the end of the list of cookies
@@ -93,16 +97,19 @@ public class CookieJar {
      */    
     private String[] domains(String host) {
         int index = host.lastIndexOf(".");
-        try {
+        try {  // if the last octet is numerical, it is an IP address, so return it immediately
             if (Integer.parseInt(host.substring(host.length()-1)) >-1) {
                 return new String[] {host};
             }
         } catch (NumberFormatException nfe) {}
         String[] parts = host.split("\\.");
-        if (parts.length>2) {
+        if (parts.length>2) { // FIXME : This is very clumsy! this can be done better!
+			for (int i=1; i<parts.length; i++) {
+				parts[i] = "." + parts[i];
+			}
             String[] domains = new String[parts.length-1];
             for (int i=parts.length-2; i>=0; i--) {
-                parts[i] = parts[i] + "." + parts[i+1];
+                parts[i] = parts[i] + parts[i+1];
                 domains[i] = parts[i];
             }
             return domains;
@@ -133,13 +140,13 @@ public class CookieJar {
     }
     
     private ArrayList getAllCookies(String host, String path) {
-        // FIXME we should return these cookies in order.
-        // most specific host first, then longest path match first
         ArrayList all = new ArrayList();
         String[] domains = domains(host);
         for (int i=0; i<domains.length; i++) {
             TreeMap pathmap = (TreeMap) _cookies.get(domains[i]);
             if (pathmap != null) {
+                // FIXME we should return these cookies in order.
+                // longest path match first, apparently
                 Iterator paths = pathmap.keySet().iterator();
                 while (paths.hasNext()) {
                     String cookiepath = (String) paths.next();
