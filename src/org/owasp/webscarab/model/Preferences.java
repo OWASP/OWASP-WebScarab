@@ -4,7 +4,7 @@
  * Created on September 15, 2003, 7:19 AM
  */
 
-package org.owasp.webscarab.plugin;
+package org.owasp.webscarab.model;
 
 import java.util.Properties;
 import java.io.InputStream;
@@ -32,40 +32,38 @@ public class Preferences {
         return _props;
     }
     
-    private static Properties readPreferences() {
+    private static Properties readPreferences() throws IOException {
         // Look for a props file in the user's home directory, and load it if it exists
+        // otherwise loads the default props distributed in the jar
         
         String sep = System.getProperty("file.separator");
         String home = System.getProperty("user.home");
         String file = home + sep + "WebScarab.properties";
 
-        InputStream is = null;
-        
-        Properties homeProps = new Properties();
         try {
-            is = new FileInputStream(file);
-            try {
-                homeProps.load(is);
-            } catch (IOException ioe) {
-                System.err.println("IOError reading " + file + " : " + ioe);
-            }
+            Properties props = new Properties();
+            InputStream is = new FileInputStream(file);
+            props.load(is);
+            _props = props;
         } catch (FileNotFoundException fnfe) {
-            System.err.println("user properties file " + file + " not found");
+            Properties props = new Properties();
+            InputStream is = props.getClass().getResourceAsStream("/" + file);
+            props.load(is);
+            _props = props;
         }
-        return homeProps;
+        return _props;
     }
     
     public static void savePreferences() throws FileNotFoundException, IOException {
-        String home = System.getProperty("user.home");
         String sep = System.getProperty("file.separator");
+        String home = System.getProperty("user.home");
         String file = home + sep + "WebScarab.properties";
         
         if (_props == null) {
             System.err.println("savePreferences called on a null Properties");
             return;
         }
-        FileOutputStream fos;
-        fos = new FileOutputStream(file);
+        FileOutputStream fos = new FileOutputStream(file);
         _props.store(fos,"WebScarab Properties");
         fos.close();
     }
