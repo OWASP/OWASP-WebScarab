@@ -1,48 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project basedir="." default="build" name="WebScarab">
+<project basedir="." default="all" name="webscarab">
         <target name="init">
                 <tstamp/>
-		<property name="jarname" value="webscarab.jar"/>
-		<property name="source" value="src"/>
-		<property name="classes" value="classes"/>
-		<property name="mainclass" value="org.owasp.webscarab.ui.swing.Main"/>
+                <property location="classes" name="classes.dir"/>
+                <property location="./src" name="src.dir"/>
+                <property location="doc/api" name="javadoc.dir"/>
+                <property name="project.name" value="${ant.project.name}"/>
+                <property location="${project.name}.jar" name="jar"/>
+                
+                <property name="mainclass" value="org.owasp.webscarab.ui.swing.Main"/>
                 <property name="version" value="${DSTAMP}-${TSTAMP}"/>
                 
              	<property name="concurrentjar" value="lib/concurrent.jar"/>
              	<property name="htmlparserjar" value="lib/htmlparser.jar"/>
+             	<property name="bsfjar" value="lib/bsf-2.3.0.jar"/>
              	<property name="beanshelljar" value="lib/bsh-2.0b1.jar"/>
              	<property name="jfreechartjar" value="lib/jfreechart-0.9.12.jar"/>
              	<property name="jcommonjar" value="lib/jcommon-0.8.7.jar"/>
        		
                 <path id="cpath">
-			<pathelement location="./classes/"/>
+			<pathelement location="${classes.dir}"/>
 			<pathelement path="${concurrentjar}"/>
                         <pathelement path="${htmlparserjar}"/>
+			<pathelement location="${bsfjar}"/>
 			<pathelement location="${beanshelljar}"/>
 			<pathelement location="${jfreechartjar}"/>
 			<pathelement location="${jcommonjar}"/>
 		</path>
 	</target>
 	<target depends="init" description="clean up the build area" name="clean">
-		<delete dir="${classes}"/>
-                <delete file="${jarname}"/>
+		<delete>
+			<fileset dir="${classes.dir}" includes="**/*.class"/>
+                </delete>
+                <delete file="${jar}"/>
                 <delete file="WebScarab-*.jar"/>
-		<delete verbose="on">
-			<fileset dir="${source}" includes="**/*~"/>
-			<fileset dir="${source}" includes="**/*.class"/>
-		</delete>
 	</target>
 	<target depends="init" description="prepare the build area" name="prepare">
-		<mkdir dir="${classes}"/>
-                <copy file="server.p12" todir="${classes}"/>
-                <copy file="src/org/owasp/webscarab/plugin/scripted/script.bsh" todir="${classes}/org/owasp/webscarab/plugin/scripted/"/>
+                <copy file="server.p12" todir="${classes.dir}"/>
+                <copy file="src/org/owasp/webscarab/plugin/scripted/script.bsh" todir="${classes.dir}/org/owasp/webscarab/plugin/scripted/"/>
 	</target>
 	<target depends="prepare" description="Compile the sources" name="compile">
-		<javac classpathref="cpath" deprecation="yes" destdir="${classes}" excludes="**/test/**" listfiles="yes" optimize="on" srcdir="${source}">
+		<javac classpathref="cpath" deprecation="yes" destdir="${classes.dir}" excludes="**/test/**" listfiles="yes" optimize="on" srcdir="${src.dir}">
                 </javac>
 	</target>
 	<target depends="compile" description="Build a jar file" name="build">
-		<jar basedir="${classes}" jarfile="${jarname}">
+		<jar basedir="${classes.dir}" jarfile="${jar}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
                         <attribute name="Class-Path" value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar}"/>
@@ -59,6 +61,14 @@
 		<java classname="${mainclass}" classpathref="cpath" fork="on">
 		</java>
 	</target>
+        <target depends="init" description="JavaDoc" name="javadoc">
+        <mkdir dir="${javadoc.dir}"/>
+            <javadoc destdir="${javadoc.dir}" packagenames="*" classpathref="cpath">
+                <sourcepath>
+                    <pathelement location="${src.dir}"/>
+                </sourcepath>
+            </javadoc>
+        </target>
     <!-- ${basedir}/izpack should contain the expanded IzPack distribution
       == as created by the IzPack installer. It could be a link to the real
       == directory, etc. 
@@ -78,21 +88,22 @@
             <taskdef classpath="${basedir}/proguard/lib/proguard.jar" resource="proguard/ant/task.properties"/>
             <echo message="${user.dir}"/>
             <proguard ignorewarnings="true" obfuscate="false" optimize="true" verbose="true">
-                <injar name="${basedir}/${jarname}"/>
+                <injar name="${basedir}/${jar}"/>
                 <injar name="${basedir}/${concurrentjar}"/>
                 <injar name="${basedir}/${htmlparserjar}"/>
                 <injar name="${basedir}/${beanshelljar}"/>
+                <injar name="${basedir}/${bsfjar}"/>
                 <injar name="${basedir}/${jfreechartjar}"/>
                 <injar name="${basedir}/${jcommonjar}"/>
 		<libraryjar name="${java.home}/lib/rt.jar"/>
 		<libraryjar name="${java.home}/lib/jsse.jar"/>
-                <libraryjar name="${basedir}/lib/bsf-2.3.0.jar"/>
                 <libraryjar name="/opt/eclipse/plugins/org.eclipse.tomcat_4.1.30/servlet.jar"/>
                 <outjar name="${basedir}/webscarab-${version}.jar"/>
                 <keep name="${mainclass}">
                     <method name="main"/>
                 </keep>
                 <keep implements="org.owasp.webscarab.ui.swing.editors.ByteArrayEditor"/>
+                <keep implements="org.apache.bsf.BSFEngine"/>
             </proguard>
         </target>
 </project>
