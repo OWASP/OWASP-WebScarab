@@ -36,7 +36,8 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         
         initComponents();
 
-        requestPanel = new RequestPanel(null, true);
+        requestPanel = new RequestPanel();
+        requestPanel.setEditable(true);
         requestPanel.setBorder(new TitledBorder("Request"));
         conversationSplitPane.setLeftComponent(requestPanel);
 

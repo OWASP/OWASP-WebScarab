@@ -33,7 +33,7 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 0.2;
-        _requestPanel = new RequestPanel(null);
+        _requestPanel = new RequestPanel();
         getContentPane().add(_requestPanel, gridBagConstraints);
         _responsePanel = new ResponsePanel();
         gridBagConstraints.gridy = 1;
