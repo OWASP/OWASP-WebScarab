@@ -225,8 +225,12 @@ public class Framework implements Plug {
     public void setSessionStore(Object store) throws StoreException {
         _sitemodel.setSessionStore(store);
         // Call the equivalent method for each plugin
+        if (_plugins == null || _plugins.size() == 0) return;
         for (int i=0; i< _plugins.size(); i++) {
-            ((WebScarabPlugin)_plugins.get(i)).setSessionStore(store);
+            WebScarabPlugin wsp = (WebScarabPlugin)_plugins.get(i);
+            if (wsp != null)  {
+                wsp.setSessionStore(store);
+            }
         }
     }
     
@@ -235,8 +239,12 @@ public class Framework implements Plug {
      */
     public void saveSessionData() throws StoreException {
         _sitemodel.saveSessionData();
+        if (_plugins == null || _plugins.size() == 0) return;
         for (int i=0; i< _plugins.size(); i++) {
-            ((WebScarabPlugin)_plugins.get(i)).saveSessionData();
+            WebScarabPlugin wsp = (WebScarabPlugin)_plugins.get(i);
+            if (wsp != null)  {
+                wsp.saveSessionData();
+            }
         }
     }
     
