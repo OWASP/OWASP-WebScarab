@@ -8,6 +8,7 @@ package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.model.Message;
 import javax.swing.table.AbstractTableModel;
+import java.awt.Dimension;
 
 /**
  *
@@ -28,6 +29,7 @@ public class MessagePanel extends javax.swing.JPanel {
         headerTable.getColumnModel().getColumn(0).setPreferredWidth(150);
         headerTable.getColumnModel().getColumn(1).setPreferredWidth(500);
         _cp = new ContentPanel();
+        _cp.setMinimumSize(new Dimension(400, 100));
         messageSplitPane.setRightComponent(_cp);
         setEditable(_editable);
     }
@@ -92,14 +94,21 @@ public class MessagePanel extends javax.swing.JPanel {
         insertButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
 
-        setLayout(new java.awt.BorderLayout());
+        setLayout(new java.awt.GridBagLayout());
 
+        setPreferredSize(new java.awt.Dimension(402, 102));
         messageSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        messageSplitPane.setResizeWeight(0.2);
+        messageSplitPane.setContinuousLayout(true);
+        messageSplitPane.setDoubleBuffered(true);
+        messageSplitPane.setMaximumSize(null);
+        messageSplitPane.setMinimumSize(new java.awt.Dimension(402, 102));
         messageSplitPane.setOneTouchExpandable(true);
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
-        jPanel1.setMinimumSize(new java.awt.Dimension(146, 50));
-        jPanel1.setPreferredSize(new java.awt.Dimension(577, 100));
+        jPanel1.setMinimumSize(new java.awt.Dimension(200, 50));
+        jPanel1.setPreferredSize(new java.awt.Dimension(200, 50));
+        jScrollPane1.setMinimumSize(new java.awt.Dimension(200, 50));
         headerTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null},
@@ -168,7 +177,11 @@ public class MessagePanel extends javax.swing.JPanel {
 
         messageSplitPane.setLeftComponent(jPanel1);
 
-        add(messageSplitPane, java.awt.BorderLayout.CENTER);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        add(messageSplitPane, gridBagConstraints);
 
     }//GEN-END:initComponents
 

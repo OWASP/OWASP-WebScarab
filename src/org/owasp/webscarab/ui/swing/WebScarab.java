@@ -198,16 +198,18 @@ public class WebScarab extends javax.swing.JFrame {
 
         mainSplitPane.setBorder(null);
         mainSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        mainSplitPane.setResizeWeight(0.5);
+        mainSplitPane.setResizeWeight(1.0);
         mainSplitPane.setContinuousLayout(true);
         mainSplitPane.setAutoscrolls(true);
-        mainTabbedPane.setMinimumSize(new java.awt.Dimension(300, 300));
-        mainTabbedPane.setPreferredSize(new java.awt.Dimension(400, 400));
+        mainTabbedPane.setMinimumSize(new java.awt.Dimension(300, 100));
+        mainTabbedPane.setPreferredSize(new java.awt.Dimension(1280, 1024));
         mainSplitPane.setLeftComponent(mainTabbedPane);
 
         jTabbedPane1.setTabPlacement(javax.swing.JTabbedPane.LEFT);
-        jTabbedPane1.setMinimumSize(new java.awt.Dimension(146, 40));
-        jTabbedPane1.setPreferredSize(new java.awt.Dimension(127, 60));
+        jTabbedPane1.setMaximumSize(new java.awt.Dimension(2048, 100));
+        jTabbedPane1.setMinimumSize(new java.awt.Dimension(200, 60));
+        jTabbedPane1.setPreferredSize(new java.awt.Dimension(200, 100));
+        jTabbedPane1.setRequestFocusEnabled(false);
         jScrollPane1.setMinimumSize(new java.awt.Dimension(22, 40));
         jScrollPane1.setPreferredSize(new java.awt.Dimension(3, 40));
         stdoutTextArea.setBackground(new java.awt.Color(204, 204, 204));
@@ -374,10 +376,8 @@ public class WebScarab extends javax.swing.JFrame {
 
         setJMenuBar(mainMenuBar);
 
-        pack();
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        setSize(new java.awt.Dimension(800, 600));
-        setLocation((screenSize.width-800)/2,(screenSize.height-600)/2);
+        setBounds((screenSize.width-1024)/2, (screenSize.height-768)/2, 1024, 768);
     }//GEN-END:initComponents
 
     private void manualDebugRequestCheckBoxMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manualDebugRequestCheckBoxMenuItemActionPerformed
@@ -532,38 +532,40 @@ public class WebScarab extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new WebScarab(args).show();
+        WebScarab ws = new WebScarab(args);
+        ws.setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
+        ws.show();
     }
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenuItem newMenuItem;
-    private javax.swing.JTextArea stderrTextArea;
-    private javax.swing.JSplitPane mainSplitPane;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JMenu fileMenu;
-    private javax.swing.JMenuItem transcoderMenuItem;
+    private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JMenuItem cookieJarMenuItem;
-    private javax.swing.JMenuItem saveConfigMenuItem;
+    private javax.swing.JMenu debugMenu;
     private javax.swing.JMenuItem exitMenuItem;
+    private javax.swing.JMenu fileMenu;
+    private javax.swing.JMenu helpMenu;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JMenuBar mainMenuBar;
+    private javax.swing.JSplitPane mainSplitPane;
+    private javax.swing.JTabbedPane mainTabbedPane;
     private javax.swing.JMenu manualDebugMenu;
     private javax.swing.JCheckBoxMenuItem manualDebugRequestCheckBoxMenuItem;
-    private javax.swing.JMenuBar mainMenuBar;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JCheckBoxMenuItem proxyDebugResponseCheckBoxMenuItem;
-    private javax.swing.JMenuItem openMenuItem;
-    private javax.swing.JTextArea stdoutTextArea;
     private javax.swing.JCheckBoxMenuItem manualDebugResponseCheckBoxMenuItem;
-    private javax.swing.JCheckBoxMenuItem proxyDebugRequestCheckBoxMenuItem;
-    private javax.swing.JTabbedPane mainTabbedPane;
+    private javax.swing.JMenuItem newMenuItem;
+    private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem optionsMenuItem;
-    private javax.swing.JMenu toolsMenu;
-    private javax.swing.JMenuItem aboutMenuItem;
-    private javax.swing.JMenu helpMenu;
-    private javax.swing.JMenuItem proxyMenuItem;
-    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JMenu proxyDebugMenu;
-    private javax.swing.JMenu debugMenu;
+    private javax.swing.JCheckBoxMenuItem proxyDebugRequestCheckBoxMenuItem;
+    private javax.swing.JCheckBoxMenuItem proxyDebugResponseCheckBoxMenuItem;
+    private javax.swing.JMenuItem proxyMenuItem;
+    private javax.swing.JMenuItem saveConfigMenuItem;
+    private javax.swing.JTextArea stderrTextArea;
+    private javax.swing.JTextArea stdoutTextArea;
+    private javax.swing.JMenu toolsMenu;
+    private javax.swing.JMenuItem transcoderMenuItem;
     // End of variables declaration//GEN-END:variables
     
 }

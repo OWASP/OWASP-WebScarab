@@ -11,6 +11,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 
 import java.io.ByteArrayInputStream;
+import java.net.URL;
 
 import org.owasp.webscarab.model.Request;
 
@@ -88,12 +89,20 @@ public class RequestPanel extends javax.swing.JPanel {
                 _modified = true;
                 invalidatePanels();
             }
+            if (_request == null) {
+                _request = new Request();
+            }
             // if _modified
             _request.setMethod(methodTextField.getText());
             try {
                 _request.setURL(urlTextField.getText());
             } catch (Exception e) {
-                urlTextField.setText(_request.getURL().toString());
+                URL url = _request.getURL();
+                if (url != null) {
+                    urlTextField.setText(url.toString());
+                } else {
+                    urlTextField.setText("");
+                }
             }
             _request.setVersion(versionTextField.getText());
         } else if (panel == 1) {// bean shell

@@ -46,9 +46,11 @@ public class SearchDialog extends javax.swing.JDialog {
                 position = _textComponent.getText().indexOf(_searchText);
             }
             if (position > -1) {
+                System.err.println("Found '" + _searchText + "' at position " + position);
                 _textComponent.setCaretPosition(position);
                 _textComponent.moveCaretPosition(position + _searchText.length());
             } else {
+                System.err.println("'" + _searchText + "' not found!");
                 _textComponent.setCaretPosition(caret);
             }                
         }

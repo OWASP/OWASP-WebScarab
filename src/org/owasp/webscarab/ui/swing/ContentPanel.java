@@ -54,9 +54,7 @@ public class ContentPanel extends javax.swing.JPanel {
         viewTabbedPane.getModel().addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 updateData(_selected);
-                if (_selected >= 0) {
-                    updatePanel(_selected);
-                }
+                updatePanel(viewTabbedPane.getSelectedIndex());
             }
         });
         for (int i=0; i<_editorClasses.length; i++) {
@@ -90,7 +88,7 @@ public class ContentPanel extends javax.swing.JPanel {
         _modified = false;
         viewTabbedPane.removeAll();
         if (content == null) {
-            _data = new byte[0];
+            _data = null;
         } else {
             _data = new byte[content.length];
             System.arraycopy(content, 0, _data, 0, content.length);
@@ -108,15 +106,22 @@ public class ContentPanel extends javax.swing.JPanel {
                 }
             }
         }
-        viewTabbedPane.add(_hexPanel.getName(), _hexPanel);
-
+        if (_data != null || _editable) {
+            viewTabbedPane.add(_hexPanel.getName(), _hexPanel);
+        }
+        
         _upToDate = new boolean[viewTabbedPane.getTabCount()];
         invalidatePanels();
         updatePanel(viewTabbedPane.getSelectedIndex());
     }
     
     public boolean isModified() {
-        return _editable && (_modified || ((ByteArrayEditor) viewTabbedPane.getSelectedComponent()).isModified());
+        ByteArrayEditor ed = ((ByteArrayEditor) viewTabbedPane.getSelectedComponent());
+        boolean selectedModified = false;
+        if (ed != null) {
+            selectedModified = ed.isModified();
+        }
+        return _editable && (_modified || selectedModified);
     }
     
     public byte[] getContent() {
@@ -131,6 +136,11 @@ public class ContentPanel extends javax.swing.JPanel {
     }
     
     private void updatePanel(int panel) {
+        if (panel<0 || _upToDate.length == 0) {
+            return;
+        } else if (panel >= _upToDate.length) {
+            panel = 0;
+        }
         _selected = panel;
         if (!_upToDate[panel]) {
             ByteArrayEditor editor = (ByteArrayEditor) viewTabbedPane.getComponentAt(panel);
@@ -163,6 +173,8 @@ public class ContentPanel extends javax.swing.JPanel {
 
         setLayout(new java.awt.GridBagLayout());
 
+        viewTabbedPane.setMinimumSize(new java.awt.Dimension(200, 50));
+        viewTabbedPane.setPreferredSize(new java.awt.Dimension(200, 50));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
@@ -212,6 +224,7 @@ public class ContentPanel extends javax.swing.JPanel {
             cp.setContentType("text/html");
             cp.setEditable(true);
             cp.setContent(content);
+            // cp.setContent(null);
         } catch (Exception e) {
             e.printStackTrace();
         }

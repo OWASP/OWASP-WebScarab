@@ -91,7 +91,11 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     public void setBytes(byte[] bytes) {
-        textTextArea.setText(new String(bytes));
+        if (bytes != null) {
+            textTextArea.setText(new String(bytes));
+        } else {
+            textTextArea.setText("");
+        }
         textTextArea.setCaretPosition(0);
         // always set _modified false AFTER setting the text, since the Document listener
         // will set it to true when adding the text

@@ -77,7 +77,11 @@ public class BeanShellPanel extends javax.swing.JPanel implements ByteArrayEdito
     }
     
     public void setRequest(Request request) {
-        _request = new Request(request);
+        if (request != null) {
+            _request = new Request(request);
+        } else {
+            _request = null;
+        }
         try {
             _interpreter.set("request", _request);
         } catch (Exception e) {
