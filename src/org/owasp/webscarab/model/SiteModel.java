@@ -95,12 +95,12 @@ public class SiteModel {
     public void flush() throws StoreException {
         if (_modified) {
             try {
-                _rwl.writeLock().acquire();
+                _rwl.readLock().acquire();
                 try {
                     _store.flush();
                     _modified = false;
                 } finally {
-                    _rwl.writeLock().release();
+                    _rwl.readLock().release();
                 }
             } catch (InterruptedException ie) {
                 _logger.severe("Interrupted! " + ie);
