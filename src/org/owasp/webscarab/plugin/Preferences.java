@@ -33,38 +33,24 @@ public class Preferences {
     }
     
     private static Properties readPreferences() {
-        // Properties work as follows :
-        //    Read the defaults from the .jar.
-        //    Then look for a props file in the user's home directory, and load it if it exists
+        // Look for a props file in the user's home directory, and load it if it exists
         
         String sep = System.getProperty("file.separator");
-        String props = "WebScarab.properties";
         String home = System.getProperty("user.home");
+        String file = home + sep + "WebScarab.properties";
 
         InputStream is = null;
         
-        Properties defaults = new Properties();
-        is = ClassLoader.getSystemResourceAsStream(props);
-        if (is == null) {
-            System.err.println("No WebScarab.properties in the .jar!");
-        } else {
-            try {
-                defaults.load(is);
-            } catch (IOException ioe) {
-                System.err.println("Error reading default properties file " + ioe);
-            }
-        }
-        
-        Properties homeProps = new Properties(defaults);
+        Properties homeProps = new Properties();
         try {
-            is = new FileInputStream(home + sep + props);
+            is = new FileInputStream(file);
             try {
                 homeProps.load(is);
             } catch (IOException ioe) {
-                System.err.println("IOError reading " + home + sep + props + " : " + ioe);
+                System.err.println("IOError reading " + file + " : " + ioe);
             }
         } catch (FileNotFoundException fnfe) {
-            System.err.println("No user properties file found");
+            System.err.println("user properties file " + file + " not found");
         }
         return homeProps;
     }
@@ -72,14 +58,14 @@ public class Preferences {
     public static void savePreferences() throws FileNotFoundException, IOException {
         String home = System.getProperty("user.home");
         String sep = System.getProperty("file.separator");
-        String propfile = home + sep + "WebScarab.properties";
+        String file = home + sep + "WebScarab.properties";
         
         if (_props == null) {
             System.err.println("savePreferences called on a null Properties");
             return;
         }
         FileOutputStream fos;
-        fos = new FileOutputStream(propfile);
+        fos = new FileOutputStream(file);
         _props.store(fos,"WebScarab Properties");
         fos.close();
     }
