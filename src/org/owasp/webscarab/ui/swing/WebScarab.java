@@ -18,6 +18,7 @@ import org.owasp.webscarab.plugin.proxy.module.ManualEdit;
 import org.owasp.webscarab.plugin.proxy.module.CookieTracker;
 import org.owasp.webscarab.plugin.proxy.module.RevealHidden;
 import org.owasp.webscarab.plugin.proxy.module.BrowserCache;
+import org.owasp.webscarab.plugin.proxy.module.BeanShell;
 
 import org.owasp.webscarab.plugin.spider.Spider;
 import org.owasp.webscarab.plugin.manualrequest.ManualRequest;
@@ -28,6 +29,7 @@ import org.owasp.webscarab.ui.swing.SwingPlugin;
 import org.owasp.webscarab.ui.swing.proxy.ProxyPanel;
 import org.owasp.webscarab.ui.swing.proxy.ManualEditPanel;
 import org.owasp.webscarab.ui.swing.proxy.MiscPanel;
+import org.owasp.webscarab.ui.swing.proxy.BeanShellPanel;
 
 import org.owasp.webscarab.ui.swing.spider.SpiderPanel;
 import org.owasp.webscarab.ui.swing.manualrequest.ManualRequestPanel;
@@ -101,10 +103,14 @@ public class WebScarab extends javax.swing.JFrame {
         CookieTracker ct = new CookieTracker(proxy.getCookieJar());
         proxy.addPlugin(ct);
         
+        BeanShell bs = new BeanShell();
+        proxy.addPlugin(bs);
+        
         // create the proxy GUI panels
         ProxyPanel proxyPanel = new ProxyPanel(proxy);
         proxyPanel.addPlugin(new ManualEditPanel(me));
         proxyPanel.addPlugin(new MiscPanel(rh, bc, ct));
+        proxyPanel.addPlugin(new BeanShellPanel(bs));
         addPlugin(proxyPanel);
         
         // Spider plugin
