@@ -127,15 +127,15 @@ public class Framework implements Plug {
         synchronized (urlinfo) {
             String property = "METHOD";
             String value = conversation.getProperty(property);
-            if (value != null) urlinfo.setProperty(property, value); // should add it, so as not to override previous
+            if (value != null) urlinfo.addProperty(property, value);
             
             property = "STATUS";
             value = conversation.getProperty(property);
-            if (value != null) urlinfo.setProperty(property, value); // should add it, so as not to override previous
+            if (value != null) urlinfo.addProperty(property, value); 
             
             property = "CHECKSUM";
             value = conversation.getProperty(property);
-            if (value != null) urlinfo.setProperty(property, value); // should add it, so as not to override previous
+            if (value != null) urlinfo.addProperty(property, value);
             
             int conversationbytes = 0;
             int urlbytes = 0;
@@ -153,9 +153,9 @@ public class Framework implements Plug {
             }
             urlinfo.setProperty("TOTALBYTES", Integer.toString(urlbytes+conversationbytes));
             
-            // should add it, so as not to override previous. This should not really be a Boolean,
-            // rather a list of the cookies, it is difficult to concatenate a list of Set-Cookies, though :-(
-            urlinfo.setProperty("SET-COOKIE", Boolean.toString(conversation.getProperty("SET-COOKIE")!=null));
+            // This should not really be a Boolean, rather a list of the cookies, 
+            // it is difficult to concatenate a list of Set-Cookies, though :-(
+            urlinfo.addProperty("SET-COOKIE", Boolean.toString(conversation.getProperty("SET-COOKIE")!=null));
         }
     }
     
