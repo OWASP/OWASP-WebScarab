@@ -246,6 +246,7 @@
                             <Column editable="true" title="Status" type="java.lang.Object"/>
                           </Table>
                         </Property>
+                        <Property name="autoResizeMode" type="int" value="3"/>
                         <Property name="showHorizontalLines" type="boolean" value="false"/>
                         <Property name="showVerticalLines" type="boolean" value="false"/>
                       </Properties>

@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -50,12 +50,17 @@ import org.owasp.webscarab.plugin.proxy.ProxyUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 
 import java.util.ArrayList;
+import java.util.Date;
+
 import java.util.logging.Logger;
 
 import javax.swing.ListSelectionModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.table.AbstractTableModel;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  *
@@ -65,6 +70,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
     
     private Proxy _proxy;
     private ListenerTableModel _ltm;
+    private MessageTableModel _mtm;
     
     private ArrayList _plugins;
     private ProxyPluginUI[] _pluginArray = new ProxyPluginUI[0];
@@ -81,12 +87,29 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         listenerTable.setModel(_ltm);
         listenerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
+        _mtm = new MessageTableModel();
+        messageTable.setModel(_mtm);
+        
+        int[][] columnWidths = {
+            {200, 200, 200}, 
+            {50, 50, 50},
+            {50, 50, 50},
+            {250, 250, 250},
+        };
+        
+        javax.swing.table.TableColumnModel columnModel = messageTable.getColumnModel();
+        for (int i=0; i<columnWidths.length; i++) {
+            columnModel.getColumn(i).setMinWidth(columnWidths[i][0]);
+            columnModel.getColumn(i).setMaxWidth(columnWidths[i][1]);
+            columnModel.getColumn(i).setPreferredWidth(columnWidths[i][2]);
+        }
+        
         networkComboBox.setModel(new DefaultComboBoxModel(_proxy.getSimulators()));
+        networkComboBox.setSelectedItem("Unlimited");
         
         String[] keys = _proxy.getProxies();
         for (int i=0; i<keys.length; i++) _ltm.proxyAdded(keys[i]);
         
-        setModel(null);
         proxy.setUI(this);
     }
     
@@ -297,6 +320,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
                 "Time", "ID", "Method", "URL", "Status"
             }
         ));
+        messageTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
         messageTable.setShowHorizontalLines(false);
         messageTable.setShowVerticalLines(false);
         jScrollPane2.setViewportView(messageTable);
@@ -353,8 +377,12 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         } else {
             addressTextField.setText(address);
             portTextField.setText(port);
-            baseTextField.setText(base.toString());
-            networkComboBox.setSelectedItem(simulator);
+            baseTextField.setText(base == null ? "" : base.toString());
+            if (simulator != null) {
+                networkComboBox.setSelectedItem(simulator);
+            } else {
+                networkComboBox.setSelectedItem("Unlimited");
+            }
             pluginsCheckBox.setSelected(usePlugins);
         }
     }//GEN-LAST:event_stopButtonActionPerformed
@@ -397,20 +425,40 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
     public void proxyStopped(String key) {
     }
     
-    public void requested(ConversationID id, String method, HttpUrl url) {
-        // _logger.info("Requested: " + id + " " + method + " " + url);
+    public void requested(final ConversationID id, final String method, final HttpUrl url) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            _mtm.addRow(id, method, url);
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    requested(id, method, url);
+                }
+            });
+        }
     }
     
-    public void received(ConversationID id, String status) {
-        // _logger.info("Adding a conversation to the model: " + id + " " + status);
+    public void received(final ConversationID id, final String status) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            _mtm.updateRow(id, status);
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    received(id, status);
+                }
+            });
+        }
     }
     
-    public void aborted(ConversationID id, String reason) {
-        _logger.info("Aborted request " + id + " " + reason);
-    }
-    
-    public void setModel(SiteModel model) {
-        // we do not use the model in this UI
+    public void aborted(final ConversationID id, final String reason) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            _mtm.updateRow(id, reason);
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    aborted(id, reason);
+                }
+            });
+        }
     }
     
     public void setEnabled(final boolean enabled) {
@@ -457,5 +505,74 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
     private javax.swing.JButton startButton;
     private javax.swing.JButton stopButton;
     // End of variables declaration//GEN-END:variables
+    
+    private class MessageTableModel extends AbstractTableModel {
+        
+        private ArrayList _rows = new ArrayList();
+        private Timer _timer = new Timer(true);
+        
+        private String[] _columns = new String [] {
+            "Time", "ID", "Method", "URL", "Status"
+        };
+        
+        public String getColumnName(int columnIndex) {
+            return _columns[columnIndex];
+        }
+        
+        public int getColumnCount() {
+            return _columns.length;
+        }
+        
+        public int getRowCount() {
+            return _rows.size();
+        }
+        
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            Object[] row = (Object[]) _rows.get(rowIndex);
+            return row[columnIndex];
+        }
+        
+        public void addRow(ConversationID id, String method, HttpUrl url) {
+            Object[] row = new Object[] {new Date(), id, method, url, null};
+            _rows.add(row);
+            fireTableRowsInserted(_rows.size()-1, _rows.size()-1);
+        }
+        
+        public void updateRow(final ConversationID id, String status) {
+            for (int i=0; i<_rows.size(); i++) {
+                Object[] row = (Object[]) _rows.get(i);
+                if (row[1].equals(id)) {
+                    row[4] = status;
+                    fireTableCellUpdated(i, 4);
+                    _timer.schedule(new TimerTask() {
+                        public void run() {
+                            removeRow(id);
+                        }
+                    }, 5000);
+                    return;
+                }
+            }
+        }
+        
+        public void removeRow(final ConversationID id) {
+            if (SwingUtilities.isEventDispatchThread()) {
+                for (int i=0; i<_rows.size(); i++) {
+                    Object[] row = (Object[]) _rows.get(i);
+                    if (row[1].equals(id)) {
+                        _rows.remove(i);
+                        fireTableRowsDeleted(i, i);
+                        return;
+                    }
+                }
+            } else {
+                SwingUtilities.invokeLater(new Runnable() { 
+                    public void run() {
+                        removeRow(id);
+                    }
+                });
+            }
+        }
+        
+    }
     
 }
