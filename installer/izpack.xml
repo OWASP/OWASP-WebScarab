@@ -43,6 +43,8 @@
             <file src="lib/jfreechart-0.9.12.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/jcommon-0.8.7.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/jhbasic-2.0_02.jar" targetdir="$INSTALL_PATH/lib/"/>
+            <file src="lib/chardet.jar" targetdir="$INSTALL_PATH/lib/"/>
+            <file src="lib/tagsoup-1.0rc2.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/W32WinInet.dll" targetdir="$INSTALL_PATH/" os="windows"/>
             <file src="doc/WebScarab-Howto.txt" targetdir="$INSTALL_PATH/doc/"/>
         </pack>
