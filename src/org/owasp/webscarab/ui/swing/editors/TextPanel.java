@@ -101,6 +101,12 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
                 }
             }
         });
+        // Ctrl-W to search again
+        keymap.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_W, Event.CTRL_MASK), new AbstractAction() {
+            public void actionPerformed(ActionEvent event) {
+                textTextArea.setLineWrap(! textTextArea.getLineWrap());
+            }
+        });
         
         textTextArea.setKeymap(keymap);
         
