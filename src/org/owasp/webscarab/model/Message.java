@@ -4,7 +4,7 @@
  * Created on May 12, 2003, 11:10 PM
  */
 
-package src.org.owasp.webscarab.model;
+package org.owasp.webscarab.model;
 
 import java.io.InputStream;
 import java.io.OutputStream;

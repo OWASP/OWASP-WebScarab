@@ -4,7 +4,7 @@
  * Created on July 25, 2003, 10:29 PM
  */
 
-package src.org.owasp.webscarab.model;
+package org.owasp.webscarab.model;
 
 import java.util.Properties;
 

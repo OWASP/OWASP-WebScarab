@@ -4,7 +4,7 @@
  * Created on May 12, 2003, 11:12 PM
  */
 
-package src.org.owasp.webscarab.model;
+package org.owasp.webscarab.model;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 import java.util.logging.Logger;
 
-import org.owasp.webscarab.Util;
+import org.owasp.webscarab.util.Util;
 
 /** This class represents a request that can be sent to an HTTP server.
  * @author rdawes

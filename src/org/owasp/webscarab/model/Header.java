@@ -4,7 +4,7 @@
  * Created on May 12, 2003, 10:40 PM
  */
 
-package src.org.owasp.webscarab.model;
+package org.owasp.webscarab.model;
 
 import java.util.ArrayList;
 import java.io.IOException;

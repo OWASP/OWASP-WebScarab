@@ -4,7 +4,7 @@
  * Created on July 16, 2003, 7:11 PM
  */
 
-package src.org.owasp.webscarab.model;
+package org.owasp.webscarab.model;
 
 import java.util.Properties;
 
@@ -13,7 +13,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import org.owasp.webscarab.Util;
+import org.owasp.webscarab.util.Util;
 
 /**
  *

@@ -1,4 +1,4 @@
-package src.org.owasp.webscarab.model;
+package org.owasp.webscarab.model;
 
 import java.util.ArrayList;
 
