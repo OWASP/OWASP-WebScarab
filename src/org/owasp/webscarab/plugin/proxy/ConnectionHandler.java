@@ -5,6 +5,7 @@ import java.net.*;
 import javax.net.ssl.*;
 import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.httpclient.FixedLengthInputStream;
@@ -23,13 +24,22 @@ public class ConnectionHandler implements Runnable {
     
     private Plug _plug;
     private ProxyPlugin[] _plugins;
-    private Socket _sock;
+    private Socket _sock = null;
     private String _base;
+    private Logger _logger = Logger.getLogger("org.owasp.webscarab");
+    
+    private InputStream _clientIn = null;
+    private OutputStream _clientOut = null;
+    private InputStream _serverIn = null;
+    private OutputStream _serverOut = null;
+    
+    private URLFetcher _uf = null;
+    private ParallelFetcher _pf = null;
     
     String keystore = "/server.p12";
     char keystorepass[] = "password".toCharArray();
     char keypassword[] = "password".toCharArray();
-        
+    
     public ConnectionHandler(Socket sock, Plug plug, String base, ArrayList plugins) {
         _sock = sock;
         _plug = plug;
@@ -43,25 +53,55 @@ public class ConnectionHandler implements Runnable {
             }
         }
         try {
-            sock.setTcpNoDelay(true);
-            sock.setSoTimeout(30 * 1000);
+            _sock.setTcpNoDelay(true);
+            _sock.setSoTimeout(30 * 1000);
         } catch (SocketException se) {
-            System.err.println("Error setting socket parameters");
+            _logger.warning("Error setting socket parameters");
         }
-        Thread thread = new Thread(this);
-        thread.setDaemon(true);
-        thread.start();
+        
+        // try {
+        //     PipedInputStream scis = new PipedInputStream();
+        //     PipedOutputStream scos = new PipedOutputStream(scis);
+        //     // main (live) URLFetcher, writes a copy of what it reads from the server to scos
+        //     _uf = new URLFetcher(null, scos);
+        //     // copy URLFetcher, parses the response from scis, for submission to the model
+        //     _pf = new ParallelFetcher(scis);
+        // } catch (IOException ioe) {
+        //     _logger.severe("IOException creating the piped streams! " + ioe);
+            _logger.info("Recorded conversations will include any changes to the response by the plugins!");
+            _uf = new URLFetcher();
+        // }
     }
     
+    public ConnectionHandler(Plug plug, InputStream clientIn, InputStream serverIn) {
+        _sock = null;
+        _plugins = new ProxyPlugin[0];
+        _plug = plug;
+        _clientIn = clientIn;
+        _serverIn = serverIn;
+        _uf = new URLFetcher(serverIn);
+    }
+    
+    /*
+    public ConnectionHandler(InputStream cis, OutputStream cos, InputStream sis, OutputStream sos) {
+        _plugins = new ProxyPlugin[0];
+        _clientIn = cis;
+        _clientOut = cos;
+        _serverIn = sis;
+        _serverOut = sos;
+        _uf = new URLFetcher(sos, sis);
+    }
+     */
+    
     public void run() {
-        InputStream clientin = null;
-        OutputStream clientout = null;
-        try {
-            clientin = _sock.getInputStream();
-            clientout = _sock.getOutputStream();
-        } catch (IOException ioe) {
-            System.err.println("Error getting socket input and output streams! " + ioe);
-            return;
+        if (_sock != null) {
+            try {
+                _clientIn = _sock.getInputStream();
+                _clientOut = _sock.getOutputStream();
+            } catch (IOException ioe) {
+                _logger.severe("Error getting socket input and output streams! " + ioe);
+                return;
+            }
         }
         try {
             Request request = null;
@@ -70,9 +110,9 @@ public class ConnectionHandler implements Runnable {
             if (_base == null) {
                 try {
                     request = new Request();
-                    request.read(clientin);
+                    request.read(_clientIn);
                 } catch (IOException ioe) {
-                    System.err.println("Error reading the initial request" + ioe);
+                    _logger.severe("Error reading the initial request" + ioe);
                     return;
                 }
             }
@@ -88,12 +128,14 @@ public class ConnectionHandler implements Runnable {
                 if (method == null) {
                     return;
                 } else if (method.equals("CONNECT")) {
-                    try {
-                        clientout.write(("HTTP/1.0 200 Ok\r\n\r\n").getBytes());
-                        clientout.flush();
-                    } catch (IOException ioe) {
-                        System.err.println("IOException writing the CONNECT OK Response to the browser " + ioe);
-                        return;
+                    if (_clientOut != null) {
+                        try {
+                            _clientOut.write(("HTTP/1.0 200 Ok\r\n\r\n").getBytes());
+                            _clientOut.flush();
+                        } catch (IOException ioe) {
+                            _logger.severe("IOException writing the CONNECT OK Response to the browser " + ioe);
+                            return;
+                        }
                     }
                     _base = request.getURL().toString();
                     proxyAuth = request.getHeader("Proxy-Authorization");
@@ -103,13 +145,11 @@ public class ConnectionHandler implements Runnable {
             // if we are servicing a CONNECT, or operating as a reverse
             // proxy with an https:// base URL, negotiate SSL
             if (_base != null) {
-                if (_base.startsWith("https://")) {
-                    System.err.println("Intercepting SSL connection!");
-                    
+                if (_base.startsWith("https://") && _sock != null) {
+                    _logger.fine("Intercepting SSL connection!");
                     _sock = negotiateSSL(_sock);
-                    clientin = _sock.getInputStream();
-                    clientout = _sock.getOutputStream();
-                    
+                    _clientIn = _sock.getInputStream();
+                    _clientOut = _sock.getOutputStream();
                 }
                 // make sure that the base does not end with a "/"
                 while (_base.endsWith("/")) {
@@ -117,21 +157,11 @@ public class ConnectionHandler implements Runnable {
                 }
             }
             
-            // URLFetcher implements HTTPClient!
-            URLFetcher uf = new URLFetcher();
-            HTTPClient hc = uf;
+            HTTPClient hc = _uf;
             
             // Maybe set SSL ProxyAuthorization here at a connection level?
             // I prefer it in the Request itself, since it gets archived, and
             // can be replayed trivially using netcat
-            
-            // ConversationRecorder keeps a copy of the conversation
-            // that flows through it. We need this to support
-            // stream based transmission of responses through the
-            // proxy, while still being able to send a copy of the
-            // conversation to the model
-            ConversationRecorder recorder = new ConversationRecorder(hc);
-            hc = recorder;
             
             // layer the proxy plugins onto the recorder. We do this
             // in reverse order so that they operate intuitively
@@ -143,14 +173,16 @@ public class ConnectionHandler implements Runnable {
             
             // do we keep-alive?
             String connection = null;
+            String version = null;
             do {
                 // if we are reading the first from a reverse proxy, or the
                 // continuation of a CONNECT from a normal proxy
                 // read the request, otherwise we already have it.
                 if (request == null) {
                     request = new Request();
-                    request.setBaseURL(_base);
-                    request.read(clientin);
+                    if (_base != null) request.setBaseURL(_base);
+                    _logger.fine("Reading request from the browser");
+                    request.read(_clientIn);
                     if (request.getMethod() == null) {
                         return;
                     }
@@ -159,42 +191,75 @@ public class ConnectionHandler implements Runnable {
                     }
                 }
                 
-                System.out.println("Requested : " + request.getMethod() + " " + request.getURL().toString());
+                _logger.info("Browser requested : " + request.getMethod() + " " + request.getURL().toString());
                 
+                // start a thread reading the copy of the server's response
+                if (_pf != null) {
+                    _pf.readResponse(request);
+                    _logger.fine("Started the parallel fetch");
+                }
                 // pass the request through the plugins, and return the response
-                Response response = hc.fetchResponse(request);
+                Response response = null;
+                try {
+                    response = hc.fetchResponse(request);
+                } catch (IOException ioe) {
+                    _logger.severe("IOException retrieving the response for " + request.getURL() + " : " + ioe);
+                    response = errorResponse(request, "IOException retrieving the response: " + ioe);
+                    // prevent the conversation from being submitted/recorded
+                    _pf = null;
+                    _plug = null;
+                }
                 if (response == null) {
-                    System.err.println("Got a null response from the fetcher");
+                    _logger.severe("Got a null response from the fetcher");
                     return;
                 }
-                System.out.println("Response : " + response.getStatusLine());
-                try {
-                    response.write(clientout);
-                } catch (IOException ioe) {
-                    response.getContent(); // this simply flushes the content from the server
-                    System.err.println("Error writing back to the browser : " + ioe);
-                }
-                if (_plug != null) {
-                    Request req = recorder.getRequest();
-                    Response resp = recorder.getResponse();
-                    if (req != null && resp != null) {
-                        _plug.addConversation("Proxy", req, resp);
+                _logger.info("Response : " + response.getStatusLine());
+                try { 
+                    if (_clientOut != null) {
+                        _logger.fine("Writing the response to the browser");
+                        response.write(_clientOut);
+                        _logger.fine("Finished writing the response to the browser");
                     }
-                    recorder.reset();
+                } catch (IOException ioe) {
+                    _logger.severe("Error writing back to the browser : " + ioe);
+                } finally {
+                    response.flushContentStream(); // this simply flushes the content from the server
                 }
-                request = null;
+                // Now we read the response from the copy of the server input stream
+                // so that we avoid any possible changes made by the proxy plugins
+                // if there is an error, we submit the possibly modified response
+                // to the model
+                if (_pf != null) {
+                    Response resp = _pf.getResponse();
+                    if (resp != null) { 
+                        response = resp;
+                    } else {
+                        _logger.severe("Submitting the original, (possibly) modified response to the server");
+                    }
+                }
+                if (_plug != null && request != null && !request.getMethod().equals("CONNECT") && response != null) {
+                    _plug.addConversation("Proxy", request, response);
+                }
+                
                 connection = response.getHeader("Connection");
-            } while (connection != null && connection.equals("Keep-Alive"));
+                version = response.getVersion();
+                
+                request = null;
+                
+                _logger.fine("Version: " + version + " Connection: " + connection);
+            } while ((version.equals("HTTP/1.0") && "keep-alive".equalsIgnoreCase(connection)) || 
+                     (version.equals("HTTP/1.1") && !"close".equalsIgnoreCase(connection)));
+            _logger.fine("Finished handling connection");
         } catch (Exception e) {
-            System.err.println("ConnectionHandler got an error : " + e);
+            _logger.severe("ConnectionHandler got an error : " + e);
             e.printStackTrace();
         } finally {
             try {
-                clientin.close();
-                clientout.close();
-                _sock.close();
+                if (_clientIn != null) _clientIn.close();
+                if (_clientOut != null) _clientOut.close();
+                if (_sock != null) _sock.close();
             } catch (IOException ioe) {
-                System.err.println("Error closing client socket : " + ioe);
+                _logger.warning("Error closing client socket : " + ioe);
             }
         }
     }
@@ -211,7 +276,7 @@ public class ConnectionHandler implements Runnable {
             sslcontext = SSLContext.getInstance("SSLv3");
             sslcontext.init(kmf.getKeyManagers(), null, null);
         } catch (Exception e) {
-            System.err.println("Exception accessing keystore: " + e);
+            _logger.severe("Exception accessing keystore: " + e);
             throw e;
         }
         SSLSocketFactory factory = sslcontext.getSocketFactory();
@@ -221,13 +286,92 @@ public class ConnectionHandler implements Runnable {
             sslsock=(SSLSocket)factory.createSocket(sock,sock.getInetAddress().getHostName(),sock.getPort(),true);
             sslsock.setUseClientMode(false);
             
-            System.err.println("Finished negotiating SSL - algorithm is " + sslsock.getSession().getCipherSuite());
+            _logger.fine("Finished negotiating SSL - algorithm is " + sslsock.getSession().getCipherSuite());
             
             return sslsock;
         } catch (Exception e) {
-            System.err.println("Error layering SSL over the existing socket");
+            _logger.severe("Error layering SSL over the socket");
             throw e;
         }
     }
     
+    private Response errorResponse(Request request, String message) {
+        Response response = new Response();
+        response.setRequest(request);
+        response.setVersion("HTTP/1.0");
+        response.setStatus("500");
+        response.setMessage("WebScarab error");
+        response.setHeader("Content-Type","text/html");
+        response.setHeader("Connection","Close");
+        String template = "<HTML><HEAD><TITLE>WebScarab Error</TITLE></HEAD>";
+        template = template + "<BODY>WebScarab encountered an error trying to retrieve <P><pre>" + request.toString() + "</pre><P>";
+        template = template + "The error was : <P><pre>" + message + "</pre><P></HTML>";
+        response.setContent(template.getBytes());
+        return response;
+    }
+    
+    private class ParallelFetcher implements Runnable {
+        
+        private URLFetcher _puf = null;
+        Thread t = null;
+        private Request _request = null;
+        private Response _response = null;
+        
+        public ParallelFetcher(InputStream is) {
+            _puf = new URLFetcher(is);
+        }
+        
+        public void run() {
+            try {
+                _response = _puf.fetchResponse(_request);
+                _logger.fine("Got the response");
+                _response.flushContentStream();
+                _logger.fine("Flushed the contentStream");
+                synchronized(this) {
+                    this.notify();
+                }
+            } catch (IOException ioe) {
+                _logger.severe("IOException: " + ioe);
+                _response = null;
+            }
+        }
+        
+        public void readResponse(Request request) {
+            if (t == null || ! t.isAlive()) {
+                _request = request;
+                t = new Thread(this, "ParallelFetcher");
+                t.start();
+            } else {
+                _logger.severe("still reading previous response!");
+            }
+        }
+        
+        public Response getResponse() {
+            if (t == null) {
+                return null;
+            } else {
+                try {
+                    if (t.isAlive()) {
+                        synchronized(this) {
+                            this.wait(250);
+                        }
+                    }
+                    int count = 0;
+                    while(t.isAlive() && count++ < 5) {
+                        synchronized(this) {
+                            this.wait(20000);
+                        }
+                        _logger.fine("Sleeping while the thread reads the response");
+                    }
+                } catch (InterruptedException ie) {}
+            }
+            if (t.isAlive()) {
+                return null;
+            } else {
+                return _response;
+            }
+        }
+
+    }
+
 }
