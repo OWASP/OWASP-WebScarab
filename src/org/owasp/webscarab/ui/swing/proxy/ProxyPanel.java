@@ -8,9 +8,9 @@ package org.owasp.webscarab.ui.swing.proxy;
 
 import org.owasp.webscarab.ui.swing.SwingPlugin;
 import org.owasp.webscarab.plugin.proxy.Proxy;
-import org.owasp.webscarab.plugin.proxy.module.*;
 
 import java.util.ArrayList;
+import javax.swing.ListSelectionModel;
 
 /**
  *
@@ -30,18 +30,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
         initComponents();
         _ltm = new ListenerTableModel(proxy);
         listenerTable.setModel(_ltm);
-        
-        ManualEdit me = new ManualEdit();
-        proxy.addPlugin(me);
-        RevealHidden rh = new RevealHidden();
-        proxy.addPlugin(rh);
-        BrowserCache bc = new BrowserCache();
-        proxy.addPlugin(bc);
-        CookieTracker ct = new CookieTracker(proxy.getCookieJar());
-        proxy.addPlugin(ct);
-        
-        addPlugin(new ManualEditPanel(me));
-        addPlugin(new MiscPanel(rh, bc, ct));
+        listenerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
 
     public javax.swing.JPanel getPanel() {
