@@ -14,6 +14,7 @@ import org.owasp.webscarab.ui.swing.SwingPluginUI;
 
 import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.proxy.ProxyUI;
+import org.owasp.webscarab.util.swing.ColumnDataModel;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;
@@ -21,6 +22,7 @@ import java.util.logging.Logger;
 import javax.swing.ListSelectionModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -32,7 +34,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
     private ListenerTableModel _ltm;
     
     private ArrayList _plugins;
-    private SwingPluginUI[] _pluginArray = new SwingPluginUI[0];
+    private ProxyPluginUI[] _pluginArray = new ProxyPluginUI[0];
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -41,7 +43,6 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         initComponents();
         
         _proxy = proxy;
-        setModel(null);
         
         _ltm = new ListenerTableModel(_proxy);
         listenerTable.setModel(_ltm);
@@ -52,6 +53,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         String[] keys = _proxy.getProxies();
         for (int i=0; i<keys.length; i++) _ltm.proxyAdded(keys[i]);
         
+        setModel(null);
         proxy.setUI(this);
     }
     
@@ -63,12 +65,12 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         return new String("Proxy");
     }
     
-    public void addPlugin(SwingPluginUI plugin) {
+    public void addPlugin(ProxyPluginUI plugin) {
         if (_plugins == null) {
             _plugins = new ArrayList();
         }
         _plugins.add(plugin);
-        _pluginArray = (SwingPluginUI[]) _plugins.toArray(_pluginArray);
+        _pluginArray = (ProxyPluginUI[]) _plugins.toArray(_pluginArray);
         mainTabbedPane.add(plugin.getPanel(), plugin.getPluginName());
     }
     
@@ -286,7 +288,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
         try {
             String address = addressTextField.getText();
-            int port = Integer.parseInt(portTextField.getText());
+            int port = Integer.parseInt(portTextField.getText().trim());
             HttpUrl base = null;
             if (!baseTextField.getText().equals("")) {
                 base = new HttpUrl(baseTextField.getText());
@@ -328,16 +330,32 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         return null;
     }
     
-    public javax.swing.Action[] getURLActions() {
+    public javax.swing.Action[] getUrlActions() {
         return null;
     }
     
-    public void proxyAdded(String key) {
-        _ltm.proxyAdded(key);
+    public void proxyAdded(final String key) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            _ltm.proxyAdded(key);
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    proxyAdded(key);
+                }
+            });
+        }
     }
     
-    public void proxyRemoved(String key) {
-        _ltm.proxyRemoved(key);
+    public void proxyRemoved(final String key) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            _ltm.proxyRemoved(key);
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    proxyRemoved(key);
+                }
+            });
+        }
     }
     
     public void proxyStarted(String key) {
@@ -355,16 +373,32 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
     }
     
     public void aborted(ConversationID id, String reason) {
+        _logger.info("Aborted request " + id + " " + reason);
     }
     
     public void setModel(SiteModel model) {
         // we do not use the model in this UI
     }
     
-    public void setEnabled(boolean enabled) {
-        super.setEnabled(enabled);
-        startButton.setEnabled(enabled);
-        stopButton.setEnabled(enabled);
+    public void setEnabled(final boolean enabled) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            startButton.setEnabled(enabled);
+            stopButton.setEnabled(enabled);
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    setEnabled(enabled);
+                }
+            });
+        }
+    }
+    
+    public ColumnDataModel[] getConversationColumns() {
+        return null;
+    }
+    
+    public ColumnDataModel[] getUrlColumns() {
+        return null;
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
