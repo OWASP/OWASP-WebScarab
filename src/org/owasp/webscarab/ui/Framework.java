@@ -108,13 +108,13 @@ public class Framework implements Plug {
                         }
                         for (NodeIterator ni = comments.elements(); ni.hasMoreNodes();) {
                             String key = _sitemodel.addFragment(ni.nextNode().toHtml());
-                            conversation.addProperty("COMMENT",key);
-                            urlinfo.addProperty("COMMENT", key);
+                            conversation.addProperty("COMMENTS",key);
+                            urlinfo.addProperty("COMMENTS", key);
                         }
                         for (NodeIterator ni = scripts.elements(); ni.hasMoreNodes();) {
                             String key = _sitemodel.addFragment(ni.nextNode().toHtml());
-                            conversation.addProperty("SCRIPT",key);
-                            urlinfo.addProperty("SCRIPT", key);
+                            conversation.addProperty("SCRIPTS",key);
+                            urlinfo.addProperty("SCRIPTS", key);
                         }
                     } catch (ParserException pe) {
                         System.err.println("ParserException : " + pe);
