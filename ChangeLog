@@ -1,3 +1,79 @@
+2005-02-22 22:12  rogan
+
+	* src/org/owasp/webscarab/: Class.tpl, RELEASE: Deleting unused
+	  files
+
+2005-02-22 21:52  rogan
+
+	* installer/: izpack.xml, shortcutSpec.xml: Support shortcuts on
+	  Unix, too
+
+2005-02-22 20:00  rogan
+
+	* src/org/owasp/webscarab/util/W32WinInet.java: Interface to the
+	  Windows WinInet native library
+
+2005-02-22 19:59  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: ProxyConfig.java,
+	  ProxyConfig.form: Add support for getting the WinInet proxy
+	  settings and copying them into the current settings
+
+2005-02-22 19:57  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/:
+	  swing/ManualEditPanel.java, ManualEdit.java: Minor method name
+	  changes to be more "bean-like"
+
+2005-02-22 19:40  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/: Listener.java, Proxy.java,
+	  swing/ListenerTableModel.java, swing/ProxyPanel.form,
+	  swing/ProxyPanel.java: Introduce the concept of a "primary"
+	  listener. For most people, the only listener should be the
+	  primary. This is only interesting when running WebScarab under
+	  Windows, as it enables us to automatically substitute the proxy
+	  settings in Internet Explorer, to point them to the primary
+	  listener, and to set them back when the listener is stopped. This
+	  is not 100% reliable yet, so bug reports and investigations are
+	  appreciated.	this also updates the GUI to make it possible to
+	  set and unset the "primary" flag.
+
+2005-02-22 19:34  rogan
+
+	* lib/W32WinInet.dll: Compiled WinInet JNI interface library.
+	  Should be placed in the java.library.path, or in the same
+	  directory as the webscarab JAR
+
+2005-02-22 19:31  rogan
+
+	* src/org/owasp/webscarab/util/W32WinInet.c: JNI interface to the
+	  WinInet native library
+
+2005-02-22 19:24  rogan
+
+	* src/org/owasp/webscarab/httpclient/URLFetcher.java: Improve
+	  support for "no proxy" configuration. We follow Microsoft
+	  conventions, where <local> implies that we skip the proxy for all
+	  non-FQDN hostnames. We now also match regular expressions in the
+	  no proxy strings.
+
+2005-02-17 10:52  rogan
+
+	* installer/izpack.xml: fixed the name of the JavaHelp jar
+
+2005-02-17 10:49  rogan
+
+	* build.xml: Minor build changes
+
+2005-02-17 10:27  rogan
+
+	* INSTALL: [no log message]
+
+2005-02-17 09:52  rogan
+
+	* installer/izpack.xml: Include the javahelp jar
+
 2005-02-17 09:20  rogan
 
 	* lib/jhbasic-2.0_02.jar: JavaHelp support library

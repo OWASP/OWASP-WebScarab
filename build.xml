@@ -126,5 +126,5 @@
                 <zipfileset dir="${src.dir}" excludes="**/.*" prefix="webscarab-${version}/src"/>
             </zip>
         </target>
-        <target depends="clean,source,proguard,izpack" description="Build both distributables" name="dist"/>
+        <target depends="clean,source,proguard,izpack" description="Build all distributables" name="dist"/>
 </project>
