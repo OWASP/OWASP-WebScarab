@@ -77,6 +77,25 @@ public class SiteModel {
         return id;
     }
     
+    public Conversation getConversation(String id) {
+        Conversation c = null;
+        String cid = null;
+        // FIXME !! There must be a better way to search for the conversation than this!
+        // Fortunately, it is not called often
+        synchronized (_conversationList) {
+            for (int i=0; i<_conversationList.size(); i++) {
+                c = (Conversation) _conversationList.getElementAt(i);
+                if (c != null) {
+                    cid = c.getProperty("ID");
+                    if (cid != null && cid.equals(id)) {
+                        return c;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    
     public String addFragment(String fragment) {
         String key = hashMD5(fragment.getBytes());
         if (_store != null) {
