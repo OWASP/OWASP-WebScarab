@@ -31,14 +31,11 @@
 		<javac classpathref="cpath" compiler="extJavac" deprecation="off" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}"/>
 	</target>
 	<target depends="compile" name="build">
-                <mkdir dir="${classes}/src"/>
+                <mkdir dir="${classes}/lib/"/>
                 <copy file="WebScarab.properties" todir="${classes}"/>
                 <copy file="serverkeys" todir="${classes}"/>
-                <!-- <copy todir="${classes}/src">
-                    <fileset dir="${source}">
-                        <exclude name="**/*.class"/>
-                    </fileset>
-                </copy> -->
+                <!-- <copy file="${ocljar}" todir="${classes}/lib/"/>
+                <copy file="${htmlparserjar}" todir="${classes}/lib"/> -->
 		<jar basedir="${classes}" jarfile="${jarname}.jar">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
