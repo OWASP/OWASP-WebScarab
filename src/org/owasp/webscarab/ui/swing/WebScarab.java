@@ -24,6 +24,8 @@ import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.DocumentHandler;
 
 import java.util.ArrayList;
+import java.util.Properties;
+
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.logging.ConsoleHandler;
@@ -182,7 +184,7 @@ public class WebScarab extends javax.swing.JFrame {
         mainSplitPane.setContinuousLayout(true);
         mainSplitPane.setAutoscrolls(true);
         mainTabbedPane.setMinimumSize(new java.awt.Dimension(300, 100));
-        mainTabbedPane.setPreferredSize(new java.awt.Dimension(1280, 1024));
+        mainTabbedPane.setPreferredSize(new java.awt.Dimension(800, 600));
         mainSplitPane.setLeftComponent(mainTabbedPane);
 
         jScrollPane1.setToolTipText("Shows messages logged by various WebScarab plugins");
@@ -361,23 +363,15 @@ public class WebScarab extends javax.swing.JFrame {
     }//GEN-END:initComponents
 
     private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
-        String size = Integer.toString(getWidth()) + "x" + Integer.toString(getHeight());
-        Preferences.getPreferences().setProperty("WebScarab.size",size);
+        if (! isShowing()) return;
+        Preferences.getPreferences().setProperty("WebScarab.size.x",Integer.toString(getWidth()));
+        Preferences.getPreferences().setProperty("WebScarab.size.y",Integer.toString(getHeight()));
     }//GEN-LAST:event_formComponentResized
 
     private void formComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentMoved
-        String position = "";
-        int x = getX();
-        int y = getY();
-        if (x>0) {
-            position = "+";
-        }
-        position = position + Integer.toString(x);
-        if (y>0) {
-            position = position + "+";
-        }
-        position = position + Integer.toString(y);
-        Preferences.getPreferences().setProperty("WebScarab.position",position);
+        if (! isShowing()) return;
+        Preferences.getPreferences().setProperty("WebScarab.position.x",Integer.toString(getX()));
+        Preferences.getPreferences().setProperty("WebScarab.position.y",Integer.toString(getY()));
     }//GEN-LAST:event_formComponentMoved
 
     private void conversationSearchMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_conversationSearchMenuItemActionPerformed
@@ -537,21 +531,16 @@ public class WebScarab extends javax.swing.JFrame {
         
         WebScarab ws = new WebScarab(framework);
         try {
-            String position = Preferences.getPreferences().getProperty("WebScarab.position");
-            int p = Math.max(position.indexOf('-',2),position.indexOf('+',2));
-            int x = Integer.parseInt(position.substring(position.indexOf('+')+1,p));
-            int y = Integer.parseInt(position.substring(p+1));
-            String size = Preferences.getPreferences().getProperty("WebScarab.size");
-            p = size.indexOf('x');
-            int width = Integer.parseInt(size.substring(0,p));
-            int height = Integer.parseInt(size.substring(p+1));
-            ws.setBounds(x,y,width,height);
+            Properties prefs = Preferences.getPreferences();
+            int xpos = Integer.parseInt(prefs.getProperty("WebScarab.position.x"));
+            int ypos = Integer.parseInt(prefs.getProperty("WebScarab.position.y"));
+            int width = Integer.parseInt(prefs.getProperty("WebScarab.size.x"));
+            int height = Integer.parseInt(prefs.getProperty("WebScarab.size.y"));
+            ws.setBounds(xpos,ypos,width,height);
         } catch (NumberFormatException nfe) {
-            System.out.println(nfe);
+            System.out.println("Number format exception parsing preferred size and position: " + nfe);
         } catch (NullPointerException npe) {
-            System.out.println(npe);
         }
-        
         ws.show();
         
         ws.addPlugin(new ProxyPanel(framework));
