@@ -14,6 +14,7 @@ import javax.swing.JComboBox;
 import javax.swing.DefaultCellEditor;
 
 import java.io.ByteArrayInputStream;
+import java.util.Vector;
 
 import org.owasp.util.URLUtil;
 import org.owasp.webscarab.model.Request;
@@ -24,10 +25,9 @@ import org.owasp.webscarab.model.Request;
  */
 public class RequestPanel extends javax.swing.JPanel {
     
-    private boolean[] validPanel;
-    private boolean editable = false;
-    private boolean error = false;
-    private Request request;
+    private boolean[] _validPanel;
+    private boolean _editable = false;
+    private Request _request;
     
     /** Creates new form RequestPanel */
     public RequestPanel() {
@@ -60,7 +60,7 @@ public class RequestPanel extends javax.swing.JPanel {
     }
     
     public void setEditable(boolean editable) {
-        this.editable = editable;
+        _editable = editable;
         rawTextArea.setEditable(editable);
         methodTextField.setEditable(editable);
         pathTextField.setEditable(editable);
@@ -75,32 +75,33 @@ public class RequestPanel extends javax.swing.JPanel {
     
     public void setRequest(Request request) {
         if (request != null) {
-            this.request = new Request(request);
+            _request = new Request(request);
         } else {
-            this.request = null;
+            _request = null;
         }
-        validPanel = new boolean[] {false, false};
+        _validPanel = new boolean[] {false, false};
         updateFields(displayTabbedPane.getSelectedIndex());
     }
     
     public Request getRequest() {
         int panel = displayTabbedPane.getSelectedIndex();
         updateRequest(panel);
-        return this.request;
+        return _request;
     }
     
     private void updateFields(int panel) {
-        if (validPanel[panel]) return;
-        if (request != null) {
+        // we have already populated the fields in this panel, and they have not been changed
+		if (_validPanel[panel]) return; 
+        if (_request != null) {
             if (panel == 0) {
-                rawTextArea.setText(this.request.toString());
+                rawTextArea.setText(_request.toString("\n"));
                 rawTextArea.setCaretPosition(0);
             } else if (panel == 1) {
-                methodTextField.setText(this.request.getMethod());
-                URL url = request.getURL();
+                methodTextField.setText(_request.getMethod());
+                URL url = _request.getURL();
                 pathTextField.setText(URLUtil.schemeAuth(url)+url.getPath());
-                ((ParameterTableModel)parameterTable.getModel()).setParameters(this.request.getParameters());
-                if (!editable && parameterTable.getModel().getRowCount() == 0) {
+                ((ParameterTableModel)parameterTable.getModel()).setParameters(_request.getParameters());
+                if (!_editable && parameterTable.getModel().getRowCount() == 0) {
                     parameterPanel.setVisible(false);
                 } else {
                     parameterPanel.setVisible(true);
@@ -115,53 +116,52 @@ public class RequestPanel extends javax.swing.JPanel {
                 ((ParameterTableModel)parameterTable.getModel()).clear();
             }
         }
-        validPanel[panel] = true;
+        _validPanel[panel] = true;
     }
     
     private void updateRequest(int panel) {
-        if (error) return;
-        if (editable && panel == 0) {
+        if (_editable && panel == 0) {
             // we must parse the rawTextArea
             try {
-                if (request == null) request = new Request();
-                request.read(new ByteArrayInputStream(rawTextArea.getText().getBytes()));
-                String cl = request.getHeader("Content-Length");
+                _validPanel[panel] = false;
+                _request = new Request();
+                _request.read(new ByteArrayInputStream(rawTextArea.getText().getBytes()));
+                String cl = _request.getHeader("Content-Length");
                 if (cl != null) {
-                    byte[] content = request.getContent();
+                    byte[] content = _request.getContent(); // read the content
                     if (content == null) {
-                        request.setHeader("Content-Length","0");
+                        _request.setHeader("Content-Length","0"); // update the header
                     } else {
-                        request.setHeader("Content-Length", Integer.toString(content.length));
+                        _request.setHeader("Content-Length", Integer.toString(content.length));
                     }
                 }
-                validPanel[panel] = false;
             } catch (Exception e) {
                 System.err.println("Error trying to parse the text area : " + e);
-                e.printStackTrace();
-                request = null;
-                error = true;
-                displayTabbedPane.setSelectedIndex(0);
+                _request = null;
                 return;
             }
-        } else if (editable && panel == 1) {
+        } else if (_editable && panel == 1) {
             // we must update based on the tables
             try {
-                if (request == null) request = new Request();
-                request.setMethod(methodTextField.getText());
-                request.setURL(pathTextField.getText());
+                _validPanel[panel] = false;
+                if (_request == null) {
+					_request = new Request();
+                }
+                _request.setMethod(methodTextField.getText());
+                _request.setURL(pathTextField.getText());
                 ParameterTableModel ptm = (ParameterTableModel)parameterTable.getModel();
                 String[][] params = ptm.getParameters();
-                // request.setParameters(params);
-                validPanel[panel] = false;
+                _request.setParameters(params);
+				byte[] content = _request.getContent();
+				if (content != null) {
+					_request.setHeader("Content-Length",Integer.toString(content.length));
+				}
             } catch (Exception e) {
                 System.err.println("Error trying to parse the tabular view : " + e);
-                e.printStackTrace();
-                error = true;
-                displayTabbedPane.setSelectedIndex(1);
-                return;
+                _request = null;
+				return;
             }
         }
-        error = false;
     }
     
     /** This method is called from within the constructor to
@@ -394,32 +394,32 @@ public class RequestPanel extends javax.swing.JPanel {
     
     private class ParameterTableModel extends javax.swing.table.AbstractTableModel {
         
-        protected String [] columnNames = {
+        protected String [] _columnNames = {
             "Location", "Name", "Value"
         };
         
-        protected java.util.Vector data = new java.util.Vector(1);
-        private boolean editable = false;
+        protected Vector _data = new Vector();
+        private boolean _editable = false;
         
         public ParameterTableModel() {
         }
         
         public void setEditable(boolean editable) {
-            this.editable = editable;
+            _editable = editable;
         }
         
         public boolean isCellEditable(int rowIndex, int columnIndex) {
-            return editable;
+            return _editable;
         }
         
         public synchronized void setParameters(String[][] params) {
-            data.removeAllElements();
+            _data.removeAllElements();
             for (int i=0; i<params.length; i++) {
-                if (params[i].length < 3) {
-                    System.err.println("ParameterTableModel called with short data! Only got " +
+                if (params[i].length != 3) {
+                    System.err.println("ParameterTableModel called with invalid data! Only got " +
                     params[i].length + " entries in parameter " + i);
                 } else {
-                    data.add(params[i]);
+                    _data.add(params[i]);
                 }
             }
             fireTableDataChanged();
@@ -427,16 +427,16 @@ public class RequestPanel extends javax.swing.JPanel {
         
         public synchronized String[][] getParameters() {
             int rows = 0;
-            for (int i = 0; i < data.size(); i++) {
-                String[] row = (String[]) data.get(i);
+            for (int i = 0; i < _data.size(); i++) {
+                String[] row = (String[]) _data.get(i);
                 if (!row[0].equals("") && !row[1].equals("")) {
                     rows++;
                 }
             }
             String[][] params = new String[rows][3];
             rows = 0;
-            for (int i = 0; i < data.size(); i++) {
-                String[] row = (String[]) data.get(i);
+            for (int i = 0; i < _data.size(); i++) {
+                String[] row = (String[]) _data.get(i);
                 if (!row[0].equals("") && !row[1].equals("")) {
                     params[rows][0] = row[0];
                     params[rows][1] = row[1];
@@ -448,41 +448,41 @@ public class RequestPanel extends javax.swing.JPanel {
         }
         
         public synchronized void clear() {
-            data.removeAllElements();
+            _data.removeAllElements();
             fireTableDataChanged();
         }
         
         public synchronized void insertRow(int rowIndex) {
-            data.insertElementAt(new String[] {"","",""}, rowIndex);
+            _data.insertElementAt(new String[] {"","",""}, rowIndex);
             fireTableRowsInserted(rowIndex,rowIndex);
         }
         
         public synchronized void deleteRow(int rowIndex) {
-            data.removeElementAt(rowIndex);
+            _data.removeElementAt(rowIndex);
             fireTableRowsDeleted(rowIndex, rowIndex);
         }
         
         public String getColumnName(int column) {
-            if (column < columnNames.length) {
-                return columnNames[column];
+            if (column < _columnNames.length) {
+                return _columnNames[column];
             }
             return "";
         }
         
         public synchronized int getColumnCount() {
-            return columnNames.length;
+            return _columnNames.length;
         }
         
         public synchronized int getRowCount() {
-            return data.size();
+            return _data.size();
         }
         
         public synchronized Object getValueAt(int row, int column) {
-            if (row<0 || row > data.size()) {
+            if (row<0 || row > _data.size()) {
                 throw new ArrayIndexOutOfBoundsException("Attempt to get row " + row + ", column " + column + " : row does not exist!");
             }
-            String[] rowdata = (String[]) data.get(row);
-            if (column <= columnNames.length) {
+            String[] rowdata = (String[]) _data.get(row);
+            if (column <= _columnNames.length) {
                 return rowdata[column];
             } else {
                 throw new ArrayIndexOutOfBoundsException("Attempt to get row " + row + ", column " + column + " : column does not exist!");
@@ -490,11 +490,11 @@ public class RequestPanel extends javax.swing.JPanel {
         }
         
         public synchronized void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-            String[] rowdata = (String[]) data.get(rowIndex);
-            if (rowIndex<0 || rowIndex > data.size()) {
+            String[] rowdata = (String[]) _data.get(rowIndex);
+            if (rowIndex<0 || rowIndex > _data.size()) {
                 throw new ArrayIndexOutOfBoundsException("Attempt to set row " + rowIndex + ", column " + columnIndex + " to " + aValue + " : row does not exist!");
             }
-            if (columnIndex <= columnNames.length) {
+            if (columnIndex <= _columnNames.length) {
                 rowdata[columnIndex] = (String) aValue;
                 fireTableCellUpdated(rowIndex, columnIndex);
             } else {
