@@ -1,5 +1,5 @@
 /*
- * $Id: ManualEditPanel.java,v 1.4 2003/08/04 22:33:43 rogan Exp $
+ * $Id: ManualEditPanel.java,v 1.5 2003/10/09 06:40:04 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -43,7 +43,7 @@ public class ManualEditPanel extends javax.swing.JPanel implements SwingPlugin {
                 interceptMethodListValueChanged(evt);
             }
         });
-        _manualEdit.setConversationEditor(new ManualEditFrame());
+        _manualEdit.setConversationEditorFactory(new ManualEditFrameFactory());
     }
     
     public String getPluginName() {

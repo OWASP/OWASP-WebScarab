@@ -43,47 +43,49 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
     }
 
     public synchronized Request editRequest(Request request) {
-        _request = request;
-        _requestPanel.setEditable(true);
-        _requestPanel.setRequest(request);
-        show();
         synchronized (this) {
+            _request = request;
+            _requestPanel.setEditable(true);
+            _requestPanel.setRequest(request);
+            show();
             try {
                 this.wait();
             } catch (InterruptedException ie) {
                 System.out.println("Wait interrupted");
             }
+            _requestPanel.setEditable(false);
+            setVisible(false);
+            return _request;
         }
-        _requestPanel.setEditable(false);
-        setVisible(false);
-        return _request;
     }
     
-    public synchronized void setRequest(Request request) {
+    private void setRequest(Request request) {
         _requestPanel.setRequest(request);
     }
     
-    public synchronized Response editResponse(Request request, Response response) {
-        setRequest(request);
-        return editResponse(response);
+    public Response editResponse(Request request, Response response) {
+        synchronized (this) {
+            setRequest(request);
+            return editResponse(response);
+        }
     }
     
-    public synchronized Response editResponse(Response response) {
-        _response = response;
-        _responsePanel.setEditable(true);
-        _responsePanel.setResponse(response);
-        _responsePanel.setVisible(true);
-        show();
+    public Response editResponse(Response response) {
         synchronized (this) {
+            _response = response;
+            _responsePanel.setEditable(true);
+            _responsePanel.setResponse(response);
+            _responsePanel.setVisible(true);
+            show();
             try {
                 this.wait();
             } catch (InterruptedException ie) {
                 System.out.println("Wait interrupted");
             }
+            _responsePanel.setEditable(false);
+            setVisible(false);
+            return _response;
         }
-        _responsePanel.setEditable(false);
-        setVisible(false);
-        return _response;
     }
 
     /** This method is called from within the constructor to

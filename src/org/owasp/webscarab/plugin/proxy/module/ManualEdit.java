@@ -29,7 +29,7 @@ public class ManualEdit extends AbstractProxyPlugin {
     private String[] interceptMethods = null;
     private boolean interceptRequest = false;
     private boolean interceptResponse = false;
-    private ConversationEditor _ce = null;
+    private ConversationEditorFactory _cef = null;
     
     /** Creates a new instance of ManualEdit */
     public ManualEdit() {
@@ -133,8 +133,8 @@ public class ManualEdit extends AbstractProxyPlugin {
         return new ProxyPlugin(in);
     }
     
-    public void setConversationEditor(ConversationEditor ce) {
-        _ce = ce;
+    public void setConversationEditorFactory(ConversationEditorFactory cef) {
+        _cef = cef;
     }
     
     private class ProxyPlugin implements HTTPClient {
@@ -152,8 +152,8 @@ public class ManualEdit extends AbstractProxyPlugin {
                     String method = request.getMethod();
                     for (int i=0; i<interceptMethods.length; i++) {
                         if (method.equals(interceptMethods[i])) {
-                            if (_ce != null) {
-                                request = _ce.editRequest(request);
+                            if (_cef != null) {
+                                request = _cef.getEditor().editRequest(request);
                             }
                         }
                     }
@@ -165,8 +165,8 @@ public class ManualEdit extends AbstractProxyPlugin {
                 if (!contentType.matches("text/.*")) {
                     return response;
                 }
-                if (_ce != null) {
-                    response = _ce.editResponse(request, response);
+                if (_cef != null) {
+                    response = _cef.getEditor().editResponse(request, response);
                 }
             }
             return response;
