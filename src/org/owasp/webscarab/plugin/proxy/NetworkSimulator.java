@@ -173,14 +173,19 @@ public class NetworkSimulator {
         }
         
         public int read() throws IOException {
-            while (reserveRead(Math.min(1,in.available()))==0);
-            return in.read();
+            int got = in.read();
+            if (got < 0) return got;
+            while (reserveRead(1)==0);
+            return got;
         }
         
         public int read(byte[] buff, int off, int len) throws IOException {
-            int allocation;
-            while ((allocation = reserveRead(Math.min(len, in.available()))) == 0);
-            return in.read(buff,off,allocation);
+            int allocation = 0;
+            int got = in.read(buff, off, len);
+            while (allocation < got) {
+                allocation = allocation + reserveRead(got - allocation);
+            }
+            return got;
         }
         
     }
