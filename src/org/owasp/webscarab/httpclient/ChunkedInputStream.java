@@ -35,7 +35,7 @@ public class ChunkedInputStream extends FilterInputStream {
     private void readChunk() throws IOException {
         String line = readLine().trim();
         try {
-            size = Integer.parseInt(line,16);
+            size = Integer.parseInt(line.trim(),16);
             _logger.finest("Expecting a chunk of " + size + " bytes");
             chunk = new byte[size];
             int read = 0;
