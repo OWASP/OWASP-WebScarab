@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project basedir="." default="run" name="WebScarab">
+<project basedir="." default="build" name="WebScarab">
         <target name="init">
-        	<taskdef name="vainstall" classname="com.memoire.vainstall.ant.VAInstallTask" classpath="lib/vainstall.jar" />
                 <tstamp/>
 		<property name="jarname" value="webscarab.jar"/>
 		<property name="source" value="src"/>
@@ -33,37 +32,24 @@
 		<javac classpathref="cpath" compiler="extJavac" deprecation="off" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}"/>
 	</target>
 	<target depends="compile" name="build">
-                <mkdir dir="${classes}/lib/"/>
-                <copy file="serverkeys" todir="${classes}"/>
 		<jar basedir="${classes}" jarfile="${jarname}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
                         <attribute name="Class-Path" value="lib/owasp.jar lib/htmlparser.jar"/>
                     </manifest>
                 </jar>
-                <echo message="${DSTAMP}-${TSTAMP}" file="timestamp"/>
 	</target>
 	<target depends="compile" name="run">
 		<java classname="${mainclass}" classpathref="cpath" fork="on">
 		</java>
 	</target>
-        <target name="installer" depends="build">
-                <!-- this does not work currently as an ant task, but it does from the shell 
-                     HELP?  In the mean time, use the shell script
-                -->
-                <property name="vainstall.archive.license" value="${basedir}/LICENSE"/>
-                <property name="vainstall.archive.readme" value="${basedir}/README"/>
-                <property name="vainstall.destination.appVersion" value="${DSTAMP}-${TSTAMP}"/>
-                <property file="webscarab.vai" />
-                <vainstall>
-                        <fileset file="${jarname}"/>
-                        <fileset dir="lib" includes="**/owasp.jar"/>
-                        <fileset dir="lib" includes="**/htmlparser.jar"/>
-                        <javalauncher scriptname="webscarab"
-                                javaclass="${mainclass}"
-                                classpath="${jarname}"
-                                />
-                </vainstall>
-        </target>
-
+	<target depends="compile" name="installer">
+                <taskdef name="izpack" classpath="${basedir}/lib/izpack.jar"
+                     classname="com.izforge.izpack.ant.IzPackTask"/>
+		<izpack input="izpack.xml"
+			output="WebScarab-${DSTAMP}-${TSTAMP}.jar"
+			installerType="standard-kunststoff"
+			basedir="${basedir}"
+			izPackDir="/home/rdawes/IzPack/"/>
+	</target>
 </project>
