@@ -1,0 +1,215 @@
+/*
+ * SummaryPanel.java
+ *
+ * Created on December 16, 2003, 10:35 AM
+ */
+
+package org.owasp.webscarab.ui.swing;
+
+import org.owasp.webscarab.ui.Framework;
+import org.owasp.webscarab.model.URLTreeModel;
+
+import javax.swing.JTree;
+// import org.owasp.webscarab.model.URLTreeNode;
+
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreeSelectionModel;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.ListSelectionModel;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
+import java.util.TreeMap;
+
+import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.SiteModel;
+
+/**
+ *
+ * @author  rdawes
+ */
+public class SummaryPanel extends javax.swing.JPanel implements SwingPlugin {
+    
+    private Framework _framework;
+    private JTreeTable _urlTreeTable;
+    private ConversationTableModel _ctm;
+    private SiteModel _siteModel;
+    private TreeMap _windowCache = new TreeMap();
+    
+    /** Creates new form SummaryPanel */
+    public SummaryPanel(Framework framework) {
+        _framework = framework;
+        _siteModel = framework.getSiteModel();
+        
+        initComponents();
+        
+        _urlTreeTable = new JTreeTable(new SiteInfoModel(framework.getSiteModel()));
+        treeTableScrollPane.setViewportView(_urlTreeTable);
+        JTree urlTree = _urlTreeTable.getTree();
+        urlTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        urlTree.setRootVisible(false);
+        urlTree.setShowsRootHandles(true);
+
+        // Listen for when the selection changes.
+        urlTree.addTreeSelectionListener(new TreeSelectionListener() {
+            public void valueChanged(TreeSelectionEvent e) {
+                // System.out.println("Selected " + e.toString());
+                // URLTreeModel.URLNode node = (URLTreeModel.URLNode) urlTree.getLastSelectedPathComponent();
+                // Object node = urlTree.getLastSelectedPathComponent();
+                // if (node == null) return;
+                // System.out.println("Selected " + node.getURL());
+                // We can do something like display the entries in the URLInfo. Ideally, we should 
+                // have this as part of an JTreeTable, but the license worries me :-(
+            }
+        });
+        
+        conversationTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        conversationTable.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) 
+                    showSelectedConversation();
+            }
+        });
+        _ctm = new ConversationTableModel(_siteModel.getConversationListModel());
+        conversationTable.setModel(_ctm);
+        
+        javax.swing.table.TableColumnModel columnModel = conversationTable.getColumnModel();
+        for (int i=0; i<_ctm.getColumnCount(); i++) {
+            columnModel.getColumn(i).setPreferredWidth(_ctm.getPreferredColumnWidth(i));
+        }
+    }
+    
+    private void showSelectedConversation() {
+        int row = conversationTable.getSelectedRow();
+        if (row >= 0) {
+            final String id = (String) _ctm.getValueAt(row, 0);
+            Request request = _siteModel.getRequest(id);
+            Response response = _siteModel.getResponse(id);
+            if (request == null && response == null) {
+                JOptionPane.showMessageDialog(null, "Conversation was not saved! Please start a new session first!", "Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            synchronized (_windowCache) {
+                ConversationPanel cp = (ConversationPanel) _windowCache.get("Conversation " + id);
+                if (cp == null) {
+                    cp = new ConversationPanel();
+                    _windowCache.put("Conversation " + id, cp);
+                    cp.setRequest(request, false);
+                    cp.setResponse(response, false);
+                }
+                JFrame frame = cp.inFrame("Conversation " + id);
+                frame.addWindowListener(new java.awt.event.WindowAdapter() {
+                    public void windowClosing(java.awt.event.WindowEvent evt) {
+                        synchronized (_windowCache) {
+                            _windowCache.remove("Conversation " + id); 
+                        }
+                    }
+                });
+                frame.show();
+            }
+        }
+    }
+
+    /** This method is called from within the constructor to
+     * initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is
+     * always regenerated by the Form Editor.
+     */
+    private void initComponents() {//GEN-BEGIN:initComponents
+        java.awt.GridBagConstraints gridBagConstraints;
+
+        jSplitPane1 = new javax.swing.JSplitPane();
+        urlPanel = new javax.swing.JPanel();
+        jCheckBox1 = new javax.swing.JCheckBox();
+        treeTableScrollPane = new javax.swing.JScrollPane();
+        conversationPanel = new javax.swing.JPanel();
+        conversationTableScrollPane = new javax.swing.JScrollPane();
+        conversationTable = new javax.swing.JTable();
+
+        setLayout(new java.awt.BorderLayout());
+
+        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jSplitPane1.setResizeWeight(0.5);
+        jSplitPane1.setOneTouchExpandable(true);
+        urlPanel.setLayout(new java.awt.GridBagLayout());
+
+        urlPanel.setMinimumSize(new java.awt.Dimension(283, 100));
+        urlPanel.setPreferredSize(new java.awt.Dimension(264, 100));
+        jCheckBox1.setText("Tree Selection filters conversation list");
+        jCheckBox1.setEnabled(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        urlPanel.add(jCheckBox1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        urlPanel.add(treeTableScrollPane, gridBagConstraints);
+
+        jSplitPane1.setLeftComponent(urlPanel);
+
+        conversationPanel.setLayout(new java.awt.GridBagLayout());
+
+        conversationPanel.setMinimumSize(new java.awt.Dimension(22, 100));
+        conversationPanel.setPreferredSize(new java.awt.Dimension(3, 100));
+        conversationTableScrollPane.setMinimumSize(null);
+        conversationTableScrollPane.setPreferredSize(null);
+        conversationTableScrollPane.setAutoscrolls(true);
+        conversationTable.setBorder(new javax.swing.border.BevelBorder(javax.swing.border.BevelBorder.RAISED));
+        conversationTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+
+            }
+        ));
+        conversationTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        conversationTable.setMaximumSize(new java.awt.Dimension(2147483647, 32767));
+        conversationTable.setMinimumSize(null);
+        conversationTable.setPreferredScrollableViewportSize(null);
+        conversationTable.setPreferredSize(null);
+        conversationTable.setOpaque(false);
+        conversationTableScrollPane.setViewportView(conversationTable);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        conversationPanel.add(conversationTableScrollPane, gridBagConstraints);
+
+        jSplitPane1.setRightComponent(conversationPanel);
+
+        add(jSplitPane1, java.awt.BorderLayout.CENTER);
+
+    }//GEN-END:initComponents
+
+    public javax.swing.JPanel getPanel() {
+        return this;
+    }    
+    
+    public String getPluginName() {
+        return "Summary";
+    }    
+    
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel conversationPanel;
+    private javax.swing.JTable conversationTable;
+    private javax.swing.JScrollPane conversationTableScrollPane;
+    private javax.swing.JCheckBox jCheckBox1;
+    private javax.swing.JSplitPane jSplitPane1;
+    private javax.swing.JScrollPane treeTableScrollPane;
+    private javax.swing.JPanel urlPanel;
+    // End of variables declaration//GEN-END:variables
+    
+}
