@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.lang.StringBuffer;
 import java.lang.NumberFormatException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import java.util.zip.GZIPInputStream;
@@ -514,4 +515,19 @@ public class Message {
         }
     }
     
+    public boolean equals(Object obj) {
+        if (! (obj instanceof Message)) return false;
+        Message mess = (Message) obj;
+        String[][] myHeaders = getHeaders();
+        String[][] thoseHeaders = mess.getHeaders();
+        if (myHeaders.length != thoseHeaders.length) return false;
+        for (int i=0; i<myHeaders.length; i++) {
+            if (!myHeaders[i][0].equals(thoseHeaders[i][0])) return false;
+            if (!myHeaders[i][1].equals(thoseHeaders[i][1])) return false;
+        }
+        byte[] myContent = getContent();
+        byte[] thatContent = mess.getContent();
+        return Arrays.equals(myContent, thatContent);
+    }
+
 }

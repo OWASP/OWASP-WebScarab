@@ -235,6 +235,15 @@ public class Request extends Message {
         return buff.toString();
     }
     
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Request)) return false;
+        Request req = (Request)obj;
+        if (!getMethod().equals(req.getMethod())) return false;
+        if (!getURL().equals(req.getURL())) return false;
+        if (!getVersion().equals(req.getVersion())) return false;
+        return super.equals(req);
+    }
+    
 //    public String[][] getParameters() {
 //        ArrayList params = new ArrayList(1);
 //        String s;

@@ -165,4 +165,12 @@ public class Response extends Message {
         return _request;
     }
         
+    public boolean equals(Object obj) {
+        if (! (obj instanceof Response)) return false;
+        Response resp = (Response) obj;
+        if (!getVersion().equals(resp.getVersion())) return false;
+        if (!getStatusLine().equals(resp.getStatusLine())) return false;
+        return super.equals(obj);
+    }
+    
 }
