@@ -166,4 +166,8 @@ public class SpiderModel extends FilteredSiteModel {
         return _forbiddenPaths;
     }
     
+    public void setAuthRequired(HttpUrl url) {
+        _model.setUrlProperty(url, "AUTHREQUIRED", Boolean.toString(true));
+    }
+    
 }

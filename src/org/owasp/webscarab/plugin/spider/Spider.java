@@ -193,6 +193,10 @@ public class Spider implements Plugin {
             _logger.warning("Got a null request from the response!");
             return false;
         }
+        if (response.getStatus().startsWith("401")) {
+            _model.setAuthRequired(request.getURL());
+            return true;
+        }
         _framework.addConversation(request, response, "Spider");
         if (_model.getCookieSync()) {
             NamedValue[] headers = response.getHeaders();
