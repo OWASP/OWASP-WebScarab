@@ -18,6 +18,8 @@
              	<property name="jfreechartjar" value="lib/jfreechart-0.9.12.jar"/>
              	<property name="jcommonjar" value="lib/jcommon-0.8.7.jar"/>
              	<property name="jhelpjar" value="lib/jhbasic-2.0_02.jar"/>
+             	<property name="chardetjar" value="lib/chardet.jar"/>
+             	<property name="tagsoupjar" value="lib/tagsoup-1.0rc2.jar"/>
        		
                 <path id="cpath">
 			<pathelement location="${classes.dir}"/>
@@ -28,6 +30,8 @@
 			<pathelement location="${jfreechartjar}"/>
 			<pathelement location="${jcommonjar}"/>
 			<pathelement location="${jhelpjar}"/>
+			<pathelement location="${chardetjar}"/>
+			<pathelement location="${tagsoupjar}"/>
 		</path>
 	</target>
 	<target depends="init" description="clean up the build area" name="clean">
@@ -56,7 +60,7 @@
 		<jar basedir="${classes.dir}" jarfile="${jar}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
-                        <attribute name="Class-Path" value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar}"/>
+                        <attribute name="Class-Path" value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar}"/>
                         <!-- <attribute name="Built-By" value="${user.name}"/> -->
                         <section name="common">
                             <attribute name="Implementation-Title" value="common"/>
@@ -104,6 +108,8 @@
                 <injar name="${basedir}/${bsfjar}"/>
                 <injar name="${basedir}/${jfreechartjar}"/>
                 <injar name="${basedir}/${jcommonjar}"/>
+                <injar name="${basedir}/${jchardetjar}"/>
+                <injar name="${basedir}/${tagsoupjar}"/>
                 <libraryjar name="${basedir}/${jhelpjar}"/>
 		<libraryjar name="${java.home}/lib/rt.jar"/>
 		<libraryjar name="${java.home}/lib/jsse.jar"/>
