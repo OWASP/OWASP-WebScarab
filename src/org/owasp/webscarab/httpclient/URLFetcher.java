@@ -127,13 +127,9 @@ public class URLFetcher implements HTTPClient {
         _serverInput = fromServer;
     }
     
-    static private void initSSLSocketFactory(KeyManagerFactory kmf) {
+    static private void initSSLSocketFactory(KeyManager[] managers) {
         try {
             SSLContext sc = SSLContext.getInstance("SSL");
-            KeyManager[] managers = null;
-            if (kmf != null) {
-                managers = kmf.getKeyManagers();
-            }
             sc.init(managers, _trustAllCerts, new java.security.SecureRandom());
             _factory = (SSLSocketFactory)sc.getSocketFactory();
         } catch (NoSuchAlgorithmException nsae) {
@@ -153,7 +149,7 @@ public class URLFetcher implements HTTPClient {
                 String keyPassword = getKeyPassword();
                 if (keyPassword == null) { keyPassword = keyStorePassword; }
                 try {
-                    loadClientCertificateFromFile(certFile, keyStorePassword, keyPassword);
+                    KeyManager[] managers = getKeyManagersForCertificateFile(certFile, keyStorePassword, keyPassword);
                 } catch (Exception e) {
                     _logger.severe("Exception loading client cert preferences: " + e);
                 }
@@ -302,22 +298,24 @@ public class URLFetcher implements HTTPClient {
         }
     }
     
-    private static void loadClientCertificateFromFile(String certFile, String keystorePassword, String keyPassword)
+    private static KeyManager[] getKeyManagersForCertificateFile(String certFile, String keystorePassword, String keyPassword)
     throws FileNotFoundException, IOException, KeyStoreException, CertificateException, UnrecoverableKeyException {
         try {
             KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
             KeyStore ks = KeyStore.getInstance("PKCS12");
             ks.load(new FileInputStream(certFile), keystorePassword.toCharArray());
             kmf.init(ks, keyPassword.toCharArray());
-            initSSLSocketFactory(kmf);
+            return kmf.getKeyManagers();
         } catch (NoSuchAlgorithmException nsae) {
             _logger.severe("No SunX509 suport: " + nsae);
+            return null;
         }
     }
     
     public static void setClientCertificateFile(String certFile, String keystorePassword, String keyPassword)
     throws FileNotFoundException, IOException, KeyStoreException, CertificateException, UnrecoverableKeyException {
-        loadClientCertificateFromFile(certFile, keystorePassword, keyPassword);
+        KeyManager[] managers = getKeyManagersForCertificateFile(certFile, keystorePassword, keyPassword);
+        initSSLSocketFactory(managers);
         _props.setProperty("WebScarab.clientCertificateFile", certFile);
         _props.setProperty("WebScarab.keystorePassword", keystorePassword);
         _props.setProperty("WebScarab.keyPassword", keyPassword);
