@@ -34,6 +34,7 @@
             <description>The base files</description>
             <singlefile src="README" target="$INSTALL_PATH/README.txt"/>
             <singlefile src="LICENSE" target="$INSTALL_PATH/LICENSE.txt"/>
+            <singlefile src="ChangeLog" target="$INSTALL_PATH/ChangeLog.txt"/>
             <file src="webscarab.jar" targetdir="$INSTALL_PATH"/>
             <file src="bin/webscarab.sh" targetdir="$INSTALL_PATH" os="unix"/>
             <file src="bin/webscarab.bat" targetdir="$INSTALL_PATH" os="windows"/>
