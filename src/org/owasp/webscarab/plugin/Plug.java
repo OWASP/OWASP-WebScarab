@@ -14,8 +14,8 @@ import org.owasp.webscarab.model.Conversation;
  */
 public interface Plug {
     
-	void addPlugin ( WebScarabPlugin plugin );
-	
-  String addConversation ( Conversation conversation );
-	
+    void addPlugin( WebScarabPlugin plugin );
+    
+    String addConversation( Conversation conversation );
+    
 }
