@@ -27,6 +27,8 @@ import java.util.TreeMap;
 import java.util.Iterator;
 import java.net.URL;
 import java.math.BigInteger;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  *
@@ -52,6 +54,8 @@ public class SessionIDAnalysis implements WebScarabPlugin, Runnable {
     private int _location = 0;
     private String _name = null;
     private String _regex = null;
+    private Request _request = null;
+    private int _count = 0;
     
     private SessionIDStore _store = null;
     
@@ -68,6 +72,16 @@ public class SessionIDAnalysis implements WebScarabPlugin, Runnable {
         me.setName("SessionID Analysis");
         me.start();
         System.err.println("SessionID initialised");
+        new Timer(true).schedule(new TimerTask() {
+            public void run() {
+                if (_request != null && _count > 0) { // if we have a request to fetch, and there are some outstanding
+                    if (_requestQueue.size() == 0) {
+                        _requestQueue.add(_request);
+                        _count--; // maybe decrement the counter when we get a sessionid from the response?
+                    }
+                }
+            }
+        }, 10000, 500); // wait 10 seconds to initialise, then every half second
     }
     
     public void run() {
@@ -162,7 +176,7 @@ public class SessionIDAnalysis implements WebScarabPlugin, Runnable {
         return new URLFetcher().fetchResponse(request);
     }
     
-    public ListModel getSessionIDs(Request request, int location, String name, String regex, int count) {
+    public ListModel getSessionIDs(final Request request, int location, String name, String regex, int count) {
         synchronized(_requestQueue) {
             _requestQueue.clear();
         }
@@ -181,11 +195,8 @@ public class SessionIDAnalysis implements WebScarabPlugin, Runnable {
         _location = location;
         _name = name;
         _regex = regex;
-        synchronized (_requestQueue) {
-            for (int i=0; i<count; i++) {
-                _requestQueue.add(request);
-            }
-        }
+        _request = request;
+        _count = count;
         return list;
     }
     
