@@ -30,11 +30,11 @@ public class BrowserCache extends AbstractProxyPlugin {
     
     /** Creates a new instance of RevealHidden */
     public BrowserCache() {
-        _prop.put("BrowserCache.enabled","false");
-        configure();
+        setDefaultProperty("BrowserCache.enabled","false");
+        parseProperties();
     }
     
-    public void configure() {
+    public void parseProperties() {
         String prop = "BrowserCache.enabled";
         String value = _prop.getProperty(prop);
         setEnabled("true".equalsIgnoreCase( value ) || "yes".equalsIgnoreCase( value ));
@@ -54,13 +54,6 @@ public class BrowserCache extends AbstractProxyPlugin {
         return _enabled;
     }
     
-    private void setProperty(String prop, String value) {
-        String previous = _prop.getProperty(prop);
-        if (previous == null || !previous.equals(value)) {
-            _prop.put(prop,value);
-        }
-    }
-    
     public HTTPClient getProxyPlugin(HTTPClient in) {
         return new ProxyPlugin(in);
     }    
@@ -75,6 +68,8 @@ public class BrowserCache extends AbstractProxyPlugin {
         
         public Response fetchResponse(Request request) {
             if (_enabled) {
+                // we could be smarter about this, and keep a record of the pages that we 
+                // have seen so far, and only remove headers for those that we have not?
                 request.deleteHeader("ETag");
                 request.deleteHeader("If-Modified-Since");
             }

@@ -30,11 +30,11 @@ public class RevealHidden extends AbstractProxyPlugin {
     
     /** Creates a new instance of RevealHidden */
     public RevealHidden() {
-        _prop.put("RevealHidden.enabled","false");
-        configure();
+        setDefaultProperty("RevealHidden.enabled","false");
+        parseProperties();
     }
     
-    public void configure() {
+    public void parseProperties() {
         String prop = "RevealHidden.enabled";
         String value = _prop.getProperty(prop);
         setEnabled("true".equalsIgnoreCase( value ) || "yes".equalsIgnoreCase( value ));
@@ -52,13 +52,6 @@ public class RevealHidden extends AbstractProxyPlugin {
 
     public boolean getEnabled() {
         return _enabled;
-    }
-    
-    private void setProperty(String prop, String value) {
-        String previous = _prop.getProperty(prop);
-        if (previous == null || !previous.equals(value)) {
-            _prop.put(prop,value);
-        }
     }
     
     public HTTPClient getProxyPlugin(HTTPClient in) {

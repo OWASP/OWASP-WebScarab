@@ -12,6 +12,7 @@ import org.owasp.util.Prop;
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.plugin.Preferences;
 import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
 import org.owasp.webscarab.plugin.proxy.AbstractProxyPlugin;
 
@@ -32,15 +33,15 @@ public class ManualEdit extends AbstractProxyPlugin {
     
     /** Creates a new instance of ManualEdit */
     public ManualEdit() {
-        _prop.put("ManualEdit.includeRegex",".*");
-        _prop.put("ManualEdit.excludeRegex",".*\\.(gif)|(jpg)|(css)|(js)$");
-        _prop.put("ManualEdit.interceptMethods","GET,POST");
-        _prop.put("ManualEdit.interceptRequest","false");
-        _prop.put("ManualEdit.interceptResponse","false");
-        configure();
+        setDefaultProperty("ManualEdit.includeRegex",".*");
+        setDefaultProperty("ManualEdit.excludeRegex",".*\\.(gif)|(jpg)|(css)|(js)$");
+        setDefaultProperty("ManualEdit.interceptMethods","GET,POST");
+        setDefaultProperty("ManualEdit.interceptRequest","false");
+        setDefaultProperty("ManualEdit.interceptResponse","false");
+        parseProperties();
     }
     
-    public void configure() {
+    public void parseProperties() {
         String prop = "ManualEdit.includeRegex";
         String value = _prop.getProperty(prop);
         if (value == null) value = "";
@@ -69,13 +70,6 @@ public class ManualEdit extends AbstractProxyPlugin {
     
     public String getPluginName() {
         return new String("Manual Edit");
-    }
-    
-    private void setProperty(String prop, String value) {
-        String previous = _prop.getProperty(prop);
-        if (previous == null || !previous.equals(value)) {
-            _prop.put(prop,value);
-        }
     }
     
     public void setIncludeRegex(String regex) {

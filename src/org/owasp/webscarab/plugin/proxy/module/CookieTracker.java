@@ -33,11 +33,11 @@ public class CookieTracker extends AbstractProxyPlugin {
     /** Creates a new instance of RevealHidden */
     public CookieTracker(CookieJar cookieJar) {
         _cookieJar = cookieJar;
-        _prop.put("CookieTracker.enabled","true");
-        configure();
+        setDefaultProperty("CookieTracker.enabled","true");
+        parseProperties();
     }
     
-    public void configure() {
+    public void parseProperties() {
         String prop = "CookieTracker.enabled";
         String value = _prop.getProperty(prop);
         setEnabled("true".equalsIgnoreCase( value ) || "yes".equalsIgnoreCase( value ));
@@ -55,13 +55,6 @@ public class CookieTracker extends AbstractProxyPlugin {
 
     public boolean getEnabled() {
         return _enabled;
-    }
-    
-    private void setProperty(String prop, String value) {
-        String previous = _prop.getProperty(prop);
-        if (previous == null || !previous.equals(value)) {
-            _prop.put(prop,value);
-        }
     }
     
     public HTTPClient getProxyPlugin(HTTPClient in) {

@@ -28,7 +28,6 @@ import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
-import java.util.logging.Logger;
 import java.util.Vector;
 import java.lang.ArrayIndexOutOfBoundsException;
 import java.util.TreeMap;
@@ -60,7 +59,6 @@ import org.owasp.util.URLUtil;
 public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     private Plug _plug;
-    private Logger _logger = Logger.getLogger("Plug.Spider");
     
     private SequencedTreeMap _unseenLinks = new SequencedTreeMap();
     private TreeMap _seenLinks = new TreeMap();
@@ -73,8 +71,8 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     private boolean _recursive = false;
     private boolean _cookieSync = true;
     
-    private String _allowedDomains = ".*localhost.*";
-    private String _forbiddenPaths = "";
+    private String _allowedDomains = null;
+    private String _forbiddenPaths = null;
     
     private UnseenLinkTableModel _unseenLinkTableModel = new Spider.UnseenLinkTableModel();
     
@@ -87,10 +85,36 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         _plug = plug;
         _cookieJar = plug.getCookieJar();
         
-        _logger.info("Spider initialised");
+        setDefaultProperty("Spider.domains", ".*localhost.*");
+        setDefaultProperty("Spider.excludePaths", "");
+        setDefaultProperty("Spider.synchroniseCookies","yes");
+        setDefaultProperty("Spider.recursive","no");
+        parseProperties();
+        
         Thread me = new Thread(this);
         me.setDaemon(true);
         me.start();
+        System.out.println("Spider initialised");
+    }
+
+    public void parseProperties() {
+        String prop = "Spider.domains";
+        String value = _prop.getProperty(prop);
+        if (value == null) value = "";
+        setAllowedDomains(value);
+
+        prop = "Spider.excludePaths";
+        value = _prop.getProperty(prop);
+        if (value == null) value = "";
+        setForbiddenPaths(value);
+
+        prop = "Spider.synchroniseCookies";
+        value = _prop.getProperty(prop);
+        setCookieSync(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
+
+        prop = "Spider.recursive";
+        value = _prop.getProperty(prop);
+        setRecursive(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
     }
     
     public String getPluginName() {
@@ -145,7 +169,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     /** removes all pending reuqests from the queue - effectively stops the spider */
     public void resetRequestQueue() {
-        _logger.info("Clearing request queue");
+        System.out.println("Clearing request queue");
         _requestQueue.clear();
     }
     
@@ -161,8 +185,10 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         }
     }
     
-    public void setRecursive(boolean recursive) {
-        _recursive = recursive;
+    public void setRecursive(boolean bool) {
+        _recursive = bool;
+       String prop = "Spider.recursive";
+       setProperty(prop,Boolean.toString(bool));
     }
     
     public boolean getRecursive() {
@@ -171,6 +197,8 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     public void setCookieSync(boolean enabled) {
         _cookieSync = enabled;
+       String prop = "Spider.synchroniseCookies";
+       setProperty(prop,Boolean.toString(enabled));
     }
     
     public boolean getCookieSync() {
@@ -241,7 +269,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 }
             }
         } catch (ParserException pe) {
-            _logger.severe("ParserException : " + pe);
+            System.err.println("ParserException : " + pe);
         }
     }
     
@@ -258,7 +286,6 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 synchronized (_unseenLinkTableModel) {
                     _unseenLinkTableModel.fireTableRowsInserted(index, index);
                 }
-                // _logger.info("Adding " + url + " to the unseen list");
                 if (_recursive && allowedURL(url)) {
                     queueRequest(newGetRequest(link));
                 }
@@ -276,7 +303,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         try {
             req.setURL(url);
         } catch (MalformedURLException mue) {
-            _logger.severe("Invalid URL '" + url + "' : " + mue);
+            System.err.println("Invalid URL '" + url + "' : " + mue);
             return null;
         }
         req.setVersion("HTTP/1.0"); // 1.1 or 1.0?
@@ -307,6 +334,8 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     public void setAllowedDomains(String regex) {
         _allowedDomains = regex;
+       String prop = "Spider.domains";
+       setProperty(prop,regex);
     }
     
     public String getAllowedDomains() {
@@ -315,6 +344,8 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     public void setForbiddenPaths(String regex) {
         _forbiddenPaths = regex;
+       String prop = "Spider.excludePaths";
+       setProperty(prop,regex);
     }
     
     public String getForbiddenPaths() {
@@ -448,61 +479,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
             } catch (MalformedURLException mue) {
                 System.err.println("Error creating an URL from '" + link.getURL() + "'");
             }
-            //            String shp = link.getURL()
-            //            String[] elements = ui.getURLElements();
-            //            String path = "";
-            //            synchronized (treeNodes) {
-            //                DefaultMutableTreeNode parent = root;
-            //                for (int i = 0; i<elements.length-1; i++) {
-            //                    path = path + elements[i];
-            //                    parent = (DefaultMutableTreeNode)treeNodes.get(path);
-            //                    if (parent == null) {
-            //                        logger.severe("ERROR: an intermediate node was null! path is \"" + path + "\"");
-            //                        System.exit(0);
-            //                    }
-            //                }
-            //                path = path + elements[elements.length-1];
-            //                un = new DefaultMutableTreeNode(ui);
-            //                if (path.endsWith("/")) {
-            //                    un.setAllowsChildren(true);
-            //                } else {
-            //                    un.setAllowsChildren(false);
-            //                }
-            //                treeNodes.put(path,un);
-            //
-            //                int numChildren = parent.getChildCount();
-            //                if (numChildren == 0) { // this is the first child, just add it
-            //                    parent.add(un);
-            //                    fireTreeNodesInserted(parent, parent.getPath(), new int[] {numChildren}, new Object[] {un});
-            //                } else { // work out where to put it
-            //                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)parent.getLastChild();
-            //                    URLInfo urlinfo = (URLInfo)node.getUserObject();
-            //                    String siblingPath = urlinfo.getURL().toString();
-            //                    if (path.compareTo(siblingPath) > 0 ) { // If it is greater than the last node, add it and be done
-            //                        parent.add(un);
-            //                        fireTreeNodesInserted(parent, parent.getPath(), new int[] {numChildren}, new Object[] {un});
-            //                    } else { // work out where to insert it
-            //                        for (int i = 0; i<numChildren; i++) {
-            //                            node = (DefaultMutableTreeNode)parent.getChildAt(i);
-            //                            urlinfo = (URLInfo)node.getUserObject();
-            //                            siblingPath = urlinfo.getURL().toString();
-            //                            int c = path.compareTo(siblingPath);
-            //                            if (c < 0) {
-            //                                parent.insert(un,i);
-            //                                fireTreeNodesInserted(parent, parent.getPath(), new int[] {i}, new Object[] {un});
-            //                                break;
-            //                            } else if ( c == 0) {
-            //                                break;
-            //                            }
-            //                        }
-            //                    }
-            //                }
-            //            }
-            //            if (un != null) {
-            //                return new TreePath(un.getPath());
-            //            } else {
             return new TreePath(root);
-            //            }
         }
         
     }
