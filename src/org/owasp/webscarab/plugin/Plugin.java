@@ -10,8 +10,6 @@ import org.owasp.webscarab.model.StoreException;
 
 import org.owasp.webscarab.model.SiteModel;
 
-import java.util.Properties;
-
 /**
  * This abstract class lists the basics that a WebScarab plugin will need to provide
  * @author rdawes
@@ -19,22 +17,9 @@ import java.util.Properties;
 public abstract class Plugin implements Runnable {
     
     /**
-     * the properties that the plugin should use to configure itself
-     */    
-    protected Properties _props;
-    
-    /**
      * indicates whether the plugin is running or not
      */    
     protected boolean _running = false;
-    
-    /**
-     * creates a new instance of Plugin, using the provided Properties for configuration
-     * @param props the properties
-     */    
-    protected Plugin(Properties props) {
-        _props = props;
-    }
     
     /**
      * informs the plugin that the Site Model has changed

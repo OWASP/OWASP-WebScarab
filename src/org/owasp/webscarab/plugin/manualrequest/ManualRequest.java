@@ -1,8 +1,8 @@
-package org.owasp.webscarab.plugin.manualrequest;
-
 /*
- * $Id: ManualRequest.java,v 1.8 2004/10/31 21:10:21 rogan Exp $
+ * $Id: ManualRequest.java,v 1.9 2004/12/15 09:54:27 rogan Exp $
  */
+
+package org.owasp.webscarab.plugin.manualrequest;
 
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
@@ -16,7 +16,6 @@ import org.owasp.webscarab.plugin.Plugin;
 import java.io.IOException;
 
 import java.util.Date;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 public class ManualRequest extends Plugin {
@@ -36,8 +35,7 @@ public class ManualRequest extends Plugin {
     private boolean _busy = false;
     private String _status = "Stopped";
     
-    public ManualRequest(Properties props) {
-        super(props);
+    public ManualRequest() {
     }
     
     /** The plugin name
