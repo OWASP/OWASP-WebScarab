@@ -56,14 +56,12 @@ public class ConversationLog extends javax.swing.JPanel implements SwingPlugin {
         // updateDescription();
         if (row < 0) {
             // conversationDescriptionTextField.setText("");
-            requestPanel.setVisible(false);
-            responsePanel.setVisible(false);
+            requestPanel.setRequest(null);
+            responsePanel.setResponse(null);
         } else {
             String id = (String) conversationTable.getModel().getValueAt(row, 0);
             requestPanel.setRequest(_siteModel.getRequest(id));
-            requestPanel.setVisible(true);
             responsePanel.setResponse(_siteModel.getResponse(id));
-            responsePanel.setVisible(true);
         }
     }
          

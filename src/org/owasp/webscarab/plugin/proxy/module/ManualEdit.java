@@ -153,7 +153,6 @@ public class ManualEdit extends AbstractProxyPlugin {
                     for (int i=0; i<interceptMethods.length; i++) {
                         if (method.equals(interceptMethods[i])) {
                             if (_ce != null) {
-                                request.readContentStream();
                                 request = _ce.editRequest(request);
                             }
                         }
@@ -167,7 +166,6 @@ public class ManualEdit extends AbstractProxyPlugin {
                     return response;
                 }
                 if (_ce != null) {
-                    response.readContentStream();
                     response = _ce.editResponse(request, response);
                 }
             }

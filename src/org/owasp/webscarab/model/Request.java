@@ -64,7 +64,7 @@ public class Request extends Message {
             setVersion("HTTP/0.9");
         }
         super.read(is);
-        if (method.equals("CONNECT") || method.equals("GET")) {
+        if (method.equals("CONNECT") || method.equals("GET") || method.equals("HEAD")) {
             // These methods cannot include a body
             setContentStream(null);
             setContent(null);

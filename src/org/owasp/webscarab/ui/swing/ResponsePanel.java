@@ -139,7 +139,6 @@ public class ResponsePanel extends javax.swing.JPanel {
             try {
                 if (response == null) response = new Response();
                 response.read(new ByteArrayInputStream(rawTextArea.getText().getBytes()));
-                response.readContentStream();
                 String cl = response.getHeader("Content-Length");
                 if (cl != null) {
                     byte[] content = response.getContent();

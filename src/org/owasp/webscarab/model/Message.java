@@ -24,10 +24,8 @@ import java.lang.NumberFormatException;
  */
 public class Message extends Header {
     
-    byte[] content = null;
-    InputStream is = null;
+    ByteArrayOutputStream content = null;
     InputStream contentStream = null;
-    boolean closed = false;
     
     /** Message is a class that is used to represent the bulk of an HTTP message, namely
      * the headers, and (possibly null) body. Messages should not be instantiated
@@ -43,7 +41,6 @@ public class Message extends Header {
      * @throws IOException Propagates any IOExceptions thrown by the InputStream read methods
      */    
     protected void read(InputStream is) throws IOException {
-        this.is = is;
         super.read(is);
         contentStream = is;
     }
@@ -60,18 +57,17 @@ public class Message extends Header {
         super.write(os, crlf);
         os.write(crlf.getBytes());
         if (content != null) {
-            os.write(content);
+            os.write(content.toByteArray());
         } else if (contentStream != null) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            content = new ByteArrayOutputStream();
             byte[] buf = new byte[1024];
             int got = contentStream.read(buf);
             while (got > 0) {
                 os.write(buf,0,got);
-                baos.write(buf,0,got);
+                content.write(buf,0,got);
                 got = contentStream.read(buf);
             }
             contentStream = null;
-            content = baos.toByteArray();
         }
     }
     
@@ -86,13 +82,26 @@ public class Message extends Header {
      * @return Returns a byte array containing the message body
      */    
     public byte[] getContent() {
-        return content;
+        try {
+            byte[] bytes = flushContentStream();
+            contentStream = null;
+            if (bytes != null) {
+                if (content == null) {
+                    content = new ByteArrayOutputStream();
+                }
+                content.write(bytes);
+            }
+        } catch (IOException ioe) {} // ByteArrayOutputStream can't actually throw an exception
+        if (content != null) {
+            return content.toByteArray();
+        } else {
+            return null;
+        }
     }
     
-    /** returns an InputStream that can be read to obtain the message body. May be null
-     * if there is no body
+    /** returns the bytes that remained in the content stream, or null if contentStream was null
      */    
-    public void readContentStream() {
+    private byte[] flushContentStream() {
         if (contentStream != null) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try {
@@ -102,20 +111,29 @@ public class Message extends Header {
                     baos.write(buf,0, got);
                     got = contentStream.read(buf);
                 }
-                content = baos.toByteArray();
-                contentStream = null;
+                return baos.toByteArray();
             } catch (IOException ioe) {
                 System.out.println("IOException reading from contentStream " + ioe);
             }
         }
+        return null;
     }
-        
+    
     /** Sets the content of the message body
      * @param content a byte array containing the message body
      */    
-    public void setContent(byte[] content) {
-        this.content = content;
+    public void setContent(byte[] bytes) {
+        // discard whatever is pending in the content stream
+        flushContentStream();
         contentStream = null;
+        if (bytes != null) {
+            content = new ByteArrayOutputStream();
+            try {
+                content.write(bytes);
+            } catch (IOException ioe) {}
+        } else {
+            content = null;
+        }
     }
     
     /** Returns an InputStream that, if read, will return the message body. This is
@@ -124,7 +142,7 @@ public class Message extends Header {
      * then pipe the response body through to the browser. No requirement to read the
      * entire body into memory before passing it on to the browser. This speeds up
      * perceived browsing performance.
-     * @return An InputStream from which the message body can be read.
+     * @return An InputStream from which the message body can be read. May be null.
      */    
     public InputStream getContentStream() {
         return contentStream;
@@ -136,7 +154,8 @@ public class Message extends Header {
      * @param is The InputStream from which to read the message body.
      */    
     public void setContentStream(InputStream is) {
-        this.contentStream = is;
+        content = null;
+        contentStream = is;
     }
     
     /** Returns a String representation of the message, *including* the message body.

@@ -118,7 +118,8 @@ public class FileSystemStore implements SiteModelStore, SpiderStore {
         Request r = new Request();
         try {
             r.read(fis);
-            r.readContentStream();
+            r.getContent();
+            fis.close();
         } catch (IOException ioe) {
             throw new StoreException("IOException reading request(" +id + ") : " + ioe);
         }
@@ -150,7 +151,8 @@ public class FileSystemStore implements SiteModelStore, SpiderStore {
         Response r = new Response();
         try {
             r.read(fis);
-            r.readContentStream();
+            r.getContent();
+            fis.close();
         } catch (IOException ioe) {
             throw new StoreException("IOException reading response(" +id + ") : " + ioe);
         }
@@ -431,4 +433,16 @@ public class FileSystemStore implements SiteModelStore, SpiderStore {
         return list;
     }
     
+    public static void main(String[] args) {
+        FileSystemStore fss = new FileSystemStore("/tmp/webscarab/");
+        try {
+            Request req = fss.readRequest("1");
+            Request req2 = new Request(req);
+            System.out.println("Request is '" + req.toString() + "'");
+            System.out.println("Request2 is '" + req2.toString() + "'");
+        } catch (Exception e) {
+            System.out.println("Exception : " + e);
+        }
+    }
+
 }

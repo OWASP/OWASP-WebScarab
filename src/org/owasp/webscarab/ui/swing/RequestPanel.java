@@ -125,7 +125,6 @@ public class RequestPanel extends javax.swing.JPanel {
             try {
                 if (request == null) request = new Request();
                 request.read(new ByteArrayInputStream(rawTextArea.getText().getBytes()));
-                request.readContentStream();
                 String cl = request.getHeader("Content-Length");
                 if (cl != null) {
                     byte[] content = request.getContent();

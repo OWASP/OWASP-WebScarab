@@ -71,22 +71,6 @@ public class RevealHidden extends AbstractProxyPlugin {
             if (_enabled) {
                 String ct = response.getHeader("Content-Type");
                 if (ct != null && ct.matches("text/.*")) {
-                    InputStream is = response.getContentStream();
-                    if (is != null) {
-                        try {
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            byte[] buf = new byte[2048];
-                            int read = is.read(buf);
-                            while (read > 0) {
-                                baos.write(buf,0,read);
-                                read = is.read(buf);
-                            }
-                            response.setContent(baos.toByteArray());
-                            response.setContentStream(null);
-                        } catch (IOException ioe) {
-                            System.out.println("Error reading the content of the response");
-                        }
-                    }
                     byte[] content = response.getContent();
                     if (content != null) {
                         response.setContent(revealHidden(content));

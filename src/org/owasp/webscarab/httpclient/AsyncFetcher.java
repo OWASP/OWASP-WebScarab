@@ -51,7 +51,8 @@ public class AsyncFetcher implements Runnable {
                     response = _uf.fetchResponse(request);
                     InputStream cs = response.getContentStream();
                     if (cs != null) {
-                        response.readContentStream();
+                        // read any outstanding content
+                        response.getContent();
                     }
                     _responseQueue.add(response);
                 }

@@ -1,7 +1,7 @@
 package org.owasp.webscarab.plugin.manualrequest;
 
 /*
- * $Id: ManualRequest.java,v 1.1 2003/09/15 11:20:38 rogan Exp $
+ * $Id: ManualRequest.java,v 1.2 2003/09/18 06:44:20 rogan Exp $
  */
 
 import org.owasp.webscarab.httpclient.URLFetcher;
@@ -36,7 +36,6 @@ public class ManualRequest extends AbstractWebScarabPlugin {
             URLFetcher uf = new URLFetcher();
             Response response = uf.fetchResponse(request);
             if (response != null) {
-                response.readContentStream();
                 _plug.addConversation(request, response);
                 return response;
             }
