@@ -13,15 +13,18 @@ import org.owasp.webscarab.plugin.proxy.module.ConversationEditor;
 import org.owasp.webscarab.ui.swing.RequestPanel;
 import org.owasp.webscarab.ui.swing.ResponsePanel;
 
+import javax.swing.SwingUtilities;
+import java.lang.Runnable;
+
 /**
  *
  * @author  rdawes
  */
 public class ManualEditFrame extends javax.swing.JFrame implements ConversationEditor {
     private Request _request = null;
-    private RequestPanel _requestPanel;
+    private RequestPanel _requestPanel = null;
     private Response _response = null;
-    private ResponsePanel _responsePanel;
+    private ResponsePanel _responsePanel = null;
     
     /** Creates new form ConversationEditorFrame */
     public ManualEditFrame() {
@@ -45,16 +48,24 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
     public synchronized Request editRequest(Request request) {
         synchronized (this) {
             _request = request;
-            _requestPanel.setEditable(true);
-            _requestPanel.setRequest(request);
-            setVisible(true);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    _requestPanel.setEditable(true);
+                    _requestPanel.setRequest(_request);
+                    setVisible(true);
+                }
+            });
             try {
                 this.wait();
             } catch (InterruptedException ie) {
                 System.out.println("Wait interrupted");
             }
-            setVisible(false);
-            _requestPanel.setEditable(false);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    setVisible(false);
+                    _requestPanel.setEditable(false);
+                }
+            });
             return _request;
         }
     }
@@ -73,17 +84,25 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
     public Response editResponse(Response response) {
         synchronized (this) {
             _response = response;
-            _responsePanel.setEditable(true);
-            _responsePanel.setResponse(response);
-            _responsePanel.setVisible(true);
-            show();
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    _responsePanel.setEditable(true);
+                    _responsePanel.setResponse(_response);
+                    _responsePanel.setVisible(true);
+                    show();
+                }
+            });
             try {
                 this.wait();
             } catch (InterruptedException ie) {
                 System.out.println("Wait interrupted");
             }
-            _responsePanel.setEditable(false);
-            setVisible(false);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    _responsePanel.setEditable(false);
+                    setVisible(false);
+                }
+            });
             return _response;
         }
     }
@@ -146,10 +165,8 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
         gridBagConstraints.weightx = 1.0;
         getContentPane().add(jPanel1, gridBagConstraints);
 
-        pack();
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        setSize(new java.awt.Dimension(400, 500));
-        setLocation((screenSize.width-400)/2,(screenSize.height-500)/2);
+        setBounds((screenSize.width-400)/2, (screenSize.height-500)/2, 400, 500);
     }//GEN-END:initComponents
 
     private void abortButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_abortButtonActionPerformed
@@ -210,10 +227,10 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton abortButton;
     private javax.swing.JButton acceptButton;
     private javax.swing.JButton cancelButton;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JButton abortButton;
     // End of variables declaration//GEN-END:variables
     
 }
