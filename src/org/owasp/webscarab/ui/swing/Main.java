@@ -9,7 +9,6 @@ package org.owasp.webscarab.ui.swing;
 import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -61,7 +60,6 @@ public class Main {
     
     private static Framework _framework = null;
     private static UIFramework _uif = null;
-    private static Properties _props = null;
     
     /** Creates a new instance of Main */
     private Main() {
@@ -71,21 +69,20 @@ public class Main {
         initLogging();
         
         try {
-            Preferences.loadPreferences();
-            _props = Preferences.getPreferences();
+            Preferences.loadPreferences(null);
         } catch (IOException ioe) {
             System.err.println("Error loading preferences: " + ioe);
             System.exit(1);
         }
         
-        _framework = new Framework(_props);
+        _framework = new Framework();
         _uif = new UIFramework(_framework);
         
         loadPlugins();
         
         _uif.setSessionLoader(new SessionLoader() {
             public void newSession(Component parent, Framework framework) {
-                String defaultDir = _props.getProperty("WebScarab.defaultDirectory", null);
+                String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
                 JFileChooser jfc = new JFileChooser(defaultDir);
                 jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 jfc.setDialogTitle("Select a directory to write the session into");
@@ -104,12 +101,12 @@ public class Main {
                     } catch (StoreException se) {
                         JOptionPane.showMessageDialog(null, new String[] {"Error creating Session : ", se.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
                     }
-                    _props.setProperty("WebScarab.defaultDirectory", jfc.getCurrentDirectory().toString());
+                    Preferences.setPreference("WebScarab.defaultDirectory", jfc.getCurrentDirectory().toString());
                 }
             }
             
             public void openSession(Component parent, Framework framework) {
-                String defaultDir = _props.getProperty("WebScarab.defaultDirectory", null);
+                String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
                 JFileChooser jfc = new JFileChooser(defaultDir);
                 jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 jfc.setDialogTitle("Choose a directory that contains a previous session");
@@ -127,7 +124,7 @@ public class Main {
                     } catch (StoreException se) {
                         JOptionPane.showMessageDialog(null, new String[] {"Error loading Session : ", se.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
                     }
-                    _props.setProperty("WebScarab.defaultDirectory", jfc.getCurrentDirectory().toString());
+                    Preferences.setPreference("WebScarab.defaultDirectory", jfc.getCurrentDirectory().toString());
                 }
             }
         });
@@ -152,46 +149,46 @@ public class Main {
     }
 
     public static void loadPlugins() {
-        Fragments fragments = new Fragments(_props);
+        Fragments fragments = new Fragments();
         _framework.addPlugin(fragments);
         _uif.addPlugin(new FragmentsPanel(fragments));
         
-        Proxy proxy = new Proxy(_props);
+        Proxy proxy = new Proxy();
         _framework.addPlugin(proxy);
         ProxyPanel proxyPanel = new ProxyPanel(proxy);
         _uif.addPlugin(proxyPanel);
         
         loadProxyPlugins(proxy, proxyPanel);
         
-        Spider spider = new Spider(_props);
+        Spider spider = new Spider();
         _framework.addPlugin(spider);
         _uif.addPlugin(new SpiderPanel(spider));
         
-        ManualRequest manualRequest = new ManualRequest(_props);
+        ManualRequest manualRequest = new ManualRequest();
         _framework.addPlugin(manualRequest);
         _uif.addPlugin(new ManualRequestPanel(manualRequest));
         
-        SessionIDAnalysis sessionIDAnalysis = new SessionIDAnalysis(_props);
+        SessionIDAnalysis sessionIDAnalysis = new SessionIDAnalysis();
         _framework.addPlugin(sessionIDAnalysis);
         _uif.addPlugin(new SessionIDPanel(sessionIDAnalysis));
     }
     
     public static void loadProxyPlugins(Proxy proxy, ProxyPanel proxyPanel) {
-        ManualEdit me = new ManualEdit(_props);
+        ManualEdit me = new ManualEdit();
         proxy.addPlugin(me);
         proxyPanel.addPlugin(new ManualEditPanel(me));
         
-        BeanShell bs = new BeanShell(_props);
+        BeanShell bs = new BeanShell();
         proxy.addPlugin(bs);
         proxyPanel.addPlugin(new BeanShellPanel(bs));
         
-        RevealHidden rh = new RevealHidden(_props);
+        RevealHidden rh = new RevealHidden();
         proxy.addPlugin(rh);
-        BrowserCache bc = new BrowserCache(_props);
+        BrowserCache bc = new BrowserCache();
         proxy.addPlugin(bc);
-        CookieTracker ct = new CookieTracker(_props);
+        CookieTracker ct = new CookieTracker();
         proxy.addPlugin(ct);
-        NTLMFilter nf = new NTLMFilter(_props);
+        NTLMFilter nf = new NTLMFilter();
         proxy.addPlugin(nf);
         proxyPanel.addPlugin(new MiscPanel(rh, bc, ct, nf));
     }

@@ -12,7 +12,6 @@ import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
 import org.owasp.webscarab.model.Preferences;
-import java.util.Properties;
 
 import java.util.logging.Logger;
 
@@ -26,8 +25,6 @@ public class ProxyConfig extends javax.swing.JDialog {
     
     private HTTPClientFactory _factory = HTTPClientFactory.getInstance();
     private Framework _framework;
-    
-    private Properties _props = Preferences.getPreferences();
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -260,9 +257,9 @@ public class ProxyConfig extends javax.swing.JDialog {
             _framework.startPlugins();
         }
         
-        _props.setProperty("WebScarab.httpProxy", httpserver+":"+httpport);
-        _props.setProperty("WebScarab.httpsProxy", httpsserver+":"+httpsport);
-        _props.setProperty("WebScarab.noProxy", noProxyTextArea.getText());
+        Preferences.setPreference("WebScarab.httpProxy", httpserver+":"+httpport);
+        Preferences.setPreference("WebScarab.httpsProxy", httpsserver+":"+httpsport);
+        Preferences.setPreference("WebScarab.noProxy", noProxyTextArea.getText());
         
         setVisible(false);
         dispose();
