@@ -96,6 +96,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         
         Thread me = new Thread(this);
         me.setDaemon(true);
+        me.setName("Spider");
         me.start();
         System.err.println("Spider initialised");
     }
@@ -127,7 +128,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     public void run() {
         _fetchers = new AsyncFetcher[_threads];
         for (int i=0; i<_threads; i++) {
-            _fetchers[i] = new AsyncFetcher(_requestQueue, _responseQueue);
+            _fetchers[i] = new AsyncFetcher(_requestQueue, _responseQueue, "Spider-" + Integer.toString(i));
         }
         Request request;
         Response response;
@@ -314,6 +315,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                                 System.err.println("Malformed Frame src : " + src);
                             }
                         } else if (!src.startsWith("about:")) {
+                            System.err.println("Creating a new relative URL with " + referer.toString() + " and " + src + " '");
                             try {
                                 URL url = new URL(referer, src);
                                 addUnseenLink(url, referer);
@@ -335,7 +337,6 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         }
         synchronized (_unseenLinks) {
             String urlstr = URLUtil.schemeAuthPathQry(url);
-            System.out.println("Trying to add '" + urlstr + "'");
             if (!_seenLinks.containsKey(urlstr) && !_unseenLinks.containsKey(urlstr)) {
                 Link link = new Link(url, referer);
                 _unseenLinks.put(urlstr, link);
@@ -361,7 +362,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         if (referer != null) {
             req.setHeader("Referer", referer.toString());
         }
-        req.setHeader("Host", url.getHost());
+        req.setHeader("Host", url.getHost() + ":" + Integer.toString(url.getPort() > -1 ? url.getPort() : url.getDefaultPort()) );
         req.setHeader("Connection", "Keep-Alive");
         return req;
     }
