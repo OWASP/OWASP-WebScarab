@@ -6,13 +6,9 @@
 
 package org.owasp.webscarab.plugin.proxy.module;
 
-import java.util.Iterator;
-import org.owasp.util.Prop;
-
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.plugin.Preferences;
 import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
 import org.owasp.webscarab.plugin.proxy.AbstractProxyPlugin;
 
@@ -33,38 +29,33 @@ public class ManualEdit extends AbstractProxyPlugin {
     
     /** Creates a new instance of ManualEdit */
     public ManualEdit() {
-        setDefaultProperty("ManualEdit.includeRegex",".*");
-        setDefaultProperty("ManualEdit.excludeRegex",".*\\.(gif)|(jpg)|(css)|(js)$");
-        setDefaultProperty("ManualEdit.interceptMethods","GET,POST");
-        setDefaultProperty("ManualEdit.interceptRequest","false");
-        setDefaultProperty("ManualEdit.interceptResponse","false");
         parseProperties();
     }
     
     public void parseProperties() {
         String prop = "ManualEdit.includeRegex";
         String value = _prop.getProperty(prop);
-        if (value == null) value = "";
+        if (value == null) value = ".*";
         setIncludeRegex(value);
         
         prop = "ManualEdit.excludeRegex";
         value = _prop.getProperty(prop);
-        if (value == null) value = "";
+        if (value == null) value = ".*\\.(gif)|(jpg)|(css)|(js)$";
         setExcludeRegex(value);
         
         prop = "ManualEdit.interceptMethods";
         value = _prop.getProperty(prop);
-        if (value == null) value = "";
-        setInterceptMethods(value.split(", *"));
+        if (value == null) value = "GET, POST";
+        setInterceptMethods(value.split(" *, *"));
             
         prop = "ManualEdit.interceptRequest";
         value = _prop.getProperty(prop);
-        if (value == null) value = "";
+        if (value == null) value = "false";
         setInterceptRequest(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
             
         prop = "ManualEdit.interceptResponse";
         value = _prop.getProperty(prop);
-        if (value == null) value = "";
+        if (value == null) value = "false";
         setInterceptResponse(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
     }
     
