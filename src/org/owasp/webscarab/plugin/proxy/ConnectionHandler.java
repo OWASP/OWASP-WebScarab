@@ -70,7 +70,7 @@ public class ConnectionHandler implements Runnable {
             clientin = _sock.getInputStream();
             clientout = _sock.getOutputStream();
             if (_debugRequest) {
-            // take a byte for byte copy of what we see on the InputStream
+                // take a byte for byte copy of what we see on the InputStream
                 PrintStream debug = new PrintStream(new FileOutputStream(_tmpdir+"/fromclient-"+_connection));
                 clientin = new LogInputStream(clientin, debug);
             }
@@ -92,7 +92,7 @@ public class ConnectionHandler implements Runnable {
                     request.read(clientin);
                 } catch (IOException ioe) {
                     System.err.println("Error reading the initial request" + ioe);
-                    throw ioe;
+                    return;
                 }
             }
             // if we are a normal proxy (because request is not null)
@@ -112,7 +112,7 @@ public class ConnectionHandler implements Runnable {
                         clientout.flush();
                     } catch (IOException ioe) {
                         System.err.println("IOException writing the CONNECT OK Response to the browser " + ioe);
-                        throw ioe;
+                        return;
                     }
                     _base = request.getURL().toString();
                     proxyAuth = request.getHeader("Proxy-Authorization");
@@ -195,8 +195,8 @@ public class ConnectionHandler implements Runnable {
                         int length = Integer.parseInt(cl);
                         request.setContentStream(new FixedLengthInputStream(cs, length));
                     } catch (NumberFormatException nfe) {
-                        System.err.println("Error parsing ContentLength");
-                        throw nfe;
+                        System.err.println("Error parsing ContentLength = '" + cl + "'");
+                        return;
                     }
                 }
                 System.out.println("Requested : " + request.getMethod() + " " + request.getURL().toString());
@@ -210,15 +210,15 @@ public class ConnectionHandler implements Runnable {
                 System.out.println("Response : " + response.getStatusLine());
                 try {
                     response.write(clientout);
-                } catch (Exception e) {
-                    System.err.println("Error writing back to the browser : " + e);
-                    e.printStackTrace();
+                } catch (IOException ioe) {
+                    response.getContent(); // this simply flushes the content from the server
+                    System.err.println("Error writing back to the browser : " + ioe);
                 }
                 if (_plug != null) {
                     Request req = recorder.getRequest();
                     Response resp = recorder.getResponse();
                     if (req != null && resp != null) {
-                        _plug.addConversation(req, resp);
+                        _plug.addConversation("Proxy", req, resp);
                     }
                     recorder.reset();
                 }
@@ -233,8 +233,8 @@ public class ConnectionHandler implements Runnable {
                 clientin.close();
                 clientout.close();
                 _sock.close();
-            } catch (IOException ioe2) {
-                System.err.println("Error closing client socket : " + ioe2);
+            } catch (IOException ioe) {
+                System.err.println("Error closing client socket : " + ioe);
             }
         }
     }
