@@ -1,7 +1,7 @@
 package org.owasp.webscarab.plugin.manualrequest;
 
 /*
- * $Id: ManualRequest.java,v 1.5 2003/11/17 17:16:23 rogan Exp $
+ * $Id: ManualRequest.java,v 1.6 2004/03/18 08:13:20 rogan Exp $
  */
 
 import org.owasp.webscarab.httpclient.URLFetcher;
@@ -17,9 +17,6 @@ public class ManualRequest extends AbstractWebScarabPlugin {
     private CookieJar _cookieJar = null;
     private Response _response = null;
     
-    public static boolean _debugRequest = false;
-    public static boolean _debugResponse = false;
-
     public ManualRequest(Plug plug) {
         
         _plug = plug;
@@ -39,7 +36,6 @@ public class ManualRequest extends AbstractWebScarabPlugin {
     public Response fetchResponse(Request request) {
         if (request != null) {
             URLFetcher uf = new URLFetcher();
-            uf.setDebug(_debugRequest, _debugResponse);
             _response = uf.fetchResponse(request);
             if (_response != null) {
                 _plug.addConversation("Manual Request", request, _response);

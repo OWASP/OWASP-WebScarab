@@ -21,13 +21,6 @@ import org.owasp.webscarab.util.LogOutputStream;
 
 public class ConnectionHandler implements Runnable {
     
-    private static Object _lock = new Object();
-    private static int _connectionCount = 1;
-    private int _connection;
-    public static boolean _debugRequest = false;
-    public static boolean _debugResponse = false;
-    private static String _tmpdir = System.getProperty("java.io.tmpdir");
-    
     private Plug _plug;
     private ProxyPlugin[] _plugins;
     private Socket _sock;
@@ -38,9 +31,6 @@ public class ConnectionHandler implements Runnable {
     char keypassword[] = "password".toCharArray();
         
     public ConnectionHandler(Socket sock, Plug plug, String base, ArrayList plugins) {
-        synchronized (_lock) {
-            _connection = _connectionCount++;
-        }
         _sock = sock;
         _plug = plug;
         _base = base;
@@ -69,15 +59,6 @@ public class ConnectionHandler implements Runnable {
         try {
             clientin = _sock.getInputStream();
             clientout = _sock.getOutputStream();
-            if (_debugRequest) {
-                // take a byte for byte copy of what we see on the InputStream
-                PrintStream debug = new PrintStream(new FileOutputStream(_tmpdir+"/fromclient-"+_connection));
-                clientin = new LogInputStream(clientin, debug);
-            }
-            if (_debugResponse) {
-                PrintStream debug = new PrintStream(new FileOutputStream(_tmpdir+"/toclient-"+_connection));
-                clientout = new LogOutputStream(clientout, debug);
-            }                
         } catch (IOException ioe) {
             System.err.println("Error getting socket input and output streams! " + ioe);
             return;
@@ -129,16 +110,6 @@ public class ConnectionHandler implements Runnable {
                     clientin = _sock.getInputStream();
                     clientout = _sock.getOutputStream();
                     
-                    if (_debugRequest) {
-                    // take a byte for byte copy of what we see on the InputStream
-                        PrintStream debug = new PrintStream(new FileOutputStream(_tmpdir+"/fromclient-"+_connection+"-ssl"));
-                        clientin = new LogInputStream(clientin, debug);
-                    }
-                    if (_debugResponse) {
-                    // take a byte for byte copy of what we send to the OutputStream
-                        PrintStream debug = new PrintStream(new FileOutputStream(_tmpdir+"/toclient-"+_connection+"-ssl"));
-                        clientout = new LogOutputStream(clientout, debug);
-                    }
                 }
                 // make sure that the base does not end with a "/"
                 while (_base.endsWith("/")) {
@@ -148,7 +119,6 @@ public class ConnectionHandler implements Runnable {
             
             // URLFetcher implements HTTPClient!
             URLFetcher uf = new URLFetcher();
-            uf.setDebug(_debugRequest, _debugResponse);
             HTTPClient hc = uf;
             
             // Maybe set SSL ProxyAuthorization here at a connection level?
