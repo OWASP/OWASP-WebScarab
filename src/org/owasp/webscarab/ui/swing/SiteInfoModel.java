@@ -131,13 +131,17 @@ public class SiteInfoModel extends AbstractTreeTableModel {
             if (column == 0) {
                 return ui.toString();
             } else if (column < cNames.length) {
-                String prop = ui.getProperty(cNames[column].toUpperCase());
-                if (prop == null || prop.getClass() == getColumnClass(column)) {
-                    return prop;
+                String prop = cNames[column].toUpperCase();
+                String value = ui.getProperty(prop);
+                if (value == null || value.getClass() == getColumnClass(column)) {
+                    return value;
                 } else if (getColumnClass(column) == Boolean.class) {
-                    return new Boolean(prop);
+                    if (! value.equalsIgnoreCase("true") && ! value.equalsIgnoreCase("false")) {
+                        return Boolean.TRUE;
+                    }
+                    return new Boolean(value);
                 } else {
-                    return prop;
+                    return value;
                 }
             }
         } catch  (SecurityException se) { }
