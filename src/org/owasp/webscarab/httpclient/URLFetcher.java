@@ -333,9 +333,9 @@ public class URLFetcher implements HTTPClient {
         String host = url.getHost();
         boolean ssl = url.getProtocol().equalsIgnoreCase("https");
         
-        if (ssl && "".equals(_httpsProxy)) {
+        if (ssl && (_httpsProxy == null || "".equals(_httpsProxy))) {
             return false;
-        } else if (!ssl && "".equals(_httpProxy)) {
+        } else if (!ssl && (_httpProxy == null || "".equals(_httpProxy))) {
             return false;
         } else {
             for (int i=0; i<_noProxy.length; i++) {
