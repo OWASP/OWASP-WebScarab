@@ -19,6 +19,7 @@ public class Response extends Message {
     private String version = null;
     private String status = null;
     private String message = null;
+    private Request _request = null;
     
     /** Creates a new instance of Response */
     public Response() {
@@ -116,6 +117,16 @@ public class Response extends Message {
             write(baos, crlf);
         } catch (IOException ioe) {}
         return new String(baos.toByteArray());
+    }
+    
+    /** associates this Response with the provided Request */
+    public void setRequest(Request request) {
+        _request = request;
+    }
+    
+    /** returns the Request that created this Response */
+    public Request getRequest() {
+        return _request;
     }
     
 }
