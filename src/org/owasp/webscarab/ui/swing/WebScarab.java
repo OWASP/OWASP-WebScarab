@@ -9,16 +9,18 @@ package org.owasp.webscarab.ui.swing;
 import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.spider.Spider;
 import org.owasp.webscarab.ui.Framework;
+import org.owasp.webscarab.model.StoreException;
 
 import org.owasp.webscarab.ui.swing.*;
 import org.owasp.webscarab.ui.swing.proxy.ProxyPanel;
 import org.owasp.webscarab.ui.swing.spider.SpiderPanel;
 
+import org.owasp.webscarab.backend.FileSystemStore;
+
 import java.util.ArrayList;
 import java.io.File;
 
 import javax.swing.JFileChooser;
-import java.io.FileNotFoundException;
 
 /**
  *
@@ -78,7 +80,6 @@ public class WebScarab extends javax.swing.JFrame {
         fileMenu = new javax.swing.JMenu();
         newMenuItem = new javax.swing.JMenuItem();
         openMenuItem = new javax.swing.JMenuItem();
-        saveAsMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
         toolsMenu = new javax.swing.JMenu();
         optionsMenuItem = new javax.swing.JMenuItem();
@@ -135,16 +136,6 @@ public class WebScarab extends javax.swing.JFrame {
 
         fileMenu.add(openMenuItem);
 
-        saveAsMenuItem.setMnemonic('S');
-        saveAsMenuItem.setText("Save As");
-        saveAsMenuItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                saveAsMenuItemActionPerformed(evt);
-            }
-        });
-
-        fileMenu.add(saveAsMenuItem);
-
         exitMenuItem.setMnemonic('X');
         exitMenuItem.setText("Exit");
         exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -191,51 +182,55 @@ public class WebScarab extends javax.swing.JFrame {
         // Should check to see if the model has been saved (somewhere where the 
         // user will find it, offer to rename the base directory to something
         // useful, before exiting.
+        saveSessionData();
         System.exit(0);
     }//GEN-LAST:event_exitMenuItemActionPerformed
-
-    private void saveAsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsMenuItemActionPerformed
-        JFileChooser jfc = new JFileChooser(_defaultDir);
-        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        int returnVal = jfc.showSaveDialog(this);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = jfc.getSelectedFile();
-            String dir = file.toString() + System.getProperty("file.separator");
-            System.out.println("Chose dir : '" + dir + "'");
-            try {
-                _framework.initDirectory(dir);
-                _framework.saveSessionData(dir);
-            } catch (FileNotFoundException fnfe) {
-                // pop up an alert dialog box or something
-                System.err.println("Error saving session : " + fnfe);
-            }
-        }
-        _defaultDir = jfc.getCurrentDirectory();
-    }//GEN-LAST:event_saveAsMenuItemActionPerformed
 
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
         JFileChooser jfc = new JFileChooser(_defaultDir);
         jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        jfc.setDialogTitle("Choose a directory that contains a previous session");
         int returnVal = jfc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = jfc.getSelectedFile();
             String dir = file.toString() + System.getProperty("file.separator");
-            System.out.println("Chose dir : '" + dir + "'");
-            _framework.discardSessionData();
             try {
-                _framework.loadSessionData(dir);
-            } catch (FileNotFoundException fnfe) {
+                if (FileSystemStore.isExistingSession(dir)) {
+                    FileSystemStore store = new FileSystemStore(dir);
+                    _framework.setSessionStore(store);
+                } else {
+                    System.err.println("No session found in " + dir);
+                }
+            } catch (StoreException se) {
                 // pop up an alert dialog box or something
-                System.err.println("Error loading session : " + fnfe);
+                System.err.println("Error loading session : " + se);
             }
         }
         _defaultDir = jfc.getCurrentDirectory();
     }//GEN-LAST:event_openMenuItemActionPerformed
 
     private void newMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newMenuItemActionPerformed
-        // get the dir from the temp environment variable ?
-        String tempdir = "./scarab/temp";
-        _framework.discardSessionData();
+        JFileChooser jfc = new JFileChooser(_defaultDir);
+        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        jfc.setDialogTitle("Select a directory to write the session into");
+        int returnVal = jfc.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = jfc.getSelectedFile();
+            String dir = file.toString() + System.getProperty("file.separator");
+            try {
+                if (FileSystemStore.isExistingSession(dir)) {
+                    System.err.println(dir + " is an existing session!");
+                } else {
+                    FileSystemStore store = new FileSystemStore(dir);
+                    store.init();
+                    _framework.setSessionStore(store);
+                }
+            } catch (StoreException se) {
+                // pop up an alert dialog box or something
+                System.err.println("Error loading session : " + se);
+            }
+        }
+        _defaultDir = jfc.getCurrentDirectory();
     }//GEN-LAST:event_newMenuItemActionPerformed
 
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
@@ -252,9 +247,18 @@ public class WebScarab extends javax.swing.JFrame {
         // Should check to see if the model has been saved (somewhere where the 
         // user will find it, offer to rename the base directory to something
         // useful, before exiting.
+        saveSessionData();
         System.exit(0);
     }//GEN-LAST:event_exitForm
     
+    private void saveSessionData() {
+        try {
+            _framework.saveSessionData();
+        } catch (StoreException se) {
+            // pop up an alert dialog box or something
+            System.err.println("Error saving session : " + se);
+        }
+    }
     /**
      * @param args the command line arguments
      */
@@ -277,7 +281,6 @@ public class WebScarab extends javax.swing.JFrame {
     private javax.swing.JMenuItem newMenuItem;
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem optionsMenuItem;
-    private javax.swing.JMenuItem saveAsMenuItem;
     private javax.swing.JMenuItem saveConfigMenuItem;
     private javax.swing.JMenu toolsMenu;
     // End of variables declaration//GEN-END:variables

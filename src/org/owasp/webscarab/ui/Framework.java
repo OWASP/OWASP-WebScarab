@@ -103,9 +103,7 @@ public class Framework implements Plug
         }
         
         // add the conversation to the model
-        String id = _sitemodel.addConversation(conversation);
-        
-        // Save the Request, Response (and Conversation) here
+        String id = _sitemodel.addConversation(conversation, request, response);
         
         // return the conversation ID
         return id;
@@ -147,50 +145,21 @@ public class Framework implements Plug
         }        
     }
     
-    /** called to create any directory structures required by this plugin.
-     * @param dir a String representing the base directory under which this session's 
-     * data will be saved
-     */    
-    public void initDirectory(String dir) throws FileNotFoundException {
-        _sessionDir = null;
-        File f = new File(dir);
-        if (!f.exists() && !f.mkdirs()) {
-            throw new FileNotFoundException("Could not create the directory : '" + dir + "'");
-        }
-        // should I delete my own files that I find in this directory ??
+    public void setSessionStore(Object store) throws StoreException {
+        _sitemodel.setSessionStore(store);
         // Call the equivalent method for each plugin
         for (int i=0; i< _pluginArray.length; i++) {
-            _pluginArray[i].initDirectory(dir);
-        }
-        // set sessionDir to a non-null value to indicate success in initialisation
-        _sessionDir = dir;
-    }
-    
-    /** Instructs the plugin to discard any session specific data that it may hold */
-    public void discardSessionData() {
-        for (int i=0; i< _pluginArray.length; i++) {
-            _pluginArray[i].discardSessionData();
+            _pluginArray[i].setSessionStore(store);
         }
     }
     
     /** called to instruct the plugin to save its current state to the specified directory.
      * @param dir a String representing the base directory under which this plugin can save its data
      */    
-    public void saveSessionData(String dir) throws FileNotFoundException {
-        // I'll save the URLInfo here. Conversations should be saved dynamically
-        // since they do not change once created.
+    public void saveSessionData() throws StoreException {
+        _sitemodel.saveSessionData();
         for (int i=0; i< _pluginArray.length; i++) {
-            _pluginArray[i].saveSessionData(dir);
-        }
-    }
-    
-    /** called to instruct the plugin to read any saved state data from the specified directory.
-     * @param dir a String representing the base directory under which this plugin can save its data
-     */
-    public void loadSessionData(String dir) throws FileNotFoundException {
-        // I'll read in the list of Conversations here, as well as the URLInfo's
-        for (int i=0; i< _pluginArray.length; i++) {
-            _pluginArray[i].loadSessionData(dir);
+            _pluginArray[i].saveSessionData();
         }
     }
 
