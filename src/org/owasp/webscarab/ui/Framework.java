@@ -63,19 +63,15 @@ public class Framework implements Plug {
             _plugins = new ArrayList();
         }
         _plugins.add(plugin);
-        if (_props != null) {
-            plugin.setProperties(_props);
-        }
     }
     
     public void setProperties(Properties props) {
         _props = props;
         setProxies(props);
-        // Call the equivalent method for each plugin
-        if (_plugins == null) return;
-        for (int i=0; i< _plugins.size(); i++) {
-            ((WebScarabPlugin)_plugins.get(i)).setProperties(props);
-        }
+    }
+    
+    public Properties getProperties() {
+        return _props;
     }
     
     public String addConversation(Request request, Response response) {
