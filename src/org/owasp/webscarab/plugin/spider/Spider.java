@@ -178,7 +178,6 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     }
     
     public void requestLinksUnder(String root) {
-        System.err.println("Root is '" + root + "'");
         synchronized(_unseenLinks) {
             Iterator it = _unseenLinks.keySet().iterator();
             while (it.hasNext()) {
@@ -254,13 +253,14 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     public synchronized void analyse(Request request, Response response, Conversation conversation, URLInfo urlinfo, Object parsed) {
         URL referer = request.getURL();
         synchronized (_unseenLinks) {
-            if (_unseenLinks.containsKey(referer)) {
-                int index = _unseenLinks.indexOf(referer);
-                _unseenLinks.remove(referer);
+            String refstr = URLUtil.schemeAuthPathQry(referer);
+            if (_unseenLinks.containsKey(refstr)) {
+                int index = _unseenLinks.indexOf(refstr);
+                _unseenLinks.remove(refstr);
                 _unseenLinkTableModel.fireTableRowsDeleted(index, index);
-                _unseenLinkTreeModel.remove(referer.toString());
+                _unseenLinkTreeModel.remove(refstr);
             }
-            _seenLinks.put(referer,""); // actual value is irrelevant, could be a sequence no, for amusement
+            _seenLinks.put(refstr,""); // actual value is irrelevant, could be a sequence no, for amusement
         }
         if (response.getStatus().equals("302")) {
             String location = response.getHeader("Location");
@@ -334,12 +334,14 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
             return;
         }
         synchronized (_unseenLinks) {
-            if (!_seenLinks.containsKey(url) && !_unseenLinks.containsKey(url)) {
+            String urlstr = URLUtil.schemeAuthPathQry(url);
+            System.out.println("Trying to add '" + urlstr + "'");
+            if (!_seenLinks.containsKey(urlstr) && !_unseenLinks.containsKey(urlstr)) {
                 Link link = new Link(url, referer);
-                _unseenLinks.put(url, link);
+                _unseenLinks.put(urlstr, link);
                 int index = _unseenLinks.size()-1;
                 _unseenLinkTableModel.fireTableRowsInserted(index, index);
-                _unseenLinkTreeModel.add(url.toString());
+                _unseenLinkTreeModel.add(urlstr);
                 if (_recursive && allowedURL(url)) {
                     queueLink(link);
                 }
@@ -446,8 +448,9 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 _unseenLinks.clear();
                 Link[] links = _store.readUnseenLinks();
                 for (int i=0; i<links.length; i++) {
-                    _unseenLinks.put(links[i].getURL(),links[i]);
-                    _unseenLinkTreeModel.add(links[i].getURL().toString());
+                    String urlstr = URLUtil.schemeAuthPathQry(links[i].getURL());
+                    _unseenLinks.put(urlstr,links[i]);
+                    _unseenLinkTreeModel.add(urlstr);
                 }
                 _unseenLinkTableModel.fireTableDataChanged();
             }
