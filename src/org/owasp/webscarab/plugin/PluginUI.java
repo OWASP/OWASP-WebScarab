@@ -39,8 +39,6 @@
 
 package org.owasp.webscarab.plugin;
 
-import org.owasp.webscarab.model.SiteModel;
-
 /**
  *
  * @author  knoppix
@@ -48,8 +46,6 @@ import org.owasp.webscarab.model.SiteModel;
 public interface PluginUI {
     
     String getPluginName();
-    
-    void setModel(SiteModel model);
     
     void setEnabled(boolean enabled);
     
