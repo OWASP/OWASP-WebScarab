@@ -11,6 +11,8 @@ import javax.swing.KeyStroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.Event;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.DocumentEvent;
 import javax.swing.text.Keymap;
 import java.awt.Container;
 import javax.swing.JFrame;
@@ -22,6 +24,7 @@ import javax.swing.JFrame;
 public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
     private boolean _editable = false;
+    // we assume it is modified - we need to add a keystroke listener to do this properly
     private boolean _modified = false;
     
     private byte[] _data = new byte[0];
@@ -54,6 +57,18 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         });
         
         textTextArea.setKeymap(keymap);
+        
+        textTextArea.getDocument().addDocumentListener(new DocumentListener() {
+            public void changedUpdate(DocumentEvent evt) {
+		_modified = true;
+            }
+            public void removeUpdate(DocumentEvent evt) {
+		_modified = true;
+            }
+            public void insertUpdate(DocumentEvent evt) {
+		_modified = true;
+            }
+        });
     }
     
     public String getName() {
@@ -61,7 +76,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     public String[] getContentTypes() {
-        return new String[] { "text/.*", "application/x-javascript" };
+        return new String[] { "text/.*", "application/x-javascript", "application/x-www-form-urlencoded" };
     }
 
     public void setEditable(boolean editable) {
@@ -78,6 +93,9 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     public void setBytes(byte[] bytes) {
         textTextArea.setText(new String(bytes));
         textTextArea.setCaretPosition(0);
+        // always set _modified false AFTER setting the text, since the Document listener
+        // will set it to true when adding the text
+        _modified = false;
     }
     
     public boolean isModified() {

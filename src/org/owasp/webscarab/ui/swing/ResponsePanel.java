@@ -15,6 +15,7 @@ import java.io.ByteArrayInputStream;
 import org.owasp.webscarab.model.Response;
 
 import org.owasp.webscarab.ui.swing.editors.BeanShellPanel;
+import org.owasp.webscarab.ui.swing.editors.TextPanel;
 
 /**
  *
@@ -25,15 +26,29 @@ public class ResponsePanel extends javax.swing.JPanel {
     private boolean[] _upToDate;
     
     private boolean _editable = false;
-    private int _selected = -1;
+    private boolean _modified = false;
+    
+    private int _selected = 0;
     
     private Response _response = null;
     private MessagePanel _messagePanel;
     private BeanShellPanel _beanShellPanel;
+    private TextPanel _textPanel;
     
     /** Creates new form ResponsePanel */
     public ResponsePanel() {
         initComponents();
+        
+        displayTabbedPane.getModel().addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                updateResponse(_selected);
+                _selected = displayTabbedPane.getSelectedIndex();
+                if (_selected >= 0) {
+                    updatePanel(_selected);
+                }
+            }
+        });
+
         _messagePanel = new MessagePanel();
         
         parsedPanel.remove(messagePanelPlaceHolder);
@@ -48,20 +63,11 @@ public class ResponsePanel extends javax.swing.JPanel {
         
         _beanShellPanel = new BeanShellPanel();
         displayTabbedPane.add("Bean Script", _beanShellPanel);
-        displayTabbedPane.add("Raw", rawPanel);
+        _textPanel = new TextPanel();
+        displayTabbedPane.add("Raw", _textPanel);
         
         _upToDate = new boolean[displayTabbedPane.getTabCount()];
         invalidatePanels();
-        
-        displayTabbedPane.getModel().addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent e) {
-                updateResponse(_selected);
-                _selected = displayTabbedPane.getSelectedIndex();
-                if (_selected >= 0) {
-                    updatePanel(_selected);
-                }
-            }
-        });
         
         setEditable(_editable);
     }
@@ -73,19 +79,30 @@ public class ResponsePanel extends javax.swing.JPanel {
     }
     
     private void updateResponse(int panel) {
-        if (_editable && panel >= 0) {
-            if (panel == 0) {// parsed text
+        if (! _editable || panel < 0) {
+            return;
+        }
+        if (panel == 0) {// parsed text
+            if (_messagePanel.isModified()) {
                 _response = (Response) _messagePanel.getMessage();
-                _response.setStatus(statusTextField.getText());
-                _response.setMessage(messageTextField.getText());
-                _response.setVersion(versionTextField.getText());
-            } else if (panel == 1) {// bean shell
-                _response = _beanShellPanel.getResponse();
-            } else if (panel == 2) { // raw text
+                _modified = true;
+                invalidatePanels();
+            }
+            // if _modified
+            _response.setStatus(statusTextField.getText());
+            _response.setMessage(messageTextField.getText());
+            _response.setVersion(versionTextField.getText());
+        } else if (panel == 1) {// bean shell
+            _modified = true;
+            invalidatePanels();
+            _response = _beanShellPanel.getResponse();
+        } else if (panel == 2) { // raw text
+            if (_textPanel.isModified()) {
                 try {
                     Response r = new Response();
-                    ByteArrayInputStream bais = new ByteArrayInputStream(rawTextArea.getText().getBytes());
+                    ByteArrayInputStream bais = new ByteArrayInputStream(_textPanel.getBytes());
                     r.read(bais);
+                    r.getContent();
                     String cl = _response.getHeader("Content-Length");
                     if (cl != null) {
                         byte[] content = _response.getContent(); // read the content
@@ -99,10 +116,11 @@ public class ResponsePanel extends javax.swing.JPanel {
                 } catch (Exception e) {
                     System.err.println("Error parsing the rawTextArea, abandoning changes : " + e);
                 }
+                _modified = true;
+                invalidatePanels();
             }
-            invalidatePanels();
-            _upToDate[panel] = true;
         }
+        _upToDate[panel] = true;
     }
     
     private void updatePanel(int panel) {
@@ -122,11 +140,10 @@ public class ResponsePanel extends javax.swing.JPanel {
                 _beanShellPanel.setResponse(_response);
             } else if (panel == 2) { // raw text
                 if (_response != null) {
-                    rawTextArea.setText(_response.toString());
+                    _textPanel.setBytes(_response.toString("\n").getBytes());
                 } else {
-                    rawTextArea.setText("");
+                    _textPanel.setBytes(new byte[0]);
                 }
-                rawTextArea.setCaretPosition(0);
             }
             _upToDate[panel] = true;
         }
@@ -135,21 +152,25 @@ public class ResponsePanel extends javax.swing.JPanel {
     public void setEditable(boolean editable) {
         _editable = editable;
         _messagePanel.setEditable(editable);
+        _beanShellPanel.setEditable(editable);
+        _textPanel.setEditable(editable);
+
         java.awt.Color color;
         if (editable) {
             color = new java.awt.Color(255, 255, 255);
         } else {
             color = new java.awt.Color(204, 204, 204);
         }
-        rawTextArea.setEditable(editable);
         statusTextField.setEditable(editable);
         messageTextField.setEditable(editable);
-        rawTextArea.setBackground(color);
+        versionTextField.setEditable(editable);
         statusTextField.setBackground(color);
         messageTextField.setBackground(color);
+        versionTextField.setBackground(color);
     }
     
     public void setResponse(Response response) {
+        _modified = false;
         if (response!= null) {
             _response = new Response(response);
         } else {
@@ -175,9 +196,6 @@ public class ResponsePanel extends javax.swing.JPanel {
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
-        rawPanel = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        rawTextArea = new javax.swing.JTextArea();
         displayTabbedPane = new javax.swing.JTabbedPane();
         parsedPanel = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
@@ -187,18 +205,6 @@ public class ResponsePanel extends javax.swing.JPanel {
         messagePanelPlaceHolder = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
         versionTextField = new javax.swing.JTextField();
-
-        rawPanel.setLayout(new java.awt.GridBagLayout());
-
-        rawTextArea.setBackground(new java.awt.Color(204, 204, 204));
-        rawTextArea.setEditable(false);
-        jScrollPane2.setViewportView(rawTextArea);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        rawPanel.add(jScrollPane2, gridBagConstraints);
 
         setLayout(new java.awt.BorderLayout());
 
@@ -282,13 +288,21 @@ public class ResponsePanel extends javax.swing.JPanel {
     
     public static void main(String[] args) {
         javax.swing.JFrame top = new javax.swing.JFrame("Response Panel");
+        top.getContentPane().setLayout(new java.awt.BorderLayout());
         top.addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 System.exit(0);
             }
         });
-        ResponsePanel rp = new ResponsePanel();
+        javax.swing.JButton button = new javax.swing.JButton("GET");
+        final ResponsePanel rp = new ResponsePanel();
         top.getContentPane().add(rp);
+        top.getContentPane().add(button, java.awt.BorderLayout.SOUTH);
+        button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                System.out.println(rp.getResponse());
+            }
+        });
         top.setBounds(100,100,600,400);
         Response response = new Response();
         try {
@@ -307,12 +321,9 @@ public class ResponsePanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JPanel messagePanelPlaceHolder;
     private javax.swing.JTextField messageTextField;
     private javax.swing.JPanel parsedPanel;
-    private javax.swing.JPanel rawPanel;
-    private javax.swing.JTextArea rawTextArea;
     private javax.swing.JTextField statusTextField;
     private javax.swing.JTextField versionTextField;
     // End of variables declaration//GEN-END:variables

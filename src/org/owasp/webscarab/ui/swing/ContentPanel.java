@@ -31,6 +31,8 @@ public class ContentPanel extends javax.swing.JPanel {
     
     private String _contentType = null;
     private boolean _editable = false;
+    private boolean _modified = false;
+    
     private byte[] _data = null;
     
     private ArrayList _editors = new ArrayList();
@@ -52,7 +54,6 @@ public class ContentPanel extends javax.swing.JPanel {
         viewTabbedPane.getModel().addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 updateData(_selected);
-                _selected = viewTabbedPane.getSelectedIndex();
                 if (_selected >= 0) {
                     updatePanel(_selected);
                 }
@@ -78,16 +79,22 @@ public class ContentPanel extends javax.swing.JPanel {
     
     public void setEditable(boolean editable) {
         _editable = editable;
+        Iterator it = _editors.iterator();
+        while (it.hasNext()) {
+            ByteArrayEditor editor = (ByteArrayEditor) it.next();
+            editor.setEditable(editable);
+        }
     }
     
     public void setContent(byte[] content) {
+        _modified = false;
         viewTabbedPane.removeAll();
         if (content == null) {
             _data = new byte[0];
-            return;
+        } else {
+            _data = new byte[content.length];
+            System.arraycopy(content, 0, _data, 0, content.length);
         }
-        _data = new byte[content.length];
-        System.arraycopy(content, 0, _data, 0, content.length);
         if (_contentType != null) {
             Iterator it = _editors.iterator();
             while (it.hasNext()) {
@@ -105,6 +112,11 @@ public class ContentPanel extends javax.swing.JPanel {
 
         _upToDate = new boolean[viewTabbedPane.getTabCount()];
         invalidatePanels();
+        updatePanel(viewTabbedPane.getSelectedIndex());
+    }
+    
+    public boolean isModified() {
+        return _editable && (_modified || ((ByteArrayEditor) viewTabbedPane.getSelectedComponent()).isModified());
     }
     
     public byte[] getContent() {
@@ -119,6 +131,7 @@ public class ContentPanel extends javax.swing.JPanel {
     }
     
     private void updatePanel(int panel) {
+        _selected = panel;
         if (!_upToDate[panel]) {
             ByteArrayEditor editor = (ByteArrayEditor) viewTabbedPane.getComponentAt(panel);
             editor.setBytes(_data);
@@ -130,6 +143,7 @@ public class ContentPanel extends javax.swing.JPanel {
         if (_editable && panel >= 0) {
             ByteArrayEditor ed = (ByteArrayEditor) viewTabbedPane.getComponentAt(panel);
             if (ed.isModified()) {
+                _modified = true;
                 _data = ed.getBytes();
                 invalidatePanels();
                 _upToDate[panel] = true;
@@ -170,24 +184,33 @@ public class ContentPanel extends javax.swing.JPanel {
                 baos.write(buff, 0, got);
             }
             content = baos.toByteArray();
-        } catch (IOException ioe) {
+        } catch (Exception e) {
+            e.printStackTrace();
             System.exit(0);
         }
         
         javax.swing.JFrame top = new javax.swing.JFrame("Content Pane");
+        top.getContentPane().setLayout(new java.awt.BorderLayout());
         top.addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 System.exit(0);
             }
         });
         
-        ContentPanel cp = new ContentPanel();
+        javax.swing.JButton button = new javax.swing.JButton("GET");
+        final ContentPanel cp = new ContentPanel();
         top.getContentPane().add(cp);
+        top.getContentPane().add(button, java.awt.BorderLayout.SOUTH);
+        button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                System.out.println(new String(cp.getContent()));
+            }
+        });
         top.setBounds(100,100,600,400);
         top.show();
         try {
             cp.setContentType("text/html");
-            cp.setEditable(false);
+            cp.setEditable(true);
             cp.setContent(content);
         } catch (Exception e) {
             e.printStackTrace();

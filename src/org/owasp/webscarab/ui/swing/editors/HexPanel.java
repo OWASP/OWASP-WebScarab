@@ -54,7 +54,6 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     public void setBytes(byte[] bytes) {
-        System.err.println("hex.setBytes(" + bytes.length + ")");
         _tableModel.setBytes(bytes);
     }
     

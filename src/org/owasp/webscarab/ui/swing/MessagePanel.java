@@ -18,6 +18,7 @@ public class MessagePanel extends javax.swing.JPanel {
     private ContentPanel _cp;
     private Message _message = null;
     private boolean _editable = false;
+    private boolean _modified = false;
     private HeaderTableModel _headerModel = new HeaderTableModel();
     
     /** Creates new form MessagePanel */
@@ -47,8 +48,13 @@ public class MessagePanel extends javax.swing.JPanel {
     
     public Message getMessage() {
         if (_editable) {
-            // _message = get the most up to date contents from the selected panels
-            // _message.setHeaders(headerTableModel.getHeaders());
+            if (_modified) {
+                // _message = get the most up to date contents from the selected panels
+                // _message.setHeaders(headerTableModel.getHeaders());
+            }
+            if (_cp.isModified()) {
+                _message.setContent(_cp.getContent());
+            }
         }
         return _message;
     }
@@ -64,6 +70,10 @@ public class MessagePanel extends javax.swing.JPanel {
             color = new java.awt.Color(204, 204, 204);
         }
         headerTable.setBackground(color);
+    }
+    
+    public boolean isModified() {
+        return _editable && (_modified || _cp.isModified());
     }
     
     /** This method is called from within the constructor to
@@ -174,40 +184,35 @@ public class MessagePanel extends javax.swing.JPanel {
         byte[] content = new byte[0];
         org.owasp.webscarab.model.Response response = new org.owasp.webscarab.model.Response();
         try {
-            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-            // FileInputStream fis = new FileInputStream("/usr/share/xfce/backdrops/Flower.jpg");
-            // java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/exodus/HowTo.html");
-            java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/santam/webscarab/conversations/10-response");
+            java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/santam/webscarab/conversations/1-response");
             response.read(fis);
-            /*
-            byte[] buff = new byte[1024];
-            int got = 0;
-            while ((got = fis.read(buff)) > 0) {
-                baos.write(buff, 0, got);
-            }
-            content = baos.toByteArray();
-             */
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(0);
         }
         
         javax.swing.JFrame top = new javax.swing.JFrame("Message Pane");
+        top.getContentPane().setLayout(new java.awt.BorderLayout());
         top.addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 System.exit(0);
             }
         });
         
-        MessagePanel mp = new MessagePanel();
+        javax.swing.JButton button = new javax.swing.JButton("GET");
+        final MessagePanel mp = new MessagePanel();
         top.getContentPane().add(mp);
+        top.getContentPane().add(button, java.awt.BorderLayout.SOUTH);
+        button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                System.out.println(mp.getMessage());
+            }
+        });
         top.setBounds(100,100,600,400);
         top.show();
         try {
+            mp.setEditable(true);
             mp.setMessage(response);
-            // cp.setContentType("text/html");
-            // cp.setEditable(false);
-            // cp.setContent(content);
         } catch (Exception e) {
             e.printStackTrace();
         }
