@@ -2,7 +2,7 @@ package org.owasp.webscarab.model;
 
 import org.owasp.util.URLUtil;
 
-import org.owasp.webscarab.plugin.spider.SequencedTreeMap;
+import org.owasp.webscarab.util.SequencedTreeMap;
 
 import java.util.ArrayList;
 
@@ -14,11 +14,8 @@ import java.util.Iterator;
 import java.net.URL;
 import java.net.MalformedURLException;
 
+import javax.swing.ListModel;
 import javax.swing.DefaultListModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.AbstractTableModel;
-
-import java.util.logging.Logger;
 
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeModel;
@@ -37,12 +34,8 @@ import java.security.NoSuchAlgorithmException;
  */
 public class SiteModel {
     
-    private SequencedTreeMap _conversationList;  // maintains a list of conversations
+    private DefaultListModel _conversationList;  // maintains a list of conversations
     private Map _urlinfo;              // maps urls to attrs
-    
-    private Logger logger = Logger.getLogger("WebScarab");
-    
-    private ConversationTableModel _ctm = new ConversationTableModel();
     
     private SiteModelStore _store = null;
     
@@ -54,7 +47,7 @@ public class SiteModel {
      *  Constructor
      */
     public SiteModel() {
-        _conversationList = new SequencedTreeMap();
+        _conversationList = new DefaultListModel();
         _urlinfo = Collections.synchronizedMap(new TreeMap());
         _urltree = new URLTreeModel();
         _cookieJar = new CookieJar();
@@ -64,11 +57,14 @@ public class SiteModel {
     public String addConversation(Conversation conversation, Request request, Response response) {
         String id;
         synchronized (_conversationList) {
-            id = Integer.toString(_conversationList.size()+1); // FIXME!! Don't use size here!
+            if (_conversationList.getSize()>0) {
+                id = ((Conversation)_conversationList.getElementAt(_conversationList.getSize()-1)).getProperty("ID");
+                id = Integer.toString(Integer.valueOf(id).intValue()+1);
+            } else {
+                id = "1";
+            }
             conversation.setProperty("ID", id);
-            _conversationList.put(id, conversation);
-            int row = _conversationList.size();
-            _ctm.fireTableRowsInserted(row, row);
+            _conversationList.addElement(conversation);
         }
         if (_store != null) {
             try {
@@ -100,19 +96,6 @@ public class SiteModel {
                 return _store.readFragment(key);
             } catch (StoreException se) {
                 System.err.println("Error reading fragment from the store : " + se);
-            }
-        }
-        return null;
-    }
-    
-    /** Given a conversation id, returns the corresponding Conversation
-     * @return the requested Conversation, or null if it does not exist
-     * @param id the requested "opaque" conversation id
-     */
-    public Conversation getConversation(String id) {
-        synchronized (_conversationList) {
-            if (_conversationList.containsKey(id)) {
-                return (Conversation) _conversationList.get(id);
             }
         }
         return null;
@@ -177,9 +160,8 @@ public class SiteModel {
                 _conversationList.clear();
                 Conversation[] conversation = _store.readConversations();
                 for (int i=0; i<conversation.length; i++) {
-                    _conversationList.put(conversation[i].getProperty("ID"),conversation[i]);
+                    _conversationList.addElement(conversation[i]);
                 }
-                _ctm.fireTableDataChanged();
             }
             synchronized (_urlinfo) {
                 _urltree.clear();
@@ -220,8 +202,8 @@ public class SiteModel {
         }
     }
     
-    public TableModel getConversationTableModel() {
-        return _ctm;
+    public DefaultListModel getConversationListModel() {
+        return _conversationList;
     }
     
     public TreeModel getURLTreeModel() {
@@ -232,75 +214,8 @@ public class SiteModel {
         return _cookieJar;
     }
     
-    public class ConversationTableModel extends AbstractTableModel {
-        
-        protected String [] columnNames = {
-            "ID", "Method", "Url", "Query",
-            "Cookie", "Body", "Status",
-            "Set-Cookie", "Checksum", "Size",
-            "Origin", "Comment"
-        };
-        
-        private int[] preferredColumnWidths = {
-            40, 60, 300, 200,
-            200, 100, 80,
-            150, 80, 50, 
-            100, 100
-        };
-        
-        public ConversationTableModel() {
-        }
-        
-        public String getColumnName(int column) {
-            if (column < columnNames.length) {
-                return columnNames[column];
-            }
-            return "";
-        }
-        
-        public int getPreferredColumnWidth(int column) {
-            return preferredColumnWidths[column];
-        }
-        
-        public int getColumnCount() {
-            return columnNames.length;
-        }
-        
-        public int getRowCount() {
-            return _conversationList.size();
-        }
-        
-        public Object getValueAt(int row, int column) {
-            if (row<0 || row >= _conversationList.size()) {
-                System.err.println("Attempt to get row " + row + ", column " + column + " : row does not exist!");
-                return null;
-            }
-            Conversation c = (Conversation) _conversationList.get(row);
-            if (column <= columnNames.length) {
-                return c.getProperty(columnNames[column].toUpperCase());
-            } else {
-                System.err.println("Attempt to get row " + row + ", column " + column + " : column does not exist!");
-                return null;
-            }
-        }
-        
-        public boolean isCellEditable(int rowIndex, int columnIndex) {
-            return columnNames[columnIndex].equalsIgnoreCase("Comment");
-        }
-        
-        public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-            if (rowIndex <0 || rowIndex >= _conversationList.size()) {
-                System.err.println("Attempt to get row " + rowIndex + ", column " + columnIndex + " : row does not exist!");
-                return;
-            }
-            if (columnNames[columnIndex].equalsIgnoreCase("Comment")) {
-                Conversation c = (Conversation) _conversationList.get(rowIndex);
-                c.setProperty(columnNames[columnIndex].toUpperCase(), aValue.toString());
-            }
-        }
-        
-    }
-    
+
+    // FIXME - this should be in a shared place
     private String hashMD5 (byte[] bytes) {
         MessageDigest md = null;
         try {
