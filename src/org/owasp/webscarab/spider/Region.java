@@ -39,7 +39,7 @@ import org.owasp.util.Convert;
  * Region of an HTML page.
  * 
  * @since 0.poc
- * @version 0.poc<br />$Revision: 1.1 $ $Author: istr $
+ * @version 0.poc<br />$Revision: 1.2 $ $Author: istr $
  * @author Robert C. Miller
  * @author Krishna Barat
  * @see <a href="http://www.cs.cmu.edu/~rcm/websphinx">WebSPHINX homepage</a>
@@ -336,7 +336,7 @@ public class Region {
 		if ( val == null )
 			return defaultValue;
 		try {
-			return Convert.StringToNumber( val );
+			return Convert.toNumber( val );
 		} 
 		catch ( NumberFormatException e ) {
 			return defaultValue;

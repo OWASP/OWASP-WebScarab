@@ -57,8 +57,7 @@ public class SessionRow
 	 * @param data the data this AuditRow is constructed with
 	 */
 	public SessionRow ( Object[] data ) {
-		super( _t, _n );
-		set( data );
+		super( _t, _n, data );
 	}
 } // class SessionRow
 

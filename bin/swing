@@ -1,0 +1,8 @@
+#!/bin/sh
+BINDIR=`basename $0`
+BINDIR=${0%%$BINDIR}
+java -Xmx600m -Dlog.level=ERR \
+-cp $CLASSPATH:\
+$BINDIR/../lib/owasp.jar:\
+$BINDIR/../build/webscarab.jar \
+org.owasp.webscarab.ui.swing.WebScarab

@@ -41,7 +41,7 @@ public class QueueTest extends TestCase {
   
   protected void setUp () {
 		_q = new Queue( null, null );
-		_a = new AuditRow( new Object[] { null, null, null, null,
+		_a = new AuditRow( new Object[] { null, null, null, null, null,
 			null, null, null, null, null, null } );
 		_b = new AuditRow( new Object[] { null, null, null, null,
 			null, null, null, null, null, null } );

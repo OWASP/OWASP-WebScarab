@@ -278,7 +278,7 @@ public final class Tarantula
 		Link l = event._link;
 		if ( LinkEvent.QUEUED == l.getStatus() ) {
 			AuditRow a = new AuditRow( 
-				new Object[] { null, null, null, l._url, null, 
+				new Object[] { null, null, null, null, l._url, null, 
 				this, null, AuditRow.ST_RUN, null, null } );
 			_portal.set( this, a );
 			System.err.println( "{TARAN} link with labels: " + l.getObjectLabels() );
@@ -288,7 +288,7 @@ public final class Tarantula
 			if ( l.getPage().hasContent() && ! l.getPage().isImage() ) {
 //				System.err.println( "{TARAN} pushed srow: " + l._url );
 				SessionRow s = new SessionRow(
-					new Object[] { null, null, l._url, l.getPage().getContent() } );
+					new Object[] { null, null, null, l._url, l.getPage().getContent() } );
 				_portal.set( this, s );
 			}
 			

@@ -55,23 +55,23 @@ public final class Portal
 
 	/** special row to start spider on all queued URLs */
 	public static final AuditRow RUN_SPIDER = new AuditRow(
-		new Object[] { AuditRow.ID_ALL, AuditRow.ID_ALL, null, null, null, null,
+		new Object[] { null, AuditRow.ID_ALL, AuditRow.ID_ALL, null, null, null, null,
 			AuditRow.ST_RUN, null, null, null } );
 	/** special row to suspend spider on all queued URLs */
 	public static final AuditRow SUS_SPIDER = new AuditRow(
-		new Object[] { AuditRow.ID_ALL, AuditRow.ID_ALL, null, null, null, null,
+		new Object[] { null, AuditRow.ID_ALL, AuditRow.ID_ALL, null, null, null, null,
 			AuditRow.ST_SUS, null, null, null } );
 	/** special row to stop spider on all queued URLs */
 	public static final AuditRow STP_SPIDER = new AuditRow(
-		new Object[] { AuditRow.ID_ALL, AuditRow.ID_ALL, null, null, null, null,
+		new Object[] { null, AuditRow.ID_ALL, AuditRow.ID_ALL, null, null, null, null,
 			AuditRow.ST_STP, null, null, null } );
 	/** special row that denotes that spider has finished spidering all queued URLs */
 	public static final AuditRow DON_SPIDER = new AuditRow(
-		new Object[] { AuditRow.ID_ALL, AuditRow.ID_ALL, null, null, null, null,
+		new Object[] { null, AuditRow.ID_ALL, AuditRow.ID_ALL, null, null, null, null,
 			AuditRow.ST_DON, null, null, null } );
 	/** special row to halt the system */
 	public static final AuditRow HALT = new AuditRow( 
-		new Object[] { AuditRow.ID_ALL, AuditRow.ID_ALL, null, null, null, null,
+		new Object[] { null, AuditRow.ID_ALL, AuditRow.ID_ALL, null, null, null, null,
 			null, null, null, null } );
 
 	/** class prefix for modules */
@@ -107,7 +107,7 @@ public final class Portal
 			_engine = new TSVEngine( "/opt/owasp/webscarab/data/" );
 		}
 		_tables.put( TABLE_SESSION, _engine.get( TABLE_SESSION, 
-			new SessionRow( new Object[] { null, null, null, null } ) ) );
+			new SessionRow( new Object[] { null, null, null, null, null } ) ) );
 	}
 
 	private void schedule ( int mode, Row row ) {

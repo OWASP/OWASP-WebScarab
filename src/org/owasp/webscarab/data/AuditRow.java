@@ -86,8 +86,7 @@ public class AuditRow
 	 * @param data the data this AuditRow is constructed with
 	 */
 	public AuditRow ( Object[] data ) {
-		super( _t, _n );
-		set( data );
+		super( _t, _n, data );
 	}
 } // class AuditRow
 

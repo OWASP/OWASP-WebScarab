@@ -77,7 +77,7 @@ public class WebScarab
 		try {
 			url = new URL( in );
 			System.err.println( "{UI   } Sending '" + url + "' to Portal." );
-			AuditRow ar = new AuditRow( new Object[] {
+			AuditRow ar = new AuditRow( new Object[] { null,
 				new Integer( _attackSession ), null, null,
 				url, null, this, AuditRow.ST_RUN, null, null, null,
 			} );
