@@ -534,23 +534,24 @@ public class FileSystemStore implements SiteModelStore, SpiderStore, SessionIDSt
      */
     public String readFragment(String key) throws StoreException {
         File f = new File(_dir + "fragments/" + key);
-        BufferedReader br = null;
+        FileReader fr = null;
         try {
-            br = new BufferedReader(new FileReader(f));
+            fr = new FileReader(f);
         } catch (FileNotFoundException fnfe) {
             return null;
         }
-        StringBuffer buff = new StringBuffer();
-        String line = null;
+        StringBuffer sb = new StringBuffer();
+        char[] buf = new char[1024];
+        int got = 0;
         try {
-            while ((line = br.readLine()) != null) {
-                buff.append(line);
+            while ((got=fr.read(buf))>0) {
+                sb.append(buf,0,got);
             }
-            br.close();
+            fr.close();
         } catch (IOException ioe) {
             throw new StoreException("Error reading fragment " + key + " : " + ioe);
         }
-        return buff.toString();
+        return sb.toString();
     }
     
     /** Stores a text fragment for future retrieval
