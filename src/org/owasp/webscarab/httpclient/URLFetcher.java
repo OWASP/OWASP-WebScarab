@@ -33,6 +33,7 @@ import javax.net.ssl.SSLContext;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.util.LogInputStream;
+import org.owasp.webscarab.util.LogOutputStream;
 
 /** Creates a new instance of URLFetcher
  * @author rdawes
@@ -60,15 +61,17 @@ public class URLFetcher implements HTTPClient {
     private int _port = 0;
     private long _lastRequestTime = 0;
     
-    private PrintStream _debug = null;
+    private PrintStream _debugRequest = null;
+    private PrintStream _debugResponse = null;
     
     /** Creates a new instance of URLFetcher
      */
     public URLFetcher() {
     }
     
-    public void setDebug(PrintStream debug) {
-        _debug = debug;
+    public void setDebug(PrintStream debugRequest, PrintStream debugResponse) {
+        _debugRequest = debugRequest;
+        _debugResponse = debugResponse;
     }
     
     /** Create and install a trust manager that does not verify server SSL certificates
@@ -186,8 +189,11 @@ public class URLFetcher implements HTTPClient {
                 if (response != null) {
                     return response;
                 }
-                if (_debug != null) {
-                    _in = new LogInputStream(_in, _debug);
+                if (_debugRequest != null) {
+                    _out = new LogOutputStream(_out, _debugRequest);
+                }
+                if (_debugResponse != null) {
+                    _in = new LogInputStream(_in, _debugResponse);
                 }
             }
         } catch (UnknownHostException uhe) {

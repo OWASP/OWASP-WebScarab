@@ -91,6 +91,38 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="aboutMenuItemActionPerformed"/>
               </Events>
             </MenuItem>
+            <Menu class="javax.swing.JMenu" name="debugMenu">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Debug"/>
+              </Properties>
+              <SubComponents>
+                <Menu class="javax.swing.JMenu" name="proxyDebugMenu">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Proxy"/>
+                  </Properties>
+                  <SubComponents>
+                    <MenuItem class="javax.swing.JCheckBoxMenuItem" name="proxyDebugRequestCheckBoxMenuItem">
+                      <Properties>
+                        <Property name="text" type="java.lang.String" value="Requests"/>
+                        <Property name="toolTipText" type="java.lang.String" value="Enable this to write a byte for byte copy to your system TEMP directory"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="proxyDebugRequestCheckBoxMenuItemActionPerformed"/>
+                      </Events>
+                    </MenuItem>
+                    <MenuItem class="javax.swing.JCheckBoxMenuItem" name="proxyDebugResponseCheckBoxMenuItem">
+                      <Properties>
+                        <Property name="text" type="java.lang.String" value="Responses"/>
+                        <Property name="toolTipText" type="java.lang.String" value="Enable this to write a byte for byte copy to the system TEMP dir"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="proxyDebugResponseCheckBoxMenuItemActionPerformed"/>
+                      </Events>
+                    </MenuItem>
+                  </SubComponents>
+                </Menu>
+              </SubComponents>
+            </Menu>
           </SubComponents>
         </Menu>
       </SubComponents>
