@@ -330,7 +330,11 @@ public class Request extends Message implements Cloneable {
     public Object clone() throws CloneNotSupportedException {
         Request copy = (Request) super.clone();
         if (copy.getURL() != null) {
-            url = new URL(copy.getURL().toString());
+            try {
+                url = new URL(copy.getURL().toString());
+            } catch (MalformedURLException mue) {
+                System.err.println("Error cloning Request URL(" + copy.getURL().toString() + " : " + mue);
+            }
         }
         return copy;
     }
