@@ -215,8 +215,8 @@ public class Framework implements Plug {
         }
         prop = "WebScarab.noProxy";
         value = props.getProperty(prop);
-        if (value != null) {
-            URLFetcher.setNoProxy(value.split(", *"));
+        if (value != null && !value.equals("")) {
+            URLFetcher.setNoProxy(value.split(" *, *"));
         } else {
             URLFetcher.setNoProxy(new String[0]);
         }
