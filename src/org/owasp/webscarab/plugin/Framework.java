@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -52,6 +52,9 @@ import java.util.jar.Attributes.Name;
 import java.util.logging.Logger;
 
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.StoreException;
@@ -83,7 +86,7 @@ public class Framework {
     /**
      * links the framework to its GUI
      * @param ui a class implementing the necessary interface methods
-     */    
+     */
     public void setUI(FrameworkUI ui) {
         _ui = ui;
     }
@@ -92,14 +95,11 @@ public class Framework {
      * instructs the framework to use the provided model. The framework notifies all
      * plugins that the model has changed.
      * @param model the new SiteModel
-     */    
+     */
     public void setSession(SiteModel model, String storeType, Object connection) throws StoreException {
-        if (_model != null) {
-            try {
-                saveSessionData();
-            } catch (StoreException se) {
-                _logger.severe("Exception saving previous store: " + se);
-            }
+        if (isRunning()) {
+            stopPlugins();
+            if (isModified()) saveSessionData();
         }
         _model = model;
         if (_ui != null) _ui.setModel(model);
@@ -118,14 +118,14 @@ public class Framework {
     /**
      * provided to allow the UI to access the model at instantiation time. There is probably a better way of doing this.
      * @return the SiteModel currently loaded into the Framework
-     */    
+     */
     public SiteModel getModel() {
         return _model;
     }
     
     private void extractVersionFromManifest() {
         String myClass = "/" + getClass().getName().replaceAll("\\.", "/") + ".class";
-        try { 
+        try {
             URL url = getClass().getResource(myClass);
             if(url.getProtocol().equals("jar")) {
                 // _logger.info("URL is " + url);
@@ -160,14 +160,14 @@ public class Framework {
     /**
      * adds a new plugin into the framework
      * @param plugin the plugin to add
-     */    
+     */
     public void addPlugin(Plugin plugin) {
         _plugins.add(plugin);
     }
     
     /**
      * starts all the plugins in the framework
-     */    
+     */
     public void startPlugins() {
         Iterator it = _plugins.iterator();
         while (it.hasNext()) {
@@ -200,6 +200,15 @@ public class Framework {
         return false;
     }
     
+    public boolean isModified() {
+        Iterator it = _plugins.iterator();
+        while (it.hasNext()) {
+            Plugin plugin = (Plugin) it.next();
+            if (plugin.isModified()) return true;
+        }
+        return false;
+    }
+    
     public String[] getStatus() {
         List status = new ArrayList();
         Iterator it = _plugins.iterator();
@@ -212,7 +221,7 @@ public class Framework {
     
     /**
      * stops all the plugins in the framework
-     */    
+     */
     public boolean stopPlugins() {
         if (isBusy()) return false;
         Iterator it = _plugins.iterator();
@@ -234,25 +243,24 @@ public class Framework {
      * @throws StoreException if there is any problem saving the session data
      */
     public void saveSessionData() throws StoreException {
-        if (!isRunning()) throw new StoreException("Framework is not active!");
-        if (!stopPlugins()) {
-            throw new StoreException("Unable to stop plugins");
-        }
-        
         StoreException storeException = null;
-        _logger.info("Flushing model");
-        _model.flush();
-        _logger.info("Done");
+        if (_model.isModified()) { 
+            _logger.info("Flushing model");
+            _model.flush();
+            _logger.info("Done");
+        }
         Iterator it = _plugins.iterator();
         while (it.hasNext()) {
             Plugin plugin = (Plugin) it.next();
-            try {
-                _logger.info("Flushing " + plugin.getPluginName());
-                plugin.flush();
-                _logger.info("Done");
-            } catch (StoreException se) {
-                if (storeException == null) storeException = se;
-                _logger.severe("Error saving data for " + plugin.getPluginName() + ": " + se);
+            if (plugin.isModified()) {
+                try {
+                    _logger.info("Flushing " + plugin.getPluginName());
+                    plugin.flush();
+                    _logger.info("Done");
+                } catch (StoreException se) {
+                    if (storeException == null) storeException = se;
+                    _logger.severe("Error saving data for " + plugin.getPluginName() + ": " + se);
+                }
             }
         }
         
@@ -260,12 +268,9 @@ public class Framework {
     }
     
     /**
-     * instructs all plugins to stop, calls flush() on the model, and each of the plugins,
      * saves the properties in the user directory, and calls System.exit(0);
-     * @throws StoreException if any are thrown while flushing the model or plugins
-     */    
-    public void exit() throws StoreException {
-        if (_model != null) saveSessionData();
+     */
+    public void exit() {
         try {
             Preferences.savePreferences();
         } catch (IOException ioe) {
@@ -278,9 +283,30 @@ public class Framework {
      * returns the build version of WebScarab. This is extracted from the webscarab.jar
      * Manifest, if webscarab is running from a jar.
      * @return the version string
-     */    
+     */
     public String getVersion() {
         return _version;
+    }
+    
+    public ConversationID reserveConversationID() {
+        return _model.reserveConversationID();
+    }
+    
+    public void addConversation(ConversationID id, Request request, Response response, String origin) {
+        _model.addConversation(id, request, response, origin);
+        Iterator it = _plugins.iterator();
+        while (it.hasNext()) {
+            Plugin plugin = (Plugin) it.next();
+            if (plugin.isRunning()) {
+                plugin.analyse(id, request, response, origin);
+            }
+        }
+    }
+    
+    public ConversationID addConversation(Request request, Response response, String origin) {
+        ConversationID id = reserveConversationID();
+        addConversation(id, request, response, origin);
+        return id;
     }
     
     private void configureHTTPClient() {
@@ -289,8 +315,8 @@ public class Framework {
         String value;
         int colon;
         try {
-        	// FIXME for some reason, we get "" instead of null for value,
-        	// and do not use our default value???
+            // FIXME for some reason, we get "" instead of null for value,
+            // and do not use our default value???
             prop = "WebScarab.httpProxy";
             value = Preferences.getPreference(prop);
             if (value == null || value.equals("")) value = ":3128";
@@ -323,5 +349,5 @@ public class Framework {
             _logger.warning("Error configuring the HTTPClient property " + prop + ": " + e);
         }
     }
-
+    
 }

@@ -40,6 +40,9 @@
 package org.owasp.webscarab.plugin;
 
 import org.owasp.webscarab.model.StoreException;
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
 
 import org.owasp.webscarab.model.SiteModel;
 
@@ -48,6 +51,8 @@ import org.owasp.webscarab.model.SiteModel;
  * @author rdawes
  */
 public abstract class Plugin implements Runnable {
+    
+    public abstract void analyse(ConversationID id, Request request, Response response, String origin);
     
     /**
      * indicates whether the plugin is running or not
@@ -74,6 +79,11 @@ public abstract class Plugin implements Runnable {
     public boolean isRunning() {
         return _running;
     }
+    
+    /** called to determine whether the data stored within the plugin has been modified
+     * and should be saved
+     */
+    public abstract boolean isModified();
     
     /** called to test whether the plugin is able to be stopped
      * @return false if the plugin can be stopped
