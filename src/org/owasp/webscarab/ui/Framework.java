@@ -19,6 +19,7 @@ import org.owasp.webscarab.plugin.WebScarabPlugin;
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.httpclient.URLFetcher;
 
+
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -73,11 +74,13 @@ public class Framework implements Plug {
         _plugins.add(plugin);
     }
     
-    public String addConversation(Request request, Response response) {
+    public String addConversation(String source, Request request, Response response) {
         // get a summary of the URL so far.
         URLInfo urlinfo = _sitemodel.getURLInfo(request.getURL());
         // create a new conversation for the Request and Response
         Conversation conversation = new Conversation(request, response);
+        conversation.setProperty("ORIGIN", source);
+        
         // update the summary
         updateURLInfo(conversation, urlinfo);
         
@@ -104,10 +107,14 @@ public class Framework implements Plug {
                             nodelist.add(n);
                         }
                         for (NodeIterator ni = comments.elements(); ni.hasMoreNodes();) {
-                            System.out.println("Comment : '" + ni.nextNode().toPlainTextString() + "'");
+                            String key = _sitemodel.addFragment(ni.nextNode().toHtml());
+                            conversation.addProperty("COMMENT",key);
+                            urlinfo.addProperty("COMMENT", key);
                         }
                         for (NodeIterator ni = scripts.elements(); ni.hasMoreNodes();) {
-                            System.out.println("script : '" + ni.nextNode().toPlainTextString() + "'");
+                            String key = _sitemodel.addFragment(ni.nextNode().toHtml());
+                            conversation.addProperty("SCRIPT",key);
+                            urlinfo.addProperty("SCRIPT", key);
                         }
                     } catch (ParserException pe) {
                         System.err.println("ParserException : " + pe);
@@ -236,5 +243,6 @@ public class Framework implements Plug {
     public CookieJar getCookieJar() {
         return _sitemodel.getCookieJar();
     }
-    
+
+
 }
