@@ -51,16 +51,16 @@ public class Conversation extends Observable {
             if (value != null) {
                 setProperty("COOKIE", value);
             }
-            byte[] content = request.getContent();
-            if (content != null && content.length>0) {
-                setProperty("BODY", new String(content));
-            }
         }
         if (response != null) {
             setProperty("STATUS", response.getStatusLine());
             value = response.getHeader("Set-Cookie");
             if (value != null) {
                 setProperty("SET-COOKIE", value);
+            }
+            value = response.getHeader("Date");
+            if (value != null) {
+                setProperty("DATE", value);
             }
             byte[] content = response.getContent();
             if (content != null && content.length>0) {
