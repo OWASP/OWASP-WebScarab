@@ -129,6 +129,7 @@ public class BeanShell extends AbstractProxyPlugin {
                     interpreter.eval(_script);
                     Response response = (Response) interpreter.get("response");
                     response.addHeader("X-BeanShell", "possibly modified");
+                    return response;
                 } catch (EvalError e) {
                     System.out.println("Error evaluating bean script : " + e);
                     return null;
