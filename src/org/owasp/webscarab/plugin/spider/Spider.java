@@ -26,7 +26,7 @@ import org.htmlparser.util.ParserException;
 
 import java.util.logging.Logger;
 import java.util.Vector;
-import java.util.NoSuchElementException;
+import java.lang.ArrayIndexOutOfBoundsException;
 import java.util.TreeMap;
 
 import java.net.MalformedURLException;
@@ -83,7 +83,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         Conversation conversation;
         while (true) {
             try {
-                response = (Response) _responseQueue.firstElement();
+                response = (Response) _responseQueue.remove(0);
                 if (response != null) {
                     request = response.getRequest();
                     if (request != null) {
@@ -91,7 +91,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                         _plug.addConversation(conversation);
                     }
                 }
-            } catch (NoSuchElementException nsee) {
+            } catch (ArrayIndexOutOfBoundsException aioob) {
                 try {
                     Thread.currentThread().sleep(100);
                 } catch (InterruptedException ie) {}
@@ -149,6 +149,11 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
             _logger.info("adding " + referer + " to the seen list");
         }
         NodeList nodelist = conversation.getNodeList();
+        Response response = conversation.getResponse();
+        if (response.getStatus().equals("302")) {
+            addUnseenLink(response.getHeader("Location"), referer);
+            return;
+        }
         if (nodelist == null) return; // FIXME : also handle 302 redirects, etc
         recurseNodes(nodelist, referer);
     }
@@ -164,18 +169,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                     String url = linkTag.getLink();
                     if (url.startsWith("irc://")) // for some reason the htmlparser thinks IRC:// links are httpLike()
                         continue;
-                    synchronized (_unseenLinks) {
-                        if (!_seenLinks.containsKey(url) && !_unseenLinks.containsKey(url)) {
-                            Request request = newGetRequest(url, referer);
-                            _unseenLinks.put(url, request);
-                            int index = _unseenLinks.size()-1;
-                            _unseenLinkTableModel.fireTableRowsInserted(index, index);
-                            // _logger.info("Adding " + url + " to the unseen list");
-                            if (_recursive && allowedURL(url)) {
-                                queueRequest(request);
-                            }
-                        }
-                    }
+                    addUnseenLink(url, referer);
                 } else if (node instanceof CompositeTag) {
                     CompositeTag ctag = (CompositeTag) node;
                     recurseNodes(ctag.getChildren(), referer);
@@ -185,6 +179,21 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
             _logger.severe("ParserException : " + pe);
         }
     }        
+    
+    private void addUnseenLink(String url, String referer) {
+        synchronized (_unseenLinks) {
+            if (!_seenLinks.containsKey(url) && !_unseenLinks.containsKey(url)) {
+                Request request = newGetRequest(url, referer);
+                _unseenLinks.put(url, request);
+                int index = _unseenLinks.size()-1;
+                _unseenLinkTableModel.fireTableRowsInserted(index, index);
+                // _logger.info("Adding " + url + " to the unseen list");
+                if (_recursive && allowedURL(url)) {
+                    queueRequest(request);
+                }
+            }
+        }
+    }
 
     private synchronized Request newGetRequest(String url, String referer) {
         Request req = new Request();
