@@ -185,8 +185,8 @@ public class ConnectionHandler implements Runnable {
                 connection = response.getHeader("Connection");
             } while (connection != null && connection.equals("Keep-Alive"));
         } catch (Exception e) {
-            System.err.println("Got an error : " + e);
-            e.printStackTrace();
+            System.err.println("ConnectionHandler got an error : " + e);
+            // e.printStackTrace();
         } finally {
             try {
                 clientin.close();

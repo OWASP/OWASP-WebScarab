@@ -1,7 +1,7 @@
 package org.owasp.webscarab.plugin.proxy;
 
 /*
- * $Id: Proxy.java,v 1.9 2003/09/15 08:15:05 rogan Exp $
+ * $Id: Proxy.java,v 1.10 2003/09/22 16:23:37 rogan Exp $
  */
 
 import java.net.ServerSocket;
@@ -170,6 +170,9 @@ public class Proxy extends AbstractWebScarabPlugin {
                     value = value + ", " + key;
                 }
             }
+			if (value == null) {
+				value = "";
+			}
             _prop.setProperty("Proxy.listeners", value);
             return true;
         } else {
