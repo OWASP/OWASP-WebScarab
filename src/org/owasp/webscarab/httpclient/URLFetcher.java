@@ -15,6 +15,9 @@ import java.net.Socket;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.FileOutputStream;
+
 import java.util.zip.GZIPInputStream;
 
 import java.net.UnknownHostException;
@@ -29,6 +32,7 @@ import javax.net.ssl.SSLContext;
 
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.util.LogInputStream;
 
 /** Creates a new instance of URLFetcher
  * @author rdawes
@@ -56,9 +60,15 @@ public class URLFetcher implements HTTPClient {
     private int _port = 0;
     private long _lastRequestTime = 0;
     
+    private PrintStream _debug = null;
+    
     /** Creates a new instance of URLFetcher
      */
     public URLFetcher() {
+    }
+    
+    public void setDebug(PrintStream debug) {
+        _debug = debug;
     }
     
     /** Create and install a trust manager that does not verify server SSL certificates
@@ -176,10 +186,14 @@ public class URLFetcher implements HTTPClient {
                 if (response != null) {
                     return response;
                 }
+                if (_debug != null) {
+                    _in = new LogInputStream(_in, _debug);
+                }
             }
         } catch (UnknownHostException uhe) {
             return errorResponse(request, "Unknown host exception " + uhe);
         } catch (IOException ioe) {
+            ioe.printStackTrace();
             return errorResponse(request, "IOException " + ioe);
         }
         // Still send the real request
@@ -197,7 +211,13 @@ public class URLFetcher implements HTTPClient {
             
             Response response = new Response();
             response.setRequest(request);
-            response.read(_in);
+
+            // test for spurious 100 header from IIS 4 and 5. 
+            // See http://mail.python.org/pipermail/python-list/2000-December/023204.html
+            do {
+                response.read(_in);
+            } while (response.getStatus().equals("100"));
+            
             String length = response.getHeader("Content-Length");
             if (length != null) {
                 try {
@@ -235,6 +255,7 @@ public class URLFetcher implements HTTPClient {
             
             return response;
         } catch (IOException ioe) {
+            ioe.printStackTrace();
             return errorResponse(request,"IOException " + ioe);
         }
     }
@@ -312,6 +333,7 @@ public class URLFetcher implements HTTPClient {
                 _sslsocket.setUseClientMode(true);
             } catch (IOException ioe) {
                 System.err.println("Error layering SSL over the existing socket");
+                ioe.printStackTrace();
                 throw new SocketException("Error layering SSL over the socket " + ioe);
             }
             _in = _sslsocket.getInputStream();
