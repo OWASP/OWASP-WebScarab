@@ -214,10 +214,9 @@ public class CookieJar {
                 Iterator names = namemap.keySet().iterator();
                 while (names.hasNext()) {
                     String name = (String) names.next();
-                    ArrayList cookies = (ArrayList) namemap.get(name);
-                    Iterator cookie = cookies.iterator();
-                    while (cookie.hasNext()) {
-                        all.add(cookie.next());
+                    DefaultListModel cookies = (DefaultListModel) namemap.get(name);
+                    for (int i=0; i<cookies.size(); i++) {
+                        all.add(cookies.get(i));
                     }
                 }
             }
