@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 /** This class represents the headers in either an HTTP Request or Response
  * @author rdawes
@@ -18,6 +19,8 @@ import java.io.ByteArrayOutputStream;
 public class Header {
     
     private ArrayList headers = null;
+    
+    protected PrintStream _debug = null;
     
     /** This class represents the headers in either an HTTP Request or Response */
     public Header() {
@@ -174,6 +177,9 @@ public class Header {
         if (i == 13) { // 10 is unix LF, but DOS does 13+10, so read the 10 if we got 13
             i = is.read();
         }
+        if (_debug != null) {
+            _debug.println(line);
+        }
         return line;
     }
 
@@ -189,6 +195,10 @@ public class Header {
             write(baos, crlf);
         } catch (IOException ioe) {}
         return new String(baos.toByteArray());
+    }
+    
+    public void setDebug(PrintStream debug) {
+        _debug = debug;
     }
     
 }

@@ -24,7 +24,9 @@ import java.lang.NumberFormatException;
  */
 public class Message extends Header {
     
+    // we use a ByteArrayOutputStream to support bit-by-bit output in write()
     ByteArrayOutputStream content = null;
+    
     InputStream contentStream = null;
     
     /** Message is a class that is used to represent the bulk of an HTTP message, namely
@@ -149,7 +151,7 @@ public class Message extends Header {
     }
     
     /** Allows one to provide a new InputStream from which to read the message body.
-     * This could be a "ChunkedInputStream", a "CopyInputStream", a "GZipInputStream",
+     * This could be a "ChunkedInputStream", a "GZipInputStream",
      * etc wrapped around the existing InputStream.
      * @param is The InputStream from which to read the message body.
      */    
@@ -159,8 +161,6 @@ public class Message extends Header {
     }
     
     /** Returns a String representation of the message, *including* the message body.
-     * This should only be called if the message body will be stored, or is already
-     * stored in a CopyInputStream
      * @return The string representation of the message
      */    
     public String toString() {
@@ -168,9 +168,7 @@ public class Message extends Header {
     }
     
     /** Returns a String representation of the message, *including* the message body.
-     * This should only be called if the message body will be stored, or is already
-     * stored in a CopyInputStream. Lines of the header are separated by the supplied
-     * "CarriageReturnLineFeed" string.
+     * Lines of the header are separated by the supplied "CarriageReturnLineFeed" string.
      * @return a String representation of the Message.
      * @param crlf The required line separator string
      */    
