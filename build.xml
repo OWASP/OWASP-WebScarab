@@ -73,4 +73,17 @@
 			izPackDir="${basedir}/izpack/"
                 />
 	</target>
+    <!-- ${basedir}/proguard should contain the expanded proguard distribution
+      == It could just be a link to the real directory, etc. 
+      == ProGuard is available from http://proguard.sourceforge.net/
+      == Unfortunately, at this time, the configuration file is heavily
+      == tied to a specific desktop, and installation directories
+      -->
+        <target depends="clean,build" name="proguard">
+            <taskdef resource="proguard/ant/task.properties"
+         classpath="${basedir}/proguard/lib/proguard.jar" />
+            <proguard configuration="${basedir}/webscarab.pro">
+                 <outjar name="${basedir}/webscarab-${version}.jar"/>
+            </proguard>
+        </target>
 </project>
