@@ -96,6 +96,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         
         Thread me = new Thread(this);
         me.setDaemon(true);
+        me.setPriority(Thread.MIN_PRIORITY);
         me.setName("Spider");
         me.start();
         System.err.println("Spider initialised");
@@ -164,7 +165,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 if (response != null) {
                     request = response.getRequest();
                     if (request != null) {
-                        _plug.addConversation(request, response);
+                        _plug.addConversation("Spider", request, response);
                         if (_cookieSync) {
                             _cookieJar.updateCookies(response);
                         }
@@ -212,12 +213,13 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     }
     
     public void requestLinks(String[] urls) {
-        Request req;
         Link link;
         for (int i=0; i<urls.length; i++) {
             link = (Link) _unseenLinks.get(urls[i]);
             if (link != null) {
                 queueLink(link);
+            } else {
+                System.err.println("'" + urls[i] + "' not found");
             }
         }
     }
