@@ -58,6 +58,8 @@ import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
+import org.owasp.webscarab.util.Glob;
+
 /** Creates a new instance of URLFetcher
  * @author rdawes
  */
@@ -195,6 +197,10 @@ public class URLFetcher implements HTTPClient {
             _response.read(_in);
         } while (_response.getStatus().equals("100"));
         
+        // if the request method is HEAD, we get no contents, EVEN though there
+        // may be a Content-Length header.
+        if (request.getMethod().equals("HEAD")) _response.setNoBody();
+        
         _logger.info(request.getURL() +" : " + _response.getStatusLine());
         
         String connection = _response.getHeader("Proxy-Connection");
@@ -291,12 +297,16 @@ public class URLFetcher implements HTTPClient {
             for (int i=0; i<_noProxy.length; i++) {
                 if (_noProxy[i].startsWith(".") && host.endsWith(_noProxy[i])) {
                     return false;
-                } else if (host.matches(_noProxy[i])) {
-                    return false;
                 } else if (_noProxy[i].equals("<local>") && host.indexOf('.') < 0) {
                     return false;
                 } else if (host.equals(_noProxy[i])) {
                     return false;
+                } else {
+                    try {
+                        if (host.matches(Glob.globToRE(_noProxy[i]))) return false;
+                    } catch (Exception e) {
+                        // fail silently
+                    }
                 }
             }
         }
