@@ -77,6 +77,8 @@ public interface SiteModelListener extends EventListener {
      */    
     void conversationRemoved(SiteModelEvent evt);
     
+    void conversationsChanged(SiteModelEvent evt);
+    
     /**
      * called after an Url has been added to the store
      * @param url the url that was added
@@ -97,6 +99,8 @@ public interface SiteModelListener extends EventListener {
      */    
     void urlRemoved(SiteModelEvent evt);
     
+    void urlsChanged(SiteModelEvent evt);
+    
     /**
      * called after a completely new cookie is added to the model
      * i.e. a new domain, new path, or new cookie name
@@ -110,6 +114,14 @@ public interface SiteModelListener extends EventListener {
      * @param cookie the cookie that was removed
      */    
     void cookieRemoved(SiteModelEvent evt);
+    
+    void cookiesChanged(SiteModelEvent evt);
+    
+    void credentialAdded(SiteModelEvent evt);
+    
+    void credentialRemoved(SiteModelEvent evt);
+    
+    void credentialsChanged(SiteModelEvent evt);
     
     /** called after the entire model has changed
      */

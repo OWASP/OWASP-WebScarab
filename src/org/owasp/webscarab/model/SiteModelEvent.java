@@ -49,22 +49,30 @@ public class SiteModelEvent extends EventObject {
     
     public static int DATA_CHANGED = 0;
     
-    public static int URL_ADDED = 1;
-    public static int URL_CHANGED = 2;
-    public static int URL_REMOVED = 3;
+    public static final int URL_ADDED = 1;
+    public static final int URL_CHANGED = 2;
+    public static final int URL_REMOVED = 3;
+    public static final int URLS_CHANGED = 4;
     
-    public static int CONVERSATION_ADDED = 11;
-    public static int CONVERSATION_CHANGED = 12;
-    public static int CONVERSATION_REMOVED = 13;
+    public static final int CONVERSATION_ADDED = 11;
+    public static final int CONVERSATION_CHANGED = 12;
+    public static final int CONVERSATION_REMOVED = 13;
+    public static final int CONVERSATIONS_CHANGED = 14;
     
-    public static int COOKIE_ADDED = 21;
-    public static int COOKIE_CHANGED = 22;
-    public static int COOKIE_REMOVED = 23;
+    public static final int COOKIE_ADDED = 21;
+    public static final int COOKIE_CHANGED = 22;
+    public static final int COOKIE_REMOVED = 23;
+    public static final int COOKIES_CHANGED = 24;
+    
+    public static final int CREDENTIAL_ADDED = 31;
+    public static final int CREDENTIAL_REMOVED = 33;
+    public static final int CREDENTIALS_CHANGED = 34;
     
     private int _eventType;
     private HttpUrl _url = null;
     private ConversationID _id = null;
     private Cookie _cookie = null;
+//    private Credential _credential = null;
     private String _property = null;
     
     protected SiteModelEvent(Object source) {
@@ -100,6 +108,13 @@ public class SiteModelEvent extends EventObject {
         _cookie = cookie;
     }
     
+    /** Creates a new instance of SiteModelEvent */
+//    public SiteModelEvent(Object source, int eventType, Credential credential) {
+//        super(source);
+//        _eventType = eventType;
+//        _credential = credential;
+//    }
+    
     public int getEventType() {
         return _eventType;
     }
@@ -119,5 +134,9 @@ public class SiteModelEvent extends EventObject {
     public String getPropertyName() {
         return _property;
     }
+    
+//    public Credential getCredential() {
+//        return _credential;
+//    }
     
 }

@@ -44,7 +44,7 @@ package org.owasp.webscarab.model;
  * empty methods need not be created
  * @author rogan
  */
-public abstract class SiteModelAdapter implements SiteModelListener {
+public class SiteModelAdapter implements SiteModelListener {
     
     /** Creates a new instance of SiteModelAdapter */
     public SiteModelAdapter() {
@@ -73,6 +73,8 @@ public abstract class SiteModelAdapter implements SiteModelListener {
      */
     public void conversationRemoved(SiteModelEvent evt) {}
     
+    public void conversationsChanged(SiteModelEvent evt) {}
+    
     /**
      * called after an Url has been added to the store
      * @param url the url that was added
@@ -93,6 +95,9 @@ public abstract class SiteModelAdapter implements SiteModelListener {
      */
     public void urlRemoved(SiteModelEvent evt) {}
     
+    public void urlsChanged(SiteModelEvent evt) {
+    }
+    
     /**
      * called after a completely new cookie is added to the model
      * i.e. a new domain, new path, or new cookie name
@@ -106,6 +111,17 @@ public abstract class SiteModelAdapter implements SiteModelListener {
      * @param cookie the cookie that was removed
      */
     public void cookieRemoved(SiteModelEvent evt) {}
+    
+    public void cookiesChanged(SiteModelEvent evt) {}
+    
+    public void credentialAdded(SiteModelEvent evt) {
+    }
+    
+    public void credentialRemoved(SiteModelEvent evt) {
+    }
+    
+    public void credentialsChanged(SiteModelEvent evt) {
+    }
     
     /** called after the entire model has changed
      */
