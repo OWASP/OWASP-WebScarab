@@ -72,6 +72,13 @@ public class URLTreeModel implements TreeModel {
         }
     }
     
+    public void clear() {
+        synchronized (_treemap) {
+            _treemap.clear();
+            fireTreeStructureChanged(getRoot());
+        }
+    }
+    
     public void remove(String url) {
         synchronized (_treemap) {
             URLNode node = (URLNode) _treemap.get(url);
