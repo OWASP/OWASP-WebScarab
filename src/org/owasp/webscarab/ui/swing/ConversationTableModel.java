@@ -16,6 +16,8 @@ import javax.swing.event.ListDataListener;
 import javax.swing.event.ListDataEvent;
 
 import org.owasp.webscarab.model.Conversation;
+import java.util.Observer;
+import java.util.Observable;
 
 /**
  *
@@ -41,6 +43,7 @@ public class ConversationTableModel extends AbstractTableModel {
     
     private ListModel _lm;
     private TableModel _me;
+    private ConversationListener _cl;
     
     public ConversationTableModel(ListModel listModel) {
         if (listModel == null) {
@@ -49,6 +52,13 @@ public class ConversationTableModel extends AbstractTableModel {
         _lm = listModel;
         _me = this;
         _lm.addListDataListener(new ListModelListener());
+        _cl = new ConversationListener();
+        for (int i=0; i<_lm.getSize(); i++) {
+            Object o = _lm.getElementAt(i);
+            if (o instanceof Observable) {
+                ((Observable)o).addObserver(_cl);
+            }
+        }
     }
     
     public String getColumnName(int column) {
@@ -115,6 +125,12 @@ public class ConversationTableModel extends AbstractTableModel {
          *
          */
         public void contentsChanged(ListDataEvent e) {
+            for (int i=e.getIndex0(); i<=e.getIndex1(); i++) {
+                Object o = _lm.getElementAt(i);
+                if (o instanceof Observable) {
+                    ((Observable)o).addObserver(_cl);
+                }
+            }
             fireTableChanged(new TableModelEvent(_me));
         }
         
@@ -128,6 +144,12 @@ public class ConversationTableModel extends AbstractTableModel {
          *
          */
         public void intervalAdded(ListDataEvent e) {
+            for (int i=e.getIndex0(); i<=e.getIndex1(); i++) {
+                Object o = _lm.getElementAt(i);
+                if (o instanceof Observable) {
+                    ((Observable)o).addObserver(_cl);
+                }
+            }
             fireTableChanged(new TableModelEvent(_me, e.getIndex0(), e.getIndex1(),
                 TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT));
         }
@@ -141,9 +163,27 @@ public class ConversationTableModel extends AbstractTableModel {
          *
          */
         public void intervalRemoved(ListDataEvent e) {
+            // we don't remove observers here because we can't get the Conversations from
+            // the list. If they are removed, they will not be changing, anyway.
             fireTableChanged(new TableModelEvent(_me, e.getIndex0(), e.getIndex1(),
                 TableModelEvent.ALL_COLUMNS, TableModelEvent.DELETE));
         }
         
     }
+    
+    private class ConversationListener implements Observer {
+    
+        public void update(Observable o, Object arg) {
+            String key = (String) arg;
+            for (int i=0; i<_lm.getSize();i++) {
+                Object element = _lm.getElementAt(i);
+                if (o.equals(element)) {
+                    fireTableRowsUpdated(i,i);
+                    break;
+                }
+            }
+        }
+        
+    }
+    
 }
