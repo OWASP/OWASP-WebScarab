@@ -161,7 +161,7 @@ public class RequestPanel extends javax.swing.JPanel {
     private void updatePanel(int panel) {
         if (!_upToDate[panel]) {
             if (displayTabbedPane.getTitleAt(panel).equals("Parsed")) {// parsed text
-                _messagePanel.setMessage(_request, _editable);
+                _messagePanel.setMessage(_request);
                 if (_request != null) {
                     methodTextField.setText(_request.getMethod());
                     if (_request.getURL() != null) {
@@ -171,15 +171,15 @@ public class RequestPanel extends javax.swing.JPanel {
                     }
                     versionTextField.setText(_request.getVersion());
                 } else {
-                    methodTextField.setText("GET");
+                    methodTextField.setText("");
                     urlTextField.setText("");
-                    versionTextField.setText("HTTP/1.0");
+                    versionTextField.setText("");
                 }
             } else if (displayTabbedPane.getTitleAt(panel).equals("Raw")) { // raw text
                 if (_request != null && _request.getMethod() != null && _request.getURL() != null && _request.getVersion() != null) {
-                    _textPanel.setBytes(_request.toString("\n").getBytes());
+                    _textPanel.setText(null, _request.toString("\n"));
                 } else {
-                    _textPanel.setBytes(new byte[0]);
+                    _textPanel.setText(null, "");
                 }
             }
             _upToDate[panel] = true;
@@ -201,12 +201,14 @@ public class RequestPanel extends javax.swing.JPanel {
         versionTextField.setBackground(color);
     }
     
-    public void setRequest(Request request, boolean editable) {
+    public void setEditable(boolean editable) {
         _editable = editable;
-        // _beanShellPanel.setEditable(editable); // it is editable regardless ;-)
         _textPanel.setEditable(editable);
         updateComponents(editable);
-        
+        _messagePanel.setEditable(editable);
+    }
+    
+    public void setRequest(Request request) {
         _modified = false;
         if (request != null) {
             _request = new Request(request);
@@ -370,7 +372,8 @@ public class RequestPanel extends javax.swing.JPanel {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        panel.setRequest(request, true);
+        panel.setEditable(true);
+        panel.setRequest(request);
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
