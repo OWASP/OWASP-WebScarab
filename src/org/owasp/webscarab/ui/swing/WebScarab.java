@@ -11,13 +11,23 @@ import org.owasp.webscarab.backend.FileSystemStore;
 import org.owasp.webscarab.model.StoreException;
 
 import org.owasp.webscarab.plugin.Preferences;
+
 import org.owasp.webscarab.plugin.proxy.Proxy;
+import org.owasp.webscarab.plugin.proxy.module.ManualEdit;
+import org.owasp.webscarab.plugin.proxy.module.CookieTracker;
+import org.owasp.webscarab.plugin.proxy.module.RevealHidden;
+import org.owasp.webscarab.plugin.proxy.module.BrowserCache;
+
 import org.owasp.webscarab.plugin.spider.Spider;
 import org.owasp.webscarab.plugin.manualrequest.ManualRequest;
 
 import org.owasp.webscarab.ui.Framework;
 import org.owasp.webscarab.ui.swing.SwingPlugin;
+
 import org.owasp.webscarab.ui.swing.proxy.ProxyPanel;
+import org.owasp.webscarab.ui.swing.proxy.ManualEditPanel;
+import org.owasp.webscarab.ui.swing.proxy.MiscPanel;
+
 import org.owasp.webscarab.ui.swing.spider.SpiderPanel;
 import org.owasp.webscarab.ui.swing.manualrequest.ManualRequestPanel;
 
@@ -26,6 +36,7 @@ import java.util.ArrayList;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.io.OutputStream;
 
 import javax.swing.JFileChooser;
 import javax.swing.JTextArea;
@@ -50,8 +61,8 @@ public class WebScarab extends javax.swing.JFrame {
         initComponents();
         
         // capture STDOUT and STDERR to a TextArea
-        System.setOut(redirectOutput(stdoutTextArea));
-        System.setErr(redirectOutput(stderrTextArea));
+        System.setOut(redirectOutput(stdoutTextArea, System.out));
+        System.setErr(redirectOutput(stderrTextArea, System.err));
 
         // create the framework
         _framework = new Framework();
@@ -66,14 +77,30 @@ public class WebScarab extends javax.swing.JFrame {
         
         // create the plugins, and their GUI's
         
-        // Proxy loads individual proxy plugins in ProxyPanel
-        // probably not the best place, but I'm not sure how to do it better
-        // I guess we could actually do it here, without too much trouble?
+		// Proxy plugin
         Proxy proxy = new Proxy(_framework);
         _framework.addPlugin(proxy);
-        addPlugin(new ProxyPanel(proxy));
-        
-        // Spider plugin
+
+		// load the proxy modules
+		ManualEdit me = new ManualEdit();
+        proxy.addPlugin(me);
+
+		RevealHidden rh = new RevealHidden();
+        proxy.addPlugin(rh);
+
+        BrowserCache bc = new BrowserCache();
+        proxy.addPlugin(bc);
+
+		CookieTracker ct = new CookieTracker(proxy.getCookieJar());
+        proxy.addPlugin(ct);
+
+		// create the proxy GUI panels
+        ProxyPanel proxyPanel = new ProxyPanel(proxy);
+        proxyPanel.addPlugin(new ManualEditPanel(me));
+        proxyPanel.addPlugin(new MiscPanel(rh, bc, ct));
+		addPlugin(proxyPanel);
+
+		// Spider plugin
         Spider spider = new Spider(_framework);
         _framework.addPlugin(spider);
         addPlugin(new SpiderPanel(spider));
@@ -83,8 +110,22 @@ public class WebScarab extends javax.swing.JFrame {
         _framework.addPlugin(manualrequest);
         addPlugin(new ManualRequestPanel(manualrequest));
         
-        // This could/should be done as a pop-up alert, or a File/Open or File/New dialog?
-        System.out.println("Data will not be saved unless you create or open a session");
+        if (args != null && args.length ==1) {
+            try {
+                if (FileSystemStore.isExistingSession(args[0])) {
+                    FileSystemStore store = new FileSystemStore(args[0]);
+                    _framework.setSessionStore(store);
+                } else {
+                    System.err.println("No session found in " + args[0]);
+                }
+            } catch (StoreException se) {
+                // pop up an alert dialog box or something
+                System.err.println("Error loading session : " + se);
+            }
+        } else {
+            // This could/should be done as a pop-up alert, or a File/Open or File/New dialog?
+            System.out.println("Data will not be saved unless you create or open a session");
+        }
     }
     
 
@@ -346,7 +387,7 @@ public class WebScarab extends javax.swing.JFrame {
         }
     }
     
-    private PrintStream redirectOutput(final JTextArea textarea) {
+    private PrintStream redirectOutput(final JTextArea textarea, final OutputStream old) {
         Document doc = textarea.getDocument();
         // make the text area scroll automatically
         doc.addDocumentListener(new DocumentListener() {
@@ -360,7 +401,8 @@ public class WebScarab extends javax.swing.JFrame {
                 textarea.setCaretPosition(e.getOffset() + e.getLength());
             }
         });
-        return new PrintStream(new DocumentOutputStream(doc));
+        OutputStream[] streams = new OutputStream[] { old, new DocumentOutputStream(doc)};
+        return new PrintStream(new TeeOutputStream(streams));
     }
         
     /**
