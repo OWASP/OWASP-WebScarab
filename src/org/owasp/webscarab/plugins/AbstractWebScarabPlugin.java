@@ -4,7 +4,7 @@
  * Created on July 10, 2003, 12:21 PM
  */
 
-package src.org.owasp.webscarab.plugins;
+package org.owasp.webscarab.plugins;
 
 import java.util.Properties;
 import java.util.Enumeration;
