@@ -1,3 +1,8 @@
+2005-03-24 23:15  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/NetworkSimulator.java:
+	  Implements latency a bit better
+
 2005-03-24 08:12  rogan
 
 	* src/org/owasp/webscarab/plugin/fuzz/: Fuzzer.java,
