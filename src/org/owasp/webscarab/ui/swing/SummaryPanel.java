@@ -7,12 +7,14 @@
 package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.SiteModelAdapter;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.ConversationID;
 
 import org.owasp.webscarab.util.swing.JTreeTable;
 import org.owasp.webscarab.util.swing.treetable.TreeTableModel;
 import org.owasp.webscarab.util.swing.TableSorter;
+import org.owasp.webscarab.util.swing.ColumnDataModel;
 
 import javax.swing.JTree;
 import javax.swing.table.TableModel;
@@ -33,7 +35,10 @@ import javax.swing.JMenuItem;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Collections;
+import java.util.logging.Logger;
 
 /**
  *
@@ -45,11 +50,17 @@ public class SummaryPanel extends javax.swing.JPanel {
     private JTreeTable _urlTreeTable;
     private ArrayList _urlActions = new ArrayList();
     private HttpUrl _treeURL = null;
-    private UrlConversationTableModel _conversationTableModel;
+    private ConversationTableModel _conversationTableModel;
     private SiteTreeTableModelAdapter _urlTreeTableModel;
     private ArrayList _conversationActions = new ArrayList();
     
+    private Map _urlColumns = new HashMap();
+    
     private ShowConversationAction _showConversationAction = new ShowConversationAction();
+    
+    private Listener _listener = new Listener();
+    
+    private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates new form SummaryPanel */
     public SummaryPanel() {
@@ -65,15 +76,17 @@ public class SummaryPanel extends javax.swing.JPanel {
     
     public void setModel(SiteModel model) {
         if (_model != null) {
+            _urlTreeTableModel.setModel(null);
             _conversationTableModel.setModel(null);
-            _urlTreeTable.setModel((TreeTableModel)null);
             _showConversationAction.setModel(null);
+            _model.removeSiteModelListener(_listener);
         }
         _model = model;
         if (model != null) {
             _urlTreeTableModel.setModel(_model);
             _conversationTableModel.setModel(_model);
             _showConversationAction.setModel(_model);
+            _model.addSiteModelListener(_listener);
         }
     }
     
@@ -84,6 +97,28 @@ public class SummaryPanel extends javax.swing.JPanel {
             }
         };
         _urlTreeTable = new JTreeTable(_urlTreeTableModel);
+        
+        ColumnDataModel cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                return _model.getUrlProperty((HttpUrl) key, "METHODS");
+            }
+            public String getColumnName() { return "Methods"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        _urlColumns.put("METHODS", cdm);
+        _urlTreeTableModel.addColumn(cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                return _model.getUrlProperty((HttpUrl) key, "STATUS");
+            }
+            public String getColumnName() { return "Status"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        _urlColumns.put("STATUS", cdm);
+        _urlTreeTableModel.addColumn(cdm);
         
         JTree urlTree = _urlTreeTable.getTree();
         urlTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -144,7 +179,7 @@ public class SummaryPanel extends javax.swing.JPanel {
         });
     }
     
-    public void addURLActions(Action[] actions) {
+    public void addUrlActions(Action[] actions) {
         if (actions == null) return;
         for (int i=0; i<actions.length; i++) {
             _urlActions.add(actions[i]);
@@ -154,8 +189,69 @@ public class SummaryPanel extends javax.swing.JPanel {
         }
     }
     
+    public void addUrlColumns(ColumnDataModel[] columns) {
+        if (columns == null) return;
+        for (int i=0; i<columns.length; i++) {
+            _urlTreeTableModel.addColumn(columns[i]);
+        }
+    }
+    
     private void initTable() {
-        _conversationTableModel = new UrlConversationTableModel();
+        _conversationTableModel = new ConversationTableModel();
+        
+        ColumnDataModel cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                return _model.getConversationProperty((ConversationID) key, "METHOD");
+            }
+            public String getColumnName() { return "Method"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        _conversationTableModel.addColumn(cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                HttpUrl url = _model.getUrlOf((ConversationID) key);
+                return url.getScheme() + "://" + url.getHost() + ":" + url.getPort();
+            }
+            public String getColumnName() { return "Host"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        _conversationTableModel.addColumn(cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                HttpUrl url = _model.getUrlOf((ConversationID) key);
+                return url.getPath();
+            }
+            public String getColumnName() { return "Path"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        _conversationTableModel.addColumn(cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                HttpUrl url = _model.getUrlOf((ConversationID) key);
+                return url.getParameters();
+            }
+            public String getColumnName() { return "Parameters"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        _conversationTableModel.addColumn(cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                return _model.getConversationProperty((ConversationID) key, "STATUS");
+            }
+            public String getColumnName() { return "Status"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        _conversationTableModel.addColumn(cdm);
+        
         TableSorter ts = new TableSorter(_conversationTableModel, conversationTable.getTableHeader());
         conversationTable.setModel(ts);
         
@@ -201,10 +297,14 @@ public class SummaryPanel extends javax.swing.JPanel {
                 }
             }
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1 && _conversationActions.size()>0) {
-                    Action action = (Action) _conversationActions.get(0);
-                    ActionEvent evt = new ActionEvent(conversationTable, 0, (String) action.getValue(Action.ACTION_COMMAND_KEY));
-                    if (action.isEnabled()) action.actionPerformed(evt);
+                if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
+                    if (_conversationActions.size()>0) {
+                        Action action = (Action) _conversationActions.get(0);
+                        ActionEvent evt = new ActionEvent(conversationTable, 0, (String) action.getValue(Action.ACTION_COMMAND_KEY));
+                        if (action.isEnabled()) {
+                            action.actionPerformed(evt);
+                        }
+                    }
                 }
             }
         });
@@ -218,6 +318,13 @@ public class SummaryPanel extends javax.swing.JPanel {
         }
         for (int i=0; i<actions.length; i++) {
             conversationPopupMenu.add(new JMenuItem(actions[i]));
+        }
+    }
+    
+    public void addConversationColumns(ColumnDataModel[] columns) {
+        if (columns == null) return;
+        for (int i=0; i<columns.length; i++) {
+            _conversationTableModel.addColumn(columns[i]);
         }
     }
     
@@ -306,92 +413,12 @@ public class SummaryPanel extends javax.swing.JPanel {
     private javax.swing.JPanel urlPanel;
     private javax.swing.JPopupMenu urlPopupMenu;
     // End of variables declaration//GEN-END:variables
-    
-    private class UrlConversationTableModel extends ConversationTableModel {
+
+    private class Listener extends SiteModelAdapter {
         
-        private HttpUrl _url = null;
-        private List _conversations = new ArrayList();
-        
-        public UrlConversationTableModel() {
-            super();
-        }
-        
-        public UrlConversationTableModel(SiteModel model) {
-            super(model);
-        }
-        
-        public void setModel(SiteModel model) {
-            setUrl(null);
-            super.setModel(model);
-        }
-        
-        public void setUrl(HttpUrl url) {
-            if (url == null) {
-                if (_url != null) {
-                    _url = null;
-                    _conversations.clear();
-                    fireTableDataChanged();
-                }
-            } else if (_url == null || ! _url.equals(url)) {
-                try {
-                    _model.readLock().acquire();
-                    try {
-                        _url = url;
-                        _conversations.clear();
-                        int count = super._model.getConversationCount(_url);
-                        ConversationID id;
-                        for (int i=0; i<count; i++) {
-                            id = super._model.getConversationAt(url, i);
-                            if (! isFiltered(id)) {
-                                _conversations.add(id);
-                            }
-                        }
-                        fireTableDataChanged();
-                    } finally {
-                        _model.readLock().release();
-                    }
-                } catch (InterruptedException ie) {
-                    _logger.warning("Interrupted!" + ie);
-                }
-            }
-        }
-        
-        protected boolean isFiltered(ConversationID id) {
-            if (_url == null) return false;
-            HttpUrl url = super._model.getUrlOf(id);
-            return ! _url.equals(url);
-        }
-        
-        public int getRowCount() {
-            if (_url == null) {
-                return super.getRowCount();
-            } else {
-                return _conversations.size();
-            }
-        }
-        
-        public Object getValueAt(int row, int column) {
-            if (_url == null) {
-                return super.getValueAt(row, column);
-            } else {
-                ConversationID id = (ConversationID) _conversations.get(row);
-                return super.getValueAt(id, column);
-            }
-        }
-        
-        public void addedConversation(ConversationID id) {
-            if (_url == null) {
-                super.addedConversation(id);
-            } else {
-                if (!isFiltered(id)) {
-                    int insert = Collections.binarySearch(_conversations, id);
-                    if (insert < 0) {
-                        insert = -insert -1;
-                        _conversations.add(insert, id);
-                        fireTableRowsInserted(insert, insert);
-                    }
-                }
-            }
+        public void urlChanged(HttpUrl url, String property) {
+            ColumnDataModel cdm = (ColumnDataModel) _urlColumns.get(property);
+            if (cdm != null) cdm.fireValueChanged(url);
         }
         
     }
