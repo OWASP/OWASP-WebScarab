@@ -118,9 +118,17 @@ public class ConversationPanel extends javax.swing.JPanel {
             splitPane.setTopComponent(_requestPanel);
             _responsePanel.setBorder(new TitledBorder("Response"));
             splitPane.setBottomComponent(_responsePanel);
+            String dividerLocation = Preferences.getPreference("ConversationPanel.dividerLocation");
+            if (dividerLocation != null) {
+                try {
+                    splitPane.setDividerLocation(Integer.parseInt(dividerLocation));
+                } catch (NumberFormatException nfe) {}
+            }
             splitPane.addPropertyChangeListener(new PropertyChangeListener() {
                 public void propertyChange(PropertyChangeEvent e) {
-                    // _logger.info("Property Changed : " + e);
+                    if (e.getPropertyName().equals("dividerLocation")) {
+                        Preferences.setPreference("ConversationPanel.dividerLocation", e.getNewValue().toString());
+                    }
                 }
             });
         }
