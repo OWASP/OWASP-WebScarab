@@ -261,7 +261,7 @@ public class SummaryPanel extends javax.swing.JPanel {
         int row = conversationTable.getSelectedRow();
         TableModel tm = conversationTable.getModel();
         if (row >= 0) {
-            String id = (String) tm.getValueAt(row, 0);
+            String id = tm.getValueAt(row, 0).toString();
             showConversationDetails(id);
         }
     }
