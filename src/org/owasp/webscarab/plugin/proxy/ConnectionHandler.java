@@ -242,13 +242,15 @@ public class ConnectionHandler implements Runnable {
                     return;
                 }
                 
-                // pass the response for analysis or modification by the scripts
-                connection.setResponse(response);
-                _proxy.interceptResponse(connection);
-                response = connection.getResponse();
+                if (_proxy != null) {
+                    // pass the response for analysis or modification by the scripts
+                    connection.setResponse(response);
+                    _proxy.interceptResponse(connection);
+                    response = connection.getResponse();
+                }
+                
                 if (response == null) throw new IOException("Response was cancelled");
                 
-                _logger.fine("Response : " + response.getStatusLine());
                 try {
                     if (_clientOut != null) {
                         _logger.fine("Writing the response to the browser");
