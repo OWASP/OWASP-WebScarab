@@ -37,7 +37,7 @@ public class ProxyConfig extends javax.swing.JDialog {
         httpsProxyServerTextField.setText(httpsProxy.length == 2 ? httpsProxy[0] : "");
         httpsProxyPortTextField.setText(httpsProxy.length == 2 ? httpsProxy[1] : "");
         
-        prop = "WebScarab.httpsProxy";
+        prop = "WebScarab.noProxy";
         value = props.getProperty(prop);
         if (value == null) value = "";
         noProxyTextArea.setText(value);
@@ -79,8 +79,8 @@ public class ProxyConfig extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         getContentPane().add(jLabel2, gridBagConstraints);
 
         httpProxyServerTextField.setMinimumSize(new java.awt.Dimension(150, 20));
@@ -96,8 +96,8 @@ public class ProxyConfig extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         getContentPane().add(jLabel5, gridBagConstraints);
 
         httpProxyPortTextField.setMinimumSize(new java.awt.Dimension(60, 20));
@@ -112,8 +112,8 @@ public class ProxyConfig extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         getContentPane().add(jLabel4, gridBagConstraints);
 
         httpsProxyServerTextField.setMinimumSize(new java.awt.Dimension(150, 20));
@@ -129,8 +129,8 @@ public class ProxyConfig extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         getContentPane().add(jLabel3, gridBagConstraints);
 
         httpsProxyPortTextField.setMinimumSize(new java.awt.Dimension(60, 20));
@@ -145,8 +145,8 @@ public class ProxyConfig extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         getContentPane().add(jLabel1, gridBagConstraints);
 
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -190,8 +190,10 @@ public class ProxyConfig extends javax.swing.JDialog {
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         getContentPane().add(jPanel1, gridBagConstraints);
 
+        pack();
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width-400)/2, (screenSize.height-120)/2, 400, 120);
+        setSize(new java.awt.Dimension(400, 120));
+        setLocation((screenSize.width-400)/2,(screenSize.height-120)/2);
     }//GEN-END:initComponents
     
     private void applyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyButtonActionPerformed
@@ -213,6 +215,10 @@ public class ProxyConfig extends javax.swing.JDialog {
             } else if (server.equals("") && !port.equals("")) {
                 System.err.println("The http Proxy server must also be provided");
                 return;
+            } else {
+                if (!_props.getProperty(prop).equals("")) {
+                    _props.setProperty(prop, "");
+                }
             }
         } catch (NumberFormatException nfe) {
             System.err.println("Error parsing the upstream HTTP Proxy port");
@@ -235,6 +241,10 @@ public class ProxyConfig extends javax.swing.JDialog {
             } else if (server.equals("") && !port.equals("")) {
                 System.err.println("The https Proxy server must also be provided");
                 return;
+            } else {
+                if (!_props.getProperty(prop).equals("")) {
+                    _props.setProperty(prop, "");
+                }
             }
         } catch (NumberFormatException nfe) {
             System.err.println("Error parsing the upstream HTTPS Proxy port");
@@ -261,20 +271,20 @@ public class ProxyConfig extends javax.swing.JDialog {
     }//GEN-LAST:event_closeDialog
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton applyButton;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JTextField httpsProxyServerTextField;
+    private javax.swing.JTextField httpsProxyPortTextField;
     private javax.swing.JButton cancelButton;
     private javax.swing.JTextField httpProxyPortTextField;
-    private javax.swing.JTextField httpProxyServerTextField;
-    private javax.swing.JTextField httpsProxyPortTextField;
-    private javax.swing.JTextField httpsProxyServerTextField;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JButton applyButton;
     private javax.swing.JTextArea noProxyTextArea;
+    private javax.swing.JTextField httpProxyServerTextField;
+    private javax.swing.JLabel jLabel5;
     // End of variables declaration//GEN-END:variables
     
 }
