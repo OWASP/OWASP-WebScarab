@@ -103,21 +103,21 @@ public class ReentrantReaderPreferenceReadWriteLock extends ReentrantWriterPrefe
         }
         
         public void acquire() throws InterruptedException {
-            System.err.println(Thread.currentThread().getName() + " acquiring");
+            // System.err.println(Thread.currentThread().getName() + " acquiring");
             while (!_sync.attempt(5000)) {
                 debug();
             }
-            System.err.println(Thread.currentThread().getName() + " acquired");
+            // System.err.println(Thread.currentThread().getName() + " acquired");
         }
         
         public boolean attempt(long msecs) throws InterruptedException {
-            System.err.println(Thread.currentThread().getName() + " attempting");
+            // System.err.println(Thread.currentThread().getName() + " attempting");
             try {
                 boolean result = _sync.attempt(msecs);
                 if (result) {
-                    System.err.println(Thread.currentThread().getName() + " successful");
+                    // System.err.println(Thread.currentThread().getName() + " successful");
                 } else {
-                    System.err.println(Thread.currentThread().getName() + " unsuccessful");
+                    System.err.println(Thread.currentThread().getName() + "sync attempt unsuccessful");
                 }
                 return result;
             } catch (InterruptedException ie) {
@@ -127,9 +127,9 @@ public class ReentrantReaderPreferenceReadWriteLock extends ReentrantWriterPrefe
         }
         
         public void release() {
-            System.err.println(Thread.currentThread().getName() + " releasing");
+            // System.err.println(Thread.currentThread().getName() + " releasing");
             _sync.release();
-            System.err.println(Thread.currentThread().getName() + " released");
+            // System.err.println(Thread.currentThread().getName() + " released");
         }
         
     }
