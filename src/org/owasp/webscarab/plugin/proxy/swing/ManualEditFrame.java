@@ -89,7 +89,8 @@ public class ManualEditFrame extends javax.swing.JFrame {
             _request = request;
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    _requestPanel.setRequest(_request, true);
+                    _requestPanel.setEditable(true);
+                    _requestPanel.setRequest(_request);
                     if (_size != null) setSize(_size);
                     if (_location != null) setLocation(_location);
                     show();
@@ -108,7 +109,8 @@ public class ManualEditFrame extends javax.swing.JFrame {
     
     public Response editResponse(Request request, Response response) {
         synchronized (this) {
-            _requestPanel.setRequest(request, false);
+            _requestPanel.setEditable(false);
+            _requestPanel.setRequest(request);
             return editResponse(response);
         }
     }
@@ -118,7 +120,8 @@ public class ManualEditFrame extends javax.swing.JFrame {
             _response = response;
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    _responsePanel.setResponse(_response, true);
+                    _responsePanel.setEditable(true);
+                    _responsePanel.setResponse(_response);
                     _responsePanel.setVisible(true);
                     if (_size != null) setSize(_size);
                     if (_location != null) setLocation(_location);

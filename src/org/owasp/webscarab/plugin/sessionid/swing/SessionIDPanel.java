@@ -134,7 +134,8 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         _requestPanel = new RequestPanel();
         _requestPanel.selectPanel("Raw");
         _requestPanel.setBorder(new javax.swing.border.TitledBorder("Request"));
-        _requestPanel.setRequest(null, true);
+        _requestPanel.setEditable(true);
+        _requestPanel.setRequest(null);
         
         _responsePanel = new ResponsePanel();
         _responsePanel.setBorder(new javax.swing.border.TitledBorder("Response"));
@@ -148,8 +149,10 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
                 if (o instanceof ConversationID) {
                     ConversationID id = (ConversationID) o;
                     Request r = _model.getRequest(id);
-                    _requestPanel.setRequest(r, true);
-                    _responsePanel.setResponse(null, false);
+                    _requestPanel.setEditable(true);
+                    _requestPanel.setRequest(r);
+                    _responsePanel.setEditable(false);
+                    _responsePanel.setResponse(null);
                 }
             }
         });
@@ -392,7 +395,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
                 if (obj instanceof Response) {
                     Response response = (Response) getValue();
                     if (response != null) {
-                        _responsePanel.setResponse(response, false);
+                        _responsePanel.setResponse(response);
                         String name = nameTextField.getText();
                         String regex = regexTextField.getText();
                         Pattern pattern = null;
