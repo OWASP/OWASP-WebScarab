@@ -29,6 +29,8 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.KeyManagerFactory;
+import java.security.KeyStore;
 
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
@@ -50,6 +52,10 @@ public class URLFetcher implements HTTPClient {
     static private SSLSocketFactory _factory = null;
     static private TrustManager[] _trustAllCerts = null;
     
+    String keystore = "/clientkeys";
+    char keystorepass[] = "password".toCharArray();
+    char keypassword[] = "password".toCharArray();
+
     private Socket _proxysocket = null;
     private Socket _serversocket = null;
     private SSLSocket _sslsocket = null;
@@ -77,7 +83,7 @@ public class URLFetcher implements HTTPClient {
     /** Create and install a trust manager that does not verify server SSL certificates
      */
     
-    private void initSSL() {
+    private void initSSL() throws Exception {
         // Create a trust manager that does not validate certificate chains
         _trustAllCerts = new TrustManager[]{
             new X509TrustManager() {
@@ -94,12 +100,15 @@ public class URLFetcher implements HTTPClient {
         // Install the all-trusting trust manager
         try {
             SSLContext sc = SSLContext.getInstance("SSL");
-            sc.init(null, _trustAllCerts, new java.security.SecureRandom());
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+            KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(this.getClass().getResourceAsStream(keystore), keystorepass);
+            kmf.init(ks, keypassword);
+            sc.init(kmf.getKeyManagers(), _trustAllCerts, new java.security.SecureRandom());
             _factory = (SSLSocketFactory)sc.getSocketFactory();
-        } catch (java.security.NoSuchAlgorithmException nsae) {
-            System.err.println("Error setting up SSL support - No Such Algorithm Exception " + nsae);
-        } catch (java.security.KeyManagementException kme) {
-            System.err.println("Error setting up SSL Support - Key management exception " + kme);
+        } catch (Exception e) {
+            System.err.println("Error setting up SSL support : " + e);
+            throw e;
         }
     }
     
@@ -330,7 +339,11 @@ public class URLFetcher implements HTTPClient {
             }
             
             if (_factory == null) {
-                initSSL();
+                try {
+                    initSSL();
+                } catch (Exception e) {
+                    throw new IOException(e.toString());
+                }
             }
             // Use the factory to create a secure socket connected to the
             // HTTPS port of the specified web server.
@@ -394,7 +407,7 @@ public class URLFetcher implements HTTPClient {
         try {
             Request req = new Request();
             req.setMethod("GET");
-            req.setURL("http://localhost:8080/examples/jsp/num/numguess.jsp");
+            req.setURL("https://www.ebucks.com:443/");
             req.setVersion("HTTP/1.1");
             // req.setHeader("Connection","Keep-Alive");
             req.setHeader("Host","localhost:8080");

@@ -39,13 +39,10 @@ public class Listener implements Runnable {
     
     /** Creates a new instance of Listener */
     public Listener(Plug plug, String address, int port, String base, ArrayList plugins) throws UnknownHostException, IOException {
-        if (plug == null) {
-            throw new IllegalArgumentException("plug may not be null");
-        }
         _plug = plug;
         
         if (address == null) {
-            throw new IllegalArgumentException("Address may not be null");
+            address = "*";
         }
         _address = address;
         InetAddress addr;
@@ -134,5 +131,5 @@ public class Listener implements Runnable {
     public ArrayList getPlugins() {
         return _plugins;
     }
-    
+
 }
