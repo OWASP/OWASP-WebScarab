@@ -13,6 +13,7 @@ import javax.swing.ListSelectionModel;
 
 import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.Conversation;
+import org.owasp.webscarab.ui.Framework;
 
 /**
  *
@@ -22,12 +23,13 @@ public class ConversationLog extends javax.swing.JPanel implements SwingPlugin {
     
     private RequestPanel requestPanel;
     private ResponsePanel responsePanel;
+    private Framework _framework;
     private SiteModel _siteModel;
     
     /** Creates new form ConversationLog */
-    public ConversationLog(WebScarab webscarab) {
-        _siteModel = webscarab.getSiteModel();
-        
+    public ConversationLog(Framework framework) {
+        _framework = framework;
+        _siteModel = framework.getSiteModel();
         initComponents();
         
         requestPanel = new RequestPanel(null);
@@ -61,10 +63,9 @@ public class ConversationLog extends javax.swing.JPanel implements SwingPlugin {
             responsePanel.setVisible(false);
         } else {
             String id = (String) conversationTable.getModel().getValueAt(row, 0);
-            Conversation c = _siteModel.getConversation(id);
-            requestPanel.setRequest(c.getRequest());
+            requestPanel.setRequest(_siteModel.getRequest(id));
             requestPanel.setVisible(true);
-            responsePanel.setResponse(c.getResponse());
+            responsePanel.setResponse(_siteModel.getResponse(id));
             responsePanel.setVisible(true);
         }
     }

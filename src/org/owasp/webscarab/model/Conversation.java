@@ -24,65 +24,49 @@ import org.htmlparser.util.NodeList;
  */
 public class Conversation {
     
-    private Request _request;
-    private Response _response;
-    private NodeList _nodelist;
     private Properties _props;
     
     /** Creates a new instance of Conversation */
-    public Conversation(Request request, Response response) {
-        _request = request;
-        _response = response;
+    public Conversation() {
         _props = new Properties();
-        URL url = request.getURL();
-        setProperty("METHOD", request.getMethod());
-        setProperty("URL", URLUtil.schemeAuthPath(url));
-        String value = url.getQuery();
-        if (value != null) {
-            setProperty("QUERY", value);
-        }
-        value = request.getHeader("Cookie");
-        if (value != null) {
-            setProperty("COOKIE", value);
-        }
-        byte[] content = request.getContent();
-        if (content != null && content.length>0) {
-            setProperty("BODY", new String(content));
-        }
-        setProperty("STATUS", response.getStatusLine());
-        value = response.getHeader("Set-Cookie");
-        if (value != null) {
-            setProperty("SET-COOKIE", value);
-        }
-        content = response.getContent();
-        if (content != null && content.length>0) {
-            setProperty("CHECKSUM",  checksum(content));
-            setProperty("SIZE", Integer.toString(content.length));
-        } else {
-            setProperty("SIZE", "0");
-        }
     }
     
-    public Request getRequest() {
-        return _request;
-    }
-    
-    public Response getResponse() {
-        return _response;
-    }
-    
-    public void flush() {
-        _request = null;
-        _response = null;
-        _nodelist = null;
-    }
-    
-    public void setNodeList(NodeList nodelist) {
-        _nodelist = nodelist;
-    }
-    
-    public NodeList getNodeList() {
-        return _nodelist;
+    public Conversation(Request request, Response response) {
+        _props = new Properties();
+        String value;
+        if (request != null) {
+            setProperty("METHOD", request.getMethod());
+            URL url = request.getURL();
+            if (url != null) {
+                setProperty("URL", URLUtil.schemeAuthPath(url));
+                value = url.getQuery();
+                if (value != null) {
+                    setProperty("QUERY", value);
+                }
+            }
+            value = request.getHeader("Cookie");
+            if (value != null) {
+                setProperty("COOKIE", value);
+            }
+            byte[] content = request.getContent();
+            if (content != null && content.length>0) {
+                setProperty("BODY", new String(content));
+            }
+        }
+        if (response != null) {
+            setProperty("STATUS", response.getStatusLine());
+            value = response.getHeader("Set-Cookie");
+            if (value != null) {
+                setProperty("SET-COOKIE", value);
+            }
+            byte[] content = response.getContent();
+            if (content != null && content.length>0) {
+                setProperty("CHECKSUM", checksum(content));
+                setProperty("SIZE", Integer.toString(content.length));
+            } else {
+                setProperty("SIZE", "0");
+            }
+        }
     }
     
     public void setProperty(String key, String value) {

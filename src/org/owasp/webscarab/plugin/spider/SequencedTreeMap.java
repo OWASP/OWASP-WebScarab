@@ -51,6 +51,11 @@ public class SequencedTreeMap extends TreeMap {
         return super.remove(key);
     }
     
+    public Object remove(int index) {
+        Object key = _sequence.remove(index);
+        return super.remove(key);
+    }
+    
     public int indexOf(Object elem) {
         return _sequence.indexOf(elem);
     }

@@ -1,19 +1,23 @@
 package org.owasp.webscarab.plugin.proxy;
 
 /*
- * $Id: Proxy.java,v 1.3 2003/08/07 21:53:31 rogan Exp $
+ * $Id: Proxy.java,v 1.4 2003/08/17 20:29:33 rogan Exp $
  */
-import java.net.*;
-import java.io.*;
+
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.InetAddress;
+import java.net.SocketException;
+
+import java.io.IOException;
+import java.io.FileNotFoundException;
+
 import java.lang.NumberFormatException;
 import java.util.logging.Logger;
 import java.util.ArrayList;
 
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
-import org.owasp.webscarab.model.*;
-
-import org.owasp.webscarab.plugin.proxy.module.*;
 
 public class Proxy
 	extends AbstractWebScarabPlugin
@@ -141,7 +145,7 @@ public class Proxy
      * @param dir a String representing the base directory under which this session's 
      * data will be saved
      */    
-    public void initDirectory(String dir) {
+    public void initDirectory(String dir) throws FileNotFoundException {
         // we keep no state of our own, but maybe the plugins do?
         for (int i=0; i<_pluginArray.length; i++) {
             _pluginArray[i].initDirectory(dir);
@@ -159,7 +163,7 @@ public class Proxy
     /** called to instruct the plugin to save its current state to the specified directory.
      * @param dir a String representing the base directory under which this plugin can save its data
      */    
-    public void saveSessionData(String dir) {
+    public void saveSessionData(String dir) throws FileNotFoundException {
         // we keep no state of our own, but maybe the plugins do?
         for (int i=0; i<_pluginArray.length; i++) {
             _pluginArray[i].saveSessionData(dir);
@@ -169,7 +173,7 @@ public class Proxy
     /** called to instruct the plugin to read any saved state data from the specified directory.
      * @param dir a String representing the base directory under which this plugin can save its data
      */    
-    public void loadSessionData(String dir) {
+    public void loadSessionData(String dir) throws FileNotFoundException {
         // we keep no state of our own, but maybe the plugins do?
         for (int i=0; i<_pluginArray.length; i++) {
             _pluginArray[i].loadSessionData(dir);

@@ -18,10 +18,4 @@ public interface SwingPlugin {
     
     JPanel getPanel();
     
-    void newSession(String dir);
-    
-    void openSession(String dir);
-    
-    void saveSession(String dir);
-    
 }

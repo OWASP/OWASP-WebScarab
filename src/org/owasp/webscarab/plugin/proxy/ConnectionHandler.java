@@ -9,7 +9,8 @@ import java.util.logging.Logger;
 import org.owasp.webscarab.httpclient.HTTPClient;
 
 import org.owasp.webscarab.plugin.Plug;
-import org.owasp.webscarab.model.*;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
 
 import org.owasp.webscarab.httpclient.URLFetcher;
 
@@ -160,8 +161,7 @@ public class ConnectionHandler implements Runnable {
                     Request req = recorder.getRequest();
                     Response resp = recorder.getResponse();
                     if (req != null && resp != null) {
-                        Conversation c = new Conversation(req, resp);
-                        _plug.addConversation(c);
+                        _plug.addConversation(req, resp);
                     }
                     recorder.reset();
                 }

@@ -93,8 +93,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 if (response != null) {
                     request = response.getRequest();
                     if (request != null) {
-                        conversation = new Conversation(request, response);
-                        _plug.addConversation(conversation);
+                        _plug.addConversation(request, response);
                     }
                 }
             } catch (ArrayIndexOutOfBoundsException aioob) {
@@ -146,24 +145,26 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
      * @param urlinfo The class instance that contains the summarised information about this
      * particular URL
      */
-    public synchronized void analyse(Conversation conversation, URLInfo urlinfo) {
-        String referer = conversation.getRequest().getURL().toString();
+    public synchronized void analyse(Request request, Response response, Conversation conversation, URLInfo urlinfo, Object parsed) {
+        String referer = request.getURL().toString();
         synchronized (_unseenLinks) {
             if (_unseenLinks.containsKey(referer)) {
                 int index = _unseenLinks.indexOf(referer);
                 _unseenLinks.remove(referer);
-                _unseenLinkTableModel.fireTableRowsDeleted(index, index);
+                synchronized (_unseenLinkTableModel) {
+                    _unseenLinkTableModel.fireTableRowsDeleted(index, index);
+                }
             }
             _seenLinks.put(referer,""); // actual value is irrelevant, could be a sequence no, for amusement
         }
-        NodeList nodelist = conversation.getNodeList();
-        Response response = conversation.getResponse();
-        if (response.getStatus().equals("302")) {
-            addUnseenLink(response.getHeader("Location"), referer);
-            return;
-        }
-        if (nodelist == null) return; // FIXME : also handle 302 redirects, etc
-        recurseNodes(nodelist, referer);
+        if (parsed != null && parsed instanceof NodeList) { // the parsed content is HTML
+            NodeList nodelist = (NodeList) parsed;
+            if (response.getStatus().equals("302")) {
+                addUnseenLink(response.getHeader("Location"), referer);
+                return;
+            }
+            recurseNodes(nodelist, referer);
+        } // else maybe it is a parsed Flash document? Anyone? :-)
     }
     
     private void recurseNodes(NodeList nodelist, String referer) {
@@ -198,7 +199,9 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 Link link = new Link(url, referer);
                 _unseenLinks.put(url, link);
                 int index = _unseenLinks.size()-1;
-                _unseenLinkTableModel.fireTableRowsInserted(index, index);
+                synchronized (_unseenLinkTableModel) {
+                    _unseenLinkTableModel.fireTableRowsInserted(index, index);
+                }
                 // _logger.info("Adding " + url + " to the unseen list");
                 if (_recursive && allowedURL(url)) {
                     queueRequest(newGetRequest(link));

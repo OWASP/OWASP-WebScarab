@@ -194,16 +194,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
     private void recursiveCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recursiveCheckBoxActionPerformed
         _spider.setRecursive(recursiveCheckBox.isSelected());
     }//GEN-LAST:event_recursiveCheckBoxActionPerformed
-    
-    public void newSession(String dir) {
-    }
-    
-    public void openSession(String dir) {
-    }
-    
-    public void saveSession(String dir) {
-    }
-    
+        
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField domainRegexTextField;
     private javax.swing.JButton fetchButton;

@@ -156,22 +156,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
             portTextField.setText(Integer.toString(_proxy.getListenPort()));
         }
     }
-    
-    public void newSession(String dir) {
-        _proxy.discardSessionData();
-        _proxy.initDirectory(dir);
-    }
-    
-    public void openSession(String dir) {
-        _proxy.discardSessionData();
-        _proxy.loadSessionData(dir);
-    }
-    
-    public void saveSession(String dir) {
-        _proxy.initDirectory(dir);
-        _proxy.saveSessionData(dir);
-    }
-    
+        
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField addressTextField;
     private javax.swing.JLabel jLabel1;

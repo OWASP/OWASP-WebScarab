@@ -6,7 +6,8 @@
 
 package org.owasp.webscarab.plugin;
 
-import org.owasp.webscarab.model.Conversation;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
 
 /**
  *
@@ -16,6 +17,6 @@ public interface Plug {
     
     void addPlugin( WebScarabPlugin plugin );
     
-    String addConversation( Conversation conversation );
+    String addConversation( Request request, Response response );
     
 }

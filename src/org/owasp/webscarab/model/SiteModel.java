@@ -1,5 +1,7 @@
 package org.owasp.webscarab.model;
 
+import org.owasp.webscarab.plugin.spider.SequencedTreeMap;
+
 import java.util.ArrayList;
 
 import java.util.TreeMap;
@@ -29,37 +31,54 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public class SiteModel {
     
-    private ArrayList _conversationList;  // maintains a FIFO list of cached conversations
+    private SequencedTreeMap _conversationList;  // maintains a list of conversations
+    private SequencedTreeMap _requestCache; // maintains a list of cached Requests
+    private SequencedTreeMap _responseCache; // maintains a list of cached Responses
+    
     private Map _urlinfo;              // maps urls to attrs
     private int _cachesize = 10;
     
-    private Logger logger = Logger.getLogger("WebScarab.Model");
+    private Logger logger = Logger.getLogger("WebScarab");
     
     private ConversationTableModel _ctm = new ConversationTableModel();
+    
+    // the number of Requests and Responses to keep in memory at once. 
+    // This includes the complete Request and Response objects, so don't make it too large.
+    private static int CONVERSATIONCACHESIZE = 10;
     
     /**
      *  Constructor
      */
     public SiteModel() {
-        _conversationList = new ArrayList(1);
+        _conversationList = new SequencedTreeMap();
         _urlinfo = Collections.synchronizedMap(new TreeMap());
-    } // constructor Model
+        _requestCache = new SequencedTreeMap();
+        _responseCache = new SequencedTreeMap();
+    } // constructor SiteModel
     
     /** Initialises the lists of conversations, URLInfos, etc */
     public void clearSession() {
         // clear the conversation list
         _conversationList.clear();
+        // clear the Request and Response cache
+        _requestCache.clear();
+        _responseCache.clear();
         // clear the conversationtablemodel
         _ctm.fireTableDataChanged();
         // clear the URLInfo.
         _urlinfo.clear();
     }
     
+    // returns the conversation ID
     public String addConversation(Conversation conversation) {
-        _conversationList.add(conversation);
-        int row = _conversationList.size();
-        _ctm.fireTableRowsInserted(row, row);
-        return Integer.toString(_conversationList.size());
+        String id;
+        synchronized (_conversationList) {
+            id = Integer.toString(_conversationList.size()+1); // FIXME!! Don't use size here!
+            _conversationList.put(id, conversation);
+            int row = _conversationList.size();
+            _ctm.fireTableRowsInserted(row, row);
+        }
+        return id;
     }
     
     /** Given a conversation id, returns the corresponding Conversation
@@ -67,22 +86,43 @@ public class SiteModel {
      * @param id the requested "opaque" conversation id
      */
     public Conversation getConversation(String id) {
-        try {
-            int pos = Integer.parseInt(id)-1;
-            synchronized (_conversationList) {
-                if (_conversationList.size()>pos) {
-                    return (Conversation) _conversationList.get(pos);
-                } else {
-                    throw new ArrayIndexOutOfBoundsException("ID " + id + " is out of bounds");
-                }
+        synchronized (_conversationList) {
+            if (_conversationList.containsKey(id)) {
+                // this should always return here, since we cache all the 
+                // conversations in memory
+                return (Conversation) _conversationList.get(id);
             }
-        } catch (NumberFormatException nfe) {
-            return null;
+        }
+        return null;
+    }
+    
+    public void setRequest(String id, Request request) {
+        synchronized (_requestCache) {
+            if (_requestCache.size() > CONVERSATIONCACHESIZE) {
+                _requestCache.remove(0);
+            }
+            _requestCache.put(id, request);
         }
     }
     
-    public URLInfo createURLInfo(Conversation conversation) {
-        String url = conversation.getProperty("URL");
+    public Request getRequest(String id) {
+        return (Request) _requestCache.get(id);
+    }
+    
+    public void setResponse(String id, Response response) {
+        synchronized (_responseCache) {
+            if (_responseCache.size() > CONVERSATIONCACHESIZE) {
+                _responseCache.remove(0);
+            }
+            _responseCache.put(id, response);
+        }
+    }
+    
+    public Response getResponse(String id) {
+        return (Response) _responseCache.get(id);
+    }
+    
+    public URLInfo getURLInfo(String url) {
         URLInfo ui;
         synchronized (_urlinfo) {
             ui = (URLInfo) _urlinfo.get(url);
@@ -90,48 +130,6 @@ public class SiteModel {
                 ui = new URLInfo(url);
                 _urlinfo.put(url, ui);
             }
-        }
-        synchronized (ui) {
-            String property = "METHOD";
-            String value = conversation.getProperty(property);
-            if (value != null) ui.setProperty(property, value); // should add it, so as not to override previous
-
-            property = "STATUS";
-            value = conversation.getProperty(property);
-            if (value != null) ui.setProperty(property, value); // should add it, so as not to override previous
-
-            property = "CHECKSUM";
-            value = conversation.getProperty(property);
-            if (value != null) ui.setProperty(property, value); // should add it, so as not to override previous
-            
-            int conversationbytes = 0;
-            int urlbytes = 0;
-            try {
-                String total = ui.getProperty("TOTALBYTES");
-                if (total != null) {
-                    urlbytes = Integer.parseInt(total);
-                }
-                String size = conversation.getProperty("SIZE");
-                if (size != null) {
-                    conversationbytes = Integer.parseInt(size);
-                }
-            } catch (NumberFormatException nfe) {
-                System.out.println("NumberFormat Exception : " + nfe);
-            }
-            ui.setProperty("TOTALBYTES", Integer.toString(urlbytes+conversationbytes));
-            
-            // should add it, so as not to override previous. This should not really be a Boolean, 
-            // rather a list of the cookies, it is difficult to concatenate a list of Set-Cookies, though :-(
-            ui.setProperty("SET-COOKIE", Boolean.toString(conversation.getProperty("SET-COOKIE")!=null)); 
-            
-        }        
-        return ui;
-    }
-    
-    public URLInfo getURLInfo(String url) {
-        URLInfo ui;
-        synchronized (_urlinfo) {
-            ui = (URLInfo) _urlinfo.get(url);
         }
         return ui;
     }
@@ -171,7 +169,8 @@ public class SiteModel {
         
         public synchronized Object getValueAt(int row, int column) {
             if (row<0 || row >= _conversationList.size()) {
-                throw new ArrayIndexOutOfBoundsException("Attempt to get row " + row + ", column " + column + " : row does not exist!");
+                System.err.println("Attempt to get row " + row + ", column " + column + " : row does not exist!");
+                return null;
             }
             Conversation c = (Conversation) _conversationList.get(row);
             if (column <= columnNames.length) {
@@ -181,7 +180,8 @@ public class SiteModel {
                     return c.getProperty(columnNames[column].toUpperCase());
                 }
             } else {
-                throw new ArrayIndexOutOfBoundsException("Attempt to get row " + row + ", column " + column + " : column does not exist!");
+                System.err.println("Attempt to get row " + row + ", column " + column + " : column does not exist!");
+                return null;
             }
         }
     }

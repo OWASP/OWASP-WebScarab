@@ -8,41 +8,46 @@ package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.spider.Spider;
-// import org.owasp.webscarab.*;
+import org.owasp.webscarab.ui.Framework;
+
 import org.owasp.webscarab.ui.swing.*;
 import org.owasp.webscarab.ui.swing.proxy.ProxyPanel;
 import org.owasp.webscarab.ui.swing.spider.SpiderPanel;
 
 import java.util.ArrayList;
+import java.io.File;
+
+import javax.swing.JFileChooser;
+import java.io.FileNotFoundException;
 
 /**
  *
  * @author  rdawes
  */
-public class WebScarabUI extends javax.swing.JFrame {
+public class WebScarab extends javax.swing.JFrame {
     
-    private WebScarab _webscarab;
+    private Framework _framework;
     private ArrayList _plugins;
     private SwingPlugin[] _pluginArray = new SwingPlugin[0];
+    private File _defaultDir = null;
     
     /** Creates new form WebScarab */
-    public WebScarabUI(WebScarab webscarab) {
-        _webscarab = webscarab;
+    public WebScarab(Framework framework) {
+        _framework = framework;
         initComponents();
         
         // should instantiate a listener for Logger messages here, and insert it into the 
         // bottom part of the split pane . . .
         
-        addPlugin(new ConversationLog(webscarab));
+        addPlugin(new ConversationLog(_framework));
 
-        Proxy proxy = new Proxy(webscarab);
+        Proxy proxy = new Proxy(_framework);
         new Thread(proxy).start();
-        
-        webscarab.addPlugin(proxy);
+        _framework.addPlugin(proxy);
         addPlugin(new ProxyPanel(proxy));
         
-        Spider spider = new Spider(webscarab);
-        webscarab.addPlugin(spider);
+        Spider spider = new Spider(_framework);
+        _framework.addPlugin(spider);
         addPlugin(new SpiderPanel(spider));
 
     }
@@ -142,6 +147,12 @@ public class WebScarabUI extends javax.swing.JFrame {
 
         exitMenuItem.setMnemonic('X');
         exitMenuItem.setText("Exit");
+        exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                exitMenuItemActionPerformed(evt);
+            }
+        });
+
         fileMenu.add(exitMenuItem);
 
         mainMenuBar.add(fileMenu);
@@ -176,28 +187,55 @@ public class WebScarabUI extends javax.swing.JFrame {
         setBounds((screenSize.width-640)/2, (screenSize.height-480)/2, 640, 480);
     }//GEN-END:initComponents
 
+    private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
+        // Should check to see if the model has been saved (somewhere where the 
+        // user will find it, offer to rename the base directory to something
+        // useful, before exiting.
+        System.exit(0);
+    }//GEN-LAST:event_exitMenuItemActionPerformed
+
     private void saveAsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsMenuItemActionPerformed
-        // get the dir from a filechooser
-        String tempdir = "";
-        for (int i=0; i<_pluginArray.length; i++) {
-            _pluginArray[i].saveSession(tempdir);
+        JFileChooser jfc = new JFileChooser(_defaultDir);
+        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int returnVal = jfc.showSaveDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = jfc.getSelectedFile();
+            String dir = file.toString() + System.getProperty("file.separator");
+            System.out.println("Chose dir : '" + dir + "'");
+            try {
+                _framework.initDirectory(dir);
+                _framework.saveSessionData(dir);
+            } catch (FileNotFoundException fnfe) {
+                // pop up an alert dialog box or something
+                System.err.println("Error saving session : " + fnfe);
+            }
         }
+        _defaultDir = jfc.getCurrentDirectory();
     }//GEN-LAST:event_saveAsMenuItemActionPerformed
 
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
-        // get the dir from a filechooser
-        String tempdir = "";
-        for (int i=0; i<_pluginArray.length; i++) {
-            _pluginArray[i].openSession(tempdir);
+        JFileChooser jfc = new JFileChooser(_defaultDir);
+        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int returnVal = jfc.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = jfc.getSelectedFile();
+            String dir = file.toString() + System.getProperty("file.separator");
+            System.out.println("Chose dir : '" + dir + "'");
+            _framework.discardSessionData();
+            try {
+                _framework.loadSessionData(dir);
+            } catch (FileNotFoundException fnfe) {
+                // pop up an alert dialog box or something
+                System.err.println("Error loading session : " + fnfe);
+            }
         }
+        _defaultDir = jfc.getCurrentDirectory();
     }//GEN-LAST:event_openMenuItemActionPerformed
 
     private void newMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newMenuItemActionPerformed
         // get the dir from the temp environment variable ?
         String tempdir = "./scarab/temp";
-        for (int i=0; i<_pluginArray.length; i++) {
-            _pluginArray[i].newSession(tempdir);
-        }
+        _framework.discardSessionData();
     }//GEN-LAST:event_newMenuItemActionPerformed
 
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
@@ -221,8 +259,8 @@ public class WebScarabUI extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        WebScarab ws = new WebScarab();
-        new WebScarabUI(ws).show();
+        Framework fw = new Framework();
+        new WebScarab(fw).show();
     }
     
     
