@@ -1,3 +1,39 @@
+2004-10-02 20:51  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/ConnectionHandler.java: get
+	  the potentially modified request from the response
+
+2004-10-02 20:50  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/Proxy.java: always start at
+	  least the default listener, if none are configured otherwise
+
+2004-10-02 20:49  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/module/ManualEdit.java: fix
+	  default exclude regex
+
+2004-10-02 20:48  rogan
+
+	* WebScarab.properties: update default preferences
+
+2004-10-02 20:47  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: ConversationPanel.java,
+	  proxy/ManualEditFrame.java: Remeber the preferred size and
+	  location between instances
+
+2004-10-02 20:45  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: RequestPanel.java,
+	  ResponsePanel.java, ContentPanel.java: remember the preferred tab
+	  between instances
+
+2004-10-02 20:42  rogan
+
+	* src/org/owasp/webscarab/httpclient/URLFetcher.java: properly
+	  handle authenticating proxies - thanks Will Stranathan
+
 2004-06-03 17:31  rogan
 
 	* installer/izpack.xml: added the Changelog to the distribution
