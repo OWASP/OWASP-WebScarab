@@ -12,18 +12,13 @@ import org.owasp.webscarab.model.Response;
 import bsh.util.JConsole;
 import bsh.Interpreter;
 
-/**
- *
- * @author  rdawes
+/** Provides a console in which BeanShell (www.beanshell.org) scripts can be run.
+ * @author rdawes
  */
-public class BeanShellPanel extends javax.swing.JPanel implements ByteArrayEditor {
+public class BeanShellPanel extends javax.swing.JPanel {
     
-    private boolean _editable = false;
-    private byte[] _data = new byte[0];
     private JConsole _console;
     private Interpreter _interpreter;
-    private Request _request = null;
-    private Response _response = null;
     
     /** Creates new form BeanShellPanel */
     public BeanShellPanel() {
@@ -31,99 +26,20 @@ public class BeanShellPanel extends javax.swing.JPanel implements ByteArrayEdito
         _console = new JConsole();
         _interpreter = new Interpreter( _console );
         
-        // How do we set stdout to go to the console?
-        // print () works, but System.out.println() doesn't
-        
-        // _interpreter.setOut(_console.getOut());
-        // _interpreter.setErr(_console.getErr());
-        
         new Thread( _interpreter ).start(); // start a thread to call the run() method
         beanPanel.add(_console);
     }
     
-    public String[] getContentTypes() {
-        return new String[] { ".*" };
-    }    
-    
-    public void setEditable(boolean editable) {
-        _editable = editable;
+    /**
+     * used to make Java objects available to the BeanShell interpreter
+     * Realise that any modifications made are made to the original object
+     * NOT a copy! Be careful what you do in the interpreter!
+     * Consider things like synchronization, etc
+     */
+    public void setVariable(String name, Object object) throws bsh.EvalError{
+        _interpreter.set(name , object);
     }
-    
-    public void setBytes(byte[] bytes) {
-        System.err.println("Setting content");
-        _data = new byte[bytes.length];
-        System.arraycopy(bytes, 0, _data, 0, bytes.length);
-        try {
-            _interpreter.set("content", _data);
-        } catch (bsh.EvalError ee) {
-            System.err.println("Eval error : " + ee);
-        }
-    }
-    
-    public boolean isModified() {
-        return _editable;
-    }
-    
-    public byte[] getBytes() {
-        System.err.println("Getting content");
-        if (_editable) {
-            try {
-                _data = (byte[]) _interpreter.get("content");
-            } catch (Exception e) {
-                System.err.println("Error getting content from the interpreter : " + e);
-            }
-        }
-        return _data;
-    }
-    
-    public void setRequest(Request request) {
-        if (request != null) {
-            _request = new Request(request);
-        } else {
-            _request = null;
-        }
-        try {
-            _interpreter.set("request", _request);
-        } catch (Exception e) {
-            System.err.println("Error setting Request : " + e);
-        }
-    }
-    
-    public Request getRequest() {
-        if (_editable) {
-            try {
-                _request = (Request) _interpreter.get("request");
-            } catch (Exception e) {
-                System.err.println("Error getting request : " + e);
-            }
-        }
-        return _request;
-    }
-    
-    public void setResponse(Response response) {
-        if (response != null) {
-            _response = new Response(response);
-        } else {
-            _response = null;
-        }
-        try {
-            _interpreter.set("response", _response);
-        } catch (Exception e) {
-            System.err.println("Error setting Response: " + e);
-        }
-    }
-    
-    public Response getResponse() {
-        if (_editable) {
-            try {
-                _response = (Response) _interpreter.get("response");
-            } catch (Exception e) {
-                System.err.println("Error getting response : " + e);
-            }
-        }
-        return _response;
-    }
-    
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -200,21 +116,6 @@ public class BeanShellPanel extends javax.swing.JPanel implements ByteArrayEdito
     }//GEN-LAST:event_scriptComboBoxActionPerformed
 
     public static void main(String[] args) {
-        byte[] content = new byte[0];
-        try {
-            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-            // FileInputStream fis = new FileInputStream("/usr/share/xfce/backdrops/Flower.jpg");
-            java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/exodus/HowTo.html");
-            byte[] buff = new byte[1024];
-            int got = 0;
-            while ((got = fis.read(buff)) > 0) {
-                baos.write(buff, 0, got);
-            }
-            content = baos.toByteArray();
-        } catch (Exception e) {
-            System.exit(0);
-        }
-        
         javax.swing.JFrame top = new javax.swing.JFrame("BeanShell Pane");
         top.addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
@@ -227,11 +128,11 @@ public class BeanShellPanel extends javax.swing.JPanel implements ByteArrayEdito
         top.setBounds(100,100,600,400);
         top.show();
         try {
-            bsp.setEditable(true);
-            bsp.setBytes(content);
-            Thread.currentThread().sleep(20000);
-            content = bsp.getBytes();
-            System.err.println("content length : " + content.length);
+            java.util.ArrayList a = new java.util.ArrayList();
+            a.add(new String("a string"));
+            bsp.setVariable("a", a);
+            Thread.currentThread().sleep(15000);
+            System.err.println("ArrayList : " + a);
         } catch (Exception e) {
             e.printStackTrace();
         }
