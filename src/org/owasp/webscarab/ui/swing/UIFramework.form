@@ -229,7 +229,7 @@
         </Container>
         <Container class="javax.swing.JScrollPane" name="jScrollPane1">
           <Properties>
-            <Property name="toolTipText" type="java.lang.String" value="Shows messages logged by various WebScarab plugins"/>
+            <Property name="toolTipText" type="java.lang.String" value=""/>
             <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
               <Dimension value="[22, 40]"/>
             </Property>
@@ -253,7 +253,7 @@
                   <Color blue="cc" green="cc" red="cc" type="rgb"/>
                 </Property>
                 <Property name="editable" type="boolean" value="false"/>
-                <Property name="toolTipText" type="java.lang.String" value="Shows messages logged by WebScarab and the plugins"/>
+                <Property name="toolTipText" type="java.lang.String" value=""/>
               </Properties>
             </Component>
           </SubComponents>

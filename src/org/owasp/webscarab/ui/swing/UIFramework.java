@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -225,14 +225,14 @@ public class UIFramework extends JFrame implements FrameworkUI {
         mainTabbedPane.setPreferredSize(new java.awt.Dimension(800, 600));
         mainSplitPane.setLeftComponent(mainTabbedPane);
 
-        jScrollPane1.setToolTipText("Shows messages logged by various WebScarab plugins");
+        jScrollPane1.setToolTipText("");
         jScrollPane1.setMinimumSize(new java.awt.Dimension(22, 40));
         jScrollPane1.setPreferredSize(new java.awt.Dimension(3, 64));
         jScrollPane1.setAutoscrolls(true);
         jScrollPane1.setOpaque(false);
         logTextArea.setBackground(new java.awt.Color(204, 204, 204));
         logTextArea.setEditable(false);
-        logTextArea.setToolTipText("Shows messages logged by WebScarab and the plugins");
+        logTextArea.setToolTipText("");
         jScrollPane1.setViewportView(logTextArea);
 
         mainSplitPane.setRightComponent(jScrollPane1);
@@ -489,22 +489,25 @@ public class UIFramework extends JFrame implements FrameworkUI {
     }//GEN-LAST:event_windowClosing
     
     private void exit() {
-        if (_framework.isBusy()) {
-            String[] status = _framework.getStatus();
-            int count = status.length;
-            String[] message = new String[count+2];
-            System.arraycopy(status, 0, message, 0, count);
-            message[count] = "";
-            message[count+1] = "Quit anyway?";
-            int choice = JOptionPane.showOptionDialog(this, message, "Error - Plugins are busy", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, null, null);
-            if (choice != JOptionPane.YES_OPTION) return;
+        if (_framework.isModified()) {
+            if (_framework.isRunning() && !_framework.stopPlugins()) {
+                String[] status = _framework.getStatus();
+                int count = status.length;
+                String[] message = new String[count+2];
+                System.arraycopy(status, 0, message, 0, count);
+                message[count] = "";
+                message[count+1] = "Force data save anyway?";
+                int choice = JOptionPane.showOptionDialog(this, message, "Error - Plugins are busy", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, null, null);
+                if (choice != JOptionPane.YES_OPTION) return;
+            }
+            try {
+                _framework.saveSessionData();
+            } catch (Exception e) {
+                int choice = JOptionPane.showOptionDialog(this, new String[] {"Error saving session!", e.toString(), "Quit anyway?"}, "Error!", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, null, null);
+                if (choice != JOptionPane.YES_OPTION) return;
+            }
         }
-        try {
-            _framework.exit();
-        } catch (Exception e) {
-            int choice = JOptionPane.showOptionDialog(this, new String[] {"Error saving session!", e.toString(), "Quit anyway?"}, "Error!", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, null, null);
-            if (choice == JOptionPane.YES_OPTION) System.exit(1);
-        }
+        _framework.exit();
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
