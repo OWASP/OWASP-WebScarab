@@ -26,13 +26,13 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
 
 /*
- * $Id: ManualEditPanel.java,v 1.3 2004/12/15 11:42:06 rogan Exp $
+ * $Id: ManualEditPanel.java,v 1.4 2005/01/05 11:21:56 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -86,12 +86,13 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         
         interceptExcludeRegexTextField.setEnabled(enabled);
         interceptExcludeRegexTextField.setText(_manualEdit.getExcludeRegex());
-
+        
         interceptMethodList.setEnabled(enabled);
         String[] interceptMethods = _manualEdit.getInterceptMethods();
         interceptMethodList.setSelectedIndices(getIndices(interceptMethods,interceptMethodList.getModel()));
-
+        
         interceptResponseCheckBox.setSelected(_manualEdit.getInterceptResponse());
+        interceptResponseTextField.setText(_manualEdit.getInterceptResponseRegex());
     }
     
     private int[] getIndices(String[] items, ListModel model) {
@@ -130,16 +131,8 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         interceptMethodList = new javax.swing.JList();
         interceptResponsePanel = new javax.swing.JPanel();
         interceptResponseCheckBox = new javax.swing.JCheckBox();
-        interceptExcludeButton = new javax.swing.JButton();
-        interceptIncludeButton = new javax.swing.JButton();
-        interceptAddNewTextField = new javax.swing.JTextField();
-        interceptAddNewButton = new javax.swing.JButton();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        interceptIncludeMIMEList = new javax.swing.JList();
+        interceptResponseTextField = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
-        jScrollPane5 = new javax.swing.JScrollPane();
-        interceptExcludeMIMEList = new javax.swing.JList();
-        jLabel2 = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -185,8 +178,8 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         interceptrequestPanel.add(interceptIncludeRegexTextField, gridBagConstraints);
 
         interceptExcludeLabel.setText("Exclude paths matching : ");
@@ -215,8 +208,8 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         interceptrequestPanel.add(interceptExcludeRegexTextField, gridBagConstraints);
 
         jScrollPane3.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -263,106 +256,34 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         interceptResponsePanel.add(interceptResponseCheckBox, gridBagConstraints);
 
-        interceptExcludeButton.setText("Exclude >>");
-        interceptExcludeButton.setPreferredSize(null);
-        interceptExcludeButton.setEnabled(false);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTH;
-        gridBagConstraints.weighty = 1.0;
-        interceptResponsePanel.add(interceptExcludeButton, gridBagConstraints);
-
-        interceptIncludeButton.setText("<< Include");
-        interceptIncludeButton.setMinimumSize(new java.awt.Dimension(96, 26));
-        interceptIncludeButton.setPreferredSize(null);
-        interceptIncludeButton.setEnabled(false);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.weighty = 1.0;
-        interceptResponsePanel.add(interceptIncludeButton, gridBagConstraints);
-
-        interceptAddNewTextField.setEnabled(false);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        interceptResponsePanel.add(interceptAddNewTextField, gridBagConstraints);
-
-        interceptAddNewButton.setText("<< Add new");
-        interceptAddNewButton.setMinimumSize(new java.awt.Dimension(96, 26));
-        interceptAddNewButton.setPreferredSize(null);
-        interceptAddNewButton.setEnabled(false);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        interceptResponsePanel.add(interceptAddNewButton, gridBagConstraints);
-
-        jScrollPane4.setMinimumSize(new java.awt.Dimension(32, 100));
-        jScrollPane4.setPreferredSize(new java.awt.Dimension(45, 120));
-        interceptIncludeMIMEList.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "text/*" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
+        interceptResponseTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                interceptResponseTextFieldActionPerformed(evt);
+            }
         });
-        interceptIncludeMIMEList.setToolTipText("Select which MIME-Types to intercept. Use the Exclude and Include buttons to choose.");
-        interceptIncludeMIMEList.setEnabled(false);
-        jScrollPane4.setViewportView(interceptIncludeMIMEList);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        interceptResponsePanel.add(jScrollPane4, gridBagConstraints);
-
-        jLabel1.setText("Include MIME-Types");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        interceptResponsePanel.add(interceptResponseTextField, gridBagConstraints);
+
+        jLabel1.setText("Only MIME-Types matching :");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         interceptResponsePanel.add(jLabel1, gridBagConstraints);
-
-        jScrollPane5.setMinimumSize(new java.awt.Dimension(32, 100));
-        jScrollPane5.setPreferredSize(new java.awt.Dimension(85, 120));
-        interceptExcludeMIMEList.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "image/*", "application/*", "x-audio/*" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
-        interceptExcludeMIMEList.setToolTipText("Select which MIME-Types not to intercept. Use the Exclude and Include buttons to choose.");
-        interceptExcludeMIMEList.setEnabled(false);
-        jScrollPane5.setViewportView(interceptExcludeMIMEList);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        interceptResponsePanel.add(jScrollPane5, gridBagConstraints);
-
-        jLabel2.setText("Exclude MIME-Types");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
-        interceptResponsePanel.add(jLabel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -373,32 +294,38 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         add(interceptResponsePanel, gridBagConstraints);
 
     }//GEN-END:initComponents
-
+    
+    private void interceptResponseTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_interceptResponseTextFieldActionPerformed
+        _manualEdit.setInterceptResponseRegex(interceptResponseTextField.getText());
+    }//GEN-LAST:event_interceptResponseTextFieldActionPerformed
+    
     private void interceptExcludeRegexTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_interceptExcludeRegexTextFieldFocusLost
         _manualEdit.setExcludeRegex(interceptExcludeRegexTextField.getText());
     }//GEN-LAST:event_interceptExcludeRegexTextFieldFocusLost
-
+    
     private void interceptExcludeRegexTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_interceptExcludeRegexTextFieldActionPerformed
         _manualEdit.setExcludeRegex(interceptExcludeRegexTextField.getText());
     }//GEN-LAST:event_interceptExcludeRegexTextFieldActionPerformed
-
+    
     private void interceptIncludeRegexTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_interceptIncludeRegexTextFieldFocusLost
         _manualEdit.setIncludeRegex(interceptIncludeRegexTextField.getText());
     }//GEN-LAST:event_interceptIncludeRegexTextFieldFocusLost
-
+    
     private void interceptIncludeRegexTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_interceptIncludeRegexTextFieldActionPerformed
         _manualEdit.setIncludeRegex(interceptIncludeRegexTextField.getText());
     }//GEN-LAST:event_interceptIncludeRegexTextFieldActionPerformed
-
+    
     private void interceptResponseCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_interceptResponseCheckBoxActionPerformed
-        _manualEdit.setInterceptResponse(interceptResponseCheckBox.isSelected());
+        boolean enabled = interceptResponseCheckBox.isSelected();
+        interceptResponseTextField.setEnabled(isEnabled() && enabled);
+        _manualEdit.setInterceptResponse(enabled);
     }//GEN-LAST:event_interceptResponseCheckBoxActionPerformed
-            
+    
     private void interceptRequestCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_interceptRequestCheckBoxActionPerformed
         boolean enabled = interceptRequestCheckBox.isSelected();
-        interceptIncludeRegexTextField.setEnabled(enabled);
-        interceptExcludeRegexTextField.setEnabled(enabled);
-        interceptMethodList.setEnabled(enabled);
+        interceptIncludeRegexTextField.setEnabled(isEnabled() && enabled);
+        interceptExcludeRegexTextField.setEnabled(isEnabled() && enabled);
+        interceptMethodList.setEnabled(isEnabled() && enabled);
         _manualEdit.setInterceptRequest(enabled);
     }//GEN-LAST:event_interceptRequestCheckBoxActionPerformed
     
@@ -424,9 +351,6 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         return new ManualEditFrame().editResponse(request, response);
     }
     
-    public void setModel(org.owasp.webscarab.model.SiteModel model) {
-    }
-    
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
         interceptRequestCheckBox.setEnabled(enabled);
@@ -434,29 +358,22 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         interceptMethodList.setEnabled(enabled && interceptRequestCheckBox.isSelected());
         interceptIncludeRegexTextField.setEnabled(enabled && interceptRequestCheckBox.isSelected());
         interceptExcludeRegexTextField.setEnabled(enabled && interceptRequestCheckBox.isSelected());
+        interceptResponseTextField.setEnabled(enabled && interceptResponseCheckBox.isSelected());
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton interceptAddNewButton;
-    private javax.swing.JTextField interceptAddNewTextField;
-    private javax.swing.JButton interceptExcludeButton;
     private javax.swing.JLabel interceptExcludeLabel;
-    private javax.swing.JList interceptExcludeMIMEList;
     private javax.swing.JTextField interceptExcludeRegexTextField;
-    private javax.swing.JButton interceptIncludeButton;
     private javax.swing.JLabel interceptIncludeLabel;
-    private javax.swing.JList interceptIncludeMIMEList;
     private javax.swing.JTextField interceptIncludeRegexTextField;
     private javax.swing.JList interceptMethodList;
     private javax.swing.JCheckBox interceptRequestCheckBox;
     private javax.swing.JCheckBox interceptResponseCheckBox;
     private javax.swing.JPanel interceptResponsePanel;
+    private javax.swing.JTextField interceptResponseTextField;
     private javax.swing.JPanel interceptrequestPanel;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JScrollPane jScrollPane5;
     // End of variables declaration//GEN-END:variables
     
 }
