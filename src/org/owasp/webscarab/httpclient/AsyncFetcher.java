@@ -57,11 +57,7 @@ public class AsyncFetcher implements Runnable {
                 request = (Request) _requestQueue.remove(0);
                 if (request != null) {
                     response = _uf.fetchResponse(request);
-                    InputStream cs = response.getContentStream();
-                    if (cs != null) {
-                        // read any outstanding content
-                        response.getContent();
-                    }
+                    response.getContent();
                     _responseQueue.add(response);
                 }
             } catch (ArrayIndexOutOfBoundsException aioob) {

@@ -32,9 +32,10 @@ public class ChunkedInputStream extends FilterInputStream {
     }
     
     private void readChunk() throws IOException {
+        String line = readLine().trim();
         try {
-            size = Integer.parseInt(readLine(),16);
-            // System.out.println("Expecting " + size);
+            size = Integer.parseInt(line,16);
+            System.err.println("Expecting " + size);
             chunk = new byte[size];
             int read = 0;
             while (read < size) {
@@ -52,12 +53,10 @@ public class ChunkedInputStream extends FilterInputStream {
             if (size == 0) { // read the trailer and the CRLF
                 readTrailer();
             }
-            // System.out.print("Got '" + crlf + "' as a crlf");
-            // System.out.println("Got " + size);
+            System.err.println("Got " + size);
             start = 0;
         } catch (NumberFormatException nfe) {
-            System.err.println("Error reading chunk size " + nfe);
-            System.err.println("Previous chunk was '" + new String(chunk) + "'");
+            System.err.println("Error parsing chunk size from '" + line + "' : " + nfe);
         }
     }
     
@@ -98,7 +97,7 @@ public class ChunkedInputStream extends FilterInputStream {
     }
     
     public int available() throws IOException {
-        return (size - start) + super.available();
+        return size - start;
     }
     
     public boolean markSupported() {
@@ -125,7 +124,7 @@ public class ChunkedInputStream extends FilterInputStream {
         return line;
     }
     
-    private void readTrailer() {
+    private void readTrailer() throws IOException {
         String line = readLine();
         ArrayList trailer = new ArrayList();
         while (!line.equals("")) {

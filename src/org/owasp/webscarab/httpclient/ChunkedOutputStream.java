@@ -40,16 +40,6 @@ public class ChunkedOutputStream extends FilterOutputStream {
         _writeTrailer = false;
     }
     
-    public void flush() throws IOException {
-        writeTrailer();
-        super.flush();
-    }
-    
-    public void close() throws IOException {
-        flush();
-        super.close();
-    }
-    
     public void write(int b) throws IOException {
         out.write("1\r\n".getBytes());
         out.write(b);
