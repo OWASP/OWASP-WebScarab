@@ -10,6 +10,9 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import java.awt.Font;
 
+import javax.swing.CellEditor;
+import java.awt.Component;
+
 /**
  *
  * @author  rdawes
@@ -54,10 +57,19 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     public boolean isModified() {
-        return _tableModel.isModified();
+        if (_editable) stopEditing();
+        return _editable && _tableModel.isModified();
+    }
+    
+    private void stopEditing() {
+        Component comp = hexTable.getEditorComponent();
+        if (comp != null && comp instanceof CellEditor) {
+            ((CellEditor)comp).stopCellEditing();
+        }
     }
     
     public byte[] getBytes() {
+        if (_editable) stopEditing();
         return _tableModel.getBytes();
     }
     
@@ -123,7 +135,7 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     private class HexTableModel extends AbstractTableModel {
-
+        
         private byte[] _data = new byte[0];
         private int _columns = 8;
         private boolean _editable = false;

@@ -45,8 +45,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
                         c = c.getParent();
                     }
                     if (c instanceof JFrame) {
-                        _searchDialog = new SearchDialog((JFrame) c, false);
-                        _searchDialog.setSearchTextComponent(textTextArea);
+                        _searchDialog = new SearchDialog((JFrame) c, textTextArea);
                     } else {
                         System.err.println("No JFrame parent found!");
                         return;
@@ -55,6 +54,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
                 _searchDialog.show();
             }
         });
+        // Ctrl-G to search again
         keymap.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_G, Event.CTRL_MASK), new AbstractAction() {
             public void actionPerformed(ActionEvent event) {
                 if (_searchDialog != null) {
@@ -152,9 +152,8 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         top.getContentPane().add(tp);
         top.setBounds(100,100,600,400);
         try {
-            tp.setBytes("ABCDEFGHIJKLMNOP\nABCDEFGHIJKLMNOP".getBytes());
-            tp.setEditable(false);
-            // he.setModel(new DefaultHexDataModel(new byte[0], true));
+            // tp.setBytes("ABCDEFGHIJKLMNOP\nABCDEFGHIJKLMNOP".getBytes());
+            tp.setEditable(true);
             top.show();
         } catch (Exception e) {
             e.printStackTrace();

@@ -13,6 +13,11 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.Dimension;
 import java.util.Vector;
 
+import java.awt.Component;
+import javax.swing.CellEditor;
+
+import org.owasp.webscarab.ui.swing.TranscoderFrame;
+
 /**
  *
  * @author  rdawes
@@ -47,7 +52,7 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
     public String[] getContentTypes() {
         return new String[] { "application/x-www-form-urlencoded" };
     }
-
+    
     public void setBytes(byte[] bytes) {
         if (bytes == null) {
             System.err.println("Got null");
@@ -66,7 +71,7 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
                     pairs[i][0] = parts[0];
                 }
                 if (parts.length > 1) {
-                    pairs[i][1] = parts[1];
+                    pairs[i][1] = TranscoderFrame.urlDecode(parts[1]);
                 }
             }
             _tableModel.setDataVector(pairs, _columns.toArray());
@@ -76,12 +81,19 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
         _modified = false;
     }
     
+    private void stopEditing() {
+        Component comp = headerTable.getEditorComponent();
+        if (comp != null && comp instanceof CellEditor) {
+            ((CellEditor)comp).stopCellEditing();
+        }
+    }
+    
     public byte[] getBytes() {
         if (_editable) {
+            stopEditing();
             if (_modified) {
                 StringBuffer buff = new StringBuffer();
                 Vector pairs = _tableModel.getDataVector();
-                System.err.println("pairs has " + pairs.size());
                 for (int i=0; i<pairs.size(); i++) {
                     Vector v = (Vector) pairs.elementAt(i);
                     String name = (String) v.elementAt(0);
@@ -89,7 +101,7 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
                     String value = (String) v.elementAt(1);
                     if (value == null) value = "";
                     if (i>0) buff.append("&");
-                    buff.append(name).append("=").append(value);
+                    buff.append(name).append("=").append(TranscoderFrame.urlEncode(value));
                 }
                 _data = buff.toString();
             }
@@ -114,6 +126,7 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
     }
     
     public boolean isModified() {
+        if (_editable) stopEditing();
         return _editable && _modified;
     }
     
@@ -183,14 +196,14 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
         add(buttonPanel, gridBagConstraints);
 
     }//GEN-END:initComponents
-
+    
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
         int rowIndex = headerTable.getSelectedRow();
         if (rowIndex > -1) {
             _tableModel.removeRow(rowIndex);
         }
     }//GEN-LAST:event_deleteButtonActionPerformed
-
+    
     private void insertButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertButtonActionPerformed
         int rowIndex = headerTable.getSelectedRow();
         if (rowIndex > -1) {
@@ -250,5 +263,5 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
     private javax.swing.JButton insertButton;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
-        
+    
 }

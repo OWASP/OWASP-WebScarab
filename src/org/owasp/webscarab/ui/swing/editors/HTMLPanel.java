@@ -21,15 +21,13 @@ import javax.swing.JFrame;
 import javax.swing.JEditorPane;
 import java.net.URL;
 
+import javax.swing.SwingUtilities;
+
 /**
  *
  * @author  rdawes
  */
 public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
-    
-    private boolean _editable = false;
-    // we assume it is modified - we need to add a keystroke listener to do this properly
-    private boolean _modified = false;
     
     private byte[] _data = new byte[0];
     
@@ -45,6 +43,7 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
         // base URL is, and we don't actually want to reload the pages anyway.
         // if there are tags that still cause requests to the server, override them in MyHTMLEditorKit
         htmlEditorPane.setEditorKit(new MyHTMLEditorKit());
+        htmlEditorPane.setEditable(false);
         
         Keymap keymap = htmlEditorPane.addKeymap("MySearchBindings",
         htmlEditorPane.getKeymap());
@@ -57,8 +56,7 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
                         c = c.getParent();
                     }
                     if (c instanceof JFrame) {
-                        _searchDialog = new SearchDialog((JFrame) c, false);
-                        _searchDialog.setSearchTextComponent(htmlEditorPane);
+                        _searchDialog = new SearchDialog((JFrame) c, htmlEditorPane);
                     } else {
                         System.err.println("No JFrame parent found!");
                         return;
@@ -84,19 +82,29 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     public void setEditable(boolean editable) {
-        htmlEditorPane.setEditable(false);
         // We can't edit HTML directly. This panel is just a renderer
         // _editable = editable;
         // htmlEditorPane.setEditable(editable);
         // we could do things like make buttons visible and invisible here
     }
     
-    public void setBytes(byte[] bytes) {
-        htmlEditorPane.setEditable(false);
+    public void setBytes(final byte[] bytes) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            loadBytes(bytes);
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    loadBytes(bytes);
+                }
+            });
+        }
+    }
+    
+    private void loadBytes(final byte[] bytes) {
         htmlEditorPane.getDocument().putProperty("base","");
         if (bytes != null) {
             // FIXME: may need to reset style sheets, etc here. Not sure how to do that, though
-            // htmlEditorPane.setDocument(new HTMLEditorKit().createDefaultDocument());
+            htmlEditorPane.setDocument(new MyHTMLEditorKit().createDefaultDocument());
             htmlEditorPane.setContentType("text/html");
             htmlEditorPane.putClientProperty("IgnoreCharsetDirective", Boolean.TRUE);
             htmlEditorPane.getDocument().putProperty("IgnoreCharsetDirective", Boolean.TRUE);
@@ -109,13 +117,10 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
             htmlEditorPane.setText("");
         }
         htmlEditorPane.setCaretPosition(0);
-        // always set _modified false AFTER setting the text, since the Document listener
-        // will set it to true when adding the text
-        _modified = false;
     }
     
     public boolean isModified() {
-        return _editable && _modified;
+        return false;
     }
     
     public byte[] getBytes() {
@@ -167,7 +172,7 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
             }
             content = baos.toByteArray();
              */
-            String filename = "c:/temp/reverse/conversations/1-response";
+            String filename = "l2/conversations/1-response";
             if (args.length == 1) {
                 filename = args[0];
             }

@@ -14,8 +14,6 @@ public interface ByteArrayEditor {
     
     String getName();
     
-    String[] getContentTypes();
-    
     void setEditable(boolean editable);
     
     void setBytes(byte[] bytes);

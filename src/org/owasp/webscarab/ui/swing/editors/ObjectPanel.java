@@ -23,6 +23,9 @@ import java.util.Iterator;
 import java.util.Date;
 import java.text.DateFormat;
 
+import javax.swing.CellEditor;
+import java.awt.Component;
+
 /** Provides a Swing Component that can be used to edit and modify a fairly
  * arbitrary object structure. A Tree hierarchy is formed from Map and Collection
  * classes. All of the java.lang types are supported, and many others as well.
@@ -35,6 +38,7 @@ public class ObjectPanel extends javax.swing.JPanel {
     
     private JTreeTable _tt;
     private ObjectTreeTableModel _ottm;
+    private boolean _editable = false;
     
     /** Creates new form ObjectPanel */
     public ObjectPanel() {
@@ -78,10 +82,18 @@ public class ObjectPanel extends javax.swing.JPanel {
         _ottm.setObject(object);
     }
     
+    private void stopEditing() {
+        Component comp = _tt.getEditorComponent();
+        if (comp != null && comp instanceof CellEditor) {
+            ((CellEditor) comp).stopCellEditing();
+        }
+    }
+    
     /** Returns the object that is currently being displayed
      * @return The object
      */    
     public Object getObject() {
+        if (_editable) stopEditing();
         return _ottm.getObject();
     }
     
@@ -89,6 +101,7 @@ public class ObjectPanel extends javax.swing.JPanel {
      * @param editable whether to allow editing
      */    
     public void setEditable(boolean editable) {
+        _editable = editable;
         _ottm.setEditable(editable);
         insertButton.setVisible(editable);
         childButton.setVisible(editable);
@@ -98,7 +111,8 @@ public class ObjectPanel extends javax.swing.JPanel {
     }
     
     public boolean isModified() {
-        return _ottm.isModified();
+        if (_editable) stopEditing();
+        return _editable && _ottm.isModified();
     }
     
     /** This method is called from within the constructor to

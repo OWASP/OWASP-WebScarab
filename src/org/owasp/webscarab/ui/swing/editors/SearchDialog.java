@@ -17,22 +17,27 @@ import java.awt.event.ActionEvent;
 public class SearchDialog extends javax.swing.JDialog implements ActionListener {
 
     private JTextComponent _textComponent = null;
-    private String _searchText = "";
     
     /** Creates new form SearchDialog */
-    public SearchDialog(java.awt.Frame parent, boolean modal) {
-        super(parent, modal);
-        initComponents();
-        findTextField.addActionListener(this);
-    }
-    
-    public void setSearchTextComponent(JTextComponent textComponent) {
+    public SearchDialog(java.awt.Frame parent, JTextComponent textComponent) {
+        super(parent, true);
+        if (textComponent == null) {
+            throw new NullPointerException("Can't search a null text component!");
+        }
         _textComponent = textComponent;
-    }
-    
-    public void setSearchText(String text) {
-        _searchText = text;
-        findTextField.setText(text);
+        initComponents();
+        if (!_textComponent.isEditable()) {
+            replaceButton.setVisible(false);
+            replaceTextField.setVisible(false);
+            replaceLabel.setVisible(false);
+            pack();
+        }
+        String selection = _textComponent.getSelectedText();
+        System.err.println("Selection is '" + selection + "'");
+        if (selection != null) {
+            findTextField.setText(selection);
+        }
+        findTextField.addActionListener(this);
     }
     
     /** Invoked when an action occurs.
@@ -46,28 +51,53 @@ public class SearchDialog extends javax.swing.JDialog implements ActionListener 
 
     public void doSearch() {
         if (_textComponent == null) {
-            System.err.println("Unitialised textComponent");
+            System.err.println("Uninitialised textComponent");
             return;
         }
-        _searchText = findTextField.getText();
-        if (_textComponent != null && _searchText.length() > 0) {
-            int caret = _textComponent.getCaretPosition();
-            int position = _textComponent.getText().indexOf(_searchText, caret+1);
+        String searchText = findTextField.getText();
+        if (searchText.length() > 0) {
+            int caret = _textComponent.getSelectionStart();
+            int position = _textComponent.getText().indexOf(searchText, caret+1);
             if (position == -1 && caret > 0) {
-                position = _textComponent.getText().indexOf(_searchText);
+                position = _textComponent.getText().indexOf(searchText);
             }
             if (position > -1) {
                 try {
-                    System.err.println("Found '" + _searchText + "' at position " + position);
+                    System.err.println("Found '" + searchText + "' at position " + position);
                     _textComponent.setCaretPosition(position);
-                    _textComponent.moveCaretPosition(position + _searchText.length());
+                    _textComponent.moveCaretPosition(position + searchText.length());
                 } catch (IllegalArgumentException iae) {
                     System.err.println("error showing search results : " + iae);
                 }
             } else {
-                System.err.println("'" + _searchText + "' not found!");
+                System.err.println("'" + searchText + "' not found!");
                 _textComponent.setCaretPosition(caret);
             }                
+        }
+    }
+    
+    public void doReplace() {
+        if (_textComponent == null) {
+            System.err.println("Uninitialised textComponent");
+            return;
+        }
+        String searchText = findTextField.getText();
+        String replaceText = replaceTextField.getText();
+        if (searchText.length() > 0) {
+            String text = _textComponent.getText();
+            int caret = _textComponent.getSelectionStart();
+            int position = _textComponent.getText().indexOf(searchText, caret);
+            if (position == -1 && caret > 0) {
+                position = _textComponent.getText().indexOf(searchText);
+            }
+            if (position < 0) {
+                System.err.println("Search text not found");
+                return;
+            }
+            text = text.substring(0,position) + replaceText + text.substring(position+searchText.length());
+            _textComponent.setText(text);
+            _textComponent.setCaretPosition(position);
+            _textComponent.moveCaretPosition(position + replaceText.length());
         }
     }
     
@@ -79,11 +109,14 @@ public class SearchDialog extends javax.swing.JDialog implements ActionListener 
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jLabel1 = new javax.swing.JLabel();
+        findLabel = new javax.swing.JLabel();
         findTextField = new javax.swing.JTextField();
+        replaceLabel = new javax.swing.JLabel();
+        replaceTextField = new javax.swing.JTextField();
         buttonPanel = new javax.swing.JPanel();
         searchButton = new javax.swing.JButton();
-        cancelButton = new javax.swing.JButton();
+        replaceButton = new javax.swing.JButton();
+        closeButton = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -94,20 +127,48 @@ public class SearchDialog extends javax.swing.JDialog implements ActionListener 
             }
         });
 
-        jLabel1.setText("Find ");
+        findLabel.setText("Find ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(jLabel1, gridBagConstraints);
+        getContentPane().add(findLabel, gridBagConstraints);
 
         findTextField.setColumns(40);
+        findTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                findTextFieldActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(findTextField, gridBagConstraints);
+
+        replaceLabel.setText("Replace");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(replaceLabel, gridBagConstraints);
+
+        replaceTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                replaceTextFieldActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(replaceTextField, gridBagConstraints);
 
         buttonPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -125,23 +186,35 @@ public class SearchDialog extends javax.swing.JDialog implements ActionListener 
         gridBagConstraints.weightx = 1.0;
         buttonPanel.add(searchButton, gridBagConstraints);
 
-        cancelButton.setText("Cancel");
-        cancelButton.addActionListener(new java.awt.event.ActionListener() {
+        replaceButton.setText("Replace");
+        replaceButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancelButtonActionPerformed(evt);
+                replaceButtonActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
+        buttonPanel.add(replaceButton, gridBagConstraints);
+
+        closeButton.setText("Close");
+        closeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                closeButtonActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        buttonPanel.add(cancelButton, gridBagConstraints);
+        buttonPanel.add(closeButton, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
@@ -150,14 +223,26 @@ public class SearchDialog extends javax.swing.JDialog implements ActionListener 
 
         pack();
     }//GEN-END:initComponents
+
+    private void replaceTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_replaceTextFieldActionPerformed
+        doReplace();
+    }//GEN-LAST:event_replaceTextFieldActionPerformed
+
+    private void findTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_findTextFieldActionPerformed
+        doSearch();
+    }//GEN-LAST:event_findTextFieldActionPerformed
+
+    private void replaceButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_replaceButtonActionPerformed
+        doReplace();
+    }//GEN-LAST:event_replaceButtonActionPerformed
     
     private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
         doSearch();
     }//GEN-LAST:event_searchButtonActionPerformed
     
-    private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
+    private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed
         setVisible(false);
-    }//GEN-LAST:event_cancelButtonActionPerformed
+    }//GEN-LAST:event_closeButtonActionPerformed
     
     /** Closes the dialog */
     private void closeDialog(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_closeDialog
@@ -168,15 +253,20 @@ public class SearchDialog extends javax.swing.JDialog implements ActionListener 
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new SearchDialog(new javax.swing.JFrame(), true).show();
+        JTextComponent text = new javax.swing.JTextArea();
+        text.setEditable(true);
+        new SearchDialog(new javax.swing.JFrame(), text).show();
     }
         
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton searchButton;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JTextField findTextField;
-    private javax.swing.JButton cancelButton;
     private javax.swing.JPanel buttonPanel;
+    private javax.swing.JButton closeButton;
+    private javax.swing.JLabel findLabel;
+    private javax.swing.JTextField findTextField;
+    private javax.swing.JButton replaceButton;
+    private javax.swing.JLabel replaceLabel;
+    private javax.swing.JTextField replaceTextField;
+    private javax.swing.JButton searchButton;
     // End of variables declaration//GEN-END:variables
     
 }
