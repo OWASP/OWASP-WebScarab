@@ -452,7 +452,7 @@ public class Message {
             _logger.finest("line is '" + line + "'");
             return line;
         } else {
-            return null;
+            return "";
         }
     }
     
