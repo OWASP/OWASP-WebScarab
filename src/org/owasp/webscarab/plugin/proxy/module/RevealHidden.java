@@ -6,9 +6,11 @@
 
 package org.owasp.webscarab.plugin.proxy.module;
 
-import org.owasp.util.StringUtil;
+// import org.owasp.util.StringUtil;
 
-import org.owasp.webscarab.model.*;
+import org.owasp.webscarab.httpclient.HTTPClient;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.proxy.AbstractProxyPlugin;
 
 import java.util.Properties;
@@ -42,43 +44,6 @@ public class RevealHidden extends AbstractProxyPlugin {
         return new String("Reveal Hidden");
     }
     
-    public Request interceptRequest(Request request) {
-        return request;
-    }
-    
-    public Response interceptResponse(Request request, Response response) throws IOException {
-        if (_enabled) {
-            String ct = response.getHeader("Content-Type");
-            if (ct != null && ct.matches("text/.*")) {
-                InputStream is = response.getContentStream();
-                if (is != null) {
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    byte[] buf = new byte[2048];
-                    int read = is.read(buf);
-                    while (read > 0) {
-                        baos.write(buf,0,read);
-                        read = is.read(buf);
-                    }
-                    response.setContent(baos.toByteArray());
-                    response.setContentStream(null);
-                }
-                byte[] content = response.getContent();
-                if (content != null) {
-                    response.setContent(revealHidden(content));
-                }
-            }
-        }
-        return response;
-    }
-    
-    private byte[] revealHidden(byte[] content) {
-        String text = new String(content);
-        text = text.replaceAll("type=\"[Hh][Ii][Dd][Dd][Ee][Nn]\"", "  type=\"text\"");
-        text = text.replaceAll("type='[Hh][Ii][Dd][Dd][Ee][Nn]'", "  type='text'");
-        text = text.replaceAll("type=[Hh][Ii][Dd][Dd][Ee][Nn]", "  type=text");
-        return text.getBytes();
-    }
-    
     public void setEnabled(boolean bool) {
         _enabled = bool;
         String prop = "RevealHidden.enabled";
@@ -96,5 +61,56 @@ public class RevealHidden extends AbstractProxyPlugin {
         }
     }
     
+    public HTTPClient getProxyPlugin(HTTPClient in) {
+        return new ProxyPlugin(in);
+    }    
+    
+    private class ProxyPlugin implements HTTPClient {
+    
+        private HTTPClient _in;
+        
+        public ProxyPlugin(HTTPClient in) {
+            _in = in;
+        }
+        
+        public Response fetchResponse(Request request) {
+            Response response = _in.fetchResponse(request);
+            if (_enabled) {
+                String ct = response.getHeader("Content-Type");
+                if (ct != null && ct.matches("text/.*")) {
+                    InputStream is = response.getContentStream();
+                    if (is != null) {
+                        try {
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            byte[] buf = new byte[2048];
+                            int read = is.read(buf);
+                            while (read > 0) {
+                                baos.write(buf,0,read);
+                                read = is.read(buf);
+                            }
+                            response.setContent(baos.toByteArray());
+                            response.setContentStream(null);
+                        } catch (IOException ioe) {
+                            System.out.println("Error reading the content of the response");
+                        }
+                    }
+                    byte[] content = response.getContent();
+                    if (content != null) {
+                        response.setContent(revealHidden(content));
+                    }
+                }
+            }
+            return response;
+        }
+        
+        private byte[] revealHidden(byte[] content) {
+            String text = new String(content);
+            text = text.replaceAll("type=\"[Hh][Ii][Dd][Dd][Ee][Nn]\"", "  type=\"text\"");
+            text = text.replaceAll("type='[Hh][Ii][Dd][Dd][Ee][Nn]'", "  type='text'");
+            text = text.replaceAll("type=[Hh][Ii][Dd][Dd][Ee][Nn]", "  type=text");
+            return text.getBytes();
+        }
+
+    }
     
 }

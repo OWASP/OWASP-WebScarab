@@ -2,9 +2,11 @@ package org.owasp.webscarab.plugin.proxy;
 
 import java.io.*;
 import java.net.*;
-//import javax.net.ssl.*;
+import javax.net.ssl.*;
 import java.security.KeyStore;
 import java.util.logging.Logger;
+
+import org.owasp.webscarab.httpclient.HTTPClient;
 
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.model.*;
@@ -17,13 +19,15 @@ public class ConnectionHandler implements Runnable {
 |  PRIVATE PART                                                          |
 +-----------------------------------------------------------------------*/
     
+    private Request _request;
+    private URL _base = null;
+    
     private Logger logger = Logger.getLogger("Plug.Proxy");
     private Plug _plug;
     private ProxyPlugin[] _plugins;
-    private Socket sock;
+    private Socket _sock;
     private InputStream clientin;
     private OutputStream clientout;
-    //private SSLSocket sslsock;
     
     private boolean isSSL = false;
     
@@ -41,7 +45,7 @@ public class ConnectionHandler implements Runnable {
 |  PUBLIC INTERFACE                                                      |
 +-----------------------------------------------------------------------*/
     public ConnectionHandler(Socket sock, Plug plug, ProxyPlugin[] plugins) {
-        this.sock = sock;
+        _sock = sock;
         _plug = plug;
         _plugins = plugins;
         
@@ -50,6 +54,13 @@ public class ConnectionHandler implements Runnable {
             sock.setSoTimeout(5 * 60 * 1000);
         } catch (SocketException se) {
             logger.warning("Error setting socket parameters");
+        }
+        try {
+            clientin = _sock.getInputStream();
+            clientout = _sock.getOutputStream();
+        } catch (IOException ioe) {
+            logger.severe("Error getting socket input and output streams! " + ioe);
+            return;
         }
         thread = new Thread(this);
         thread.setDaemon(true);
@@ -60,128 +71,116 @@ public class ConnectionHandler implements Runnable {
     
     public void run() {
         try {
-            String base = null;
-            clientin = new BufferedInputStream(sock.getInputStream());
-            clientout = sock.getOutputStream();
-            logger.info("Reading request from browser");
-            if (! clientin.markSupported()) {
-                System.err.println("Mark not supported on sock.inputstream");
-                return;
-            }
-            clientin.mark(4096);
-            String requestLine = readLine(clientin);
-            if (requestLine == null) {
-                System.err.println("Null request line");
-                return;
-            }
-            String[] parts = requestLine.split(" ");
-            if (parts.length != 3) {
-                System.err.println("Invalid request line: '" + requestLine + "'");
-                return;
-            }
-            if (!parts[0].equals("CONNECT")) {
-                clientin.reset();
-            } else {
-                System.err.println("Can't do CONNECT yet!");
-                return;
-                // read the rest of the CONNECT
-                // negotiate SSL here
-                // SSLSock sslsock = connectLocal(sock);
-                // clientin = sslsock.getInputStream();
-                // clientout = sslsock.getOutputStream();
-                // base = "https://" + parts[1];
-            }
-            Request request = new Request();
-            request.read(clientin);
-        
-            logger.info("Read request from browser : " + request.toString());
-        
-            if (_plugins != null) {
-                for (int i=0; i<_plugins.length; i++) {
-                    logger.info("Passing request to " + _plugins[i].getPluginName());
-                    request = _plugins[i].interceptRequest(request);
+            // if we do not already have a base URL (i.e. we operate as a normal 
+            // proxy rather than a reverse proxy), check for a CONNECT
+            if (_base == null) {
+                try {
+                    _request = new Request();
+                    _request.read(clientin);
+                } catch (IOException ioe) {
+                    logger.severe("Error reading the initial request" + ioe);
+                    throw ioe;
                 }
             }
-                    
-            // We've read the request, now send it to the server, and get the response
-            logger.info("Sending request to server");
-            Response response = new URLFetcher().fetchResponse(request);
-            logger.info("Got " + response.getStatusLine());
-            
-            Response copyResponse = new Response(response);
-            InputStream is = response.getContentStream();
-            CopyInputStream responseContentStream = null;
-            if (is != null) {
-                responseContentStream = new CopyInputStream(is);
-                copyResponse.setContentStream(responseContentStream);
-                response.setContentStream(responseContentStream);
-            }
-                
-            if (_plugins != null) {
-                for (int i=0; i<_plugins.length; i++) {
-                    response = _plugins[i].interceptResponse(request, response);
+            // if we are a normal proxy (because _request is not null)
+            // and the request is a CONNECT, get the base URL from the request
+            // and send the OK back. We set _request to null so we read a new
+            // one from the SSL socket
+            // If it exists, we pull the ProxyAuthorization header from the CONNECT
+            // so that we can use it upstream.
+            String proxyAuth = null;
+            if (_request != null && _request.getMethod().equals("CONNECT")) {
+                try {
+                    clientout.write(("HTTP/1.0 200 Ok\r\n\r\n").getBytes());
+                    clientout.flush();
+                } catch (IOException ioe) {
+                    logger.severe("IOException writing the CONNECT OK Response to the browser " + ioe);
+                    throw ioe;
                 }
+                _base = _request.getURL();
+                proxyAuth = _request.getHeader("Proxy-Authorization");
+                _request = null;
             }
-                    
-            response.write(clientout);
-            
-            if (isSSL) {
-                // close down the SSL stuff;
+            // if we are servicing a CONNECT, or operating as a reverse
+            // proxy with an https:// base URL, negotiate SSL
+            if (_base != null && _base.toString().startsWith("https://")) {
+                logger.info("Intercepting SSL connection!");
+                negotiateSSL();
             }
-            clientin.close();
-            clientout.close();
-            sock.close();
-            logger.info("Finished writing response to the browser, now sending it to the model");
             
-            // now call the model
-            if (_plug != null) {
-                if (responseContentStream != null) {
-                    int available = responseContentStream.available();
-                    if (available > 0) {
-                        byte[] buf = new byte[available];
-                        logger.info("Haven't completely written the content! Still " + available + " available");
-                        while ((available = responseContentStream.read(buf))>0) {
-                            logger.info("Read " + available + " bytes\n" + new String(buf));
-                        }
+            // beats me why netbeans complains about this following line
+            // URLFetcher implements HTTPClient!
+            HTTPClient hc = new URLFetcher();
+            // Maybe set SSL ProxyAuthorization here at a connection level?
+            // I prefer it in the Request itself, since it gets archived, and
+            // can be replayed trivially using netcat
+            
+            // ConversationRecorder keeps a copy of the conversation
+            // that flows through it. We need this to support
+            // stream based transmission of responses through the
+            // proxy, while still being able to send a copy of the
+            // conversation to the model
+            ConversationRecorder recorder = new ConversationRecorder(hc);
+            hc = recorder;
+            
+            // layer the proxy plugins onto the recorder. We do this
+            // in reverse order so that they operate intuitively
+            // the first plugin in the array gets the first chance to modify
+            // the request, and the last chance to modify the response
+            for (int i=_plugins.length-1; i>=0; i--) {
+                hc = _plugins[i].getProxyPlugin(hc);
+            }
+            
+            // do we keep-alive?
+            String connection = null;
+            do {
+                // if we are reading the first from a reverse proxy, or the
+                // continuation of a CONNECT from a normal proxy
+                // read the request, otherwise we already have it.
+                if (_request == null) {
+                    _request = new Request();
+                    _request.setBaseURL(_base);
+                    _request.read(clientin);
+                    if (proxyAuth != null) {
+                        _request.addHeader("Proxy-Authorization",proxyAuth);
                     }
-                    copyResponse.setContent(responseContentStream.toByteArray());
                 }
-                logger.info("Creating conversation");
-                Conversation c = new Conversation(request,copyResponse);
-                logger.info("Created conversation OK");
-                _plug.addConversation(c);
-            }
+                logger.info("Got a request for : " + _request.getURL().toString());
+                
+                // pass the request through the plugins, and return the response
+                Response response = hc.fetchResponse(_request);
+                if (response == null) {
+                    logger.severe("Got a null response from the fetcher");
+                    throw new NullPointerException("response was null");
+                }
+                logger.info("Got a response : " + response.getStatusLine());
+                response.write(clientout);
+                if (_plug != null) {
+                    Conversation c = new Conversation(recorder.getRequest(), recorder.getResponse());
+                    _plug.addConversation(c);
+                }
+                _request = null;
+                connection = response.getHeader("Connection");
+            } while (connection != null && connection.equals("Keep-Alive"));
+                    
+            
         } catch (Exception e) {
             logger.warning("Got an error : " + e);
         } finally {
             try {
+                clientin.close();
+                clientout.close();
                 logger.info("Closing client socket");
-                sock.close();
+                _sock.close();
             } catch (IOException ioe2) {
                 logger.warning("Error closing client socket : " + ioe2);
             }
         }            
     }
     
-		/*
-    private SSLSocket connectLocal(Socket sock) throws IOException {
-        OutputStream out = sock.getOutputStream();
-        InputStream in = sock.getInputStream();
-        
-        
-//        String proxyAuth = request.getHeader("Proxy-Authorization");
-//        if (proxyAuth == null) {
-//            proxyAuth = "";
-//        }
-
-        logger.info("Intercepting SSL connection!");
-        try {
-            out.write(("HTTP/1.0 200 Ok\r\n\r\n").getBytes());
-            clientout.flush();
-        } catch (IOException ioe) {
-            logger.severe("IOException writing the CONNECT OK Response to the browser");
-        }
-
+    // FIXME: there is a problem here, we don't negotiate an algorithm! ???
+    // looks like we are not finding the server key.
+    private void negotiateSSL() {
         KeyStore ks = null;
         KeyManagerFactory kmf = null;
         SSLContext sslcontext = null;
@@ -195,49 +194,28 @@ public class ConnectionHandler implements Runnable {
         } catch (Exception e) {
             logger.severe("Exception accessing keystore: " + e);
             try {
-                sock.close();
+                _sock.close();
             } catch (IOException ioe) {}
-            return null;
         }
         SSLSocketFactory factory = sslcontext.getSocketFactory();
+        SSLSocket sslsock;
 
         try {
-            sslsock=(SSLSocket)factory.createSocket(sock,sock.getInetAddress().getHostName(),sock.getPort(),true);
+            sslsock=(SSLSocket)factory.createSocket(_sock,_sock.getInetAddress().getHostName(),_sock.getPort(),true);
             sslsock.setUseClientMode(false);
+            
+            logger.info("Finished negotiating SSL - algorithm is " + sslsock.getSession().getCipherSuite());
+            
+            _sock = sslsock;
+            clientin = _sock.getInputStream();
+            clientout = _sock.getOutputStream();
         } catch (IOException ioe) {
             logger.severe("Error layering SSL over the existing socket");
             try {
-                sock.close();
+                _sock.close();
             } catch (IOException ioe2) {}
-            return null;
         }
-        logger.info("Finished negotiating SSL - algorithm is " + sslsock.getSession().getCipherSuite());
-        return sslsock;
-//        logger.info("Read request from browser : " + request.getMethod() + " " + request.getURL());
-//        if (!proxyAuth.equals("")) {
-//            request.setHeader("Proxy-Authorization",proxyAuth);
-//        }
-//        return sslsock;
-    } */        
-    
-    
-    private static synchronized String readLine(InputStream is) throws IOException {
-        StringBuffer line = new StringBuffer();
-        int i;
-        byte[] b={(byte)0x00};
-        i = is.read();
-        while (i > -1 && i != 10 && i != 13) {
-            // Convert the int to a byte
-            // we use an array because we can't concat a single byte :-(
-            b[0] = (byte)(i & 0xFF);
-            String input = new String(b,0,1);
-            line = line.append(input);
-            i = is.read();
-        }
-        if (i == 13) { // 10 is unix LF, but DOS does 13+10, so read the 10 if we got 13
-            i = is.read();
-        }
-        return line.toString();
-    }        
+
+    }
         
 }

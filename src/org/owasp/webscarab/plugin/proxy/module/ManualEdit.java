@@ -9,7 +9,10 @@ package org.owasp.webscarab.plugin.proxy.module;
 import java.util.Iterator;
 import org.owasp.util.Prop;
 
-import org.owasp.webscarab.model.*;
+import org.owasp.webscarab.httpclient.HTTPClient;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
 import org.owasp.webscarab.plugin.proxy.AbstractProxyPlugin;
 
 // this is not right. I guess we should define a callback interface for this, rather
@@ -68,50 +71,6 @@ public class ManualEdit extends AbstractProxyPlugin {
     
     public String getPluginName() {
         return new String("Manual Edit");
-    }
-    
-    public Request interceptRequest(Request request) throws IOException {
-        System.out.println("In interceptRequest");
-        if (interceptRequest) {
-            String url = request.getURL().toString();
-            if (url.matches(excludeRegex)) {
-                System.out.println("Not editing - matches exclude");
-                return request;
-            }
-            if (url.matches(includeRegex)) {
-                String method = request.getMethod();
-                for (int i=0; i<interceptMethods.length; i++) {
-                    System.out.println("Comparing " + method + " and " + interceptMethods[i]);
-                    if (method.equals(interceptMethods[i])) {
-                        // FIXME : this should be done through an interface rather, and not
-                        // instantiate new classes here.
-                        ManualEditFrame mef = new ManualEditFrame();
-                        mef.show();
-                        request = mef.editRequest(request);
-                        mef.dispose();
-                        return request;
-                    }
-                }
-                System.out.println("Did not match request method");
-            }
-        }
-        System.out.println("Not set to intercept");
-        return request;
-    }
-    
-    public Response interceptResponse(Request request, Response response) throws IOException {
-        if (interceptResponse) {
-            String contentType = response.getHeader("Content-Type");
-            if (!contentType.matches("text/.*")) {
-                return response;
-            }
-            ManualEditFrame mef = new ManualEditFrame();
-            mef.setRequest(request);
-            mef.show();
-            response = mef.editResponse(response);
-            mef.dispose();
-        }
-        return response;
     }
     
     private void setProperty(String prop, String value) {
@@ -178,4 +137,50 @@ public class ManualEdit extends AbstractProxyPlugin {
         return interceptResponse;
     }
     
+    public HTTPClient getProxyPlugin(HTTPClient in) {
+        return new ProxyPlugin(in);
+    }
+    
+    private class ProxyPlugin implements HTTPClient {
+    
+        private HTTPClient _in;
+        
+        public ProxyPlugin(HTTPClient in) {
+            _in = in;
+        }
+        
+        public Response fetchResponse(Request request) {
+            if (interceptRequest) {
+                String url = request.getURL().toString();
+                if (! url.matches(excludeRegex) && url.matches(includeRegex)) {
+                    String method = request.getMethod();
+                    for (int i=0; i<interceptMethods.length; i++) {
+                        if (method.equals(interceptMethods[i])) {
+                            // FIXME : this should be done through an interface rather, and not
+                            // instantiate new classes here.
+                            ManualEditFrame mef = new ManualEditFrame();
+                            mef.show();
+                            request = mef.editRequest(request);
+                            mef.dispose();
+                        }
+                    }
+                }
+            }
+            Response response = _in.fetchResponse(request);
+            if (interceptResponse) {
+                String contentType = response.getHeader("Content-Type");
+                if (!contentType.matches("text/.*")) {
+                    return response;
+                }
+                ManualEditFrame mef = new ManualEditFrame();
+                mef.setRequest(request);
+                mef.show();
+                response = mef.editResponse(response);
+                mef.dispose();
+            }
+            return response;
+        }
+        
+    }
+ 
 }

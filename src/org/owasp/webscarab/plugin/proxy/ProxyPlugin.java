@@ -9,6 +9,7 @@ package org.owasp.webscarab.plugin.proxy;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.WebScarabPlugin;
+import org.owasp.webscarab.httpclient.HTTPClient;
 
 import java.io.IOException;
 
@@ -20,8 +21,6 @@ public interface ProxyPlugin
 	extends WebScarabPlugin
 {
     
-    Request interceptRequest(Request request) throws IOException;
-    
-    Response interceptResponse(Request request, Response response) throws IOException;
+    public HTTPClient getProxyPlugin(HTTPClient in);
     
 }
