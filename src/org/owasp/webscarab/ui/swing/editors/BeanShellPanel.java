@@ -48,36 +48,23 @@ public class BeanShellPanel extends javax.swing.JPanel {
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jLabel1 = new javax.swing.JLabel();
-        scriptComboBox = new javax.swing.JComboBox();
-        loadButton = new javax.swing.JButton();
         beanPanel = new javax.swing.JPanel();
+        loadButton = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
 
-        jLabel1.setText("Load script ");
+        beanPanel.setLayout(new java.awt.BorderLayout());
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        add(jLabel1, gridBagConstraints);
-
-        scriptComboBox.setEditable(true);
-        scriptComboBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                scriptComboBoxActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
-        add(scriptComboBox, gridBagConstraints);
+        gridBagConstraints.weighty = 1.0;
+        add(beanPanel, gridBagConstraints);
 
-        loadButton.setText("Browse");
+        loadButton.setText("Load script");
+        loadButton.setEnabled(false);
         loadButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 loadButtonActionPerformed(evt);
@@ -85,35 +72,16 @@ public class BeanShellPanel extends javax.swing.JPanel {
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        add(loadButton, gridBagConstraints);
-
-        beanPanel.setLayout(new java.awt.BorderLayout());
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        add(beanPanel, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        add(loadButton, gridBagConstraints);
 
     }//GEN-END:initComponents
 
     private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
-        System.out.println("loadButton pressed");
+        System.out.println("loadButton pressed, but not implemented");
     }//GEN-LAST:event_loadButtonActionPerformed
-
-    private void scriptComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_scriptComboBoxActionPerformed
-        if (evt.getActionCommand().equals("comboBoxChanged")) {
-            System.err.println("Should try to load " + ((javax.swing.JComboBox)evt.getSource()).getSelectedItem());
-        } else if (evt.getActionCommand().equals("comboBoxEdited")) {
-            System.err.println("Should add " + ((javax.swing.JComboBox)evt.getSource()).getSelectedItem() + " to the history");
-        }
-    }//GEN-LAST:event_scriptComboBoxActionPerformed
 
     public static void main(String[] args) {
         javax.swing.JFrame top = new javax.swing.JFrame("BeanShell Pane");
@@ -140,9 +108,7 @@ public class BeanShellPanel extends javax.swing.JPanel {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel beanPanel;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JButton loadButton;
-    private javax.swing.JComboBox scriptComboBox;
     // End of variables declaration//GEN-END:variables
     
 }
