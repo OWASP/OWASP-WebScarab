@@ -55,7 +55,7 @@ import java.io.IOException;
 public class NetworkSimulator {
     
     private static Timer _timer = new Timer(true);
-    private static int HZ = 2;
+    private static int HZ = 10;
     
     private boolean _shared = false;
     
@@ -192,16 +192,16 @@ public class NetworkSimulator {
     }
     
     public InputStream wrapInputStream(InputStream in) {
-        return new NetworkSimulator.SimulatedInputStream(in);
+        return new NetworkSimulator.ThrottledInputStream(in);
     }
     
     public OutputStream wrapOutputStream(OutputStream out) {
-        return new NetworkSimulator.SimulatedOutputStream(out);
+        return new NetworkSimulator.ThrottledOutputStream(out);
     }
     
-    private class SimulatedInputStream extends FilterInputStream {
+    private class ThrottledInputStream extends FilterInputStream {
         
-        public SimulatedInputStream(InputStream in) {
+        public ThrottledInputStream(InputStream in) {
             super(in);
         }
         
@@ -223,34 +223,28 @@ public class NetworkSimulator {
         
     }
     
-    private class SimulatedOutputStream extends FilterOutputStream {
+    private class ThrottledOutputStream extends FilterOutputStream {
         
-        private boolean _started = false;
-        
-        public SimulatedOutputStream(OutputStream out) {
+        public ThrottledOutputStream(OutputStream out) {
             super(out);
         }
         
-        private void sleep(int period) {
+        private void sleep(long period) {
             try {
                 Thread.sleep(period);
             } catch (InterruptedException ie) {}
         }
         
-        public void write(byte b) throws IOException {
-            if (!_started) { 
-                sleep(_latency);
-                _started = true;
-            }
+        public void write(int b) throws IOException {
+            long finish = System.currentTimeMillis() + _latency;
             while (reserveWrite(1)==0);
             out.write(b);
+            long now = System.currentTimeMillis();
+            if (now < finish) sleep(finish - now);
         }
         
         public void write(byte[] buff, int off, int len) throws IOException {
-            if (!_started) {
-                sleep(_latency);
-                _started = true;
-            }
+            long finish = System.currentTimeMillis() + _latency + (len/(_shared?_sharedBandwidth:_writeBandwidth));
             int allocation;
             while (len > 0) {
                 allocation = reserveWrite(len);
@@ -260,6 +254,8 @@ public class NetworkSimulator {
                     len -= allocation;
                 }
             }
+            long now = System.currentTimeMillis();
+            if (now < finish) sleep(finish - now);
         }
         
     }
