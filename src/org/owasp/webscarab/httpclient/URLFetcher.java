@@ -22,6 +22,11 @@ import java.net.UnknownHostException;
 import java.net.SocketException;
 
 import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.SSLContext;
 
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
@@ -39,12 +44,12 @@ public class URLFetcher implements HTTPClient {
     static private String[] noProxies = new String[0];
     
     // These represent the SSL classes required to connect to the server.
-    //static private SSLSocketFactory factory = null;
-    //static private TrustManager[] trustAllCerts = null;
+    static private SSLSocketFactory factory = null;
+    static private TrustManager[] trustAllCerts = null;
 
     private Socket proxysocket = null;
     private Socket serversocket = null;
-    //private SSLSocket sslsocket = null;
+    private SSLSocket sslsocket = null;
     
     // these represent an already connected socket, and the end point thereof.
     private InputStream in = null;
@@ -65,7 +70,7 @@ public class URLFetcher implements HTTPClient {
     
     /** Create and install a trust manager that does not verify server SSL certificates
      */    
-   /* 
+    
     private void initSSL() {
         // Create a trust manager that does not validate certificate chains
         trustAllCerts = new TrustManager[]{
@@ -91,8 +96,7 @@ public class URLFetcher implements HTTPClient {
             logger.severe("Error setting up SSL Support - Key management exception " + kme);
         }
     }
-		*/
-    
+ 
     /** Tells all instances of URLFetcher which HTTP proxy to use, if any
      * @param proxy The address or name of the proxy server to use for HTTP requests
      * @param proxyport The port on the proxy server to connect to
@@ -211,18 +215,16 @@ public class URLFetcher implements HTTPClient {
                     int cl = Integer.parseInt(length);
                     response.setContentStream(new FixedLengthInputStream(response.getContentStream(),cl));
                 } catch (NumberFormatException nfe) {
-                    logger.warning("NumberFormatException parsing content length = '" + length + "'\n " + nfe);
+                    logger.severe("NumberFormatException parsing content length = '" + length + "'\n " + nfe);
                 }
             }
             String chunked = response.getHeader("Transfer-Encoding");
             if (chunked != null && chunked.equalsIgnoreCase("chunked")) {
-                logger.info("Transfer encoding was '" + chunked +"'");
                 response.setContentStream(new ChunkedInputStream(response.getContentStream()));
                 response.deleteHeader("Transfer-Encoding");
                 response.setHeader("X-Transfer-Encoding", chunked);
             }
             String gzipped = response.getHeader("Content-Encoding");
-            logger.info("Content-encoding was '" + gzipped +"'");
             if (gzipped != null && gzipped.equalsIgnoreCase("gzip")) {
                 response.setContentStream(new GZIPInputStream(response.getContentStream()));
                 response.deleteHeader("Content-Encoding");
@@ -239,7 +241,7 @@ public class URLFetcher implements HTTPClient {
         // We initialise all sockets to null;
         proxysocket = null;
         serversocket = null;
-        //sslsocket = null;
+        sslsocket = null;
         response = null;
         in = null;
         out = null;
@@ -300,9 +302,8 @@ public class URLFetcher implements HTTPClient {
                 serversocket.setSoTimeout(60 * 1000);
             }
             
-            /*
-						if (factory == null) {
-                //initSSL();
+            if (factory == null) {
+                initSSL();
             }
             // Use the factory to create a secure socket connected to the
             // HTTPS port of the specified web server.
@@ -317,7 +318,7 @@ public class URLFetcher implements HTTPClient {
                 "\nYou may want to uncomment the 'startHandshake' line above :-)");
             }
             in = sslsocket.getInputStream();
-            out = sslsocket.getOutputStream(); */
+            out = sslsocket.getOutputStream();
             logger.info("Finished negotiating SSL");
         }
     }
