@@ -533,7 +533,7 @@ public class WebScarab extends javax.swing.JFrame {
      */
     public static void main(String args[]) {
         WebScarab ws = new WebScarab(args);
-        ws.setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
+        // ws.setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
         ws.show();
     }
     

@@ -17,7 +17,6 @@ import java.awt.Font;
 public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
     private HexTableModel _tableModel = null;
-    
     private boolean _editable = false;
     int _columns = 16;
     
@@ -50,7 +49,7 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
     public void setEditable(boolean editable) {
         _editable = editable;
         _tableModel.setEditable(editable);
-        // we could do things like make buttons visible and invisible here
+        // we could do things like make insert and delete buttons visible and invisible here
     }
     
     public void setBytes(byte[] bytes) {
@@ -58,7 +57,7 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     public boolean isModified() {
-        return false;
+        return _tableModel.isModified();
     }
     
     public byte[] getBytes() {
@@ -131,6 +130,7 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
         private byte[] _data = new byte[0];
         private int _columns = 8;
         private boolean _editable = false;
+        private boolean _modified = false;
         
         public HexTableModel() {
         }
@@ -219,6 +219,10 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
             return false;
         }
         
+        public boolean isModified() {
+            return _modified;
+        }
+        
         public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
             int position = rowIndex * _columns + columnIndex-1;
             if (position >= _data.length) {
@@ -229,6 +233,7 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
                 try {
                     _data[position] = new Integer(Integer.parseInt((String) aValue, 16)).byteValue();
                     fireTableCellUpdated(rowIndex, _columns + 1);
+                    _modified = true;
                 } catch (NumberFormatException nfe) {
                     System.out.println("Number format error : " + nfe);
                 }

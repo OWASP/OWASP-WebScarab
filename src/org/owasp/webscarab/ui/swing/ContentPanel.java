@@ -16,6 +16,7 @@ import org.owasp.webscarab.ui.swing.editors.HexPanel;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.SwingUtilities;
 
 // for main()
 import java.io.IOException;
@@ -45,6 +46,7 @@ public class ContentPanel extends javax.swing.JPanel {
     
     private String[] _editorClasses = new String[] {
         "org.owasp.webscarab.ui.swing.editors.ImagePanel",
+        "org.owasp.webscarab.ui.swing.editors.HTMLPanel",
         "org.owasp.webscarab.ui.swing.editors.TextPanel",
     };
     
@@ -77,11 +79,6 @@ public class ContentPanel extends javax.swing.JPanel {
     
     public void setEditable(boolean editable) {
         _editable = editable;
-        Iterator it = _editors.iterator();
-        while (it.hasNext()) {
-            ByteArrayEditor editor = (ByteArrayEditor) it.next();
-            editor.setEditable(editable);
-        }
     }
     
     public void setContent(byte[] content) {
@@ -112,7 +109,11 @@ public class ContentPanel extends javax.swing.JPanel {
         
         _upToDate = new boolean[viewTabbedPane.getTabCount()];
         invalidatePanels();
-        updatePanel(viewTabbedPane.getSelectedIndex());
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                updatePanel(viewTabbedPane.getSelectedIndex());
+            }
+        });
     }
     
     public boolean isModified() {
@@ -144,6 +145,7 @@ public class ContentPanel extends javax.swing.JPanel {
         _selected = panel;
         if (!_upToDate[panel]) {
             ByteArrayEditor editor = (ByteArrayEditor) viewTabbedPane.getComponentAt(panel);
+            editor.setEditable(_editable);
             editor.setBytes(_data);
             _upToDate[panel] = true;
         }
@@ -188,7 +190,7 @@ public class ContentPanel extends javax.swing.JPanel {
         byte[] content = new byte[0];
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            // FileInputStream fis = new FileInputStream("/usr/share/xfce/backdrops/Flower.jpg");
+            /*
             FileInputStream fis = new FileInputStream("/home/rdawes/exodus/HowTo.html");
             byte[] buff = new byte[1024];
             int got = 0;
@@ -196,6 +198,11 @@ public class ContentPanel extends javax.swing.JPanel {
                 baos.write(buff, 0, got);
             }
             content = baos.toByteArray();
+             */
+            java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/santam/webscarab/conversations/44-response");
+            org.owasp.webscarab.model.Response response = new org.owasp.webscarab.model.Response();
+            response.read(fis);
+            content = response.getContent();
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(0);
@@ -222,9 +229,9 @@ public class ContentPanel extends javax.swing.JPanel {
         top.show();
         try {
             cp.setContentType("text/html");
-            cp.setEditable(true);
-            cp.setContent(content);
+            cp.setEditable(false);
             // cp.setContent(null);
+            cp.setContent(content);
         } catch (Exception e) {
             e.printStackTrace();
         }
