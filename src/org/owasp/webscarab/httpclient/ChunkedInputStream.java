@@ -6,6 +6,7 @@
 
 package org.owasp.webscarab.httpclient;
 
+import java.util.ArrayList;
 import java.io.InputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -15,16 +16,19 @@ import java.io.IOException;
  * @author  rdawes
  */
 public class ChunkedInputStream extends FilterInputStream {
-    InputStream _is;
     byte[] chunk = null;
     int start = 0;
     int size = 0;
+    String[][] _trailer = null;
     
-    public ChunkedInputStream(InputStream is) throws IOException {
-        super(is);
+    public ChunkedInputStream(InputStream in) throws IOException {
+        super(in);
         // System.err.println("Creating ChunkedInputStream");
-        _is = is;
         readChunk();
+    }
+    
+    public String[][] getTrailer() {
+        return _trailer;
     }
     
     private void readChunk() throws IOException {
@@ -34,7 +38,7 @@ public class ChunkedInputStream extends FilterInputStream {
             chunk = new byte[size];
             int read = 0;
             while (read < size) {
-                int got = _is.read(chunk,read, size-read);
+                int got = in.read(chunk,read, size-read);
                 if (got>0) {
                     read = read + got;
                 } else if (read == 0) {
@@ -45,6 +49,9 @@ public class ChunkedInputStream extends FilterInputStream {
                 }
             }
             String crlf = readLine();
+            if (size == 0) { // read the trailer and the CRLF
+                readTrailer();
+            }
             // System.out.print("Got '" + crlf + "' as a crlf");
             // System.out.println("Got " + size);
             start = 0;
@@ -90,8 +97,8 @@ public class ChunkedInputStream extends FilterInputStream {
         return len;
     }
     
-    public int available() {
-        return size - start;
+    public int available() throws IOException {
+        return (size - start) + super.available();
     }
     
     public boolean markSupported() {
@@ -102,20 +109,39 @@ public class ChunkedInputStream extends FilterInputStream {
         String line = new String();
         int i;
         byte[] b={(byte)0x00};
-        i = _is.read();
+        i = in.read();
         while (i > -1 && i != 10 && i != 13) {
             // Convert the int to a byte
             // we use an array because we can't concat a single byte :-(
             b[0] = (byte)(i & 0xFF);
             String input = new String(b,0,1);
             line = line.concat(input);
-            i = _is.read();
+            i = in.read();
         }
         if (i == 13) { // 10 is unix LF, but DOS does 13+10, so read the 10 if we got 13
-            i = _is.read();
+            i = in.read();
         }
         // System.out.println("Read '" + line + "'");
         return line;
     }
     
+    private void readTrailer() {
+        String line = readLine();
+        ArrayList trailer = new ArrayList();
+        while (!line.equals("")) {
+            String[] pair = line.split(": *",2);
+            if (pair.length == 2) {
+                trailer.add(pair);
+            }
+            line = readLine();
+        }
+        if (trailer.size()>0) {
+            _trailer = new String[trailer.size()][2];
+            for (int i=0; i<trailer.size(); i++) {
+                String[] pair = (String[]) trailer.get(i);
+                _trailer[i][0] = pair[0];
+                _trailer[i][1] = pair[1];
+            }
+        }
+    }
 }
