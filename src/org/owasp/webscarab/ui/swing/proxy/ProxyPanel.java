@@ -35,9 +35,11 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
         proxy.addPlugin(me);
         RevealHidden rh = new RevealHidden();
         proxy.addPlugin(rh);
+        BrowserCache bc = new BrowserCache();
+        proxy.addPlugin(bc);
         
         addPlugin(new ManualEditPanel(me));
-        addPlugin(new RevealHiddenPanel(rh));
+        addPlugin(new RevealHiddenPanel(rh, bc));
     }
 
     public javax.swing.JPanel getPanel() {

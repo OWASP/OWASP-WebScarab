@@ -18,10 +18,12 @@ import org.owasp.webscarab.ui.swing.SwingPlugin;
 public class RevealHiddenPanel extends javax.swing.JPanel implements SwingPlugin {
     
     private RevealHidden _revealHidden;
+    private BrowserCache _browsercache;
     
     /** Creates new form RevealHiddenPanel */
-    public RevealHiddenPanel(RevealHidden revealHidden) {
+    public RevealHiddenPanel(RevealHidden revealHidden, BrowserCache browserCache) {
         _revealHidden = revealHidden;
+        _browsercache = browserCache;
         initComponents();
         configure();
     }
@@ -31,11 +33,12 @@ public class RevealHiddenPanel extends javax.swing.JPanel implements SwingPlugin
     }    
     
     public String getPluginName() {
-        return new String("Reveal Hidden");
+        return new String("Miscellaneous");
     }    
     
     private void configure() {
         interceptHiddenFieldCheckBox.setSelected(_revealHidden.getEnabled());
+        browserCacheCheckBox.setSelected(_browsercache.getEnabled());
     }
     
     /** This method is called from within the constructor to
@@ -47,6 +50,7 @@ public class RevealHiddenPanel extends javax.swing.JPanel implements SwingPlugin
         java.awt.GridBagConstraints gridBagConstraints;
 
         interceptHiddenFieldCheckBox = new javax.swing.JCheckBox();
+        browserCacheCheckBox = new javax.swing.JCheckBox();
         spacerLabel = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
@@ -64,9 +68,24 @@ public class RevealHiddenPanel extends javax.swing.JPanel implements SwingPlugin
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         add(interceptHiddenFieldCheckBox, gridBagConstraints);
 
+        browserCacheCheckBox.setText("Prevent browser from caching content : ");
+        browserCacheCheckBox.setToolTipText("Select this to change all hidden form fields to text fields. Looks at pages of type HTML and javascript.");
+        browserCacheCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+        browserCacheCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                browserCacheCheckBoxActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        add(browserCacheCheckBox, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
@@ -75,20 +94,16 @@ public class RevealHiddenPanel extends javax.swing.JPanel implements SwingPlugin
 
     }//GEN-END:initComponents
 
+    private void browserCacheCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browserCacheCheckBoxActionPerformed
+        _browsercache.setEnabled(browserCacheCheckBox.isSelected());
+    }//GEN-LAST:event_browserCacheCheckBoxActionPerformed
+
     private void interceptHiddenFieldCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_interceptHiddenFieldCheckBoxActionPerformed
         _revealHidden.setEnabled(interceptHiddenFieldCheckBox.isSelected());
     }//GEN-LAST:event_interceptHiddenFieldCheckBoxActionPerformed
-
-    public void newSession(String dir) {
-    }    
-    
-    public void openSession(String dir) {
-    }
-    
-    public void saveSession(String dir) {
-    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox browserCacheCheckBox;
     private javax.swing.JCheckBox interceptHiddenFieldCheckBox;
     private javax.swing.JLabel spacerLabel;
     // End of variables declaration//GEN-END:variables
