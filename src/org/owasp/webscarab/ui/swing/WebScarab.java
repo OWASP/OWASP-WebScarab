@@ -40,13 +40,17 @@ public class WebScarab
     private SiteModel _sitemodel;
     private Proxy _proxy;
     // private Spider _spider;
-
+    
+    private Parser _parser;
+    
     ArrayList _plugins = null;
     WebScarabPlugin[] _pluginArray = new WebScarabPlugin[0];
     
     /** Creates a new instance of WebScarab */
     public WebScarab() {
         _sitemodel = new SiteModel();
+        _parser = new Parser();
+        _parser.registerScanners();
     }
     
     public SiteModel getSiteModel() {
@@ -68,23 +72,22 @@ public class WebScarab
         URLInfo urlinfo = _sitemodel.createURLInfo(conversation);
         
         String ct = conversation.getResponse().getHeader("Content-Type");
-        Parser parser = null;
         if (ct != null && ct.matches("text/html.*")) {
-            _logger.info("Creating the parser");
             byte[] content = conversation.getResponse().getContent();
             String url = conversation.getRequest().getURL().toString();
         
             if (content != null && content.length > 0) {
                 NodeReader reader = new NodeReader(new InputStreamReader(new ByteArrayInputStream(content)), url);
-                parser = new Parser(reader);
-                parser.registerScanners();
                 NodeList nodelist = new NodeList();
-                try {
-                    for (NodeIterator ni = parser.elements(); ni.hasMoreNodes();) {
-                        nodelist.add(ni.nextNode());
+                synchronized (_parser) {
+                    _parser.setReader(reader);
+                    try {
+                        for (NodeIterator ni = _parser.elements(); ni.hasMoreNodes();) {
+                            nodelist.add(ni.nextNode());
+                        }
+                    } catch (ParserException pe) {
+                        _logger.severe("ParserException : " + pe);
                     }
-                } catch (ParserException pe) {
-                    _logger.severe("ParserException : " + pe);
                 }
                 conversation.setNodeList(nodelist);
             }
@@ -99,7 +102,7 @@ public class WebScarab
         
         // Then clean up the interim data objects in the Conversation to save memory
         // kills the Request, Response and NodeList
-        // conversation.flush();
+        conversation.flush();
         
         return id;
     }
