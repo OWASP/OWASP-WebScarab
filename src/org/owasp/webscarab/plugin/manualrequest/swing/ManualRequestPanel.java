@@ -95,13 +95,18 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         
         _manualRequest = manualRequest;
         
+        Request request = new Request();
+        request.setMethod("GET");
+        request.setVersion("HTTP/1.0");
         _requestPanel = new RequestPanel();
-        _requestPanel.setRequest(null, true);
+        _requestPanel.setEditable(true);
+        _requestPanel.setRequest(request);
         _requestPanel.setBorder(new TitledBorder("Request"));
         conversationSplitPane.setLeftComponent(_requestPanel);
         
         _responsePanel = new ResponsePanel();
-        _responsePanel.setResponse(null, false);
+        _responsePanel.setEditable(false);
+        _responsePanel.setResponse(null);
         _responsePanel.setBorder(new TitledBorder("Response"));
         conversationSplitPane.setRightComponent(_responsePanel);
         
@@ -150,6 +155,7 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
 
         conversationSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         conversationSplitPane.setResizeWeight(0.5);
+        conversationSplitPane.setOneTouchExpandable(true);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -352,7 +358,8 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         }
         
         public void run() {
-            _requestPanel.setRequest(_req, true);
+            _requestPanel.setEditable(true);
+            _requestPanel.setRequest(_req);
         }
         
     }
@@ -375,7 +382,8 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         }
         
         public void run() {
-            _responsePanel.setResponse(_resp, false);
+            _responsePanel.setEditable(false);
+            _responsePanel.setResponse(_resp);
         }
         
     }
