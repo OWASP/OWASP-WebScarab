@@ -1,7 +1,7 @@
 package org.owasp.webscarab.plugin.proxy;
 
 /*
- * $Id: Proxy.java,v 1.14 2004/06/03 10:57:09 rogan Exp $
+ * $Id: Proxy.java,v 1.15 2004/10/02 18:50:08 rogan Exp $
  */
 
 import java.net.ServerSocket;
@@ -52,8 +52,8 @@ public class Proxy extends AbstractWebScarabPlugin {
         String prop = "Proxy.listeners";
         String value = _prop.getProperty(prop);
         if (value == null || value.trim().equals("")) {
-            _logger.warning("No proxies configured!?");
-            return;
+            _logger.warning("No proxies configured!? Using default listener");
+            value = "127.0.0.1:8008";
         }
         String[] listeners = value.trim().split(" *,+ *");
         
@@ -80,9 +80,7 @@ public class Proxy extends AbstractWebScarabPlugin {
             prop = "Proxy.listener." + listeners[i] + ".useplugins";
             value = _prop.getProperty(prop);
             
-            if (value == null) {
-                usePlugins = false;
-            } else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes")) {
+            if (value == null || value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes")) {
                 usePlugins = true;
             } else {
                 usePlugins = false;
@@ -95,6 +93,7 @@ public class Proxy extends AbstractWebScarabPlugin {
                 simulator = value;
             } else {
                 _logger.warning("Unknown network simulator '" + value + "'");
+                simulator = "Unlimited";
             }
             
             try { 
