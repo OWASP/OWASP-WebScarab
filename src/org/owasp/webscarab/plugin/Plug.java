@@ -22,7 +22,5 @@ public interface Plug {
     
     String addConversation( Request request, Response response );
 
-    Properties getProperties();
-    
     CookieJar getCookieJar();
 }
