@@ -42,7 +42,7 @@ public class EditorFactory {
         registerEditor("application/x-javascript","org.owasp.webscarab.ui.swing.editors.TextPanel");
         registerEditor("application/x-www-form-urlencoded","org.owasp.webscarab.ui.swing.editors.TextPanel");
         registerEditor(".*", "org.owasp.webscarab.ui.swing.editors.HexPanel");
-        registerEditor(".*","org.owasp.webscarab.ui.swing.editors.CompressedTextPanel");
+        // registerEditor(".*","org.owasp.webscarab.ui.swing.editors.CompressedTextPanel");
     }
     
     public static void registerEditor(String contentType, String editorClass) {
