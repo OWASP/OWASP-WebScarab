@@ -29,13 +29,13 @@
 package org.owasp.webscarab.spider;
 
 import java.util.Iterator;
-import org.owasp.util.ArrayIterator;
+import org.owasp.util.iterator.ArrayIterator;
 
 /** 
  * Tag in an HTML page.
  * 
  * @since 0.poc
- * @version 0.poc<br />$Revision: 1.2 $ $Author: istr $
+ * @version 0.poc<br />$Revision: 1.3 $ $Author: istr $
  * @author Robert C. Miller
  * @author Krishna Barat
  * @see <a href="http://www.cs.cmu.edu/~rcm/websphinx">WebSPHINX homepage</a>
