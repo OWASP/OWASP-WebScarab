@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project basedir="." default="build" name="WebScarab">
-	<target name="init">
-        <tstamp/>
-		<property name="dist" value="webscarab"/>
-		<property name="jarname" value="webscarab-${DSTAMP}-${TSTAMP}"/>
+<project basedir="." default="run" name="WebScarab">
+        <target name="init">
+        	<taskdef name="vainstall" classname="com.memoire.vainstall.ant.VAInstallTask" classpath="lib/vainstall.jar" />
+                <tstamp/>
+		<property name="jarname" value="webscarab.jar"/>
 		<property name="source" value="src"/>
 		<property name="classes" value="classes"/>
 		<property name="mainclass" value="org.owasp.webscarab.ui.swing.WebScarab"/>
@@ -19,9 +19,11 @@
 	</target>
 	<target depends="init" name="clean">
 		<delete dir="${classes}"/>
+                <delete file="${jarname}"/>
+                <delete file="${vainstall.archive.installClassName}.jar"/>
 		<delete verbose="on">
-			<fileset defaultexcludes="org" dir="." includes="**/*~"/>
-			<fileset defaultexcludes="org" dir="." includes="**/*.class"/>
+			<fileset dir="${source}" includes="**/*~"/>
+			<fileset dir="${source}" includes="**/*.class"/>
 		</delete>
 	</target>
 	<target depends="init" name="prepare">
@@ -33,18 +35,35 @@
 	<target depends="compile" name="build">
                 <mkdir dir="${classes}/lib/"/>
                 <copy file="serverkeys" todir="${classes}"/>
-                <!-- <copy file="${ocljar}" todir="${classes}/lib/"/>
-                <copy file="${htmlparserjar}" todir="${classes}/lib"/> -->
-		<jar basedir="${classes}" jarfile="${jarname}.jar">
+		<jar basedir="${classes}" jarfile="${jarname}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
                         <attribute name="Class-Path" value="lib/owasp.jar lib/htmlparser.jar"/>
                     </manifest>
                 </jar>
+                <echo message="${DSTAMP}-${TSTAMP}" file="timestamp"/>
 	</target>
 	<target depends="compile" name="run">
 		<java classname="${mainclass}" classpathref="cpath" fork="on">
 		</java>
 	</target>
-        
+        <target name="installer" depends="build">
+                <!-- this does not work currently as an ant task, but it does from the shell 
+                     HELP?  In the mean time, use the shell script
+                -->
+                <property name="vainstall.archive.license" value="${basedir}/LICENSE"/>
+                <property name="vainstall.archive.readme" value="${basedir}/README"/>
+                <property name="vainstall.destination.appVersion" value="${DSTAMP}-${TSTAMP}"/>
+                <property file="webscarab.vai" />
+                <vainstall>
+                        <fileset file="${jarname}"/>
+                        <fileset dir="lib" includes="**/owasp.jar"/>
+                        <fileset dir="lib" includes="**/htmlparser.jar"/>
+                        <javalauncher scriptname="webscarab"
+                                javaclass="${mainclass}"
+                                classpath="${jarname}"
+                                />
+                </vainstall>
+        </target>
+
 </project>

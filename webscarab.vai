@@ -1,0 +1,89 @@
+# Example install script for VAInstall
+# ------------------------------------
+
+# ArchivingMethod = append | include (do not change)
+vainstall.archive.archivingMethod=append
+
+# Name of install class
+vainstall.archive.installClassName=Installer
+
+# Path of file listing files to include in the archive
+vainstall.archive.filelist=filelist.txt
+
+# targets: java, jar, jnlp, unix, linux-i386, win95 (comma separated)
+#vainstall.destination.targets=unix,jar,java
+vainstall.destination.targets=jar
+
+# ui = graphic | xtra | text | ansi (default=graphic)
+vainstall.destination.ui=graphic
+
+# graphics ui language = choose, english, french, danish, japanese
+vainstall.destination.language=english
+
+# bluescreen or no blue screen?
+vainstall.destination.ui.bluescreen=no
+
+# bluescreen colour
+vainstall.destination.ui.bluescreen.colour=FFBBAA
+
+# banner image (if file not found, a default banner will be used)
+vainstall.destination.ui.image=owasp-small.gif
+
+# Destination path by default (can be redefined at install time)
+# This is ignored if "vainstall.destination.installMode" is not "install".
+# Predefined macros or drive letters can be used in leading brackets:
+# HOME=platform-specific home dir
+# PROGRAM=platform-specific program files location:
+#   ("C:\Program Files" under Windows or "/usr/local" under Unix)
+# C: -> "C:" drive under Windows, "/" under Unix
+vainstall.destination.defaultPath=[PROGRAM]owasp/webscarab
+
+# install or update?
+# If you choose update, vainstall.destination.defaultPath will be
+# forced to the directory of previous installations of this package
+# on the destination machine. If there is none, the installer will exit.
+# update mode is useful for differential update.
+# module is specially tuned for module/plugin installation.
+# module is similar to update but it enforces that the version be equal
+# to the one of the installed software on the dest host.
+vainstall.destination.installMode=install
+
+# Name of the application to package
+vainstall.destination.appName=WebScarab
+
+# Version of the application
+vainstall.destination.appVersion=TIMESTAMP
+
+# Link section (sub-menu) name (default="Applications")
+vainstall.destination.linkSectionName=
+
+# Link section (sub-menu) icon (default=none)
+vainstall.destination.linkSectionIcon=none
+
+# Link entry (shortcut) name (default=appName)
+vainstall.destination.linkEntryName=WebScarab
+
+
+# Link entry (shortcut) icon (default=none)
+vainstall.destination.linkEntryIcon=none
+
+# Path of license file
+vainstall.archive.license=LICENSE
+
+# Encoding of license file, Optional
+#vainstall.archive.license.encoding = UTF-8
+
+# Path of readme file
+vainstall.archive.readme=README
+
+# Encoding of readme file, Optional
+#vainstall.archive.readme.encoding = Shift_JIS
+
+# Jar Section
+# vainstall.jarsigner.alias=
+# vainstall.jarsigner.passphrase=
+
+# Jnlp Section
+# vainstall.jnlp.codebase=http://localhost/app/
+# vainstall.jnlp.homepage=http://www.owasp.org/development/webscarab
+# vainstall.jnlp.vendor=OWASP
