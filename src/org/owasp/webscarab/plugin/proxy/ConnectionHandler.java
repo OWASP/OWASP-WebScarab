@@ -27,28 +27,13 @@ public class ConnectionHandler implements Runnable {
     
     private static SSLSocketFactory _factory = null;
     
-    private static String _keystore = "/server.p12";
+    private static String _keystore = "server.p12";
     private static char[] _keystorepass = "password".toCharArray();
     private static char[] _keypassword = "password".toCharArray();
     
-    static {
-        KeyStore ks = null;
-        KeyManagerFactory kmf = null;
-        SSLContext sslcontext = null;
-        try {
-            ks = KeyStore.getInstance("PKCS12");
-            ks.load(ClassLoader.getSystemResourceAsStream(_keystore), _keystorepass);
-            kmf = KeyManagerFactory.getInstance("SunX509");
-            kmf.init(ks, _keypassword);
-            sslcontext = SSLContext.getInstance("SSLv3");
-            sslcontext.init(kmf.getKeyManagers(), null, null);
-            _factory = sslcontext.getSocketFactory();
-        } catch (Exception e) {
-            Logger logger = Logger.getLogger("org.owasp.webscarab.plugin.proxy.ConnectionHandler");
-            logger.severe("Exception accessing keystore: " + e);
-            _factory = null;
-        }
-    }
+//    static {
+//        initSSL();
+//    }
     
     private ProxyPlugin[] _plugins = null;
     private Listener _listener;
@@ -253,7 +238,29 @@ public class ConnectionHandler implements Runnable {
         }
     }
     
+    private void initSSL() {
+        KeyStore ks = null;
+        KeyManagerFactory kmf = null;
+        SSLContext sslcontext = null;
+        try {
+            ks = KeyStore.getInstance("PKCS12");
+            InputStream is = ClassLoader.getSystemResourceAsStream(_keystore);
+            if (is == null) throw new NullPointerException("No keystore found!!");
+            ks.load(is, _keystorepass);
+            kmf = KeyManagerFactory.getInstance("SunX509");
+            kmf.init(ks, _keypassword);
+            sslcontext = SSLContext.getInstance("SSLv3");
+            sslcontext.init(kmf.getKeyManagers(), null, null);
+            _factory = sslcontext.getSocketFactory();
+            _logger.info("Initialised SSL handler OK");
+        } catch (Exception e) {
+            _logger.severe("Exception accessing keystore: " + e);
+            _factory = null;
+        }
+    }
+    
     private Socket negotiateSSL(Socket sock) throws Exception {
+        if (_factory == null) initSSL();
         SSLSocket sslsock;
         try {
             sslsock=(SSLSocket)_factory.createSocket(sock,sock.getInetAddress().getHostName(),sock.getPort(),true);
@@ -261,7 +268,7 @@ public class ConnectionHandler implements Runnable {
             _logger.fine("Finished negotiating SSL - algorithm is " + sslsock.getSession().getCipherSuite());
             return sslsock;
         } catch (Exception e) {
-            _logger.severe("Error layering SSL over the socket");
+            _logger.severe("Error layering SSL over the socket: " + e);
             throw e;
         }
     }
