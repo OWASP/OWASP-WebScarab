@@ -8,6 +8,7 @@ package org.owasp.webscarab.plugin;
 
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.model.CookieJar;
 
 import java.util.Properties;
 
@@ -23,4 +24,5 @@ public interface Plug {
 
     Properties getProperties();
     
+    CookieJar getCookieJar();
 }

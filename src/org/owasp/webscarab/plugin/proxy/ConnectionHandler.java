@@ -11,6 +11,7 @@ import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.model.CookieJar;
 
 import org.owasp.webscarab.httpclient.URLFetcher;
 
@@ -22,6 +23,8 @@ public class ConnectionHandler implements Runnable {
     private Plug _plug;
     private ProxyPlugin[] _plugins;
     private Socket _sock;
+    private CookieJar _cookieJar;
+    
     private InputStream clientin;
     private OutputStream clientout;
     
@@ -45,6 +48,7 @@ public class ConnectionHandler implements Runnable {
                 _plugins[i] = (ProxyPlugin) plugins.get(i);
             }
         }
+        _cookieJar = plug.getCookieJar();
         
         try {
             sock.setTcpNoDelay(true);
@@ -161,6 +165,7 @@ public class ConnectionHandler implements Runnable {
                     Response resp = recorder.getResponse();
                     if (req != null && resp != null) {
                         _plug.addConversation(req, resp);
+                        _cookieJar.updateCookies(resp);
                     }
                     recorder.reset();
                 }

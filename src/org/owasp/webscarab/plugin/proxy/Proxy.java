@@ -1,7 +1,7 @@
 package org.owasp.webscarab.plugin.proxy;
 
 /*
- * $Id: Proxy.java,v 1.7 2003/08/31 23:01:44 rogan Exp $
+ * $Id: Proxy.java,v 1.8 2003/09/11 20:47:57 rogan Exp $
  */
 
 import java.net.ServerSocket;
@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 import org.owasp.webscarab.model.StoreException;
+import org.owasp.webscarab.model.CookieJar;
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
 
@@ -177,6 +178,10 @@ public class Proxy extends AbstractWebScarabPlugin {
      */
     public String getPluginName() {
         return new String("Proxies");
+    }
+    
+    public CookieJar getCookieJar() {
+        return _plug.getCookieJar();
     }
     
     public void setSessionStore(Object store) throws StoreException {

@@ -11,6 +11,7 @@ import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.Conversation;
 import org.owasp.webscarab.model.URLInfo;
 import org.owasp.webscarab.model.StoreException;
+import org.owasp.webscarab.model.CookieJar;
 
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
@@ -70,6 +71,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     private AsyncFetcher[] _fetchers;
     private int _threads = 4;
     private boolean _recursive = false;
+    private boolean _cookieSync = true;
     
     private String _allowedDomains = ".*localhost.*";
     private String _forbiddenPaths = "";
@@ -78,9 +80,12 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     private SpiderStore _store = null;
     
+    private CookieJar _cookieJar;
+    
     /** Creates a new instance of Spider */
     public Spider(Plug plug) {
         _plug = plug;
+        _cookieJar = plug.getCookieJar();
         
         _logger.info("Spider initialised");
         Thread me = new Thread(this);
@@ -107,6 +112,9 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                     request = response.getRequest();
                     if (request != null) {
                         _plug.addConversation(request, response);
+                        if (_cookieSync) {
+                            _cookieJar.updateCookies(response);
+                        }
                     }
                 }
             } catch (ArrayIndexOutOfBoundsException aioob) {
@@ -118,7 +126,19 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     }
     
     private void queueRequest(Request request) {
-        // add cookies, etc
+        // FIXME!
+        // we need to be more careful about adding requests to the queue.
+        // if we get cookies back, we want to be able to add them to following
+        // requests. The way we do it currently, those requests are already 
+        // queued, most likely :-(
+        //
+        // We could probably do that in the main run() loop, rather. Add the requests 
+        // to a local queue, and as we get responses from the AsyncFetchers, remove 
+        // pending requests, update the Cookies, and queue them to the AsyncFetchers.
+        //
+        if (_cookieSync) {
+            _cookieJar.addRequestCookies(request);
+        }
         // set the UserAgent, Accept headerss, etc
         _requestQueue.add(request);
     }
@@ -147,6 +167,14 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     public boolean getRecursive() {
         return _recursive;
+    }
+    
+    public void setCookieSync(boolean enabled) {
+        _cookieSync = enabled;
+    }
+    
+    public boolean getCookieSync() {
+        return _cookieSync;
     }
     
     /** Called by the WebScarab data model once the {@link Response} has been parsed. It
