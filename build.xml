@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="build" name="WebScarab">
+        <target name="init">
+                <tstamp/>
+		<property name="jarname" value="webscarab.jar"/>
+		<property name="source" value="src"/>
+		<property name="classes" value="classes"/>
+		<property name="mainclass" value="org.owasp.webscarab.ui.swing.WebScarab"/>
+
+                <property name="ocljar" value="lib/owasp.jar"/>
+             	<property name="junitjar" value="lib/junit-3.7.jar"/>
+             	<property name="htmlparserjar" value="lib/htmlparser.jar"/>
+             	<property name="vulnxmljar" value="lib/vulnxml.jar"/>
+             	<property name="beanshelljar" value="lib/bsh-2.0b1.jar"/>
+             	<property name="jfreechartjar" value="lib/jfreechart-0.9.12.jar"/>
+             	<property name="jcommonjar" value="lib/jcommon-0.8.7.jar"/>
+       		
+                <path id="cpath">
+			<pathelement location="./classes/"/>
+			<pathelement path="${ocljar}"/>
+                        <pathelement path="${junitjar}"/>
+                        <pathelement path="${htmlparserjar}"/>
+			<pathelement location="${vulnxmljar}"/>
+			<pathelement location="${beanshelljar}"/>
+			<pathelement location="${jfreechartjar}"/>
+			<pathelement location="${jcommonjar}"/>
+			<pathelement path="/opt/owasp/vulnxml/lib/commons-collections.jar"/>
+			<pathelement path="/opt/owasp/vulnxml/lib/commons-digester.jar"/>
+			<pathelement path="/opt/owasp/vulnxml/lib/commons-logging.jar"/>
+			<pathelement path="/opt/owasp/vulnxml/lib/gnu-regexp-1.1.4.jar"/>
+		</path>
+	</target>
+	<target depends="init" name="clean">
+		<delete dir="${classes}"/>
+                <delete file="${jarname}"/>
+                <delete file="WebScarab-*.jar"/>
+		<delete verbose="on">
+			<fileset dir="${source}" includes="**/*~"/>
+			<fileset dir="${source}" includes="**/*.class"/>
+		</delete>
+	</target>
+	<target depends="init" name="prepare">
+		<mkdir dir="${classes}"/>
+	</target>
+	<target depends="prepare" name="compile">
+                <copy file="serverkeys" todir="${classes}"/>
+		<javac classpathref="cpath" compiler="extJavac" deprecation="off" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}" listfiles="yes">
+                </javac>
+	</target>
+	<target depends="compile" name="build">
+		<jar basedir="${classes}" jarfile="${jarname}">
+                    <manifest>
+                        <attribute name="Main-Class" value="${mainclass}"/>
+                        <attribute name="Class-Path" value="${ocljar} ${htmlparserjar} ${vulnxmljar} ${beanshelljar} ${jfreechartjar} ${jcommonjar}"/>
+                    </manifest>
+                </jar>
+	</target>
+	<target depends="compile" name="run">
+		<java classname="${mainclass}" classpathref="cpath" fork="on">
+		</java>
+	</target>
+	<target depends="build" name="installer">
+                <taskdef name="izpack" classpath="${basedir}/izpack/lib/compiler.jar"
+                     classname="com.izforge.izpack.ant.IzPackTask"/>
+		<izpack input="installer/izpack.xml"
+			output="WebScarab-${DSTAMP}-${TSTAMP}.jar"
+			installerType="standard"
+			basedir="${basedir}"
+			izPackDir="./izpack/"
+                />
+	</target>
+</project>
