@@ -35,6 +35,8 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
     
     private void configure() {
         recursiveCheckBox.setSelected(_spider.getRecursive());
+        domainRegexTextField.setText(_spider.getAllowedDomains());
+        pathRegexTextField.setText(_spider.getForbiddenPaths());
     }
     
     /** This method is called from within the constructor to
@@ -59,10 +61,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
 
         unseenLinkTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+
             },
             new String [] {
                 "Title 1", "Title 2", "Title 3", "Title 4"
@@ -103,7 +102,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
         gridBagConstraints.gridy = 2;
         add(stopButton, gridBagConstraints);
 
-        jLabel1.setText("Include Domains");
+        jLabel1.setText("Allowed Domains");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -123,7 +122,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
         gridBagConstraints.weightx = 1.0;
         add(domainRegexTextField, gridBagConstraints);
 
-        jLabel2.setText("Exclude Paths");
+        jLabel2.setText("Forbidden Paths");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
@@ -164,15 +163,17 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
     }//GEN-END:initComponents
 
     private void pathRegexTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pathRegexTextFieldFocusLost
+        _spider.setForbiddenPaths(pathRegexTextField.getText());
         System.out.println("pathRegex focus lost");
     }//GEN-LAST:event_pathRegexTextFieldFocusLost
 
     private void pathRegexTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pathRegexTextFieldActionPerformed
+        _spider.setForbiddenPaths(pathRegexTextField.getText());
         System.out.println("path regex actionPerformed");
     }//GEN-LAST:event_pathRegexTextFieldActionPerformed
 
     private void domainRegexTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_domainRegexTextFieldActionPerformed
-        System.out.println("domain regex actionPerformed");
+        _spider.setAllowedDomains(domainRegexTextField.getText());
     }//GEN-LAST:event_domainRegexTextFieldActionPerformed
 
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
@@ -182,6 +183,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
     private void fetchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fetchButtonActionPerformed
         int[] rows = unseenLinkTable.getSelectedRows();
         if (rows.length<1) return;
+        unseenLinkTable.clearSelection();
         String[] urls = new String[rows.length];
         for (int i=0; i<rows.length; i++) {
             urls[i] = (String) unseenLinkTable.getModel().getValueAt(rows[i], 1);
