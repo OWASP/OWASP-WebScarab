@@ -42,8 +42,6 @@ public class ContentPanel extends javax.swing.JPanel {
     private int _selected = -1;
     private boolean[] _upToDate = new boolean[] {false};
     
-    // private ObjectPanel _objectPanel = new ObjectPanel();
-    
     private String[] _editorClasses = new String[] {
         "org.owasp.webscarab.ui.swing.editors.SerializedObjectPanel",
         "org.owasp.webscarab.ui.swing.editors.ImagePanel",
@@ -115,20 +113,20 @@ public class ContentPanel extends javax.swing.JPanel {
     
     private void addEditors() {
         viewTabbedPane.removeAll();
-        if (_contentType != null) {
-            Iterator it = _editors.iterator();
-            while (it.hasNext()) {
-                ByteArrayEditor editor = (ByteArrayEditor) it.next();
-                String[] types = editor.getContentTypes();
-                for (int i=0; i<types.length; i++) {
-                    if (_contentType.matches(types[i])) {
-                        viewTabbedPane.add((Component) editor);
-                        continue;
+        if ((_data != null && _data.length > 0 ) || _editable) {
+            if (_contentType != null) {
+                Iterator it = _editors.iterator();
+                while (it.hasNext()) {
+                    ByteArrayEditor editor = (ByteArrayEditor) it.next();
+                    String[] types = editor.getContentTypes();
+                    for (int i=0; i<types.length; i++) {
+                        if (_contentType.matches(types[i])) {
+                            viewTabbedPane.add((Component) editor);
+                            continue;
+                        }
                     }
                 }
             }
-        }
-        if (_data != null || _editable) {
             viewTabbedPane.add(_hexPanel.getName(), _hexPanel);
         }
         _upToDate = new boolean[viewTabbedPane.getTabCount()];
