@@ -13,15 +13,13 @@ import java.io.OutputStream;
 import java.io.FilterInputStream;
 
 public class FixedLengthInputStream extends FilterInputStream {
-    InputStream is;
-    int max;
-    int read = 0;
-    int mark = 0;
-    boolean closed = false;
+    private int max;
+    private int read = 0;
+    private int mark = 0;
+    private boolean closed = false;
     
     public FixedLengthInputStream(InputStream is, int max) {
         super(is);
-        this.is = is;
         this.max=max;
     }
     
@@ -30,7 +28,7 @@ public class FixedLengthInputStream extends FilterInputStream {
             throw new IOException("available called on closed stream");
         }
         int canread = max - read;
-        int available = is.available();
+        int available = super.available();
         if (canread > available) {
             available = canread;
         }
@@ -42,11 +40,11 @@ public class FixedLengthInputStream extends FilterInputStream {
     }
     
     public void mark(int readlimit) {
-        is.mark(readlimit);
+        super.mark(readlimit);
     }
     
     public boolean markSupported() {
-        return is.markSupported();
+        return super.markSupported();
     }
     
     public int read() throws IOException {
@@ -58,7 +56,7 @@ public class FixedLengthInputStream extends FilterInputStream {
             canread = 0;
         }
         if (canread>0) {
-            int b = is.read();
+            int b = super.read();
             if (b > -1) {
                 read++;
             }
@@ -76,12 +74,9 @@ public class FixedLengthInputStream extends FilterInputStream {
         if (closed) {
             throw new IOException("read called on closed stream");
         }
-        int canread = max - read;
-        if (canread > len) {
-            canread = len;
-        }
+        int canread = Math.min(len, max - read);
         if (canread>0) {
-            int bytesRead = is.read(b,off,canread);
+            int bytesRead = super.read(b,off,canread);
             if (bytesRead > -1) {
                 read = read + bytesRead;
             }
@@ -93,17 +88,20 @@ public class FixedLengthInputStream extends FilterInputStream {
     
     public long skip(long n) throws IOException {
         if (closed) {
-            throw new IOException("read called on closed stream");
+            throw new IOException("skip called on closed stream");
         }
         int canread = max - read;
         if (n > canread) {
             n = canread;
         }
         if (n>0) {
-            n = is.skip(n);
+            n = super.skip(n);
             read = read + (int) n;
         }
         return n;
     }
     
+    public String toString() {
+        return this.getClass().getName() + " on a " + super.in.getClass().getName() + " (" + read + " of " + max + ")";
+    }
 }
