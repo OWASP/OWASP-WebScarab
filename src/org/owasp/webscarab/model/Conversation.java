@@ -82,6 +82,39 @@ public class Conversation {
         return _props.keySet();
     }
     
+    public void addProperty(String key, String value) {
+        synchronized (_props) {
+            String current = getProperty(key);
+            if (current == null) {
+                setProperty(key, value);
+            } else {
+                int pos = current.indexOf(value);
+                if ( pos == -1 ) {
+                    setProperty(key,current + ", " + value);
+                } else {
+                    boolean present = false;
+                    while (pos > -1 && !present) {
+                        if (pos + value.length() == current.length() || current.substring(pos+value.length(),pos+value.length()+1).equals(",")) {
+                            present = true;
+                        }
+                        pos = current.indexOf(value,pos+1);
+                    }
+                    if (!present) {
+                        setProperty(key,current + ", " + value);
+                    }
+                }
+            }
+        }
+    }
+
+    public String[] getPropertyAsArray(String key) {
+        String value = getProperty(key);
+        if (value == null || value.length() == 0) {
+            return null;
+        }
+        return value.split(", *");
+    }
+
     private static String checksum(byte[] content) {
         MessageDigest md = null;
         try {
