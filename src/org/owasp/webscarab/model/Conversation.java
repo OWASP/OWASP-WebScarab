@@ -33,7 +33,7 @@ public class Conversation {
         _props = new Properties();
         URL url = request.getURL();
         setProperty("METHOD", request.getMethod());
-        setProperty("URL", URLUtil.schemeAuth(url));
+        setProperty("URL", URLUtil.schemeHostPortPath(url));
         String value = url.getQuery();
         if (value != null) {
             setProperty("QUERY", value);
