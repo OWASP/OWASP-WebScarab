@@ -40,8 +40,7 @@ public class URLFetcher implements HTTPClient {
     static private int httpProxyPort = 0;
     static private String httpsProxy = "";
     static private int httpsProxyPort = 0;
-    static private String noProxy = "";
-    static private String[] noProxies = new String[0];
+    static private String[] noProxy = new String[0];
     
     // These represent the SSL classes required to connect to the server.
     static private SSLSocketFactory factory = null;
@@ -153,20 +152,15 @@ public class URLFetcher implements HTTPClient {
      * @param noproxy A comma separated list of hosts or domains for which no proxy should be used.
      * Domains must start with a period (".")
      */    
-    synchronized static public void setNoProxy(String noproxy) {
+    synchronized static public void setNoProxy(String[] noproxy) {
         noProxy = noproxy;
-        if (!noproxy.equals("")) {
-            noProxies = noProxy.split(" *, *");
-        } else {
-            noProxies = new String[0];
-        }
     }
     
     /** returns the list of hosts and domains that bypass any configured proxies
      * @return Returns a comma separated list of hosts and domains for which no proxy should be
      * used (i.e. direct connection should be made)
      */    
-    synchronized static public String getNoProxy() {
+    synchronized static public String[] getNoProxy() {
         return noProxy;
     }
     
