@@ -53,8 +53,8 @@ public class Request extends Message {
             // System.err.println("Read timed out. Closing connection");
             return;
         }
-        if (line.equals("")) {
-            System.err.println("Empty request line! Possibly SSL certificate validation?");
+        if (line == null || line.equals("")) {
+            // System.err.println("Client closed connection!");
             return;
         }
         String[] parts = line.split(" ");
@@ -133,7 +133,7 @@ public class Request extends Message {
         }
         os.write(new String(method+" "+(url==null?"null":url.getProtocol()) + "://" + (url==null?"null":url.getHost())).getBytes());
         os.write(new String(":"+(url==null?"null":String.valueOf(url.getPort()==-1?url.getDefaultPort():url.getPort()))).getBytes());
-        os.write(new String((url==null?"null":url.getPath())).getBytes());
+        os.write(new String((url==null?"null":(url.getPath()==null?"/":url.getPath()))).getBytes());
         os.write(new String((url==null?"null":url.getQuery()==null?"":"?"+url.getQuery())).getBytes());
         os.write(new String(" " + version + crlf).getBytes());
         super.write(os, crlf);
@@ -154,7 +154,8 @@ public class Request extends Message {
             System.err.println("Unitialised Request!");
             return;
         }
-        os.write(new String(method+" " + (url==null?"null":url.getPath())).getBytes());
+        os.write((method+" ").getBytes());
+        os.write(new String((url==null?"null":(url.getPath()==null?"/":url.getPath()))).getBytes());
         os.write(new String((url==null?"null":url.getQuery()==null?"":"?"+url.getQuery())).getBytes());
         os.write(new String(" " + version + crlf).getBytes());
         super.write(os, crlf);
