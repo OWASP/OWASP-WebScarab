@@ -355,6 +355,7 @@ public class URLFetcher implements HTTPClient {
                 }
                 System.err.println("HTTPS CONNECT successful");
                 _serversocket = _proxysocket;
+                _proxysocket = null;
             } else {
                 _serversocket = new Socket(_host , _port);
                 _serversocket.setTcpNoDelay(true);
