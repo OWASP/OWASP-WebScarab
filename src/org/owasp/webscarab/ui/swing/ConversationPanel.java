@@ -225,16 +225,6 @@ public class ConversationPanel extends javax.swing.JPanel {
         return _frame;
     }
     
-    private void formComponentResized(java.awt.event.ComponentEvent evt) {
-        if (! isShowing()) return;
-        _size = getSize();
-    }
-
-    private void formComponentMoved(java.awt.event.ComponentEvent evt) {
-        if (! isShowing()) return;
-        _location = getLocation();
-    }
-
     public JFrame getFrame() {
         return _frame;
     }
