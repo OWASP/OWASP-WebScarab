@@ -15,15 +15,17 @@ import org.owasp.webscarab.ui.swing.SwingPlugin;
  *
  * @author  rdawes
  */
-public class RevealHiddenPanel extends javax.swing.JPanel implements SwingPlugin {
+public class MiscPanel extends javax.swing.JPanel implements SwingPlugin {
     
     private RevealHidden _revealHidden;
     private BrowserCache _browsercache;
+    private CookieTracker _cookieTracker;
     
     /** Creates new form RevealHiddenPanel */
-    public RevealHiddenPanel(RevealHidden revealHidden, BrowserCache browserCache) {
+    public MiscPanel(RevealHidden revealHidden, BrowserCache browserCache, CookieTracker cookieTracker) {
         _revealHidden = revealHidden;
         _browsercache = browserCache;
+        _cookieTracker = cookieTracker;
         initComponents();
         configure();
     }
@@ -39,6 +41,7 @@ public class RevealHiddenPanel extends javax.swing.JPanel implements SwingPlugin
     private void configure() {
         interceptHiddenFieldCheckBox.setSelected(_revealHidden.getEnabled());
         browserCacheCheckBox.setSelected(_browsercache.getEnabled());
+        cookieTrackerCheckBox.setSelected(_cookieTracker.getEnabled());
     }
     
     /** This method is called from within the constructor to
@@ -52,6 +55,7 @@ public class RevealHiddenPanel extends javax.swing.JPanel implements SwingPlugin
         interceptHiddenFieldCheckBox = new javax.swing.JCheckBox();
         browserCacheCheckBox = new javax.swing.JCheckBox();
         spacerLabel = new javax.swing.JLabel();
+        cookieTrackerCheckBox = new javax.swing.JCheckBox();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -85,14 +89,33 @@ public class RevealHiddenPanel extends javax.swing.JPanel implements SwingPlugin
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         add(spacerLabel, gridBagConstraints);
 
+        cookieTrackerCheckBox.setText("Update the CookieJar with observed Cookies : ");
+        cookieTrackerCheckBox.setToolTipText("Select this to change all hidden form fields to text fields. Looks at pages of type HTML and javascript.");
+        cookieTrackerCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+        cookieTrackerCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cookieTrackerCheckBoxActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        add(cookieTrackerCheckBox, gridBagConstraints);
+
     }//GEN-END:initComponents
+
+    private void cookieTrackerCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cookieTrackerCheckBoxActionPerformed
+        _cookieTracker.setEnabled(cookieTrackerCheckBox.isSelected());
+    }//GEN-LAST:event_cookieTrackerCheckBoxActionPerformed
 
     private void browserCacheCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browserCacheCheckBoxActionPerformed
         _browsercache.setEnabled(browserCacheCheckBox.isSelected());
@@ -104,6 +127,7 @@ public class RevealHiddenPanel extends javax.swing.JPanel implements SwingPlugin
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox browserCacheCheckBox;
+    private javax.swing.JCheckBox cookieTrackerCheckBox;
     private javax.swing.JCheckBox interceptHiddenFieldCheckBox;
     private javax.swing.JLabel spacerLabel;
     // End of variables declaration//GEN-END:variables
