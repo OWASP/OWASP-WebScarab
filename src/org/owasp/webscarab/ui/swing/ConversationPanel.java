@@ -44,6 +44,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.JSplitPane;
 import javax.swing.border.TitledBorder;
 
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
@@ -59,6 +61,8 @@ import java.beans.PropertyChangeEvent;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
+import javax.swing.ListModel;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.FileInputStream;
@@ -183,27 +187,7 @@ public class ConversationPanel extends javax.swing.JPanel {
         return inFrame("Conversation Panel");
     }
     
-    public JFrame inFrame(String title) {
-        if (_frame != null) {
-            return _frame;
-        }
-        _frame = new JFrame(title);
-        _frame.getContentPane().setLayout(new java.awt.BorderLayout());
-        _frame.addComponentListener(new java.awt.event.ComponentAdapter() {
-            public void componentMoved(java.awt.event.ComponentEvent evt) {
-                if (!_frame.isVisible()) return;
-                _preferredLocation = _frame.getLocation();
-                Preferences.setPreference("ConversationPanel.x", Integer.toString(_preferredLocation.x));
-                Preferences.setPreference("ConversationPanel.y", Integer.toString(_preferredLocation.y));
-            }
-            public void componentResized(java.awt.event.ComponentEvent evt) {
-                if (!_frame.isVisible()) return;
-                _preferredSize = _frame.getSize();
-                Preferences.setPreference("ConversationPanel.width", Integer.toString(_preferredSize.width));
-                Preferences.setPreference("ConversationPanel.height", Integer.toString(_preferredSize.height));
-            }
-        });
-        _frame.getContentPane().add(this);
+    private void resizeFrame() {
         if (_preferredSize == null) {
             try {
                 int width = Integer.parseInt(Preferences.getPreference("ConversationPanel.width","600"));
@@ -234,6 +218,30 @@ public class ConversationPanel extends javax.swing.JPanel {
         } else {
             _frame.pack();
         }
+        _frame.addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                if (!_frame.isVisible()) return;
+                _preferredLocation = _frame.getLocation();
+                Preferences.setPreference("ConversationPanel.x", Integer.toString(_preferredLocation.x));
+                Preferences.setPreference("ConversationPanel.y", Integer.toString(_preferredLocation.y));
+            }
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                if (!_frame.isVisible()) return;
+                _preferredSize = _frame.getSize();
+                Preferences.setPreference("ConversationPanel.width", Integer.toString(_preferredSize.width));
+                Preferences.setPreference("ConversationPanel.height", Integer.toString(_preferredSize.height));
+            }
+        });
+    }
+    
+    public JFrame inFrame(String title) {
+        if (_frame != null) {
+            return _frame;
+        }
+        _frame = new JFrame(title);
+        _frame.getContentPane().setLayout(new java.awt.BorderLayout());
+        _frame.getContentPane().add(this);
+        resizeFrame();
         return _frame;
     }
     
