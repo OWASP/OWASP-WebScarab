@@ -107,6 +107,7 @@ public class ConnectionHandler implements Runnable {
             _logger.severe("Error getting socket input and output streams! " + ioe);
             return;
         }
+        ConversationID id = null;
         try {
             Request request = null;
             // if we do not already have a base URL (i.e. we operate as a normal
@@ -187,8 +188,8 @@ public class ConnectionHandler implements Runnable {
             String connection = null;
             String version = null;
             
-            ConversationID id = null;
             do {
+                id = null;
                 // if we are reading the first from a reverse proxy, or the
                 // continuation of a CONNECT from a normal proxy
                 // read the request, otherwise we already have it.
@@ -225,6 +226,7 @@ public class ConnectionHandler implements Runnable {
                 }
                 if (response == null) {
                     _logger.severe("Got a null response from the fetcher");
+                    _listener.failedResponse(id, "Null response");
                     return;
                 }
                 _logger.fine("Response : " + response.getStatusLine());
@@ -258,6 +260,7 @@ public class ConnectionHandler implements Runnable {
             (version.equals("HTTP/1.1") && !"close".equalsIgnoreCase(connection)));
             _logger.fine("Finished handling connection");
         } catch (Exception e) {
+            if (id != null) _listener.failedResponse(id, e.getMessage());
             _logger.severe("ConnectionHandler got an error : " + e);
             e.printStackTrace();
         } finally {
