@@ -67,7 +67,7 @@ public class Framework {
     
     private List _plugins = new ArrayList();
     
-    private SiteModel _model = null;
+    private SiteModel _model;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -79,6 +79,7 @@ public class Framework {
      * Creates a new instance of Framework
      */
     public Framework() {
+        _model = new SiteModel();
         extractVersionFromManifest();
         configureHTTPClient();
     }
@@ -93,31 +94,24 @@ public class Framework {
     
     /**
      * instructs the framework to use the provided model. The framework notifies all
-     * plugins that the model has changed.
-     * @param model the new SiteModel
+     * plugins that the session has changed.
      */
-    public void setSession(SiteModel model, String storeType, Object connection) throws StoreException {
-        if (isRunning()) {
-            stopPlugins();
-            if (isModified()) saveSessionData();
-        }
-        _model = model;
-        if (_ui != null) _ui.setModel(model);
+    public void setSession(String type, Object store, String session) throws StoreException {
+        _model.setSession(type, store, session);
         Iterator it = _plugins.iterator();
         while (it.hasNext()) {
             Plugin plugin = (Plugin) it.next();
             if (!plugin.isRunning()) {
-                plugin.setSession(model, storeType, connection);
+                plugin.setSession(type, store, session);
             } else {
-                _logger.warning(plugin.getPluginName() + " is running while we are setting the model");
+                _logger.warning(plugin.getPluginName() + " is running while we are setting the session");
             }
         }
-        startPlugins();
     }
     
     /**
-     * provided to allow the UI to access the model at instantiation time. There is probably a better way of doing this.
-     * @return the SiteModel currently loaded into the Framework
+     * provided to allow plugins to gain access to the model.
+     * @return the SiteModel
      */
     public SiteModel getModel() {
         return _model;
@@ -286,7 +280,11 @@ public class Framework {
         while (it.hasNext()) {
             Plugin plugin = (Plugin) it.next();
             if (plugin.isRunning()) {
-                plugin.analyse(id, request, response, origin);
+                try {
+                    plugin.analyse(id, request, response, origin);
+                } catch (Exception e) {
+                    _logger.warning(plugin.getPluginName() + " failed to process " + id + ": " + e);
+                }
             }
         }
     }
