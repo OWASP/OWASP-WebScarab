@@ -149,6 +149,7 @@ public class WebScarab extends javax.swing.JFrame {
         certsMenuItem = new javax.swing.JMenuItem();
         cookieJarMenuItem = new javax.swing.JMenuItem();
         transcoderMenuItem = new javax.swing.JMenuItem();
+        conversationSearchMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         aboutMenuItem = new javax.swing.JMenuItem();
         logMenu = new javax.swing.JMenu();
@@ -161,6 +162,14 @@ public class WebScarab extends javax.swing.JFrame {
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         setTitle("WebScarab");
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                formComponentMoved(evt);
+            }
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                formComponentResized(evt);
+            }
+        });
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 exitForm(evt);
@@ -267,6 +276,15 @@ public class WebScarab extends javax.swing.JFrame {
 
         toolsMenu.add(transcoderMenuItem);
 
+        conversationSearchMenuItem.setText("Search Conversations");
+        conversationSearchMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                conversationSearchMenuItemActionPerformed(evt);
+            }
+        });
+
+        toolsMenu.add(conversationSearchMenuItem);
+
         mainMenuBar.add(toolsMenu);
 
         helpMenu.setMnemonic('H');
@@ -341,6 +359,30 @@ public class WebScarab extends javax.swing.JFrame {
 
         pack();
     }//GEN-END:initComponents
+
+    private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
+        String size = Integer.toString(getWidth()) + "x" + Integer.toString(getHeight());
+        Preferences.getPreferences().setProperty("WebScarab.size",size);
+    }//GEN-LAST:event_formComponentResized
+
+    private void formComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentMoved
+        String position = "";
+        int x = getX();
+        int y = getY();
+        if (x>0) {
+            position = "+";
+        }
+        position = position + Integer.toString(x);
+        if (y>0) {
+            position = position + "+";
+        }
+        position = position + Integer.toString(y);
+        Preferences.getPreferences().setProperty("WebScarab.position",position);
+    }//GEN-LAST:event_formComponentMoved
+
+    private void conversationSearchMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_conversationSearchMenuItemActionPerformed
+        new ConversationSearchFrame(_framework.getSiteModel()).show();
+    }//GEN-LAST:event_conversationSearchMenuItemActionPerformed
 
     private void logLevelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logLevelActionPerformed
         String cmd = evt.getActionCommand();
@@ -496,6 +538,22 @@ public class WebScarab extends javax.swing.JFrame {
         Framework framework = new Framework();
         
         WebScarab ws = new WebScarab(framework);
+        try {
+            String position = Preferences.getPreferences().getProperty("WebScarab.position");
+            int p = Math.max(position.indexOf('-',2),position.indexOf('+',2));
+            int x = Integer.parseInt(position.substring(position.indexOf('+')+1,p));
+            int y = Integer.parseInt(position.substring(p+1));
+            String size = Preferences.getPreferences().getProperty("WebScarab.size");
+            p = size.indexOf('x');
+            int width = Integer.parseInt(size.substring(0,p));
+            int height = Integer.parseInt(size.substring(p+1));
+            ws.setBounds(x,y,width,height);
+        } catch (NumberFormatException nfe) {
+            System.out.println(nfe);
+        } catch (NullPointerException npe) {
+            System.out.println(npe);
+        }
+        
         ws.show();
         
         ws.addPlugin(new ProxyPanel(framework));
@@ -529,6 +587,7 @@ public class WebScarab extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JMenuItem certsMenuItem;
+    private javax.swing.JMenuItem conversationSearchMenuItem;
     private javax.swing.JMenuItem cookieJarMenuItem;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu fileMenu;
