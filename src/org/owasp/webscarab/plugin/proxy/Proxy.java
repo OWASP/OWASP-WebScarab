@@ -1,7 +1,7 @@
 package org.owasp.webscarab.plugin.proxy;
 
 /*
- * $Id: Proxy.java,v 1.10 2003/09/22 16:23:37 rogan Exp $
+ * $Id: Proxy.java,v 1.11 2004/05/20 06:37:29 rogan Exp $
  */
 
 import java.net.ServerSocket;
@@ -16,6 +16,7 @@ import java.lang.NumberFormatException;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.CookieJar;
@@ -28,30 +29,35 @@ public class Proxy extends AbstractWebScarabPlugin {
     
     private ArrayList _plugins = new ArrayList();
     private TreeMap _listeners = new TreeMap();
+    private TreeMap _simulators = new TreeMap();
+    
+    private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     public Proxy(Plug plug) {
         _plug = plug;
         
-        if (_prop.getProperty("Proxy.listeners") == null) {
-            setDefaultProperty("Proxy.listeners", "127.0.0.1:8008, 127.0.0.1:8009");
-            setDefaultProperty("Proxy.listener.127.0.0.1:8008.base", "");
-            setDefaultProperty("Proxy.listener.127.0.0.1:8008.useplugins", "yes");
-            setDefaultProperty("Proxy.listener.127.0.0.1:8009.base", "");
-            setDefaultProperty("Proxy.listener.127.0.0.1:8009.useplugins", "no");
-        }
+        _simulators.put("Unlimited", new NetworkSimulator("Unlimited", 0, Integer.MAX_VALUE, Integer.MAX_VALUE));
+        _simulators.put("56k modem", new NetworkSimulator("56k modem", 200, 3300, 5600));
+        _simulators.put("28k modem", new NetworkSimulator("28k modem", 200, 2880));
+        
         parseProperties();
-        System.err.println("Proxy initialised");
+        _logger.info("Proxy initialised");
     }
     
     private void parseProperties() {
         String prop = "Proxy.listeners";
-        String value = _prop.getProperty(prop).trim();
-        String[] listeners = value.split(" *,+ *");
+        String value = _prop.getProperty(prop);
+        if (value == null || value.trim().equals("")) {
+            _logger.warning("No proxies configured!?");
+            return;
+        }
+        String[] listeners = value.trim().split(" *,+ *");
         
         String addr;
         int port = 0;
         String base;
         boolean usePlugins = false;
+        String simulator = null;
         
         for (int i=0; i<listeners.length; i++) {
             addr = listeners[i].substring(0, listeners[i].indexOf(":"));
@@ -78,7 +84,20 @@ public class Proxy extends AbstractWebScarabPlugin {
                 usePlugins = false;
             }
             
-            startProxy(addr, port, base, usePlugins);
+            prop = "Proxy.listener." + listeners[i] + ".simulator";
+            value = _prop.getProperty(prop);
+            
+            if ((value != null) && !value.trim().equals("") && _simulators.containsKey(value)) {
+                simulator = value;
+            } else {
+                _logger.warning("Unknown network simulator '" + value + "'");
+            }
+            
+            try { 
+                startProxy(addr, port, base, simulator, usePlugins);
+            } catch (IOException ioe) {
+                _logger.severe("Error starting proxy (" + addr + ":" + port + " " + base + " " + ioe);
+            }
         }
     }
     
@@ -115,7 +134,20 @@ public class Proxy extends AbstractWebScarabPlugin {
             return null;
         }
     }
-
+    
+    public String[] getSimulators() {
+        return (String[])_simulators.keySet().toArray(new String[0]);
+    }
+    
+    public String getSimulator(String key) {
+        Listener l = (Listener) _listeners.get(key);
+        if (l != null) {
+            return l.getSimulator();
+        } else {
+            return "";
+        }
+    }
+    
     public boolean getPlugins(String key) {
         Listener l = (Listener) _listeners.get(key);
         if (l != null) {
@@ -124,18 +156,24 @@ public class Proxy extends AbstractWebScarabPlugin {
             return false;
         }
     }
-
-    public String startProxy(String address, int port, String base, boolean usePlugins) {
+    
+    public String startProxy(String address, int port, String base, String simulator, boolean usePlugins) throws IOException {
         String key = address + ":" + port;
-        try {
             if (base != null && base.equals("")) {
                 base = null;
             }
-            Listener l = new Listener(_plug, address, port, base, usePlugins ? _plugins : null);
+            if (simulator == null || simulator.trim().equals("") || !_simulators.containsKey(simulator)) {
+                simulator = "Unlimited";
+            }
+            NetworkSimulator netsim = (NetworkSimulator) _simulators.get(simulator);
+            ProxyPlugin[] plugins = new ProxyPlugin[_plugins.size()];
+            plugins = (ProxyPlugin[]) _plugins.toArray(plugins);
+            Listener l = new Listener(_plug, address, port, base, netsim, usePlugins ? plugins : null);
             _listeners.put(key,l);
             
             _prop.setProperty("Proxy.listener." + key + ".base", base == null ? "" : base);
             _prop.setProperty("Proxy.listener." + key + ".useplugins", usePlugins == true ? "yes" : "no");
+            _prop.setProperty("Proxy.listener." + key + ".simulator", simulator);
             
             String value = null;
             Iterator i = _listeners.keySet().iterator();
@@ -149,10 +187,6 @@ public class Proxy extends AbstractWebScarabPlugin {
             }
             _prop.setProperty("Proxy.listeners", value);
             return key;
-        } catch (Exception e) {
-            System.out.println("Exception starting the proxy : " + e);
-            return null;
-        }
     }
     
     public boolean stopProxy(String key) {
@@ -160,6 +194,7 @@ public class Proxy extends AbstractWebScarabPlugin {
         if (l != null && l.stop()) {
             _prop.remove("Proxy.listener." + key + ".base");
             _prop.remove("Proxy.listener." + key + ".useplugins");
+            _prop.remove("Proxy.listener." + key + ".simulator");
             String value = null;
             Iterator i = _listeners.keySet().iterator();
             while (i.hasNext()) {
@@ -170,16 +205,16 @@ public class Proxy extends AbstractWebScarabPlugin {
                     value = value + ", " + key;
                 }
             }
-			if (value == null) {
-				value = "";
-			}
+            if (value == null) {
+                value = "";
+            }
             _prop.setProperty("Proxy.listeners", value);
             return true;
         } else {
             return false;
         }
     }
-            
+    
     public void addPlugin(ProxyPlugin plugin) {
         _plugins.add(plugin);
     }
@@ -202,12 +237,12 @@ public class Proxy extends AbstractWebScarabPlugin {
             ((ProxyPlugin)_plugins.get(i)).setSessionStore(store);
         }
     }
-
+    
     public void saveSessionData() throws StoreException {
         // we keep no state of our own, but maybe the plugins do?
         for (int i=0; i<_plugins.size(); i++) {
             ((ProxyPlugin)_plugins.get(i)).saveSessionData();
         }
     }
-
+    
 }

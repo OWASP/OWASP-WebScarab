@@ -26,6 +26,8 @@ public class ConnectionHandler implements Runnable {
     private ProxyPlugin[] _plugins;
     private Socket _sock = null;
     private String _base;
+    private NetworkSimulator _simulator;
+    
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     private InputStream _clientIn = null;
@@ -40,17 +42,14 @@ public class ConnectionHandler implements Runnable {
     char keystorepass[] = "password".toCharArray();
     char keypassword[] = "password".toCharArray();
     
-    public ConnectionHandler(Socket sock, Plug plug, String base, ArrayList plugins) {
+    public ConnectionHandler(Socket sock, Plug plug, String base, NetworkSimulator simulator, ProxyPlugin[] plugins) {
         _sock = sock;
         _plug = plug;
         _base = base;
-        if (plugins == null) {
+        _simulator = simulator;
+        _plugins = plugins;
+        if (_plugins == null) {
             _plugins = new ProxyPlugin[0];
-        } else {
-            _plugins = new ProxyPlugin[plugins.size()];
-            for (int i=0; i<plugins.size(); i++) {
-                _plugins[i] = (ProxyPlugin) plugins.get(i);
-            }
         }
         try {
             _sock.setTcpNoDelay(true);
@@ -82,22 +81,15 @@ public class ConnectionHandler implements Runnable {
         _uf = new URLFetcher(serverIn);
     }
     
-    /*
-    public ConnectionHandler(InputStream cis, OutputStream cos, InputStream sis, OutputStream sos) {
-        _plugins = new ProxyPlugin[0];
-        _clientIn = cis;
-        _clientOut = cos;
-        _serverIn = sis;
-        _serverOut = sos;
-        _uf = new URLFetcher(sos, sis);
-    }
-     */
-    
     public void run() {
         if (_sock != null) {
             try {
                 _clientIn = _sock.getInputStream();
                 _clientOut = _sock.getOutputStream();
+                if (_simulator != null) {
+                    _clientIn = _simulator.wrapInputStream(_clientIn);
+                    _clientOut = _simulator.wrapOutputStream(_clientOut);
+                }
             } catch (IOException ioe) {
                 _logger.severe("Error getting socket input and output streams! " + ioe);
                 return;
@@ -150,6 +142,10 @@ public class ConnectionHandler implements Runnable {
                     _sock = negotiateSSL(_sock);
                     _clientIn = _sock.getInputStream();
                     _clientOut = _sock.getOutputStream();
+                    if (_simulator != null) {
+                        _clientIn = _simulator.wrapInputStream(_clientIn);
+                        _clientOut = _simulator.wrapOutputStream(_clientOut);
+                    }
                 }
                 // make sure that the base does not end with a "/"
                 while (_base.endsWith("/")) {
@@ -190,7 +186,9 @@ public class ConnectionHandler implements Runnable {
                         request.addHeader("Proxy-Authorization",proxyAuth);
                     }
                 }
-                
+                if (_sock != null) {
+                    request.addHeader("X-Forwarded-For",_sock.getInetAddress().getHostAddress());
+                }
                 _logger.info("Browser requested : " + request.getMethod() + " " + request.getURL().toString());
                 
                 // start a thread reading the copy of the server's response

@@ -16,7 +16,6 @@ import java.net.SocketException;
 import java.io.IOException;
 import java.lang.Thread;
 
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 /**
@@ -29,7 +28,8 @@ public class Listener implements Runnable {
     private String _address;
     private int _port;
     private String _base;
-    private ArrayList _plugins;
+    private NetworkSimulator _simulator;
+    private ProxyPlugin[] _plugins;
     
     private ServerSocket _serversocket;
 
@@ -41,7 +41,7 @@ public class Listener implements Runnable {
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     /** Creates a new instance of Listener */
-    public Listener(Plug plug, String address, int port, String base, ArrayList plugins) throws IOException {
+    public Listener(Plug plug, String address, int port, String base, NetworkSimulator simulator, ProxyPlugin[] plugins) throws IOException {
         _plug = plug;
         
         if (address == null) {
@@ -64,6 +64,7 @@ public class Listener implements Runnable {
             }
         }
         _base = base;
+        _simulator = simulator;
         _plugins = plugins;
         _serversocket = new ServerSocket(port, 5, addr);
         
@@ -89,7 +90,7 @@ public class Listener implements Runnable {
             try {
                 sock = _serversocket.accept();
                 _logger.info("Connect from " + sock.getInetAddress().getHostAddress() + ":" + sock.getPort());
-                ch = new ConnectionHandler(sock, _plug, _base, _plugins);
+                ch = new ConnectionHandler(sock, _plug, _base, _simulator, _plugins);
                 thread = new Thread(ch, "Proxy-"+Integer.toString(_count++));
                 thread.setDaemon(true);
                 thread.start();
@@ -136,7 +137,14 @@ public class Listener implements Runnable {
         return _base;
     }
     
-    public ArrayList getPlugins() {
+    public String getSimulator() {
+        if (_simulator == null) {
+            return "Unlimited";
+        }
+        return _simulator.getName();
+    }
+    
+    public ProxyPlugin[] getPlugins() {
         return _plugins;
     }
 
