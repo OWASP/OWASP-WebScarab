@@ -9,7 +9,6 @@ package org.owasp.webscarab.ui.swing;
 import java.awt.Rectangle;
 
 import java.util.ArrayList;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,12 +52,9 @@ public class UIFramework extends JFrame implements FrameworkUI {
     
     private DocumentHandler _dh;
     
-    private Properties _props;
-    
     /** Creates new form WebScarab */
     public UIFramework(Framework framework) {
         _framework = framework;
-        _props = framework.getProperties();
         
         initComponents();
         setPreferredSize();
@@ -75,10 +71,14 @@ public class UIFramework extends JFrame implements FrameworkUI {
         setModel(framework.getModel());
     }
     
-    public void setModel(SiteModel model) {
-        _model = model;
-        _summaryPanel.setModel(model);
-        _cookieJarViewer.setModel(model);
+    public void setModel(final SiteModel model) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                _model = model;
+                _summaryPanel.setModel(model);
+                _cookieJarViewer.setModel(model);
+            }
+        });
     }
     
     public void setSessionLoader(SessionLoader loader) {
@@ -95,7 +95,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
         logTextArea.setDocument(doc);
         doc.addDocumentListener(new TextScroller(logTextArea));
         
-        String level = _props.getProperty("UI.logLevel","INFO");
+        String level = Preferences.getPreference("UI.logLevel","INFO");
         if (level.equals("SEVERE")) { severeLogRadioButtonMenuItem.setSelected(true); }
         else if (level.equals("INFO")) { infoLogRadioButtonMenuItem.setSelected(true); }
         else if (level.equals("FINE")) { fineLogRadioButtonMenuItem.setSelected(true); }
@@ -105,10 +105,10 @@ public class UIFramework extends JFrame implements FrameworkUI {
     
     private void setPreferredSize() {
         try {
-            int xpos = Integer.parseInt(_props.getProperty("WebScarab.position.x"));
-            int ypos = Integer.parseInt(_props.getProperty("WebScarab.position.y"));
-            int width = Integer.parseInt(_props.getProperty("WebScarab.size.x"));
-            int height = Integer.parseInt(_props.getProperty("WebScarab.size.y"));
+            int xpos = Integer.parseInt(Preferences.getPreference("WebScarab.position.x").trim());
+            int ypos = Integer.parseInt(Preferences.getPreference("WebScarab.position.y").trim());
+            int width = Integer.parseInt(Preferences.getPreference("WebScarab.size.x").trim());
+            int height = Integer.parseInt(Preferences.getPreference("WebScarab.size.y").trim());
             setBounds(xpos,ypos,width,height);
         } catch (NumberFormatException nfe) {
             setSize(800,600);
@@ -124,8 +124,10 @@ public class UIFramework extends JFrame implements FrameworkUI {
             public void run() {
                 JPanel panel = plugin.getPanel();
                 if (panel != null) mainTabbedPane.add(panel, plugin.getPluginName());
-                _summaryPanel.addURLActions(plugin.getURLActions());
+                _summaryPanel.addUrlActions(plugin.getUrlActions());
+                _summaryPanel.addUrlColumns(plugin.getUrlColumns());
                 _summaryPanel.addConversationActions(plugin.getConversationActions());
+                _summaryPanel.addConversationColumns(plugin.getConversationColumns());
             }
         });
     }
@@ -408,7 +410,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
             System.err.println("Unknown log level: '" + cmd + "'");
             return;
         }
-        _props.setProperty("UI.logLevel", cmd);
+        Preferences.setPreference("UI.logLevel", cmd);
     }//GEN-LAST:event_logLevelActionPerformed
     
     private void certsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_certsMenuItemActionPerformed
@@ -456,13 +458,19 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private void exit() {
         if (_framework.isBusy()) {
             String[] status = _framework.getStatus();
-            JOptionPane.showMessageDialog(this, status, "Error - Plugins are busy", JOptionPane.ERROR_MESSAGE);
-            return;
+            int count = status.length;
+            String[] message = new String[count+2];
+            System.arraycopy(status, 0, message, 0, count);
+            message[count] = "";
+            message[count+1] = "Quit anyway?";
+            int choice = JOptionPane.showOptionDialog(this, message, "Error - Plugins are busy", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, null, null);
+            if (choice != JOptionPane.YES_OPTION) return;
         }
         try {
             _framework.exit();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, new String[] {"Error saving session!", e.toString()}, "Error!", JOptionPane.ERROR_MESSAGE);
+            int choice = JOptionPane.showOptionDialog(this, new String[] {"Error saving session!", e.toString(), "Quit anyway?"}, "Error!", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, null, null);
+            if (choice == JOptionPane.YES_OPTION) System.exit(1);
         }
     }
     
