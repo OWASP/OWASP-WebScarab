@@ -21,6 +21,10 @@ import org.owasp.webscarab.plugin.Plug;
 
 import java.util.ArrayList;
 import java.util.Properties;
+
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
 import java.util.logging.Logger;
 
 import org.htmlparser.Parser;
@@ -51,6 +55,8 @@ public class Framework implements Plug {
     private ArrayList _plugins = null;
     
     private Logger _logger = Logger.getLogger(this.getClass().getName());
+    
+    // private Pattern _errorPattern = Pattern.compile("ODBC|stack trace|Error report", Pattern.DOTALL | Pattern.MULTILINE);
     
     /** Creates a new instance of Framework */
     public Framework() {
@@ -85,43 +91,13 @@ public class Framework implements Plug {
         // parse the response, if it was HTML
         String ct = response.getHeader("Content-Type");
         if (ct != null && ct.matches("text/html.*")) {
-            byte[] content = response.getContent();
-            String url = request.getURL().toString();
-            
-            if (content != null && content.length > 0) {
-                NodeReader reader = new NodeReader(new InputStreamReader(new ByteArrayInputStream(content)), url);
-                NodeList nodelist = new NodeList();
-                NodeList comments = new NodeList();
-                NodeList scripts = new NodeList();
-                synchronized (_parser) {
-                    _parser.setReader(reader);
-                    try {
-                        Node n;
-                        for (NodeIterator ni = _parser.elements(); ni.hasMoreNodes();) {
-                            n = ni.nextNode();
-                            n.collectInto(comments, RemarkNode.class);
-                            n.collectInto(scripts, ScriptTag.class);
-                            nodelist.add(n);
-                        }
-                        for (NodeIterator ni = comments.elements(); ni.hasMoreNodes();) {
-                            String key = _sitemodel.addFragment(ni.nextNode().toHtml());
-                            conversation.addProperty("COMMENTS",key);
-                            urlinfo.addProperty("COMMENTS", key);
-                        }
-                        for (NodeIterator ni = scripts.elements(); ni.hasMoreNodes();) {
-                            String key = _sitemodel.addFragment(ni.nextNode().toHtml());
-                            conversation.addProperty("SCRIPTS",key);
-                            urlinfo.addProperty("SCRIPTS", key);
-                        }
-                    } catch (ParserException pe) {
-                        _logger.severe("ParserException : " + pe);
-                    }
-                }
-                parsed = nodelist;
-            }
+            parsed = parseHTML(request.getURL().toString(), response.getContent());
         }
         
-        // call the plugins
+        // perform local analysis
+        analyse(request, response, conversation, urlinfo, parsed);
+        
+        // call the plugins analysis routines
         for (int i=0; i< _plugins.size(); i++) {
             ((WebScarabPlugin)_plugins.get(i)).analyse(request, response, conversation, urlinfo, parsed);
         }
@@ -131,6 +107,58 @@ public class Framework implements Plug {
         
         // return the conversation ID
         return id;
+    }
+    
+    private Object parseHTML(String url, byte[] content) {
+        if (content != null && content.length > 0) {
+            NodeReader reader = new NodeReader(new InputStreamReader(new ByteArrayInputStream(content)), url);
+            NodeList nodelist = new NodeList();
+            synchronized (_parser) {
+                _parser.setReader(reader);
+                try {
+                    Node n;
+                    for (NodeIterator ni = _parser.elements(); ni.hasMoreNodes();) {
+                        n = ni.nextNode();
+                        nodelist.add(n);
+                    }
+                } catch (ParserException pe) {
+                    _logger.severe("ParserException : " + pe);
+                }
+            }
+            return nodelist;
+        }
+        return null;
+    }
+    
+    private void analyse(Request request, Response response, Conversation conversation, URLInfo urlinfo, Object parsed) {
+        if (parsed instanceof NodeList) {
+            NodeList nodelist = (NodeList) parsed;
+            try {
+                NodeList comments = nodelist.searchFor(RemarkNode.class);
+                NodeList scripts = nodelist.searchFor(ScriptTag.class);
+                for (NodeIterator ni = comments.elements(); ni.hasMoreNodes();) {
+                    String key = _sitemodel.addFragment(ni.nextNode().toHtml());
+                    conversation.addProperty("COMMENTS",key);
+                    urlinfo.addProperty("COMMENTS", key);
+                }
+                for (NodeIterator ni = scripts.elements(); ni.hasMoreNodes();) {
+                    String key = _sitemodel.addFragment(ni.nextNode().toHtml());
+                    conversation.addProperty("SCRIPTS",key);
+                    urlinfo.addProperty("SCRIPTS", key);
+                }
+            } catch (ParserException pe) {
+                _logger.severe("Parser exception " + pe);
+            }
+            /* FIXME
+             * Commented until we can test this properly, and work out what we want to check for
+            String content = new String(response.getContent());
+            Matcher matcher = _errorPattern.matcher(content);
+            if (matcher.matches()) {
+                conversation.setProperty("ERRORS", "TRUE");
+                urlinfo.setProperty("ERRORS", "TRUE");
+            }
+             */
+        }
     }
     
     private void updateURLInfo(Conversation conversation, URLInfo urlinfo) {
