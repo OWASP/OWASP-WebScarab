@@ -21,52 +21,61 @@ import java.io.IOException;
  */
 public class Preferences {
     
-    static Properties _props = null;
+    static Properties _props = new Properties();
     private static Logger _logger = Logger.getLogger("org.owasp.webscarab.model.Preferences");
+    private static String _location = null;
     
     /** Creates a new instance of Preferences */
     private Preferences() {
     }
     
     public static Properties getPreferences() {
-        if (_props == null) {
-            _logger.severe("getPreferences called, but not yet loaded!");
-            System.exit(1);
-        }
         return _props;
     }
     
-    public static void loadPreferences() throws IOException {
-        // Look for a props file in the user's home directory, and load it if it exists
-        // otherwise loads the default props distributed in the jar
+    public static void loadPreferences(String file) throws IOException {
+        // If we are given a filename to load, use it, otherwise
+        // look for a props file in the user's home directory
+        // if the file does not exist, use the standard defaults
         
-        String sep = System.getProperty("file.separator");
-        String home = System.getProperty("user.home");
-        String file = home + sep + "WebScarab.properties";
-
+        if (file == null) {
+            String sep = System.getProperty("file.separator");
+            String home = System.getProperty("user.home");
+            _location = home + sep + "WebScarab.properties";
+        } else {
+            _location = file;
+        }
+        
         try {
             Properties props = new Properties();
-            InputStream is = new FileInputStream(file);
+            InputStream is = new FileInputStream(_location);
             props.load(is);
             _props = props;
         } catch (FileNotFoundException fnfe) {
-            // we'll just use the defaults in each class
-            _props = new Properties();
+            // we'll just use the defaults
         }
     }
     
     public static void savePreferences() throws IOException {
-        String sep = System.getProperty("file.separator");
-        String home = System.getProperty("user.home");
-        String file = home + sep + "WebScarab.properties";
-        
-        if (_props == null) {
-            System.err.println("savePreferences called on a null Properties");
-            return;
-        }
-        FileOutputStream fos = new FileOutputStream(file);
+        FileOutputStream fos = new FileOutputStream(_location);
         _props.store(fos,"WebScarab Properties");
         fos.close();
+    }
+    
+    public static void setPreference(String key, String value) {
+        _props.setProperty(key, value);
+    }
+    
+    public static String getPreference(String key) {
+        return _props.getProperty(key);
+    }
+    
+    public static String getPreference(String key, String defaultValue) {
+        return _props.getProperty(key, defaultValue);
+    }
+    
+    public static String remove(String key) {
+        return (String) _props.remove(key);
     }
     
 }
