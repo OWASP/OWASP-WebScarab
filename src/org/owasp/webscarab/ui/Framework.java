@@ -6,7 +6,13 @@
 
 package org.owasp.webscarab.ui;
 
-import org.owasp.webscarab.model.*;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.model.Conversation;
+import org.owasp.webscarab.model.CookieJar;
+import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.URLInfo;
+import org.owasp.webscarab.model.StoreException;
 
 import org.owasp.webscarab.plugin.WebScarabPlugin;
 import org.owasp.webscarab.plugin.Plug;
@@ -220,6 +226,10 @@ public class Framework implements Plug {
         for (int i=0; i< _plugins.size(); i++) {
             ((WebScarabPlugin)_plugins.get(i)).saveSessionData();
         }
+    }
+    
+    public CookieJar getCookieJar() {
+        return _sitemodel.getCookieJar();
     }
     
 }
