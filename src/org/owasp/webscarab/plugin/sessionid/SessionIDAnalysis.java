@@ -13,6 +13,7 @@ import org.owasp.webscarab.httpclient.HTTPClientFactory;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.SiteModel;
@@ -32,7 +33,6 @@ import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Properties;
 
 import java.util.logging.Logger;
 
@@ -80,8 +80,7 @@ public class SessionIDAnalysis extends Plugin {
     private String _status = "Stopped";
     
     /** Creates a new instance of SessionidAnalysis */
-    public SessionIDAnalysis(Properties props) {
-        super(props);
+    public SessionIDAnalysis() {
     }
     
     public void setSession(SiteModel model, String storeType, Object connection) throws StoreException {

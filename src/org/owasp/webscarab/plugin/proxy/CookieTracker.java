@@ -8,9 +8,9 @@ package org.owasp.webscarab.plugin.proxy;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.Properties;
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.model.Cookie;
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.SiteModel;
@@ -27,8 +27,7 @@ public class CookieTracker extends ProxyPlugin {
     private boolean _readResponses = false;
     
     /** Creates a new instance of RevealHidden */
-    public CookieTracker(Properties props) {
-        super(props);
+    public CookieTracker() {
         parseProperties();
     }
     
@@ -38,10 +37,10 @@ public class CookieTracker extends ProxyPlugin {
     
     public void parseProperties() {
         String prop = "CookieTracker.injectRequests";
-        String value = _props.getProperty(prop, "false");
+        String value = Preferences.getPreference(prop, "false");
         _injectRequests = ("true".equalsIgnoreCase( value ) || "yes".equalsIgnoreCase( value ));
         prop = "CookieTracker.readResponses";
-        value = _props.getProperty(prop, "true");
+        value = Preferences.getPreference(prop, "true");
         _readResponses = ("true".equalsIgnoreCase( value ) || "yes".equalsIgnoreCase( value ));
     }
     
@@ -52,7 +51,7 @@ public class CookieTracker extends ProxyPlugin {
     public void setInjectRequests(boolean bool) {
         _injectRequests = bool;
         String prop = "CookieTracker.injectRequests";
-        _props.setProperty(prop,Boolean.toString(bool));
+        Preferences.setPreference(prop,Boolean.toString(bool));
     }
 
     public boolean getInjectRequests() {
@@ -62,7 +61,7 @@ public class CookieTracker extends ProxyPlugin {
     public void setReadResponses(boolean bool) {
         _readResponses = bool;
         String prop = "CookieTracker.readResponses";
-        _props.setProperty(prop,Boolean.toString(bool));
+        Preferences.setPreference(prop,Boolean.toString(bool));
     }
 
     public boolean getReadResponses() {

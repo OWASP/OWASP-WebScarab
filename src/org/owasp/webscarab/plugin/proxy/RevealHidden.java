@@ -9,11 +9,10 @@ package org.owasp.webscarab.plugin.proxy;
 // import org.owasp.util.StringUtil;
 
 import org.owasp.webscarab.httpclient.HTTPClient;
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.proxy.ProxyPlugin;
-
-import java.util.Properties;
 
 import java.io.IOException;
 
@@ -26,14 +25,13 @@ public class RevealHidden extends ProxyPlugin {
     private boolean _enabled = false;
     
     /** Creates a new instance of RevealHidden */
-    public RevealHidden(Properties props) {
-        super(props);
+    public RevealHidden() {
         parseProperties();
     }
     
     public void parseProperties() {
         String prop = "RevealHidden.enabled";
-        String value = _props.getProperty(prop, "false");
+        String value = Preferences.getPreference(prop, "false");
         _enabled = ("true".equalsIgnoreCase( value ) || "yes".equalsIgnoreCase( value ));
     }
     
@@ -44,7 +42,7 @@ public class RevealHidden extends ProxyPlugin {
     public void setEnabled(boolean bool) {
         _enabled = bool;
         String prop = "RevealHidden.enabled";
-        _props.setProperty(prop,Boolean.toString(bool));
+        Preferences.setPreference(prop,Boolean.toString(bool));
     }
 
     public boolean getEnabled() {

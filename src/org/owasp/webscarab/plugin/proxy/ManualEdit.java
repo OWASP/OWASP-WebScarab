@@ -7,9 +7,9 @@
 package org.owasp.webscarab.plugin.proxy;
 
 import java.io.IOException;
-import java.util.Properties;
 import java.util.logging.Logger;
 import org.owasp.webscarab.httpclient.HTTPClient;
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
@@ -29,30 +29,29 @@ public class ManualEdit extends ProxyPlugin {
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates a new instance of ManualEdit */
-    public ManualEdit(Properties props) {
-        super(props);
+    public ManualEdit() {
         parseProperties();
     }
     
     public void parseProperties() {
         String prop = "ManualEdit.includeRegex";
-        String value = _props.getProperty(prop, ".*");
+        String value = Preferences.getPreference(prop, ".*");
         _includeRegex = value;
         
         prop = "ManualEdit.excludeRegex";
-        value = _props.getProperty(prop, ".*\\.(gif)|(jpg)|(css)|(js)$");
+        value = Preferences.getPreference(prop, ".*\\.(gif)|(jpg)|(css)|(js)$");
         _excludeRegex= value;
         
         prop = "ManualEdit.interceptMethods";
-        value = _props.getProperty(prop, "GET, POST");
+        value = Preferences.getPreference(prop, "GET, POST");
         _interceptMethods = value.split(" *, *");
             
         prop = "ManualEdit.interceptRequest";
-        value = _props.getProperty(prop, "false");
+        value = Preferences.getPreference(prop, "false");
         _interceptRequest = value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes");
             
         prop = "ManualEdit.interceptResponse";
-        value = _props.getProperty(prop, "false");
+        value = Preferences.getPreference(prop, "false");
         _interceptResponse = value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes");
     }
     
@@ -67,7 +66,7 @@ public class ManualEdit extends ProxyPlugin {
     public void setIncludeRegex(String regex) {
        _includeRegex = regex;
        String prop = "ManualEdit.includeRegex";
-       _props.setProperty(prop,regex);
+       Preferences.setPreference(prop,regex);
     }
     
     public String getIncludeRegex() {
@@ -77,7 +76,7 @@ public class ManualEdit extends ProxyPlugin {
     public void setExcludeRegex(String regex) {
        _excludeRegex = regex;
        String prop = "ManualEdit.excludeRegex";
-       _props.setProperty(prop,regex);
+       Preferences.setPreference(prop,regex);
     }
     
     public String getExcludeRegex() {
@@ -94,7 +93,7 @@ public class ManualEdit extends ProxyPlugin {
            }
        }
        String prop = "ManualEdit.interceptMethods";
-       _props.setProperty(prop,value);
+       Preferences.setPreference(prop,value);
     }
     
     public String[] getInterceptMethods() {
@@ -104,7 +103,7 @@ public class ManualEdit extends ProxyPlugin {
     public void setInterceptRequest(boolean bool) {
        _interceptRequest = bool;
        String prop = "ManualEdit.interceptRequest";
-       _props.setProperty(prop,Boolean.toString(bool));
+       Preferences.setPreference(prop,Boolean.toString(bool));
     }
     
     public boolean getInterceptRequest() {
@@ -114,7 +113,7 @@ public class ManualEdit extends ProxyPlugin {
     public void setInterceptResponse(boolean bool) {
        _interceptResponse = bool;
        String prop = "ManualEdit.interceptResponse";
-       _props.setProperty(prop,Boolean.toString(bool));
+       Preferences.setPreference(prop,Boolean.toString(bool));
     }
     
     public boolean getInterceptResponse() {
@@ -156,8 +155,10 @@ public class ManualEdit extends ProxyPlugin {
                     return response;
                 }
                 if (_ui != null) {
+                    request = response.getRequest();
                     response = _ui.editResponse(request, response);
                     if (response == null) throw new IOException("Response aborted in Manual Edit");
+                    if (response.getRequest() == null) response.setRequest(request);
                     response.addHeader("X-ManualEdit", "possibly modified");
                 }
             }

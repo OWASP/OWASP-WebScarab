@@ -7,8 +7,8 @@
 package org.owasp.webscarab.plugin.proxy;
 
 import java.io.IOException;
-import java.util.Properties;
 import org.owasp.webscarab.httpclient.HTTPClient;
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
@@ -21,14 +21,13 @@ public class BrowserCache extends ProxyPlugin {
     private boolean _enabled = false;
     
     /** Creates a new instance of RevealHidden */
-    public BrowserCache(Properties props) {
-        super(props);
+    public BrowserCache() {
         parseProperties();
     }
     
     public void parseProperties() {
         String prop = "BrowserCache.enabled";
-        String value = _props.getProperty(prop, "false");
+        String value = Preferences.getPreference(prop, "false");
         _enabled = "true".equalsIgnoreCase( value ) || "yes".equalsIgnoreCase( value );
     }
     
@@ -39,7 +38,7 @@ public class BrowserCache extends ProxyPlugin {
     public void setEnabled(boolean bool) {
         _enabled = bool;
         String prop = "BrowserCache.enabled";
-        _props.setProperty(prop,Boolean.toString(bool));
+        Preferences.setPreference(prop,Boolean.toString(bool));
     }
 
     public boolean getEnabled() {

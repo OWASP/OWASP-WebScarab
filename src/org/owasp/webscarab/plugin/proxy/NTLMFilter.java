@@ -7,11 +7,10 @@
 package org.owasp.webscarab.plugin.proxy;
 
 import org.owasp.webscarab.httpclient.HTTPClient;
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.proxy.ProxyPlugin;
-
-import java.util.Properties;
 
 import java.io.IOException;
 
@@ -24,14 +23,13 @@ public class NTLMFilter extends ProxyPlugin {
     private boolean _enabled = false;
     
     /** Creates a new instance of RevealHidden */
-    public NTLMFilter(Properties props) {
-        super(props);
+    public NTLMFilter() {
         parseProperties();
     }
     
     public void parseProperties() {
         String prop = "NTLMFilter.enabled";
-        String value = _props.getProperty(prop, "true");
+        String value = Preferences.getPreference(prop, "true");
         _enabled = ("true".equalsIgnoreCase( value ) || "yes".equalsIgnoreCase( value ));
     }
     
@@ -42,7 +40,7 @@ public class NTLMFilter extends ProxyPlugin {
     public void setEnabled(boolean bool) {
         _enabled = bool;
         String prop = "NTLMFilter.enabled";
-        _props.setProperty(prop,Boolean.toString(bool));
+        Preferences.setPreference(prop,Boolean.toString(bool));
     }
 
     public boolean getEnabled() {

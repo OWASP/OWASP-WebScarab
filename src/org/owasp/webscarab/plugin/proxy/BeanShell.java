@@ -7,6 +7,7 @@
 package org.owasp.webscarab.plugin.proxy;
 
 import org.owasp.webscarab.httpclient.HTTPClient;
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.SiteModel;
@@ -18,7 +19,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.PrintStream;
 
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import bsh.Interpreter;
@@ -59,8 +59,7 @@ public class BeanShell extends ProxyPlugin {
     private BeanShellUI _ui = null;
     
     /** Creates a new instance of ManualEdit */
-    public BeanShell(Properties props) {
-        super(props);
+    public BeanShell() {
         _interpreter = new Interpreter();
         parseProperties();
     }
@@ -75,7 +74,7 @@ public class BeanShell extends ProxyPlugin {
     
     public void parseProperties() {
         String prop = "BeanShell.scriptFile";
-        String value = _props.getProperty(prop, "");
+        String value = Preferences.getPreference(prop, "");
         _scriptFile = value;
         if (!_scriptFile.equals("")) {
             loadScriptFile(_scriptFile);
@@ -88,7 +87,7 @@ public class BeanShell extends ProxyPlugin {
         }
         
         prop = "BeanShell.enabled";
-        value = _props.getProperty(prop, "");
+        value = Preferences.getPreference(prop, "");
         setEnabled(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
     }
     
@@ -99,7 +98,7 @@ public class BeanShell extends ProxyPlugin {
     public void setEnabled(boolean bool) {
         _enabled = bool;
         String prop = "BeanShell.enabled";
-        _props.setProperty(prop,Boolean.toString(bool));
+        Preferences.setPreference(prop,Boolean.toString(bool));
     }
     
     public boolean getEnabled() {
@@ -128,7 +127,7 @@ public class BeanShell extends ProxyPlugin {
     public void setScriptFile(String filename) throws EvalError {
         _scriptFile = filename;
         String prop = "BeanShell.scriptfile";
-        _props.setProperty(prop,filename);
+        Preferences.setPreference(prop,filename);
         if (!filename.equals("")) {
             loadScriptFile(filename);
         } else {
