@@ -17,7 +17,14 @@ import org.owasp.webscarab.model.URLInfo;
 import org.owasp.webscarab.plugin.spider.SpiderStore;
 import org.owasp.webscarab.plugin.spider.Link;
 
+import org.owasp.webscarab.plugin.sessionid.SessionIDStore;
+import org.owasp.webscarab.plugin.sessionid.SessionID;
+import org.owasp.webscarab.util.NotifiableListModel;
+import java.math.BigInteger;
+
 import org.owasp.util.DateUtil;
+
+import javax.swing.ListModel;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,6 +40,8 @@ import java.util.Set;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.TreeMap;
+
 import java.text.ParseException;
 
 import java.net.URL;
@@ -42,7 +51,7 @@ import java.net.MalformedURLException;
  *
  * @author  rdawes
  */
-public class FileSystemStore implements SiteModelStore, SpiderStore {
+public class FileSystemStore implements SiteModelStore, SpiderStore, SessionIDStore {
     
     private String _dir;
     
@@ -537,6 +546,7 @@ public class FileSystemStore implements SiteModelStore, SpiderStore {
             while ((line = br.readLine()) != null) {
                 buff.append(line);
             }
+            br.close();
         } catch (IOException ioe) {
             throw new StoreException("Error reading fragment " + key + " : " + ioe);
         }
@@ -553,10 +563,82 @@ public class FileSystemStore implements SiteModelStore, SpiderStore {
         File f = new File(_dir + "fragments/" + key);
         FileWriter fw = null;
         try {
+            if (f.exists()) {
+                return;
+            }
             fw = new FileWriter(f);
             fw.write(fragment);
+            fw.flush();
+            fw.close();
         } catch (IOException ioe) {
             throw new StoreException("Error writing fragment " + key + " : " + ioe);
+        }
+    }
+    
+    public TreeMap readSessionIDs() throws StoreException {
+        File f = new File(_dir + "sessionid");
+        BufferedReader br = null;
+        TreeMap idmap = new TreeMap();
+        try {
+            br = new BufferedReader(new FileReader(f));
+        } catch (FileNotFoundException fnfe) {
+            return idmap;
+        }
+        String name = null;
+        String line = null;
+        try {
+            NotifiableListModel nlm = null;
+            SessionID id;
+            while ((line = br.readLine()) != null) {
+                if (name == null) {
+                    name = line;
+                    nlm = new NotifiableListModel();
+                    idmap.put(name, nlm);
+                } else if (line.equals("")) {
+                    name = null;
+                    nlm = null;
+                } else {
+                    String[] part = line.split(" : ");
+                    Date date = new Date(new Long(part[0]).longValue());
+                    id = new SessionID(date, part[1]);
+                    if (part[2] != null && !part[2].equals("null")) {
+                        id.setIntValue(new BigInteger(part[2]));
+                    }
+                    nlm.addElement(id);
+                }
+            }
+            br.close();
+        } catch (IOException ioe) {
+            throw new StoreException("Error reading sessionids : " + ioe);
+        }
+        return idmap;
+        
+    }
+    
+    public void writeSessionIDs(TreeMap idmap) throws StoreException {
+        if (idmap.size() == 0) {
+            return;
+        }
+        File f = new File(_dir + "sessionid");
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter(f);
+            Iterator it = idmap.keySet().iterator();
+            while (it.hasNext()) {
+                String name = (String) it.next();
+                fw.write(name+"\r\n");
+                ListModel lm = (ListModel) idmap.get(name);
+                SessionID id;
+                for (int i=0; i<lm.getSize(); i++) {
+                    id = (SessionID) lm.getElementAt(i);
+                    fw.write(id.getDate().getTime() + " : " + id.getValue() + " : " + id.getIntValue() + "\r\n");
+                }
+                fw.write("\r\n");
+            }
+            fw.flush();
+            fw.close();
+        } catch (IOException ioe) {
+            throw new StoreException("Error writing sessionids : " + ioe);
         }
     }
     
