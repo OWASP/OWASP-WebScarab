@@ -7,6 +7,8 @@
 package org.owasp.webscarab.model;
 
 import java.util.Properties;
+import java.util.logging.Logger;
+
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -20,6 +22,7 @@ import java.io.IOException;
 public class Preferences {
     
     static Properties _props = null;
+    private static Logger _logger = Logger.getLogger("org.owasp.webscarab.model.Preferences");
     
     /** Creates a new instance of Preferences */
     private Preferences() {
@@ -27,12 +30,13 @@ public class Preferences {
     
     public static Properties getPreferences() {
         if (_props == null) {
-            _props = readPreferences();
+            _logger.severe("getPreferences called, but not yet loaded!");
+            System.exit(1);
         }
         return _props;
     }
     
-    private static Properties readPreferences() throws IOException {
+    public static void loadPreferences() throws IOException {
         // Look for a props file in the user's home directory, and load it if it exists
         // otherwise loads the default props distributed in the jar
         
@@ -47,11 +51,10 @@ public class Preferences {
             _props = props;
         } catch (FileNotFoundException fnfe) {
             Properties props = new Properties();
-            InputStream is = props.getClass().getResourceAsStream("/" + file);
+            InputStream is = props.getClass().getResourceAsStream("/WebScarab.properties");
             props.load(is);
             _props = props;
         }
-        return _props;
     }
     
     public static void savePreferences() throws FileNotFoundException, IOException {
