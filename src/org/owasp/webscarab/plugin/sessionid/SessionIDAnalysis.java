@@ -31,6 +31,8 @@ import java.net.URL;
 import java.math.BigInteger;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  *
@@ -133,16 +135,32 @@ public class SessionIDAnalysis implements WebScarabPlugin, Runnable {
             date = new Date();
         }
         SessionID sessid = null;
+        Pattern pattern = Pattern.compile(regex);
         if (location==LOCATION_COOKIE) {
             String[][] headers = response.getHeaders();
             for (int i=0; i<headers.length; i++) {
                 if (headers[i][0].equals("Set-Cookie")) {
                     Cookie cookie = new Cookie(date, url, headers[i][1]);
                     if (cookie.getKey().equals(name)) {
-                        return new SessionID(date, cookie.getValue());
+                        String value = cookie.getValue();
+                        Matcher matcher = pattern.matcher(value);
+                        if (matcher.matches() && matcher.groupCount()>=1) {
+                            value = matcher.group(1);
+                        }
+                        return new SessionID(date, value);
                     }
                 }
             }
+        } else if (location == LOCATION_BODY) {
+            String content = new String(response.getContent());
+            if (content.equals("")) {
+                return null;
+            }
+            Matcher matcher = pattern.matcher(content);
+            if (matcher.matches() && matcher.groupCount()>=1) {
+                return new SessionID(date, matcher.group(1));
+            }
+            return null;
         }
         System.out.println("Didn't get an id?");
         return null;

@@ -8,6 +8,8 @@ package org.owasp.webscarab.plugin.sessionid;
 
 import org.owasp.webscarab.util.NotifiableListModel;
 import java.math.BigInteger;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
@@ -26,6 +28,7 @@ public class SessionIDCalculator implements ListDataListener {
     private int _maxlength = 0;
     private int _lastCalculation = -1;
     private transient boolean _calculating = false;
+    private Pattern _pattern = Pattern.compile("^(.*)$");
     
     /** Creates a new instance of CharacterSetCalculator */
     public SessionIDCalculator(NotifiableListModel lm) {
@@ -35,14 +38,31 @@ public class SessionIDCalculator implements ListDataListener {
         }
     }
     
+    public void setPattern(String regex) {
+        _pattern = Pattern.compile(regex);
+        _charset = new int[MAXLENGTH][128];
+        _lastCalculation = -1;
+        calculate();
+    }
+    
     // returns true if the character set was modified, requiring a recalculation
     private boolean updateCharset(String value) {
         boolean updated = false;
         // this establishes the character set per position
         // results in a two dimensional array indicating 
         // the frequency of each character at each position
-        for (int i=0; i<value.length(); i++) {
-            char ch = value.charAt(i);
+        // Note that the array is arranged Least Significant Bit first
+        // to account for varying length tokens
+        Matcher matcher = _pattern.matcher(value);
+        if(matcher.matches() && matcher.groupCount()>=1) {
+            value = matcher.group(1);
+        } else {
+            System.err.println("value '" + value + "' did not match the pattern!");
+            return true;
+        }
+        int length = value.length();
+        for (int i=0; i<length; i++) {
+            char ch = value.charAt(length-i-1);
             if (_charset[i][ch] == 0) {
                 updated = true;
             }
@@ -52,15 +72,23 @@ public class SessionIDCalculator implements ListDataListener {
     }
 
     private BigInteger convertStringToBigInt(String value) {
-        BigInteger total = BigInteger.ZERO;
-        for (int i=value.length()-1; i>=0; i--) {
-            char ch = value.charAt(i);
-            BigInteger val = new BigInteger(Integer.toString(_chars[i].indexOf(ch)));
-            BigInteger base = new BigInteger(Integer.toString(_chars[i].length()));
-            base = base.pow(value.length()-1-i);
-            total = total.add(base.multiply(val));
-            Thread.yield(); // to keep interactive performance acceptable
+        Matcher matcher = _pattern.matcher(value);
+        if(matcher.matches() && matcher.groupCount()>=1) {
+            value = matcher.group(1);
+        } else {
+            System.err.println("value '" + value + "' did not match the pattern!");
+            return BigInteger.ZERO;
         }
+        BigInteger total = BigInteger.ZERO;
+        BigInteger max = BigInteger.ONE;
+        int length = value.length();
+        for (int i=0; i<length; i++) {
+            char ch = value.charAt(length-i-1);
+            BigInteger val = new BigInteger(Integer.toString(_chars[i].indexOf(ch)));
+            total = total.add(val.multiply(max));
+            max = max.multiply(new BigInteger(Integer.toString(_chars[i].length())));
+        }
+        // Thread.yield(); // to keep interactive performance acceptable
         return total;
     }
     
@@ -69,7 +97,6 @@ public class SessionIDCalculator implements ListDataListener {
         int size = _lm.size();
         SessionID sessid;
         String value;
-        BigInteger total;
         int length;
         for (int position=_lastCalculation+1; position<size; position++) {
             sessid = (SessionID) _lm.get(position);
