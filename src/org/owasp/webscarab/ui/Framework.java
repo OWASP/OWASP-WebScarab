@@ -119,6 +119,14 @@ public class Framework implements Plug {
     }
     
     private void updateURLInfo(Conversation conversation, URLInfo urlinfo) {
+        if (conversation == null) {
+            System.err.println("Conversation may not be null!");
+            return;
+        }
+        if (urlinfo == null) {
+            System.err.println("urlinfo may not be null!");
+            return;
+        }
         synchronized (urlinfo) {
             String property = "METHOD";
             String value = conversation.getProperty(property);
