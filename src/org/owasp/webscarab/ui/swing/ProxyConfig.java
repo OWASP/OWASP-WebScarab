@@ -45,6 +45,7 @@ import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
 import org.owasp.webscarab.model.Preferences;
+import org.owasp.webscarab.util.W32WinInet;
 
 import java.util.logging.Logger;
 
@@ -84,6 +85,9 @@ public class ProxyConfig extends javax.swing.JDialog {
         } else {
             noProxyTextArea.setText("");
         }
+        if (!W32WinInet.isAvailable()) {
+            w32Button.getParent().remove(w32Button);
+        }
     }
     
     /** This method is called from within the constructor to
@@ -106,6 +110,7 @@ public class ProxyConfig extends javax.swing.JDialog {
         jScrollPane1 = new javax.swing.JScrollPane();
         noProxyTextArea = new javax.swing.JTextArea();
         jPanel1 = new javax.swing.JPanel();
+        w32Button = new javax.swing.JButton();
         applyButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
 
@@ -210,6 +215,15 @@ public class ProxyConfig extends javax.swing.JDialog {
         gridBagConstraints.weighty = 1.0;
         getContentPane().add(jScrollPane1, gridBagConstraints);
 
+        w32Button.setText("Get IE Settings");
+        w32Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                w32ButtonActionPerformed(evt);
+            }
+        });
+
+        jPanel1.add(w32Button);
+
         applyButton.setText("Apply");
         applyButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -239,6 +253,26 @@ public class ProxyConfig extends javax.swing.JDialog {
         java.awt.Dimension dialogSize = getSize();
         setLocation((screenSize.width-dialogSize.width)/2,(screenSize.height-dialogSize.height)/2);
     }//GEN-END:initComponents
+
+    private void w32ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_w32ButtonActionPerformed
+        if (W32WinInet.isAvailable()) {
+            String server = W32WinInet.getHttpProxyServer();
+            httpProxyServerTextField.setText(server == null ? "" : server);
+            int port = W32WinInet.getHttpProxyPort();
+            if (port < 1) port = 3128;
+            httpProxyPortTextField.setText(Integer.toString(port));
+            
+            server = W32WinInet.getHttpsProxyServer();
+            httpsProxyServerTextField.setText(server == null ? "" : server);
+            port = W32WinInet.getHttpsProxyPort();
+            if (port < 1) port = 3128;
+            httpsProxyPortTextField.setText(Integer.toString(port));
+            
+            String bypass = W32WinInet.getNoProxy();
+            if (bypass == null) bypass = "";
+            noProxyTextArea.setText(bypass.replaceAll(";",","));
+        }
+    }//GEN-LAST:event_w32ButtonActionPerformed
     
     private void applyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyButtonActionPerformed
         String error = null;
@@ -324,6 +358,7 @@ public class ProxyConfig extends javax.swing.JDialog {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea noProxyTextArea;
+    private javax.swing.JButton w32Button;
     // End of variables declaration//GEN-END:variables
     
 }
