@@ -291,6 +291,10 @@ public class URLFetcher implements HTTPClient {
             for (int i=0; i<_noProxy.length; i++) {
                 if (_noProxy[i].startsWith(".") && host.endsWith(_noProxy[i])) {
                     return false;
+                } else if (host.matches(_noProxy[i])) {
+                    return false;
+                } else if (_noProxy[i].equals("<local>") && host.indexOf('.') < 0) {
+                    return false;
                 } else if (host.equals(_noProxy[i])) {
                     return false;
                 }
