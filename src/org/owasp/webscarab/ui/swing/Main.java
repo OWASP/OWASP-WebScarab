@@ -103,6 +103,8 @@ public class Main {
     }
     
     public static void main(String[] args) {
+        System.setProperty("sun.awt.exception.handler", ExceptionHandler.class.getName());
+        
         initLogging();
         
         try {
@@ -114,6 +116,8 @@ public class Main {
         
         _framework = new Framework();
         _uif = new UIFramework(_framework);
+        
+        ExceptionHandler.setParentComponent(_uif);
         
         loadPlugins();
         

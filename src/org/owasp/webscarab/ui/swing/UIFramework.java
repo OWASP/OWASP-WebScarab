@@ -105,8 +105,6 @@ public class UIFramework extends JFrame implements FrameworkUI {
     
     /** Creates new form WebScarab */
     public UIFramework(Framework framework) {
-        System.setProperty("sun.awt.exception.handler", ExceptionHandler.class.getName());
-        
         _framework = framework;
         _model = framework.getModel();
         
@@ -124,7 +122,6 @@ public class UIFramework extends JFrame implements FrameworkUI {
         initEditorViews();
         initHelp();
         
-        ExceptionHandler.setParentComponent(this);
     }
     
     private void initHelp() {
