@@ -50,11 +50,7 @@ public class SiteModel {
     public SiteModel() {
         _conversationList = new SequencedTreeMap();
         _urlinfo = Collections.synchronizedMap(new TreeMap());
-        _urltree = new URLTreeModel() {
-            protected Object createNewUserObject(String url) {
-                return createURLInfo(url);
-            }
-        };
+        _urltree = new URLTreeModel();
         _cookieJar = new CookieJar();
     } // constructor SiteModel
     
@@ -140,12 +136,8 @@ public class SiteModel {
                 } catch (Exception e) {
                     System.err.println("Error adding " + url + " to the tree");
                 }
-                // try {
-                    ui = new URLInfo(url);
-                    _urlinfo.put(url, ui);
-                // } catch (MalformedURLException mue) {
-                //     System.out.println("Malformed url " + mue);
-                // }
+                ui = new URLInfo(url);
+                _urlinfo.put(url, ui);
             }
         }
         return ui;
@@ -168,6 +160,7 @@ public class SiteModel {
                 URLInfo[] urlinfo = _store.readURLInfo();
                 for (int i=0; i<urlinfo.length; i++) {
                     _urlinfo.put(urlinfo[i].getURL(), urlinfo[i]);
+                    _urltree.add(urlinfo[i].getURL());
                 }
                 // Fixme : if we keep a tree of URLInfo's, we should fire a tree changed
                 // event here

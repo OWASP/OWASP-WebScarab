@@ -394,9 +394,9 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 Link[] links = _store.readUnseenLinks();
                 for (int i=0; i<links.length; i++) {
                     _unseenLinks.put(links[i].getURL(),links[i]);
+                    _unseenLinkTreeModel.add(links[i].getURL());
                 }
                 _unseenLinkTableModel.fireTableDataChanged();
-                // FIXME : we also need to update the tree here, once it is implemented
             }
             synchronized (_seenLinks) {
                 _seenLinks.clear();
