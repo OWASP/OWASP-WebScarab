@@ -14,10 +14,10 @@ import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.URLInfo;
 import org.owasp.webscarab.model.StoreException;
 
-import org.owasp.webscarab.plugin.Preferences;
+import org.owasp.webscarab.httpclient.URLFetcher;
+
 import org.owasp.webscarab.plugin.WebScarabPlugin;
 import org.owasp.webscarab.plugin.Plug;
-import org.owasp.webscarab.httpclient.URLFetcher;
 
 import java.util.ArrayList;
 import java.util.Properties;
@@ -50,16 +50,11 @@ public class Framework implements Plug {
     
     private ArrayList _plugins = null;
     
-    private Properties _props = null;
-    
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     /** Creates a new instance of Framework */
-    public Framework() {        
+    public Framework() {
         _sitemodel = new SiteModel();
-        
-        _props = Preferences.getPreferences();
-        setProxies(_props);
         
         _parser = new Parser();
         _parser.registerScanners();
@@ -154,7 +149,7 @@ public class Framework implements Plug {
             
             property = "STATUS";
             value = conversation.getProperty(property);
-            if (value != null) urlinfo.addProperty(property, value); 
+            if (value != null) urlinfo.addProperty(property, value);
             
             property = "CHECKSUM";
             value = conversation.getProperty(property);
@@ -176,51 +171,9 @@ public class Framework implements Plug {
             }
             urlinfo.setProperty("TOTALBYTES", Integer.toString(urlbytes+conversationbytes));
             
-            // This should not really be a Boolean, rather a list of the cookies, 
+            // This should not really be a Boolean, rather a list of the cookies,
             // it is difficult to concatenate a list of Set-Cookies, though :-(
             urlinfo.setProperty("SET-COOKIE", Boolean.toString(conversation.getProperty("SET-COOKIE")!=null));
-        }
-    }
-    
-    public void setProxies(Properties props) {
-        String prop = "WebScarab.httpProxy";
-        String value = props.getProperty(prop);
-        if (value != null) {
-            String[] proxy = value.split(":");
-            if (proxy.length == 2) {
-                try {
-                    URLFetcher.setHttpProxy(proxy[0], Integer.parseInt(proxy[1]));
-                } catch (NumberFormatException nfe) {
-                    _logger.severe("Error parsing " + prop + " from properties");
-                }
-            } else {
-                URLFetcher.setHttpProxy(null,0);
-            }
-        } else {
-            URLFetcher.setHttpProxy(null,0);
-        }
-        prop = "WebScarab.httpsProxy";
-        value = props.getProperty(prop);
-        if (value != null) {
-            String[] proxy = value.split(":");
-            if (proxy.length == 2) {
-                try {
-                    URLFetcher.setHttpsProxy(proxy[0], Integer.parseInt(proxy[1]));
-                } catch (NumberFormatException nfe) {
-                    _logger.severe("Error parsing " + prop + " from properties");
-                }
-            } else {
-                URLFetcher.setHttpsProxy(null,0);
-            }
-        } else {
-            URLFetcher.setHttpsProxy(null,0);
-        }
-        prop = "WebScarab.noProxy";
-        value = props.getProperty(prop);
-        if (value != null && !value.equals("")) {
-            URLFetcher.setNoProxy(value.split(" *, *"));
-        } else {
-            URLFetcher.setNoProxy(new String[0]);
         }
     }
     
@@ -253,6 +206,6 @@ public class Framework implements Plug {
     public CookieJar getCookieJar() {
         return _sitemodel.getCookieJar();
     }
-
-
+    
+    
 }
