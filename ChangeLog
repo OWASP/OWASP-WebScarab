@@ -1,3 +1,142 @@
+2005-03-24 08:12  rogan
+
+	* src/org/owasp/webscarab/plugin/fuzz/: Fuzzer.java,
+	  FuzzerEvent.java, FuzzerListener.java, FuzzerModel.java,
+	  swing/FuzzerPanel.form, swing/FuzzerPanel.java: Assorted updates
+	  to the fuzzer
+
+2005-03-24 08:11  rogan
+
+	* src/org/owasp/webscarab/ui/swing/Main.java: Better handling of
+	  initial parameters. Actually make the Fuzzer plugin visible
+
+2005-03-24 08:08  rogan
+
+	* src/org/owasp/webscarab/plugin/spider/: Spider.java,
+	  SpiderModel.java: Slight improvements on how URL's that require
+	  authentication are handled. At least we do not mark them as being
+	  fetched.
+
+2005-03-24 08:04  rogan
+
+	* src/org/owasp/webscarab/plugin/sessionid/:
+	  SessionIDAnalysis.java, swing/SessionIDPanel.form,
+	  swing/SessionIDPanel.java: Properly support setting a session.
+	  Previously an empty setSession() call was being handled, because
+	  we had the wrong prototype! Doh! Support getting sessionids from
+	  the content of a message. Now we can define a regular expression
+	  that delimits the sessionid. You must provide a name for the
+	  sessionid, though, since it cannot be automatically constructed
+	  like we do for a cookie.
+
+2005-03-24 07:51  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/NTLMFilter.java: Handle NTLM
+	  headers better. This should actually work!
+
+2005-03-24 07:49  rogan
+
+	* src/org/owasp/webscarab/model/Cookie.java: Handle unknown
+	  attributes better. Warn, rather than throwing an exception
+
+2005-03-24 07:48  rogan
+
+	* build.xml: Do not allow ProGuard to optimise away unused
+	  WebScarab methods
+
+2005-03-11 17:58  rogan
+
+	* src/org/owasp/webscarab/: model/SiteModel.java,
+	  model/SiteModelAdapter.java, model/DefaultSiteModel.java,
+	  model/FilteredSiteModel.java, model/SiteModelEvent.java,
+	  model/SiteModelListener.java, plugin/Framework.java,
+	  plugin/fragments/swing/FragmentsPanel.java,
+	  plugin/fuzz/swing/FuzzerPanel.form,
+	  plugin/fuzz/swing/FuzzerPanel.java, plugin/spider/Spider.java,
+	  plugin/spider/SpiderModel.java,
+	  plugin/spider/swing/SpiderPanel.java,
+	  ui/swing/ConversationListModel.java,
+	  ui/swing/ConversationTableModel.java,
+	  ui/swing/CookieJarViewer.java, ui/swing/Main.java,
+	  ui/swing/SiteTreeModelAdapter.java, ui/swing/SummaryPanel.java,
+	  plugin/fuzz/Fuzzer.java, plugin/fuzz/FuzzerEvent.java,
+	  plugin/fuzz/FuzzerListener.java, plugin/fuzz/FuzzerModel.java,
+	  plugin/fuzz/Parameter.java, plugin/fuzz/RequestFuzzer.java,
+	  plugin/fuzz/Signature.java: MAJOR refactorin of the models.
+	  SiteModel is now an interface, implemented by DefaultSiteModel
+	  (the old SiteModel) and FilteredSiteModel (designed for things
+	  like the Spider where we don't show the entire view), or
+	  FuzzerModel (which doesn't show the queries)
+
+	  Spider's model has been factored out of the Spider.java class,
+	  and is now standalone Fuzzer (the beginnings of Fuzzer support)
+	  also has a proper model.  I plan to factor out the model from
+	  SessionID and Fragments eventually, too.
+
+	  Model events are now a proper event class, rather than multiple
+	  parameters.
+
+2005-03-11 17:54  rogan
+
+	* src/org/owasp/webscarab/ui/swing/TranscoderFrame.java: Made more
+	  flexible in terms of encoding the selection, rather than the
+	  entire text.	Improved exception handling in some cases
+
+2005-03-11 17:50  rogan
+
+	* src/org/owasp/webscarab/plugin/fragments/Fragments.java: removed
+	  unused import
+
+2005-03-11 17:47  rogan
+
+	* src/org/owasp/webscarab/httpclient/AsyncFetcher.java: Added some
+	  warning messages
+
+2005-03-11 17:40  rogan
+
+	* src/org/owasp/webscarab/plugin/sessionid/SessionIDAnalysis.java:
+	  Make handling responses from the AsyncFetcher more efficient
+
+2005-03-11 17:38  rogan
+
+	* src/org/owasp/webscarab/plugin/scripted/ScriptedObjectModel.java:
+	  Make more of the sitemodel methods available in the script
+
+2005-03-11 17:37  rogan
+
+	* src/org/owasp/webscarab/util/Encoding.java: Made some of the
+	  error messages more meaningful
+
+2005-03-11 17:36  rogan
+
+	* src/org/owasp/webscarab/util/TempDir.java: Added a recursive
+	  delete temp dir function
+
+2005-03-11 17:35  rogan
+
+	* src/org/owasp/webscarab/model/SiteModelStore.java: Added
+	  interface methods for getIndexOfXXX()
+
+2005-03-11 17:33  rogan
+
+	* src/org/owasp/webscarab/model/FileSystemStore.java: fixed some
+	  errors in url and query management. Added a getIndexOfUrl method
+
+2005-03-11 17:30  rogan
+
+	* src/org/owasp/webscarab/model/NamedValue.java: added a static
+	  function to split a string into an array of NamedValues
+
+2005-02-23 22:45  rogan
+
+	* src/org/owasp/webscarab/: httpclient/URLFetcher.java,
+	  util/Glob.java: Fixed handling of HEAD method Fixed handling of
+	  IE style globs in noProxy
+
+2005-02-23 09:41  rogan
+
+	* build.xml: [no log message]
+
 2005-02-22 22:12  rogan
 
 	* src/org/owasp/webscarab/: Class.tpl, RELEASE: Deleting unused
