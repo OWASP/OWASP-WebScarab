@@ -152,16 +152,20 @@ public class SiteModel {
 
     private URLInfo getURLInfo(String url) {
         URLInfo ui;
+        boolean newUrl = false;
         synchronized (_urlinfo) {
             ui = (URLInfo) _urlinfo.get(url);
             if (ui == null) {
-                try {
-                    _urltree.add(url);
-                } catch (Exception e) {
-                    System.err.println("Error adding " + url + " to the tree");
-                }
+                newUrl = true;
                 ui = new URLInfo(url);
                 _urlinfo.put(url, ui);
+            }
+        }
+        if (newUrl) {
+            try {
+                _urltree.add(url);
+            } catch (Exception e) {
+                System.err.println("Error adding " + url + " to the tree");
             }
         }
         return ui;
