@@ -23,9 +23,10 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 // SiteModel.java
 
-/** Model represents the most significant part of the Exodus system. It contains the
+/** SiteModel represents the most significant part of the Exodus system. It contains the
  * conversations, as well as the information about all the URLs that have been
- * seen. It is created as an Observable object, so that plugins can be notified of
+ * seen. 
+ * It is created as an Observable object, so that plugins can be notified of
  * any new Conversations, or URLInfos.
  */
 public class SiteModel {
@@ -81,13 +82,23 @@ public class SiteModel {
     }
     
     public String addConversation(Conversation conversation) {
+        logger.info("Entering model's addConversation");
         String id = getNextConversationID();
+        logger.info("Got an id");
         cacheConversation(id, conversation);
+        logger.info("Cached the conversation");
         parseResponse(conversation);
+        logger.info("parsed the response");
         return id;
     }
     
     private void parseResponse(Conversation conversation) {
+        String ct = conversation.getResponse().getHeader("Content-Type");
+        if (ct != null && ct.startsWith("text/html")) {
+            // HTMLParser hp = new HTMLParser()
+            // hp.parse(conversation);
+        }
+        logger.info("parsed response");
     }
     
     private void cacheConversation(String conversationID, Conversation c) {
