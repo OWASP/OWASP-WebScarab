@@ -59,6 +59,7 @@ import org.owasp.webscarab.plugin.Hook;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import java.math.BigInteger;
 
@@ -91,7 +92,7 @@ public class SessionIDAnalysis implements Plugin {
     private int _threads = 4;
     
     private String _name = null;
-    private Pattern _regex = null;
+    private String _regex = null;
     private int _count = 0;
     
     private Request _request = null;
@@ -123,12 +124,12 @@ public class SessionIDAnalysis implements Plugin {
         return _framework.getModel();
     }
     
-    public void setSession(SiteModel model, String storeType, Object connection) throws StoreException {
+    public void setSession(String type, Object store, String session) throws StoreException {
         // we have no listeners to remove
-        if (storeType.equals("FileSystem") && (connection instanceof File)) {
-            _store = new FileSystemStore((File) connection);
+        if (type.equals("FileSystem") && (store instanceof File)) {
+            _store = new FileSystemStore((File) store);
         } else {
-            throw new StoreException("Store type '" + storeType + "' is not supported in " + getClass().getName());
+            throw new StoreException("Store type '" + type + "' is not supported in " + getClass().getName());
         }
         _calculators.clear();
         for (int i=0; i<_store.getSessionIDNameCount(); i++) {
@@ -186,7 +187,7 @@ public class SessionIDAnalysis implements Plugin {
                         while (it.hasNext()) {
                             String key = (String) it.next();
                             SessionID id = (SessionID) ids.get(key);
-                          addSessionID(key, id);
+                            addSessionID(key, id);
                         }
                     }
                 }
@@ -207,7 +208,7 @@ public class SessionIDAnalysis implements Plugin {
         _status = "Stopped";
     }
     
-    public Map getIDsFromResponse(Response response, String name, Pattern regex) {
+    public Map getIDsFromResponse(Response response, String name, String regex) {
         Map ids = new TreeMap();
         Request request = response.getRequest();
         if (request == null) {
@@ -217,17 +218,11 @@ public class SessionIDAnalysis implements Plugin {
         HttpUrl url = request.getURL();
         Date date = new Date();
         NamedValue[] headers = response.getHeaders();
-        for (int i=0; i<headers.length; i++) {
-            if (headers[i].getName().equalsIgnoreCase("Set-Cookie") || headers[i].getName().equalsIgnoreCase("Set-Cookie2")) {
-                Cookie cookie = new Cookie(date, url, headers[i].getValue());
-                SessionID id = new SessionID(date, cookie.getValue());
-                ids.put(cookie.getKey(), id);
-            }
-        }
-        if (_name != null && !_name.equals("") && _regex != null) {
+        if (name != null && !name.equals("") && regex != null) {
             String location = response.getHeader("Location");
             if (location != null) {
-                Matcher matcher = regex.matcher(location);
+                Pattern pattern = Pattern.compile(regex);
+                Matcher matcher = pattern.matcher(location);
                 if (matcher.matches() && matcher.groupCount() > 0) {
                     SessionID id = new SessionID(date, matcher.group(1));
                     ids.put(name, id);
@@ -235,18 +230,43 @@ public class SessionIDAnalysis implements Plugin {
             }
             String type = response.getHeader("Content-Type");
             if (type != null && type.startsWith("text/")) {
-                String body = new String(response.getContent());
-                Matcher matcher = regex.matcher(body);
+                String charset = "UTF-8";
+                String body = null;
+                try {
+                    body = new String(response.getContent(), charset);
+                } catch (UnsupportedEncodingException uee) {
+                    body = new String(response.getContent());
+                }
+                
+                Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE | Pattern.DOTALL);
+                Matcher matcher = pattern.matcher(body);
                 if (matcher.matches() && matcher.groupCount() > 0) {
                     SessionID id = new SessionID(date, matcher.group(1));
                     ids.put(name, id);
+                }
+            }
+        } else {
+            Pattern pattern = Pattern.compile("(.*)");
+            if (regex != null && !regex.equals("")) pattern = Pattern.compile(regex);
+            for (int i=0; i<headers.length; i++) {
+                if (headers[i].getName().equalsIgnoreCase("Set-Cookie") || headers[i].getName().equalsIgnoreCase("Set-Cookie2")) {
+                    Cookie cookie = new Cookie(date, url, headers[i].getValue());
+                    Matcher matcher = pattern.matcher(cookie.getValue());
+                    System.out.println("Matches " + matcher.matches() + " count = " + matcher.groupCount());
+                    if (matcher.matches() && matcher.groupCount() > 0) {
+                        SessionID id = new SessionID(date, matcher.group(1));
+                        ids.put(cookie.getKey(), id);
+                    }
                 }
             }
         }
         return ids;
     }
     
-    public void fetch(Request request, String name, Pattern regex, int count) {
+    public void fetch(Request request, String name, String regex, int count) {
+        // throws a Runtime exception if this failes
+        Pattern.compile(regex);
+        
         _request = request;
         _name = name;
         _regex = regex;
@@ -300,8 +320,7 @@ public class SessionIDAnalysis implements Plugin {
             calc = new DefaultCalculator();
             _calculators.put(key, calc);
         }
-        boolean changed = false;
-        changed = calc.add(id);
+        boolean changed = calc.add(id);
         if (_ui != null) {
             _ui.sessionIDAdded(key, insert);
             // FIXME consider firing this on a timer to limit recalculations
@@ -364,9 +383,6 @@ public class SessionIDAnalysis implements Plugin {
     }
     
     public void analyse(ConversationID id, Request request, Response response, String origin) {
-    }
-    
-    public void setSession(String type, Object store, String session) throws StoreException {
     }
     
     public Object getScriptableObject() {

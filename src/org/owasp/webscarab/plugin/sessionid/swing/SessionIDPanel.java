@@ -98,6 +98,8 @@ import java.lang.reflect.InvocationTargetException;
 
 import java.text.SimpleDateFormat;
 
+import java.util.regex.PatternSyntaxException;
+
 /**
  *
  * @author  rdawes
@@ -192,10 +194,11 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         mainTabbedPane = new javax.swing.JTabbedPane();
         collectionPanel = new javax.swing.JPanel();
         specPanel = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
+        nameLabel = new javax.swing.JLabel();
         nameTextField = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         regexTextField = new javax.swing.JTextField();
+        bodyCheckBox = new javax.swing.JCheckBox();
         conversationPanel = new javax.swing.JPanel();
         conversationSplitPane = new javax.swing.JSplitPane();
         actionPanel = new javax.swing.JPanel();
@@ -220,36 +223,54 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         specPanel.setLayout(new java.awt.GridBagLayout());
 
         specPanel.setToolTipText("Provide a name and regex to match a sessionid in the Location or body");
-        jLabel1.setText("Name");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        specPanel.add(jLabel1, gridBagConstraints);
-
+        nameLabel.setText("Name");
+        nameLabel.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        specPanel.add(nameLabel, gridBagConstraints);
+
+        nameTextField.setEnabled(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         specPanel.add(nameTextField, gridBagConstraints);
 
         jLabel2.setText("Regex");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         specPanel.add(jLabel2, gridBagConstraints);
 
         regexTextField.setToolTipText("The string enclosed in brackets is used as the session id");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         specPanel.add(regexTextField, gridBagConstraints);
+
+        bodyCheckBox.setText("From message body");
+        bodyCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+        bodyCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bodyCheckBoxActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        specPanel.add(bodyCheckBox, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -381,6 +402,12 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
 
     }//GEN-END:initComponents
     
+    private void bodyCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bodyCheckBoxActionPerformed
+        nameLabel.setEnabled(bodyCheckBox.isSelected());
+        nameTextField.setEnabled(bodyCheckBox.isSelected());
+        if (!bodyCheckBox.isSelected()) nameTextField.setText("");
+    }//GEN-LAST:event_bodyCheckBoxActionPerformed
+    
     private void testButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testButtonActionPerformed
         final Request request = _requestPanel.getRequest();
         if (request == null) {
@@ -408,15 +435,18 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
                         _responsePanel.setResponse(response);
                         String name = nameTextField.getText();
                         String regex = regexTextField.getText();
-                        Pattern pattern = null;
-                        if (name != null) pattern = Pattern.compile(regex);
-                        Map ids = _sa.getIDsFromResponse(response, name, pattern);
-                        String[] keys = (String[]) ids.keySet().toArray(new String[0]);
-                        for (int i=0; i<keys.length; i++) {
-                            keys[i] = keys[i] + " : " + ids.get(keys[i]);
+                        try {
+                            Map ids = _sa.getIDsFromResponse(response, name, regex);
+                            String[] keys = (String[]) ids.keySet().toArray(new String[0]);
+                            for (int i=0; i<keys.length; i++) {
+                                SessionID id = (SessionID) ids.get(keys[i]);
+                                keys[i] = id.getDate() + " : " + keys[i] + " = " + id.getValue();
+                            }
+                            if (keys.length == 0) keys = new String[] { "No session identifiers found!" };
+                            JOptionPane.showMessageDialog(parent, keys, "Extracted Sessionids", JOptionPane.INFORMATION_MESSAGE);
+                        } catch (PatternSyntaxException pse) {
+                            JOptionPane.showMessageDialog(parent, pse.getMessage(), "Patter Syntax Exception", JOptionPane.WARNING_MESSAGE);
                         }
-                        if (keys.length == 0) keys = new String[] { "No session identifiers found!" };
-                        JOptionPane.showMessageDialog(parent, keys, "Extracted Sessionids", JOptionPane.INFORMATION_MESSAGE);
                     }
                 } else if (obj instanceof Exception) {
                     JOptionPane.showMessageDialog(null, new String[] {"Error fetching response: ", obj.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
@@ -477,10 +507,12 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         }
         String name = nameTextField.getText();
         String regex = regexTextField.getText();
-        Pattern pattern = null;
-        if (name != null && !name.equals("") && !regex.equals("")) pattern = Pattern.compile(regex);
         int count = ((Integer)sampleSpinner.getValue()).intValue();
-        _sa.fetch(request, name, pattern, count);
+        try {
+            _sa.fetch(request, name, regex, count);
+        } catch (PatternSyntaxException pse) {
+            JOptionPane.showMessageDialog(this, pse.getMessage(), "Patter Syntax Exception", JOptionPane.WARNING_MESSAGE);
+        }
     }//GEN-LAST:event_fetchButtonActionPerformed
     
     public void sessionIDAdded(final String key, final int index) {
@@ -576,13 +608,13 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel actionPanel;
     private javax.swing.JPanel analysisPanel;
+    private javax.swing.JCheckBox bodyCheckBox;
     private javax.swing.JPanel collectionPanel;
     private javax.swing.JPanel conversationPanel;
     private javax.swing.JSplitPane conversationSplitPane;
     private javax.swing.JButton fetchButton;
     private javax.swing.JPanel historyPanel;
     private javax.swing.JTable idTable;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel8;
@@ -591,6 +623,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
     private javax.swing.ButtonGroup locationButtonGroup;
     private javax.swing.JTabbedPane mainTabbedPane;
     private javax.swing.JComboBox nameComboBox;
+    private javax.swing.JLabel nameLabel;
     private javax.swing.JTextField nameTextField;
     private javax.swing.JTextField regexTextField;
     private javax.swing.JComboBox requestComboBox;
