@@ -4,7 +4,7 @@
  * Created on July 25, 2003, 10:58 PM
  */
 
-package src.org.owasp.webscarab.ui.swing.proxy;
+package org.owasp.webscarab.ui.swing.proxy;
 
 import org.owasp.webscarab.plugins.proxy.plugins.*;
 

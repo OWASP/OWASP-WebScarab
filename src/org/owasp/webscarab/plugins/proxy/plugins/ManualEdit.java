@@ -4,7 +4,7 @@
  * Created on July 10, 2003, 4:46 PM
  */
 
-package src.org.owasp.webscarab.plugins.proxy.plugins;
+package org.owasp.webscarab.plugins.proxy.plugins;
 
 import java.util.Properties;
 import java.util.Enumeration;

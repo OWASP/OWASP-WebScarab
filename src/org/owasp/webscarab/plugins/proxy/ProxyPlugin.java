@@ -4,7 +4,7 @@
  * Created on July 10, 2003, 12:41 PM
  */
 
-package src.org.owasp.webscarab.plugins.proxy;
+package org.owasp.webscarab.plugins.proxy;
 
 import org.owasp.webscarab.model.*;
 import java.util.Properties;

@@ -1,4 +1,4 @@
-package src.org.owasp.webscarab.plugins.proxy;
+package org.owasp.webscarab.plugins.proxy;
 
 import java.io.*;
 import java.net.*;

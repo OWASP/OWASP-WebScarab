@@ -1,7 +1,7 @@
-package src.org.owasp.webscarab.plugins.proxy;
+package org.owasp.webscarab.plugins.proxy;
 
 /*
- * $Id: Proxy.java,v 1.1 2003/07/28 21:35:14 rogan Exp $
+ * $Id: Proxy.java,v 1.2 2003/07/29 22:10:38 rogan Exp $
  */
 import java.util.Properties;
 import java.util.Enumeration;

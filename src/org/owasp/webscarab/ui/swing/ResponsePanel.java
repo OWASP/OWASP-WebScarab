@@ -4,7 +4,7 @@
  * Created on 02 June 2003, 03:09
  */
 
-package src.org.owasp.webscarab.ui.swing;
+package org.owasp.webscarab.ui.swing;
 
 import javax.swing.ImageIcon;
 import javax.swing.event.ChangeListener;

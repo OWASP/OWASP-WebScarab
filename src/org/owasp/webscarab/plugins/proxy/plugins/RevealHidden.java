@@ -4,7 +4,7 @@
  * Created on July 13, 2003, 7:39 PM
  */
 
-package src.org.owasp.webscarab.plugins.proxy.plugins;
+package org.owasp.webscarab.plugins.proxy.plugins;
 
 import org.owasp.webscarab.model.*;
 import org.owasp.webscarab.plugins.proxy.AbstractProxyPlugin;

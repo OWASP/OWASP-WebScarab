@@ -4,7 +4,7 @@
  * Created on 02 June 2003, 02:24
  */
 
-package src.org.owasp.webscarab.ui.swing;
+package org.owasp.webscarab.ui.swing;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -14,7 +14,7 @@ import javax.swing.DefaultCellEditor;
 import java.io.ByteArrayInputStream;
 
 import org.owasp.webscarab.model.Request;
-import org.owasp.webscarab.Util;
+import org.owasp.webscarab.util.Util;
 
 /**
  *

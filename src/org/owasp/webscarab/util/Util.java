@@ -15,7 +15,7 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 
-import org.owasp.webscarab.model.*;
+// import org.owasp.webscarab.model.*;
 
 /**
  *

@@ -4,7 +4,7 @@
  * Created on July 27, 2003, 6:09 PM
  */
 
-package src.org.owasp.webscarab.plugins.proxy;
+package org.owasp.webscarab.plugins.proxy;
 
 import org.owasp.webscarab.model.*;
 import java.io.IOException;

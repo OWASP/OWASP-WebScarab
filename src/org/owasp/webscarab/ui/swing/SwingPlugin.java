@@ -4,7 +4,7 @@
  * Created on July 13, 2003, 8:08 PM
  */
 
-package src.org.owasp.webscarab.ui.swing;
+package org.owasp.webscarab.ui.swing;
 
 import javax.swing.JPanel;
 
