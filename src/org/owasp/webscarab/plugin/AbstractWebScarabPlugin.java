@@ -9,7 +9,7 @@ package org.owasp.webscarab.plugin;
 import java.util.Iterator;
 import java.util.Properties;
 
-import org.owasp.webscarab.plugin.Preferences;
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.Conversation;
