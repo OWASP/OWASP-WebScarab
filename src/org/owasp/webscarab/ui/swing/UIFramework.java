@@ -84,6 +84,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private SummaryPanel _summaryPanel;
     
     private TranscoderFrame _transcoder = null;
+    private ScriptManagerFrame _scriptManagerFrame = null;
     
     private Logger _logger = Logger.getLogger("org.owasp.webscarab");
     
@@ -199,6 +200,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
         certsMenuItem = new javax.swing.JMenuItem();
         cookieJarMenuItem = new javax.swing.JMenuItem();
         transcoderMenuItem = new javax.swing.JMenuItem();
+        scriptMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         aboutMenuItem = new javax.swing.JMenuItem();
         logMenu = new javax.swing.JMenu();
@@ -348,6 +350,15 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         toolsMenu.add(transcoderMenuItem);
 
+        scriptMenuItem.setText("Script Manager");
+        scriptMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                scriptMenuItemActionPerformed(evt);
+            }
+        });
+
+        toolsMenu.add(scriptMenuItem);
+
         mainMenuBar.add(toolsMenu);
 
         helpMenu.setMnemonic('H');
@@ -422,6 +433,11 @@ public class UIFramework extends JFrame implements FrameworkUI {
         setJMenuBar(mainMenuBar);
 
     }//GEN-END:initComponents
+
+    private void scriptMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_scriptMenuItemActionPerformed
+        if (_scriptManagerFrame == null) _scriptManagerFrame = new ScriptManagerFrame(_framework.getScriptManager());
+        _scriptManagerFrame.show();
+    }//GEN-LAST:event_scriptMenuItemActionPerformed
 
     private void wrapTextCheckBoxMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_wrapTextCheckBoxMenuItemActionPerformed
         Preferences.setPreference("TextPanel.wrap", Boolean.toString(wrapTextCheckBoxMenuItem.isSelected()));
@@ -589,6 +605,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private javax.swing.JMenuItem newMenuItem;
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem proxyMenuItem;
+    private javax.swing.JMenuItem scriptMenuItem;
     private javax.swing.JRadioButtonMenuItem severeLogRadioButtonMenuItem;
     private javax.swing.JMenu toolsMenu;
     private javax.swing.JMenuItem transcoderMenuItem;
