@@ -10,13 +10,16 @@
                 <property name="ocljar" value="lib/owasp.jar"/>
              	<property name="junitjar" value="lib/junit-3.7.jar"/>
              	<property name="htmlparserjar" value="lib/htmlparser.jar"/>
+             	<property name="vulnxmljar" value="lib/vulnxml.jar"/>
+             	<property name="beanshelljar" value="lib/bsh-2.0b1.jar"/>
        		
                 <path id="cpath">
 			<pathelement location="./classes/"/>
 			<pathelement path="${ocljar}"/>
                         <pathelement path="${junitjar}"/>
                         <pathelement path="${htmlparserjar}"/>
-			<pathelement location="lib/vulnxml.jar"/>
+			<pathelement location="${vulnxmljar}"/>
+			<pathelement location="${beanshelljar}"/>
 			<pathelement path="/opt/owasp/vulnxml/lib/commons-collections.jar"/>
 			<pathelement path="/opt/owasp/vulnxml/lib/commons-digester.jar"/>
 			<pathelement path="/opt/owasp/vulnxml/lib/commons-logging.jar"/>
@@ -44,7 +47,7 @@
 		<jar basedir="${classes}" jarfile="${jarname}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
-                        <attribute name="Class-Path" value="lib/owasp.jar lib/htmlparser.jar lib/vulnxml.jar"/>
+                        <attribute name="Class-Path" value="${ocljar} ${htmlparserjar} ${vulnxmljar} ${beanshelljar}"/>
                     </manifest>
                 </jar>
 	</target>
