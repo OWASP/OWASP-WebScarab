@@ -32,8 +32,6 @@ import java.security.KeyStore;
 
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.util.LogInputStream;
-import org.owasp.webscarab.util.LogOutputStream;
 
 /** Creates a new instance of URLFetcher
  * @author rdawes
@@ -65,40 +63,9 @@ public class URLFetcher implements HTTPClient {
     private int _port = 0;
     private long _lastRequestTime = 0;
     
-    // support for debugging proxy to server communication
-    private static Object _lock = new Object();
-    private static int _connectionCount = 1;
-    private int _connection;
-    private static String _tmpdir = System.getProperty("java.io.tmpdir");
-
-    private PrintStream _debugRequest = null;
-    private PrintStream _debugResponse = null;
-    
     /** Creates a new instance of URLFetcher
      */
     public URLFetcher() {
-        synchronized (_lock) {
-            _connection = _connectionCount++;
-        }
-    }
-    
-    public void setDebug(boolean debugRequest, boolean debugResponse) {
-        try {
-            if (debugRequest) {
-                _debugRequest = new PrintStream(new FileOutputStream(_tmpdir+"/toserver-"+_connection));
-            } else {
-                _debugRequest = null;
-            }
-            if (debugResponse) {
-                _debugResponse = new PrintStream(new FileOutputStream(_tmpdir+"/fromserver-"+_connection));
-            } else {
-                _debugResponse = null;
-            }
-        } catch (Exception e) {
-            System.err.println("Cannot write debug log : " + e);
-            _debugRequest = null;
-            _debugResponse = null;
-        }
     }
     
     /** Create and install a trust manager that does not verify server SSL certificates
@@ -212,18 +179,18 @@ public class URLFetcher implements HTTPClient {
             System.err.println("Request is null");
             return null;
         }
+        URL url = request.getURL();
+        if (url == null) {
+            System.err.println("URL is null");
+            return null;
+        }
         
         try {
-            if (_in == null || _out == null || invalidSocket(request)) {
-                Response response = opensocket(request);
+            if (_in == null || _out == null || invalidSocket(url)) {
+                String proxyAuth = request.getHeader("Proxy-Authentication");
+                Response response = opensocket(url, proxyAuth);
                 if (response != null) {
                     return response;
-                }
-                if (_debugRequest != null) {
-                    _out = new LogOutputStream(_out, _debugRequest);
-                }
-                if (_debugResponse != null) {
-                    _in = new LogInputStream(_in, _debugResponse);
                 }
             }
         } catch (UnknownHostException uhe) {
@@ -254,16 +221,21 @@ public class URLFetcher implements HTTPClient {
             
             System.err.println(request.getURL() +" : " + response.getStatusLine());
             
-            String connection = response.getHeader("Connection");
-            if (request.getVersion().equals("HTTP/1.0") && connection != null && connection.equals("Keep-Alive")) {
-                System.err.println("HTTP/1.0 and connection: Keep-Alive is set");
-                _lastRequestTime = System.currentTimeMillis();
-            } else if (request.getVersion().equals("HTTP/1.1") && (connection == null || !connection.equals("Close"))) {
-                System.err.println("HTTP/1.1 and connection: Close is not set");
-                _lastRequestTime = System.currentTimeMillis();
-            } else {
+            String connection = response.getHeader("Proxy-Connection");
+            if (connection != null && "close".equalsIgnoreCase(connection)) {
                 _in = null;
                 _out = null;
+            } else {
+                connection = response.getHeader("Connection");
+                String version = request.getVersion();
+                if (version.equals("HTTP/1.0") && connection != null && connection.equalsIgnoreCase("Keep-Alive")) {
+                    _lastRequestTime = System.currentTimeMillis();
+                } else if (version.equals("HTTP/1.1") && (connection == null || !connection.equalsIgnoreCase("Close"))) {
+                    _lastRequestTime = System.currentTimeMillis();
+                } else {
+                    _in = null;
+                    _out = null;
+                }
             }
             
             return response;
@@ -273,7 +245,7 @@ public class URLFetcher implements HTTPClient {
         }
     }
     
-    private Response opensocket(Request request) throws UnknownHostException, IOException, SocketException  {
+    private Response opensocket(URL url, String proxyAuth) throws UnknownHostException, IOException, SocketException  {
         // We initialise all sockets to null;
         _proxysocket = null;
         _serversocket = null;
@@ -282,14 +254,12 @@ public class URLFetcher implements HTTPClient {
         _out = null;
         
         // We record where we are connected to, in case we might reuse this socket later
-        URL u = request.getURL();
-        _host = u.getHost();
-        _port = u.getPort()==-1?u.getDefaultPort():u.getPort();
-        boolean ssl = request.getURL().getProtocol().equalsIgnoreCase("https");
+        _host = url.getHost();
+        _port = url.getPort()==-1?url.getDefaultPort():url.getPort();
+        boolean ssl = url.getProtocol().equalsIgnoreCase("https");
         
-        if (!ssl) {
-            // Check for a "noProxy" entry here
-            if (_httpProxy != null && !_httpProxy.equals("")) {
+        if (useProxy(url)) {
+            if (!ssl) {
                 System.err.println("Connect to " + _httpProxy + ":" + _httpProxyPort);
                 _proxysocket = new Socket(_httpProxy, _httpProxyPort);
                 _proxysocket.setTcpNoDelay(true);
@@ -297,16 +267,6 @@ public class URLFetcher implements HTTPClient {
                 _in = _proxysocket.getInputStream();
                 _out = _proxysocket.getOutputStream();
             } else {
-                System.err.println("Connect to " + _host + ":" + _port );
-                _serversocket = new Socket(_host, _port);
-                _serversocket.setTcpNoDelay(true);
-                _serversocket.setSoTimeout(60 * 1000);
-                _in = _serversocket.getInputStream();
-                _out = _serversocket.getOutputStream();
-            }
-        } else {
-            // check for a noProxy entry here
-            if (_httpsProxy != null && !_httpsProxy.equals("")) {
                 // Send CONNECT, get OK, then we have a socket to the server
                 System.err.println("Connect to " + _httpsProxy + ":" + _httpsProxyPort);
                 _proxysocket = new Socket(_httpsProxy, _httpsProxyPort);
@@ -314,10 +274,8 @@ public class URLFetcher implements HTTPClient {
                 InputStream proxyin = _proxysocket.getInputStream();
                 System.err.println("Proxy CONNECT to " + _host + ":" + _port);
                 proxyout.write(("CONNECT " + _host + ":" + _port + " HTTP/1.0\r\n").getBytes());
-                String proxyAuth = request.getHeader("Proxy-Authorization");
                 if (proxyAuth != null && !proxyAuth.equals("")) {
                     proxyout.write(("Proxy-Authorization: " + proxyAuth + "\r\n").getBytes());
-                    request.deleteHeader("Proxy-Authorization");
                 }
                 proxyout.write("\r\n".getBytes());
                 proxyout.flush();
@@ -331,12 +289,19 @@ public class URLFetcher implements HTTPClient {
                 System.err.println("HTTPS CONNECT successful");
                 _serversocket = _proxysocket;
                 _proxysocket = null;
-            } else {
-                _serversocket = new Socket(_host , _port);
-                _serversocket.setTcpNoDelay(true);
-                _serversocket.setSoTimeout(60 * 1000);
             }
-            
+        } else {
+            System.err.println("Connect to " + _host + ":" + _port );
+            _serversocket = new Socket(_host, _port);
+            _serversocket.setTcpNoDelay(true);
+            _serversocket.setSoTimeout(60 * 1000);
+            if (!ssl) {
+                _in = _serversocket.getInputStream();
+                _out = _serversocket.getOutputStream();
+            }
+        }
+        
+        if (ssl && _serversocket != null) {
             if (_factory == null) {
                 try {
                     initSSL();
@@ -359,9 +324,29 @@ public class URLFetcher implements HTTPClient {
             System.err.println("Finished negotiating SSL");
         }
         if (_out == null || _in == null) {
-            return errorResponse(request, "Unknown error : in or out was null!");
+            throw new IOException("no Input or OutputStream to talk to the server");
         }
         return null;
+    }
+    
+    private boolean useProxy(URL url) {
+        String host = url.getHost();
+        boolean ssl = url.getProtocol().equalsIgnoreCase("https");
+        
+        if (ssl && "".equals(_httpsProxy)) {
+            return false;
+        } else if (!ssl && "".equals(_httpProxy)) {
+            return false;
+        } else {
+            for (int i=0; i<_noProxy.length; i++) {
+                if (_noProxy[i].startsWith(".") && host.endsWith(_noProxy[i])) {
+                    return false;
+                } else if (host.equals(_noProxy[i])) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
     
     private Response errorResponse(Request request, String message) {
@@ -378,11 +363,10 @@ public class URLFetcher implements HTTPClient {
         return response;
     }
     
-    private boolean invalidSocket(Request request) {
+    private boolean invalidSocket(URL url) {
         // the right host
-        URL u = request.getURL();
-        if (u.getHost().equals(_host)) {
-            int urlport = u.getPort()==-1?u.getDefaultPort():u.getPort();
+        if (url.getHost().equals(_host)) {
+            int urlport = url.getPort()==-1?url.getDefaultPort():url.getPort();
             // and the right port
             if (urlport == _port) {
                 // in the last 1 second, it could still be valid
@@ -406,27 +390,16 @@ public class URLFetcher implements HTTPClient {
         try {
             Request req = new Request();
             req.setMethod("GET");
-            req.setURL("https://www.ebucks.com:443/");
+            req.setURL("http://dawes.za.net/rogan/");
             req.setVersion("HTTP/1.1");
-            // req.setHeader("Connection","Keep-Alive");
-            req.setHeader("Host","www.ebucks.com");
-            // req.setHeader("ETag","6684-1036786167000");
-            // req.setHeader("If-Modified-Since","Fri, 08 Nov 2002 20:09:27 GMT");
+            req.setHeader("Host","dawes.za.net");
             URLFetcher uf = new URLFetcher();
             Response resp = uf.fetchResponse(req);
             System.out.println(resp.toString());
-            Response resp2 = new Response();
-            resp2.parse(resp.toString());
-            System.out.println("\n\n\n\n\n" + resp2.toString());
-            
-//            resp = uf.fetchResponse(req);
-//            System.out.println(resp.toString());
         } catch (MalformedURLException mue) {
             System.out.println("MUE " + mue);
         } catch (IOException ioe) {
             System.out.println("IOException " + ioe);
-        } catch (java.text.ParseException pe) {
-            System.err.println("ParseException " + pe);
         }
     }
 }
