@@ -72,6 +72,7 @@ public class BrowserCache extends AbstractProxyPlugin {
                 // have seen so far, and only remove headers for those that we have not?
                 request.deleteHeader("ETag");
                 request.deleteHeader("If-Modified-Since");
+                request.deleteHeader("If-None-Match");
             }
             return _in.fetchResponse(request);
         }
