@@ -83,6 +83,9 @@ import org.owasp.webscarab.plugin.sessionid.swing.SessionIDPanel;
 import org.owasp.webscarab.plugin.spider.Spider;
 import org.owasp.webscarab.plugin.spider.swing.SpiderPanel;
 
+import org.owasp.webscarab.plugin.scripted.Scripted;
+import org.owasp.webscarab.plugin.scripted.swing.ScriptedPanel;
+
 import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.TempDir;
 
@@ -143,8 +146,8 @@ public class Main {
                 dir = new File(args[0]);
             }
             if (dir != null) {
-                FileSystemStore store = new FileSystemStore(dir);
-                _framework.setSession(new SiteModel(store), "FileSystem", dir);
+                _framework.setSession("FileSystem", dir, "");
+                _framework.startPlugins();
             }
         } catch (StoreException se) {
             JOptionPane.showMessageDialog(null, new String[] {"Error creating Session : ", se.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
@@ -213,6 +216,10 @@ public class Main {
         SessionIDAnalysis sessionIDAnalysis = new SessionIDAnalysis(_framework);
         _framework.addPlugin(sessionIDAnalysis);
         _uif.addPlugin(new SessionIDPanel(sessionIDAnalysis));
+        
+        Scripted scripted = new Scripted(_framework);
+        _framework.addPlugin(scripted);
+        _uif.addPlugin(new ScriptedPanel(scripted));
     }
     
     public static void loadProxyPlugins(Proxy proxy, ProxyPanel proxyPanel) {
