@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: ManualRequest.java,v 1.13 2005/02/04 15:12:32 rogan Exp $
+ * $Id: ManualRequest.java,v 1.14 2005/04/05 11:23:40 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.manualrequest;
@@ -78,6 +78,7 @@ public class ManualRequest implements Plugin {
     
     public ManualRequest(Framework framework) {
         _framework = framework;
+        _model = _framework.getModel();
     }
     
     /** The plugin name
