@@ -54,6 +54,8 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         java.awt.GridBagConstraints gridBagConstraints;
 
         conversationSplitPane = new javax.swing.JSplitPane();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
         getCookieButton = new javax.swing.JButton();
         fetchResponseButton = new javax.swing.JButton();
         updateCookiesButton = new javax.swing.JButton();
@@ -61,6 +63,12 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         setLayout(new java.awt.GridBagLayout());
 
         conversationSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jLabel1.setText("jLabel1");
+        conversationSplitPane.setLeftComponent(jLabel1);
+
+        jLabel2.setText("jLabel2");
+        conversationSplitPane.setRightComponent(jLabel2);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -153,6 +161,8 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
     private javax.swing.JSplitPane conversationSplitPane;
     private javax.swing.JButton fetchResponseButton;
     private javax.swing.JButton getCookieButton;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JButton updateCookiesButton;
     // End of variables declaration//GEN-END:variables
     
