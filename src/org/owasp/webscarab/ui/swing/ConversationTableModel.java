@@ -8,7 +8,10 @@ package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.SiteModelAdapter;
+
+import org.owasp.webscarab.util.swing.ExtensibleTableModel;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.SwingUtilities;
@@ -19,18 +22,14 @@ import java.util.logging.Logger;
  *
  * @author  knoppix
  */
-public class ConversationTableModel extends AbstractTableModel {
-    
-    private String[] _columnNames = new String[] {
-        "ID", "Method", "Url", "Parameters",
-        "Status", "Origin"
-    };
+public class ConversationTableModel extends ExtensibleTableModel {
     
     protected SiteModel _model = null;
+    protected HttpUrl _url = null;
     
     private Listener _listener = new Listener();
     
-    protected Logger _logger = Logger.getLogger(this.getClass().getName());
+    protected Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates a new instance of ConversationTableModel */
     public ConversationTableModel() {
@@ -52,41 +51,45 @@ public class ConversationTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
     
-    public int getColumnCount() {
-        return _columnNames.length;
+    public void setUrl(HttpUrl url) {
+        _url = url;
+        fireTableDataChanged();
+    }
+    
+    public Object getKeyAt(int row) {
+        return _model.getConversationAt(_url, row);
+    }
+    
+    public int indexOfKey(Object key) {
+        return _model.getIndexOfConversation(_url, (ConversationID) key);
     }
     
     public int getRowCount() {
         if (_model == null) return 0;
-        return _model.getConversationCount();
+        return _model.getConversationCount(_url);
+    }
+    
+    public int getColumnCount() {
+        return super.getColumnCount()+1;
     }
     
     public Object getValueAt(int row, int column) {
-        ConversationID id = _model.getConversationAt(row);
-        return getValueAt(id, column);
-    }
-    
-    protected Object getValueAt(ConversationID id, int column) {
-        String property = _columnNames[column].toUpperCase();
-        switch (column) {
-            case 0: return id;
-            // case 1: method is just a property
-            case 2: return _model.getUrlOf(id).getSHPP();
-            case 3: return _model.getUrlOf(id).getParameters();
-            default: return _model.getConversationProperty(id, property);
-        }
+        Object key = getKeyAt(row);
+        if (column == 0) return key;
+        return super.getValueAt(key, column-1);
     }
     
     /**
-     * Returns the name of the column at <code>columnIndex</code>.  This is used
+     * Returns the name of the column at <code>column</code>.  This is used
      * to initialize the table's column header name.  Note: this name does
      * not need to be unique; two columns in a table can have the same name.
      *
-     * @param	columnIndex	the index of the column
+     * @param	column the index of the column
      * @return  the name of the column
      */
-    public String getColumnName(int columnIndex) {
-        return _columnNames[columnIndex];
+    public String getColumnName(int column) {
+        if (column == 0) return "ID";
+        return super.getColumnName(column-1);
     }
     
     /**
@@ -94,26 +97,21 @@ public class ConversationTableModel extends AbstractTableModel {
      * in the column.  This is used by the <code>JTable</code> to set up a
      * default renderer and editor for the column.
      *
-     * @param columnIndex  the index of the column
+     * @param column the index of the column
      * @return the common ancestor class of the object values in the model.
      */
-    public Class getColumnClass(int columnIndex) {
-        if (columnIndex == 0) return ConversationID.class;
-        return super.getColumnClass(columnIndex);
+    public Class getColumnClass(int column) {
+        if (column == 0) return ConversationID.class;
+        return super.getColumnClass(column-1);
     }
     
     protected void addedConversation(ConversationID id) {
-        int row = _model.getIndexOfConversation(id);
+        int row = indexOfKey(id);
         fireTableRowsInserted(row, row);
     }
     
-    protected void changedConversation(ConversationID id, String property) {
-        int row = _model.getIndexOfConversation(id);
-        fireTableRowsUpdated(row, row);
-    }
-    
     protected void removedConversation(ConversationID id, int position, int urlposition) {
-        fireTableRowsDeleted(position,  position);
+        fireTableDataChanged();
     }
     
     private class Listener extends SiteModelAdapter {
@@ -123,18 +121,6 @@ public class ConversationTableModel extends AbstractTableModel {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
                         addedConversation(id);
-                    }
-                });
-            } catch (Exception e) {
-                _logger.warning("Exception! " + e);
-            }
-        }
-        
-        public void conversationChanged(final ConversationID id, final String property) {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        changedConversation(id, property);
                     }
                 });
             } catch (Exception e) {

@@ -9,23 +9,57 @@ import javax.swing.event.TreeModelEvent;
 
 import org.owasp.webscarab.util.swing.treetable.AbstractTreeTableModel;
 import org.owasp.webscarab.util.swing.treetable.TreeTableModel;
+import org.owasp.webscarab.util.swing.ColumnDataModel;
+import org.owasp.webscarab.util.swing.ColumnDataListener;
+import org.owasp.webscarab.util.swing.ColumnDataEvent;
+
+import java.util.List;
+import java.util.ArrayList;
 
 public class SiteTreeTableModelAdapter extends SiteTreeModelAdapter implements TreeTableModel {
     
-    // Names of the columns.
-    protected static String[] cNames = {"URL", "Method", "Status", "TotalBytes", "Set-Cookie", "Comments", "Scripts"};
-    
-    // Types of the columns.
-    protected static Class[] cTypes = { TreeTableModel.class,
-    String.class, String.class, String.class, 
-    Boolean.class, Boolean.class, Boolean.class};
+    private List _columns = new ArrayList();
+    private ColumnDataListener _columnListener;
     
     public SiteTreeTableModelAdapter() {
         super();
+        createListener();
     }
     
     public SiteTreeTableModelAdapter(SiteModel model) {
         super(model);
+        createListener();
+    }
+    
+    private void createListener() {
+        _columnListener = new ColumnDataListener() {
+            public void dataChanged(ColumnDataEvent cde) {
+                Object column = cde.getSource();
+                int col = _columns.indexOf(column);
+                if (col < 0) return;
+                Object key = cde.getKey();
+                if (key == null) {
+                    fireStructureChanged();
+                } else {
+                    HttpUrl url = (HttpUrl) key;
+                    firePathChanged(urlTreePath(url));
+                }
+            }
+        };
+    }
+    
+    public void addColumn(ColumnDataModel column) {
+        _columns.add(column);
+        column.addColumnDataListener(_columnListener);
+        fireStructureChanged();
+    }
+    
+    public void removeColumn(ColumnDataModel column) {
+        int index = _columns.indexOf(column);
+        if (index < 0) return;
+        column.removeColumnDataListener(_columnListener);
+        _columns.remove(index);
+        fireStructureChanged();
     }
     
     //
@@ -36,21 +70,23 @@ public class SiteTreeTableModelAdapter extends SiteTreeModelAdapter implements T
      * Returns the number of columns.
      */
     public int getColumnCount() {
-        return cNames.length;
+        return _columns.size()+1;
     }
     
     /**
      * Returns the name for a particular column.
      */
     public String getColumnName(int column) {
-        return cNames[column];
+        if (column == 0) return "Url";
+        return ((ColumnDataModel) _columns.get(column-1)).getColumnName();
     }
     
     /**
      * Returns the class for the particular column.
      */
     public Class getColumnClass(int column) {
-        return cTypes[column];
+        if (column == 0) return TreeTableModel.class;
+        return ((ColumnDataModel) _columns.get(column-1)).getColumnClass();
     }
     
     /**
@@ -59,33 +95,18 @@ public class SiteTreeTableModelAdapter extends SiteTreeModelAdapter implements T
     public Object getValueAt(Object node, int column) {
         if (! (node instanceof HttpUrl)) return null;
         HttpUrl url = (HttpUrl) node;
-        if (column == 0) {
-            return url;
-        } else if (column < cNames.length) {
-            String prop = cNames[column].toUpperCase();
-            String value = _model.getUrlProperty(url,prop);
-            if (value == null || getColumnClass(column) == String.class) {
-                return value;
-            } else if (getColumnClass(column) == Boolean.class) {
-                if (! value.equalsIgnoreCase("true") && ! value.equalsIgnoreCase("false")) {
-                    return Boolean.TRUE;
-                }
-                return new Boolean(value);
-            } else {
-                return value;
-            }
-        }
-        return null;
+        if (column == 0) return url;
+        return ((ColumnDataModel) _columns.get(column-1)).getValue(url);
     }
     
-   /** By default, make the column with the Tree in it the only editable one. 
-    *  Making this column editable causes the JTable to forward mouse 
-    *  and keyboard events in the Tree column to the underlying JTree. 
-    */ 
-    public boolean isCellEditable(Object node, int column) { 
-         return getColumnClass(column) == TreeTableModel.class; 
+    /** By default, make the column with the Tree in it the only editable one.
+     *  Making this column editable causes the JTable to forward mouse
+     *  and keyboard events in the Tree column to the underlying JTree.
+     */
+    public boolean isCellEditable(Object node, int column) {
+        return getColumnClass(column) == TreeTableModel.class;
     }
-
+    
     public void setValueAt(Object aValue, Object node, int column) {}
     
 }
