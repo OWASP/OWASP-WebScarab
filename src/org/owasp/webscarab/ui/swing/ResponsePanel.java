@@ -199,6 +199,17 @@ public class ResponsePanel extends javax.swing.JPanel {
         return _response;
     }
         
+    public void selectPanel(String title) {
+        for (int i=0; i<displayTabbedPane.getTabCount(); i++) {
+            String tab = displayTabbedPane.getTitleAt(i);
+            int selected = displayTabbedPane.getSelectedIndex();
+            if (tab != null && tab.equalsIgnoreCase(title) && i != selected) {
+                displayTabbedPane.setSelectedIndex(i);
+                return;
+            }
+        }
+    }
+    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
