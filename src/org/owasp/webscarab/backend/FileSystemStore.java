@@ -356,7 +356,7 @@ public class FileSystemStore implements SiteModelStore, SpiderStore, SessionIDSt
         ArrayList cookies = new ArrayList();
         String line;
         try {
-            while ((line=br.readLine()) != null) {
+            while ((line=br.readLine()) != null && !line.equals("")) {
                 try {
                     Date date = DateUtil.parseRFC822(line.substring(0, line.indexOf("\t")));
                     String setCookie = line.substring(line.indexOf("\t")+1);
