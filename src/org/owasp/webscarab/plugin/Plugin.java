@@ -60,10 +60,10 @@ public abstract class Plugin implements Runnable {
     protected boolean _running = false;
     
     /**
-     * informs the plugin that the Site Model has changed
+     * informs the plugin that the Session has changed
      * @param model the new model
      */    
-    public abstract void setSession(SiteModel model, String type, Object connection) throws StoreException;
+    public abstract void setSession(String type, Object store, String session) throws StoreException;
     
     /** The plugin name
      * @return The name of the plugin
