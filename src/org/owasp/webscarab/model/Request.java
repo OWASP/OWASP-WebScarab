@@ -12,6 +12,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 
@@ -25,7 +27,6 @@ public class Request extends Message {
     private String method = null;
     private URL url = null;
     private String version = null;
-    InputStream is = null;
     private String _base = null;
     
     /** Creates a new instance of Request */
@@ -43,12 +44,19 @@ public class Request extends Message {
         
     /** initialises the Request from the supplied InputStream */    
     public void read(InputStream is) throws IOException {
-        this.is = is;
-        String line = readLine(is);
+        String line = null;
+        try {
+            line = readLine(is);
+        } catch (SocketTimeoutException ste) {
+            // System.err.println("Read timed out. Closing connection");
+            return;
+        }
+        if (line.equals("")) {
+            System.err.println("Empty request line! Possibly SSL certificate validation?");
+            return;
+        }
         String[] parts = line.split(" ");
-        if (parts.length == 0) {
-            System.err.println("Empty request!");
-        } else if (parts.length == 2 || parts.length == 3) {
+        if (parts.length == 2 || parts.length == 3) {
             setMethod(parts[0]);
             if (getMethod().equalsIgnoreCase("CONNECT")) {
                 setURL("https://" + parts[1] + "/");
@@ -56,16 +64,17 @@ public class Request extends Message {
                 setURL(parts[1]);
             }
         } else {
-            throw new IOException("Invalid request line reading from the InputStream");
+            throw new IOException("Invalid request line reading from the InputStream '"+line+"'");
         }
         if (parts.length == 3) {
             setVersion(parts[2]);
         } else {
             setVersion("HTTP/0.9");
         }
+        // Read the rest of the message headers and body
         super.read(is);
-        if (method.equals("CONNECT") || method.equals("GET") || method.equals("HEAD")) {
-            // These methods cannot include a body
+        if (method.equals("CONNECT") || method.equals("GET") || method.equals("HEAD") || method.equals("TRACE")) {
+            // These methods cannot include a message body
             setContentStream(null);
             setContent(null);
         }

@@ -102,17 +102,22 @@ public class ConnectionHandler implements Runnable {
             // If it exists, we pull the ProxyAuthorization header from the CONNECT
             // so that we can use it upstream.
             String proxyAuth = null;
-            if (request != null && request.getMethod().equals("CONNECT")) {
-                try {
-                    clientout.write(("HTTP/1.0 200 Ok\r\n\r\n").getBytes());
-                    clientout.flush();
-                } catch (IOException ioe) {
-                    System.err.println("IOException writing the CONNECT OK Response to the browser " + ioe);
-                    throw ioe;
+            if (request != null) {
+                String method = request.getMethod();
+                if (method == null) {
+                    return;
+                } else if (method.equals("CONNECT")) {
+                    try {
+                        clientout.write(("HTTP/1.0 200 Ok\r\n\r\n").getBytes());
+                        clientout.flush();
+                    } catch (IOException ioe) {
+                        System.err.println("IOException writing the CONNECT OK Response to the browser " + ioe);
+                        throw ioe;
+                    }
+                    _base = request.getURL().toString();
+                    proxyAuth = request.getHeader("Proxy-Authorization");
+                    request = null;
                 }
-                _base = request.getURL().toString();
-                proxyAuth = request.getHeader("Proxy-Authorization");
-                request = null;
             }
             // if we are servicing a CONNECT, or operating as a reverse
             // proxy with an https:// base URL, negotiate SSL
@@ -184,6 +189,9 @@ public class ConnectionHandler implements Runnable {
                     request = new Request();
                     request.setBaseURL(_base);
                     request.read(clientin);
+                    if (request.getMethod() == null) {
+                        return;
+                    }
                     if (proxyAuth != null) {
                         request.addHeader("Proxy-Authorization",proxyAuth);
                     }
