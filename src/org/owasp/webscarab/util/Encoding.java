@@ -72,7 +72,7 @@ import java.net.URLEncoder;
  * Utilities to (de-)code data.
  *
  * @since 0.1
- * @version 0.2rc<br />CVS $Revision: 1.3 $ $Author: rogan $
+ * @version 0.2rc<br />CVS $Revision: 1.4 $ $Author: rogan $
  * @author <a href="mailto:ingo@ingostruck.de">ingo@ingostruck.de</a>
  */
 public final class Encoding {
@@ -213,7 +213,7 @@ public final class Encoding {
             byte b3 = _base64de[ src[ pos++ ] ];
             
             if ( B64INV == b0 || B64INV == b1 || B64INV == b2 || B64INV == b3 )
-                throw new RuntimeException( new String( dst ) );
+                throw new RuntimeException( "Invalid character at or around position " + pos );
             
             dst[ dpos++ ] = (byte) ((b0 << 2) | ((b1 >>> 4) & 0x03));
             dst[ dpos++ ] = (byte) ((b1 << 4) | ((b2 >>> 2) & 0x0f));
@@ -224,7 +224,7 @@ public final class Encoding {
             // exception
             if ( 76 == col ) {
                 if ( 10 != src[ pos++ ] )
-                    throw new RuntimeException( new String( dst ) );
+                    throw new RuntimeException( "No linefeed found at position " + (pos - 1 ) );
                 col = 0;
             }
         }
@@ -235,7 +235,7 @@ public final class Encoding {
         byte b2 = _base64de[ src[ pos++ ] ];
         byte b3 = _base64de[ src[ pos++ ] ];
         if ( B64INV == b0 || B64INV == b1 || B64INV == b2 || B64INV == b3 )
-            throw new RuntimeException( new String( dst ) );
+            throw new RuntimeException( "Invalid character at or around position " + pos );
         
         dst[ dpos++ ] = (byte) ((b0 << 2) | ((b1 >>> 4) & 0x03));
         if ( 2 == rem )
@@ -275,11 +275,14 @@ public final class Encoding {
      *@return      Description of the Return Value
      */
     public static String hashMD5( String str ) {
-        byte[] b = str.getBytes();
+        return hashMD5(str.getBytes());
+    }
+    
+    public static String hashMD5( byte[] bytes ) {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance( "MD5" );
-            md.update( b );
+            md.update( bytes );
         }
         catch ( NoSuchAlgorithmException e ) {
             e.printStackTrace();
