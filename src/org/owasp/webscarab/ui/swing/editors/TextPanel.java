@@ -55,6 +55,13 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
                 _searchDialog.show();
             }
         });
+        keymap.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_G, Event.CTRL_MASK), new AbstractAction() {
+            public void actionPerformed(ActionEvent event) {
+                if (_searchDialog != null) {
+                    _searchDialog.doSearch();
+                }
+            }
+        });
         
         textTextArea.setKeymap(keymap);
         
@@ -155,7 +162,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         top.getContentPane().add(tp);
         top.setBounds(100,100,600,400);
         try {
-            tp.setBytes(new byte[] {0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f});
+            tp.setBytes("ABCDEFGHIJKLMNOP\nABCDEFGHIJKLMNOP".getBytes());
             tp.setEditable(false);
             // he.setModel(new DefaultHexDataModel(new byte[0], true));
             top.show();

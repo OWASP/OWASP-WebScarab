@@ -7,17 +7,14 @@
 package org.owasp.webscarab.ui.swing.editors;
 
 import javax.swing.text.JTextComponent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 /**
  *
  * @author  rdawes
  */
-public class SearchDialog extends javax.swing.JDialog {
-
-    /** A return status code - returned if Cancel button has been pressed */
-    public static final int RET_CANCEL = 0;
-    /** A return status code - returned if OK button has been pressed */
-    public static final int RET_OK = 1;
+public class SearchDialog extends javax.swing.JDialog implements ActionListener {
 
     private JTextComponent _textComponent = null;
     private String _searchText = "";
@@ -26,6 +23,7 @@ public class SearchDialog extends javax.swing.JDialog {
     public SearchDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        findTextField.addActionListener(this);
     }
     
     public void setSearchTextComponent(JTextComponent textComponent) {
@@ -37,7 +35,20 @@ public class SearchDialog extends javax.swing.JDialog {
         findTextField.setText(text);
     }
     
-    private void doSearch() {
+    /** Invoked when an action occurs.
+     *
+     */
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == findTextField) {
+            doSearch();
+        }
+    }
+
+    public void doSearch() {
+        if (_textComponent == null) {
+            System.err.println("Unitialised textComponent");
+            return;
+        }
         _searchText = findTextField.getText();
         if (_textComponent != null && _searchText.length() > 0) {
             int caret = _textComponent.getCaretPosition();
@@ -46,9 +57,13 @@ public class SearchDialog extends javax.swing.JDialog {
                 position = _textComponent.getText().indexOf(_searchText);
             }
             if (position > -1) {
-                System.err.println("Found '" + _searchText + "' at position " + position);
-                _textComponent.setCaretPosition(position);
-                _textComponent.moveCaretPosition(position + _searchText.length());
+                try {
+                    System.err.println("Found '" + _searchText + "' at position " + position);
+                    _textComponent.setCaretPosition(position);
+                    _textComponent.moveCaretPosition(position + _searchText.length());
+                } catch (IllegalArgumentException iae) {
+                    System.err.println("error showing search results : " + iae);
+                }
             } else {
                 System.err.println("'" + _searchText + "' not found!");
                 _textComponent.setCaretPosition(caret);
@@ -90,8 +105,8 @@ public class SearchDialog extends javax.swing.JDialog {
         findTextField.setColumns(40);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(findTextField, gridBagConstraints);
 
         buttonPanel.setLayout(new java.awt.GridBagLayout());
@@ -129,8 +144,8 @@ public class SearchDialog extends javax.swing.JDialog {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(buttonPanel, gridBagConstraints);
 
         pack();
@@ -141,18 +156,13 @@ public class SearchDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_searchButtonActionPerformed
     
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
-        doClose(RET_CANCEL);
+        setVisible(false);
     }//GEN-LAST:event_cancelButtonActionPerformed
     
     /** Closes the dialog */
     private void closeDialog(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_closeDialog
-        doClose(RET_CANCEL);
-    }//GEN-LAST:event_closeDialog
-    
-    private void doClose(int retStatus) {
-        returnStatus = retStatus;
         setVisible(false);
-    }
+    }//GEN-LAST:event_closeDialog
     
     /**
      * @param args the command line arguments
@@ -160,14 +170,13 @@ public class SearchDialog extends javax.swing.JDialog {
     public static void main(String args[]) {
         new SearchDialog(new javax.swing.JFrame(), true).show();
     }
-    
+        
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel buttonPanel;
-    private javax.swing.JButton cancelButton;
-    private javax.swing.JTextField findTextField;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JButton searchButton;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JTextField findTextField;
+    private javax.swing.JButton cancelButton;
+    private javax.swing.JPanel buttonPanel;
     // End of variables declaration//GEN-END:variables
     
-    private int returnStatus = RET_CANCEL;
 }
