@@ -56,23 +56,10 @@ public class SiteModel {
     }
     
     public String addConversation(Conversation conversation) {
-        logger.info("Entering model's addConversation");
         _conversationList.add(conversation);
         int row = _conversationList.size();
         _ctm.fireTableRowsInserted(row, row);
-        logger.info("Cached the conversation");
-        parseResponse(conversation);
-        logger.info("parsed the response");
         return Integer.toString(_conversationList.size());
-    }
-    
-    private void parseResponse(Conversation conversation) {
-        String ct = conversation.getResponse().getHeader("Content-Type");
-        if (ct != null && ct.startsWith("text/html")) {
-            // HTMLParser hp = new HTMLParser()
-            // hp.parse(conversation);
-        }
-        logger.info("parsed response");
     }
     
     /** Given a conversation id, returns the corresponding Conversation
