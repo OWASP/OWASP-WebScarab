@@ -47,10 +47,5 @@ import org.owasp.webscarab.model.SiteModel;
  */
 public interface FrameworkUI {
     
-    /**
-     * instructs the UI that the model has changed
-     * @param model the new model
-     */    
-    void setModel(SiteModel model);
     
 }
