@@ -89,11 +89,6 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     public void setEditable(boolean editable) {
         _editable = editable;
         textTextArea.setEditable(editable);
-        if (editable) {
-            textTextArea.setBackground(new java.awt.Color(255, 255, 255));
-        } else {
-            textTextArea.setBackground(new java.awt.Color(204, 204, 204));
-        }
         // we could do things like make buttons visible and invisible here
     }
     
@@ -130,7 +125,6 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
 
         setLayout(new java.awt.GridBagLayout());
 
-        textTextArea.setBackground(new java.awt.Color(204, 204, 204));
         textTextArea.setEditable(false);
         textScrollPane.setViewportView(textTextArea);
 
