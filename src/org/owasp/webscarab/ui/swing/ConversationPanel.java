@@ -7,21 +7,21 @@
 package org.owasp.webscarab.ui.swing;
 
 import javax.swing.JFrame;
+import javax.swing.JTabbedPane;
+import javax.swing.JSplitPane;
+import javax.swing.border.TitledBorder;
+
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.Toolkit;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
-
-import bsh.Interpreter;
-import bsh.EvalError;
-import bsh.util.JConsole;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 import java.util.logging.Logger;
 
@@ -34,10 +34,6 @@ public class ConversationPanel extends javax.swing.JPanel {
     private RequestPanel _requestPanel;
     private ResponsePanel _responsePanel;
     private JFrame _frame = null;
-    
-    private Thread _thread;
-    private Interpreter _interpreter;
-    private JConsole _console;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -52,70 +48,44 @@ public class ConversationPanel extends javax.swing.JPanel {
     
     private int _selected;
     
-    private static Dimension _preferredSize = new Dimension(600,500);
+    private static Dimension _preferredSize = null;
     private static Point _preferredLocation = null;
     
     /** Creates new form ConversationPanel */
     public ConversationPanel() {
-        initComponents();
-        
         _requestPanel = new RequestPanel();
         _responsePanel = new ResponsePanel();
         
-        _console = new JConsole();
-        _interpreter = new Interpreter(_console);
-        _interpreter.setExitOnEOF(false);
-        _thread = new Thread(_interpreter, "BeanShell interpreter");
-        _thread.setDaemon(true);
-        _thread.start();
+        setLayout(new java.awt.BorderLayout());
         
-        tabbedPane.insertTab("Request", null, _requestPanel, null, 0);
-        tabbedPane.insertTab("Response", null, _responsePanel, null, 1);
-        tabbedPane.insertTab("Script", null, _console, null, 2);
-        
-        _selected = tabbedPane.getSelectedIndex();
-        
-        tabbedPane.getModel().addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent e) {
-                if (_selected == 0 && _requestPanel.isModified()) {
-                    _request = _requestPanel.getRequest();
-                    _requestModified = true;
-                } else if (_selected == 1 && _responsePanel.isModified()) {
-                    _response = _responsePanel.getResponse();
-                    _responseModified = true;
-                } else if (_selected == 2) {
-                    try {
-                        if (_requestEditable) {
-                            _request = (Request) _interpreter.get("request");
-                            _requestModified = true;
-                        }
-                        if (_responseEditable) {
-                            _response = (Response) _interpreter.get("response");
-                            _responseModified = true;
-                        }
-                    } catch (EvalError ee) {
-                        _logger.warning("Error getting request and response from the interpreter: " + ee);
-                    }
+        if (false) {
+            JTabbedPane tabbedPane = new javax.swing.JTabbedPane();
+            add(tabbedPane, java.awt.BorderLayout.CENTER);
+            
+            tabbedPane.insertTab("Request", null, _requestPanel, null, 0);
+            tabbedPane.insertTab("Response", null, _responsePanel, null, 1);
+            tabbedPane.addChangeListener(new ChangeListener() {
+                public void stateChanged(ChangeEvent e) {
+                    // _logger.info("State Changed : " + e);
                 }
-                
-                _selected = tabbedPane.getSelectedIndex();
-                
-                if (_selected == 0) {
-                    if (_requestModified) _requestPanel.setRequest(_request, _requestEditable);
-                } else if (_selected == 1) {
-                    if (_responseModified) _responsePanel.setResponse(_response, _responseEditable);
-                } else if (_selected == 2) {
-                    try {
-                        _interpreter.set("request", _requestPanel.getRequest());
-                        _requestModified = true;
-                        _interpreter.set("response", _responsePanel.getResponse());
-                        _responseModified = true;
-                    } catch (EvalError ee) {
-                        _logger.warning("Error setting request and response: " + ee);
-                    }
+            });
+        } else {
+            JSplitPane splitPane = new JSplitPane();
+            splitPane.setOneTouchExpandable(true);
+            add(splitPane, java.awt.BorderLayout.CENTER);
+            
+            splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+            _requestPanel.setBorder(new TitledBorder("Request"));
+            splitPane.setTopComponent(_requestPanel);
+            _responsePanel.setBorder(new TitledBorder("Response"));
+            splitPane.setBottomComponent(_responsePanel);
+            splitPane.addPropertyChangeListener(new PropertyChangeListener() {
+                public void propertyChange(PropertyChangeEvent e) {
+                    // _logger.info("Property Changed : " + e);
                 }
-            }
-        });
+            });
+        }
+        
         
     }
     
@@ -125,11 +95,6 @@ public class ConversationPanel extends javax.swing.JPanel {
         _requestEditable = editable;
         _requestModified = false;
         _requestPanel.setRequest(_request, editable);
-        try {
-            _interpreter.set("request", _request);
-        } catch (EvalError ee) {
-            _logger.warning("Error setting request: " + ee);
-        }
     }
     
     public boolean isRequestModified() {
@@ -138,15 +103,8 @@ public class ConversationPanel extends javax.swing.JPanel {
     
     public Request getRequest() {
         if (_requestEditable) {
-            if (tabbedPane.getTitleAt(_selected).equals("Request") && _requestPanel.isModified()) {
+            if (_requestPanel.isModified()) {
                 _request = _requestPanel.getRequest();
-            } else if (tabbedPane.getTitleAt(_selected).equals("Script")) {
-                try {
-                    _request = (Request) _interpreter.get("request");
-                    _requestModified = true;
-                } catch (EvalError ee) {
-                    _logger.warning("Error getting request from the interpreter: " + ee);
-                }
             }
         }
         return _request;
@@ -157,11 +115,6 @@ public class ConversationPanel extends javax.swing.JPanel {
         _responseEditable = editable;
         _responseModified = false;
         _responsePanel.setResponse(response, editable);
-        try {
-            _interpreter.set("response", response);
-        } catch (EvalError ee) {
-            _logger.warning("Error setting response: " + ee);
-        }
     }
     
     public boolean isResponseModified() {
@@ -170,15 +123,8 @@ public class ConversationPanel extends javax.swing.JPanel {
     
     public Response getResponse() {
         if (_responseEditable) {
-            if (tabbedPane.getTitleAt(_selected).equals("Response") && _responsePanel.isModified()) {
+            if (_responsePanel.isModified()) {
                 _response = _responsePanel.getResponse();
-            } else if (tabbedPane.getTitleAt(_selected).equals("Script")) {
-                try {
-                    _response = (Response) _interpreter.get("response");
-                    _responseModified = true;
-                } catch (EvalError ee) {
-                    _logger.warning("Error getting response from the interpreter: " + ee);
-                }
             }
         }
         return _response;
@@ -188,34 +134,51 @@ public class ConversationPanel extends javax.swing.JPanel {
         return inFrame("Conversation Panel");
     }
     
-    public void stopInterpreter() {
-        // FIXME TODO Something needs to be done here to stop the JConsole too.
-        // It is waiting on a JConsole$BlockingPipedInputStream
-        _thread.interrupt();
-    }
-    
     public JFrame inFrame(String title) {
         if (_frame != null) {
             return _frame;
         }
         _frame = new JFrame(title);
         _frame.getContentPane().setLayout(new java.awt.BorderLayout());
-        _frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent evt) {
-                stopInterpreter();
-            }
-        });
         _frame.addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentMoved(java.awt.event.ComponentEvent evt) {
                 if (!_frame.isVisible()) return;
                 _preferredLocation = _frame.getLocation();
+                Preferences.setPreference("ConversationPanel.x", Integer.toString(_preferredLocation.x));
+                Preferences.setPreference("ConversationPanel.y", Integer.toString(_preferredLocation.y));
             }
             public void componentResized(java.awt.event.ComponentEvent evt) {
                 if (!_frame.isVisible()) return;
                 _preferredSize = _frame.getSize();
+                Preferences.setPreference("ConversationPanel.width", Integer.toString(_preferredSize.width));
+                Preferences.setPreference("ConversationPanel.height", Integer.toString(_preferredSize.height));
             }
         });
         _frame.getContentPane().add(this);
+        if (_preferredSize == null) {
+            try {
+                int width = Integer.parseInt(Preferences.getPreference("ConversationPanel.width","600"));
+                int height = Integer.parseInt(Preferences.getPreference("ConversationPanel.height","500"));
+                _preferredSize = new Dimension(width, height);
+            } catch (NumberFormatException nfe) {
+                _logger.warning("Error parsing ConversationPanel dimensions: " + nfe);
+            } catch (NullPointerException npe) {
+            }
+        }
+        if (_preferredLocation == null) {
+            try {
+                String value = Preferences.getPreference("ConversationPanel.x");
+                if (value != null) {
+                    int x = Integer.parseInt(value);
+                    value = Preferences.getPreference("ConversationPanel.y");
+                    int y = Integer.parseInt(value);
+                    _preferredLocation = new Point(x,y);
+                }
+            } catch (NumberFormatException nfe) {
+                _logger.warning("Error parsing ConversationPanel location: " + nfe);
+            } catch (NullPointerException npe) {
+            }
+        }
         if (_preferredLocation != null) _frame.setLocation(_preferredLocation);
         if (_preferredSize != null) {
             _frame.setSize(_preferredSize);
@@ -228,23 +191,5 @@ public class ConversationPanel extends javax.swing.JPanel {
     public JFrame getFrame() {
         return _frame;
     }
-    
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
-     */
-    private void initComponents() {//GEN-BEGIN:initComponents
-        tabbedPane = new javax.swing.JTabbedPane();
-
-        setLayout(new java.awt.BorderLayout());
-
-        add(tabbedPane, java.awt.BorderLayout.CENTER);
-
-    }//GEN-END:initComponents
-    
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTabbedPane tabbedPane;
-    // End of variables declaration//GEN-END:variables
     
 }
