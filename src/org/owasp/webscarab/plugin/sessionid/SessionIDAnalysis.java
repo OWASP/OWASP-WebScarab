@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -46,11 +46,14 @@ import org.owasp.webscarab.httpclient.HTTPClientFactory;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Preferences;
+import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.SiteModel;
 
+import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
 
 import java.io.File;
@@ -80,7 +83,7 @@ import javax.swing.event.EventListenerList;
  */
 public class SessionIDAnalysis extends Plugin {
     
-    private SiteModel _model = null;
+    private Framework _framework = null;
     
     private Map _sessionIDs = new TreeMap();
     private Map _calculators = new TreeMap();
@@ -100,6 +103,7 @@ public class SessionIDAnalysis extends Plugin {
     private SessionIDStore _store = null;
     
     private boolean _stopping = false;
+    private boolean _modified = false;
     private Thread _runThread = null;
     
     private HTTPClient _hc = null;
@@ -113,12 +117,12 @@ public class SessionIDAnalysis extends Plugin {
     private String _status = "Stopped";
     
     /** Creates a new instance of SessionidAnalysis */
-    public SessionIDAnalysis() {
+    public SessionIDAnalysis(Framework framework) {
+        _framework = framework;
     }
     
     public void setSession(SiteModel model, String storeType, Object connection) throws StoreException {
         // we have no listeners to remove
-        _model = model;
         if (storeType.equals("FileSystem") && (connection instanceof File)) {
             _store = new FileSystemStore((File) connection);
         } else {
@@ -134,6 +138,7 @@ public class SessionIDAnalysis extends Plugin {
             }
         }
         if (_ui != null) _ui.setModel(model);
+        _modified = false;
     }
     
     public void setUI(SessionIDAnalysisUI ui) {
@@ -220,10 +225,10 @@ public class SessionIDAnalysis extends Plugin {
         }
         HttpUrl url = request.getURL();
         Date date = new Date();
-        String[][] headers = response.getHeaders();
+        NamedValue[] headers = response.getHeaders();
         for (int i=0; i<headers.length; i++) {
-            if (headers[i][0].equalsIgnoreCase("Set-Cookie")) {
-                Cookie cookie = new Cookie(date, url, headers[i][1]);
+            if (headers[i].getName().equalsIgnoreCase("Set-Cookie") || headers[i].getName().equalsIgnoreCase("Set-Cookie2")) {
+                Cookie cookie = new Cookie(date, url, headers[i].getValue());
                 SessionID id = new SessionID(date, cookie.getValue());
                 ids.put(cookie.getKey(), id);
             }
@@ -278,6 +283,12 @@ public class SessionIDAnalysis extends Plugin {
         return _response;
     }
     
+    /** This function provides for setting a different calculator
+     * i.e. one that calculates the sessionid based on different
+     * criteria to the DefaultCalculator, such as character ordering, etc
+     *
+     * No interface component uses it as yet, though
+     */
     public void setCalculator(String key, Calculator calc) {
         _calculators.put(key, calc);
         calc.reset();
@@ -291,6 +302,7 @@ public class SessionIDAnalysis extends Plugin {
     }
     
     private void addSessionID(String key, SessionID id) {
+        _modified = true;
         int insert = _store.addSessionID(key, id);
         Calculator calc = (Calculator) _calculators.get(key);
         if (calc == null) {
@@ -339,7 +351,8 @@ public class SessionIDAnalysis extends Plugin {
     }
     
     public void flush() throws StoreException {
-        if (_store != null) _store.flush();
+        if (_store != null && _modified) _store.flush();
+        _modified = false;
     }
     
     public boolean isBusy() {
@@ -348,6 +361,13 @@ public class SessionIDAnalysis extends Plugin {
     
     public String getStatus() {
         return _status;
+    }
+    
+    public boolean isModified() {
+        return _modified;
+    }
+    
+    public void analyse(ConversationID id, Request request, Response response, String origin) {
     }
     
 }

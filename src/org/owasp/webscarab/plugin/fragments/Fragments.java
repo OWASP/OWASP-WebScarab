@@ -62,6 +62,8 @@ import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.SiteModelAdapter;
 import org.owasp.webscarab.parser.Parser;
+
+import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
 import org.owasp.webscarab.plugin.PluginUI;
 
@@ -78,9 +80,10 @@ public class Fragments extends Plugin {
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     private boolean _stopping = false;
-    private Listener _listener = null;
+    private boolean _modified = false;
     
     private SiteModel _model = null;
+    private Framework _framework = null;
     
     private FragmentsStore _store = null;
     
@@ -92,7 +95,8 @@ public class Fragments extends Plugin {
      * Creates a new instance of Fragments
      * @param props contains the user's configuration properties
      */
-    public Fragments() {
+    public Fragments(Framework framework) {
+        _framework = null;
     }
     
     /**
@@ -100,12 +104,9 @@ public class Fragments extends Plugin {
      * @param model the new SiteModel to listen to
      */    
     public void setSession(SiteModel model, String storeType, Object connection) throws StoreException {
-        if (_model != null && _listener != null) _model.removeSiteModelListener(_listener);
         _model = model;
         if (storeType.equals("FileSystem") && (connection instanceof File)) {
             _store = new FileSystemStore((File) connection);
-            _listener = new Listener();
-            model.addSiteModelListener(_listener);
         } else {
             throw new StoreException("Store type '" + storeType + "' is not supported in " + getClass().getName());
         }
@@ -258,12 +259,11 @@ public class Fragments extends Plugin {
         return ! _running;
     }
     
-    private void analyse(ConversationID id) {
-        HttpUrl url = _model.getUrlOf(id);
-        Request request = _model.getRequest(id);
+    public void analyse(ConversationID id, Request request, Response response, String origin) {
+        _modified = true; // we assume that we are modified at this point
+        HttpUrl url = request.getURL();
         String cookie = request.getHeader("Cookie");
         if (cookie != null) _model.addConversationProperty(id, "COOKIE", cookie);
-        Response response = _model.getResponse(id);
         cookie = response.getHeader("Set-Cookie");
         if (cookie != null) {
             Cookie c = new Cookie(new Date(), cookie);
@@ -300,7 +300,8 @@ public class Fragments extends Plugin {
     }
     
     public void flush() throws StoreException {
-        if (_store != null) _store.flush();
+        if (_store != null && _modified) _store.flush();
+        _modified = false;
     }
     
     public boolean isBusy() {
@@ -311,12 +312,8 @@ public class Fragments extends Plugin {
         return _status;
     }
     
-    private class Listener extends SiteModelAdapter {
-        
-        public void conversationAdded(ConversationID id) {
-            analyse(id);
-        }
-        
+    public boolean isModified() {
+        return _modified;
     }
     
 }

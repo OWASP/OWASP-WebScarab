@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -43,6 +43,7 @@ import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Cookie;
+import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
@@ -52,6 +53,7 @@ import org.owasp.webscarab.model.SiteModelAdapter;
 
 import org.owasp.webscarab.parser.Parser;
 
+import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
 
 import org.owasp.webscarab.httpclient.AsyncFetcher;
@@ -86,6 +88,7 @@ import java.lang.Thread;
 public class Spider extends Plugin {
     
     private SiteModel _model = null;
+    private Framework _framework = null;
     
     private SpiderUI _ui = null;
     
@@ -104,8 +107,6 @@ public class Spider extends Plugin {
     
     private boolean _stopping = false;
     
-    private Listener _listener = null;
-    
     private Thread _runThread = null;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
@@ -113,17 +114,13 @@ public class Spider extends Plugin {
     private String _status = "Stopped";
     
     /** Creates a new instance of Spider */
-    public Spider() {
+    public Spider(Framework framework) {
+        _framework = framework;
         parseProperties();
     }
     
     public void setSession(SiteModel model, String type, Object connection) throws StoreException {
-        if (_model != null && _listener != null) {
-            _model.removeSiteModelListener(_listener);
-        }
         _model = model;
-        _listener = new Listener();
-        _model.addSiteModelListener(_listener);
         if (_ui != null) _ui.setModel(model);
     }
     
@@ -243,12 +240,12 @@ public class Spider extends Plugin {
             _logger.warning("Got a null request from the response!");
             return false;
         }
-        _model.addConversation(request, response, "Spider");
+        _framework.addConversation(request, response, "Spider");
         if (_cookieSync) {
-            String[][] headers = response.getHeaders();
+            NamedValue[] headers = response.getHeaders();
             for (int i=0; i<headers.length; i++) {
-                if (headers[i][0].equals("Set-Cookie") || headers[i][0].equals("Set-Cookie2")) {
-                    Cookie cookie = new Cookie(new Date(), request.getURL(), headers[i][1]);
+                if (headers[i].getName().equalsIgnoreCase("Set-Cookie") || headers[i].getName().equalsIgnoreCase("Set-Cookie2")) {
+                    Cookie cookie = new Cookie(new Date(), request.getURL(), headers[i].getValue());
                     _model.addCookie(cookie);
                 }
             }
@@ -278,15 +275,23 @@ public class Spider extends Plugin {
     
     private void queueLinksUnder(HttpUrl url) {
         Link link;
+        String referer;
+        if (_model.getConversationCount(url) == 0) {
+            if (! forbiddenPath(url)) {
+                referer = _model.getUrlProperty(url, "REFERER");
+                queueLink(new Link(url, referer));
+            } else {
+                _logger.warning("Skipping forbidden path " + url);
+            }
+        }
         // fetch the queries for the url first
         int count = _model.getQueryCount(url);
         for (int i=0; i<count; i++) {
             HttpUrl query = _model.getQueryAt(url, i);
             if (! forbiddenPath(query)) {
                 if (_model.getConversationCount(query) == 0) {
-                    String referer = _model.getUrlProperty(query, "REFERER");
-                    link = new Link(query, referer);
-                    queueLink(link);
+                    referer = _model.getUrlProperty(query, "REFERER");
+                    queueLink(new Link(query, referer));
                 }
             } else {
                 _logger.warning("Skipping forbidden path " + query);
@@ -297,15 +302,6 @@ public class Spider extends Plugin {
         for (int i=0; i<count; i++) {
             HttpUrl child = _model.getChildUrlAt(url, i);
             queueLinksUnder(child);
-            if (_model.getConversationCount(child) == 0) {
-                if (! forbiddenPath(child)) {
-                    String referer = _model.getUrlProperty(child, "REFERER");
-                    link = new Link(child, referer);
-                    queueLink(link);
-                } else {
-                    _logger.warning("Skipping forbidden path " + child);
-                }
-            }
         }
     }
     
@@ -447,9 +443,7 @@ public class Spider extends Plugin {
         return _status;
     }
     
-    private void analyse(ConversationID id) {
-        Request request = _model.getRequest(id);
-        Response response = _model.getResponse(id);
+    public void analyse(ConversationID id, Request request, Response response, String origin) {
         HttpUrl base = request.getURL();
         if (response.getStatus().equals("302")) {
             String location = response.getHeader("Location");
@@ -473,7 +467,7 @@ public class Spider extends Plugin {
         } // else maybe it is a parsed Flash document? Anyone? :-)
     }
     
-    /*private */void processHtml(HttpUrl base, NodeList nodelist) {
+    private void processHtml(HttpUrl base, NodeList nodelist) {
         NodeFilter filter = new HasAttributeFilter("href");
         filter = new OrFilter(filter, new HasAttributeFilter("src"));
         filter = new OrFilter(filter, new HasAttributeFilter("onclick"));
@@ -505,29 +499,6 @@ public class Spider extends Plugin {
         }
     }
     
-    /*
-    private void recurseHtmlNodes(HttpUrl base, NodeList nodelist) {
-        try {
-            for (NodeIterator ni = nodelist.elements(); ni.hasMoreNodes();) {
-                Node node = ni.nextNode();
-                if (node instanceof LinkTag) {
-                    LinkTag linkTag = (LinkTag) node;
-                    processLink(base, linkTag.getLink());
-                } else if (node instanceof CompositeTag) {
-                    CompositeTag ctag = (CompositeTag) node;
-                    recurseHtmlNodes(ctag.getChildren(), base);
-                } else if (node instanceof Tag) { // this is horrendous! Why is this not a FrameTag?!
-                    Tag tag = (Tag) node;
-                    if (tag.getTagName().equals("FRAME")) {
-                        processLink(base, tag.getAttribute("src"));
-                    }
-                }
-            }
-        } catch (ParserException pe) {
-            _logger.warning("ParserException : " + pe);
-        }
-    }
-     */
     private void processLink(HttpUrl base, String link) {
         if (link.startsWith("http://") || link.startsWith("https://")) {
             try {
@@ -573,17 +544,8 @@ public class Spider extends Plugin {
         }
     }
     
-    private class Listener extends SiteModelAdapter {
-        
-        public void conversationAdded(ConversationID id) {
-            analyse(id);
-        }
-        
-        public void urlAdded(HttpUrl url) {
-            // FIXME TODO We could add something here to support removal of links from
-            // the queue, maybe
-        }
-        
+    public boolean isModified() {
+        return false; // our modifications are kept in the SiteModel
     }
     
 }

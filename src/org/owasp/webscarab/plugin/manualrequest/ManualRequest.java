@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: ManualRequest.java,v 1.10 2004/12/15 11:42:06 rogan Exp $
+ * $Id: ManualRequest.java,v 1.11 2004/12/26 14:41:52 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.manualrequest;
@@ -41,9 +41,14 @@ import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
 import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.Cookie;
+import org.owasp.webscarab.model.NamedValue;
+import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
+
+import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
 
 import java.io.IOException;
@@ -64,11 +69,13 @@ public class ManualRequest extends Plugin {
     private Date _responseDate = null;
     
     private SiteModel _model = null;
+    private Framework _framework = null;
     
     private boolean _busy = false;
     private String _status = "Stopped";
     
-    public ManualRequest() {
+    public ManualRequest(Framework framework) {
+        _framework = framework;
     }
     
     /** The plugin name
@@ -80,7 +87,6 @@ public class ManualRequest extends Plugin {
     }
     
     public void setSession(SiteModel model, String type, Object connection) {
-        // we have no listeners to remove
         _model = model;
         if (_ui != null) _ui.setModel(model);
     }
@@ -105,7 +111,7 @@ public class ManualRequest extends Plugin {
             _response = _hc.fetchResponse(_request);
             if (_response != null) {
                 _responseDate = new Date();
-                _model.addConversation(_request, _response, "Manual Request");
+                _framework.addConversation(_request, _response, "Manual Request");
                 if (_ui != null) _ui.responseChanged(_response);
             }
         }
@@ -122,7 +128,7 @@ public class ManualRequest extends Plugin {
                 for (int i=1; i<cookies.length; i++) {
                     buff.append("; ").append(cookies[i].getName()).append("=").append(cookies[i].getValue());
                 }
-                _request.setHeader("Cookie", buff.toString());
+                _request.setHeader(new NamedValue("Cookie", buff.toString()));
                 if (_ui != null) _ui.requestChanged(_request);
             }
         }
@@ -130,10 +136,10 @@ public class ManualRequest extends Plugin {
     
     public void updateCookies() {
         if (_response != null) {
-            String[][] headers = _response.getHeaders();
+            NamedValue[] headers = _response.getHeaders();
             for (int i=0; i<headers.length; i++) {
-                if (headers[i][0].equals("Set-Cookie") || headers[i][0].equals("Set-Cookie2")) {
-                    Cookie cookie = new Cookie(_responseDate, _request.getURL(), headers[i][1]);
+                if (headers[i].getName().equalsIgnoreCase("Set-Cookie") || headers[i].getName().equalsIgnoreCase("Set-Cookie2")) {
+                    Cookie cookie = new Cookie(_responseDate, _request.getURL(), headers[i].getValue());
                     _model.addCookie(cookie);
                 }
             }
@@ -157,7 +163,7 @@ public class ManualRequest extends Plugin {
         return ! _running;
     }
     
-    public void flush() throws org.owasp.webscarab.model.StoreException {
+    public void flush() throws StoreException {
         // we do not manage our own store
     }
     
@@ -167,6 +173,14 @@ public class ManualRequest extends Plugin {
     
     public String getStatus() {
         return _status;
+    }
+    
+    public boolean isModified() {
+        return false;
+    }
+    
+    public void analyse(ConversationID id, Request request, Response response, String origin) {
+        // we do no analysis
     }
     
 }

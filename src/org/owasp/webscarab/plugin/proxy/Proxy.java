@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: Proxy.java,v 1.18 2004/12/15 11:42:06 rogan Exp $
+ * $Id: Proxy.java,v 1.19 2004/12/26 14:41:52 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.proxy;
@@ -54,6 +54,7 @@ import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
+import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
 
 import java.net.MalformedURLException;
@@ -65,7 +66,7 @@ import java.net.MalformedURLException;
  */
 public class Proxy extends Plugin {
     
-    private SiteModel _model = null;
+    private Framework _framework = null;
     
     private ProxyUI _ui = null;
     
@@ -83,14 +84,14 @@ public class Proxy extends Plugin {
      * start) the configured Listeners.
      * @param model The Model to submit requests and responses to
      */
-    public Proxy() {
+    public Proxy(Framework framework) {
+        _framework = framework;
         createSimulators();
         createListeners();
     }
     
     public void setSession(SiteModel model, String type, Object connection) {
         // we have no listeners to remove
-        _model = model;
         Iterator it = _plugins.iterator();
         while (it.hasNext()) {
             ProxyPlugin plugin = (ProxyPlugin) it.next();
@@ -333,7 +334,7 @@ public class Proxy extends Plugin {
      * @return the conversation ID
      */
     protected ConversationID gotRequest(Request request) {
-        ConversationID id = _model.reserveConversationID();
+        ConversationID id = _framework.reserveConversationID();
         if (_ui != null) _ui.requested(id, request.getMethod(), request.getURL());
         _pending++;
         _status = "Started, " + _pending + " in progress";
@@ -349,7 +350,7 @@ public class Proxy extends Plugin {
      */
     protected void gotResponse(ConversationID id, Response response) {
         if (_ui != null) _ui.received(id, response.getStatusLine());
-        _model.addConversation(id, response.getRequest(), response, getPluginName());
+        _framework.addConversation(id, response.getRequest(), response, getPluginName());
         _pending--;
         _status = "Started, " + (_pending>0? (_pending + " in progress") : "Idle");
     }
@@ -474,6 +475,14 @@ public class Proxy extends Plugin {
     
     public String getStatus() {
         return _status;
+    }
+    
+    public boolean isModified() {
+        return false;
+    }
+    
+    public void analyse(ConversationID id, Request request, Response response, String origin) {
+        // we do no analysis
     }
     
 }
