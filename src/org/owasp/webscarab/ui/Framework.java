@@ -14,15 +14,13 @@ import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.URLInfo;
 import org.owasp.webscarab.model.StoreException;
 
+import org.owasp.webscarab.plugin.Preferences;
 import org.owasp.webscarab.plugin.WebScarabPlugin;
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.httpclient.URLFetcher;
 
 import java.util.ArrayList;
 import java.util.Properties;
-
-import java.lang.Thread;
-import java.util.logging.Logger;
 
 import org.htmlparser.Parser;
 import org.htmlparser.NodeReader;
@@ -43,8 +41,6 @@ import java.io.FileNotFoundException;
  */
 public class Framework implements Plug {
     
-    private Logger _logger = Logger.getLogger("WebScarab");
-    
     private SiteModel _sitemodel;
     
     private Parser _parser;
@@ -53,9 +49,13 @@ public class Framework implements Plug {
     
     private Properties _props = null;
     
-    /** Creates a new instance of WebScarab */
+    /** Creates a new instance of Framework */
     public Framework() {
         _sitemodel = new SiteModel();
+        
+        _props = Preferences.getPreferences();
+        setProxies(_props);
+        
         _parser = new Parser();
         _parser.registerScanners();
     }
@@ -69,15 +69,6 @@ public class Framework implements Plug {
             _plugins = new ArrayList();
         }
         _plugins.add(plugin);
-    }
-    
-    public void setProperties(Properties props) {
-        _props = props;
-        setProxies(props);
-    }
-    
-    public Properties getProperties() {
-        return _props;
     }
     
     public String addConversation(Request request, Response response) {
@@ -105,7 +96,7 @@ public class Framework implements Plug {
                             nodelist.add(ni.nextNode());
                         }
                     } catch (ParserException pe) {
-                        _logger.severe("ParserException : " + pe);
+                        System.err.println("ParserException : " + pe);
                     }
                 }
                 parsed = nodelist;

@@ -6,28 +6,24 @@
 
 package org.owasp.webscarab.ui.swing;
 
-import org.owasp.webscarab.plugin.proxy.Proxy;
-import org.owasp.webscarab.plugin.spider.Spider;
-import org.owasp.webscarab.ui.Framework;
+import org.owasp.webscarab.backend.FileSystemStore;
+
 import org.owasp.webscarab.model.StoreException;
 
+import org.owasp.webscarab.plugin.Preferences;
+import org.owasp.webscarab.plugin.proxy.Proxy;
+import org.owasp.webscarab.plugin.spider.Spider;
+
+import org.owasp.webscarab.ui.Framework;
 import org.owasp.webscarab.ui.swing.SwingPlugin;
 import org.owasp.webscarab.ui.swing.proxy.ProxyPanel;
 import org.owasp.webscarab.ui.swing.spider.SpiderPanel;
 
-import org.owasp.webscarab.backend.FileSystemStore;
-
 import java.util.Properties;
-
 import java.util.ArrayList;
-import java.io.File;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.io.IOException;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.PrintStream;
 
 import javax.swing.JFileChooser;
 import javax.swing.JTextArea;
@@ -48,96 +44,42 @@ public class WebScarab extends javax.swing.JFrame {
     private Properties _prop = null;
     
     /** Creates new form WebScarab */
-    public WebScarab(Framework framework) {
+    public WebScarab(String[] args) {
         initComponents();
         
         // capture STDOUT and STDERR to a TextArea
         System.setOut(redirectOutput(stdoutTextArea));
         System.setErr(redirectOutput(stderrTextArea));
-        
+
+        // create the framework
+        _framework = new Framework();
+
         // load the properties
-        _framework = framework;
-        _prop = loadProperties();
-        _framework.setProperties(_prop);
+        _prop = Preferences.getPreferences();
         
         // load the conversation log GUI plugin
         addPlugin(new ConversationLog(_framework));
+        // load the TreeView GUI plugin
         addPlugin(new URLTreePanel(_framework));
         
         // create the plugins, and their GUI's
+        
+        // Proxy loads individual proxy plugins in ProxyPanel
+        // probably not the best place, but I'm not sure how to do it better
+        // I guess we could actually do it here, without too much trouble?
         Proxy proxy = new Proxy(_framework);
         _framework.addPlugin(proxy);
         addPlugin(new ProxyPanel(proxy));
         
+        // Spider plugin
         Spider spider = new Spider(_framework);
         _framework.addPlugin(spider);
         addPlugin(new SpiderPanel(spider));
         
+        // This could/should be done as a pop-up alert, or a File/Open or File/New dialog?
         System.out.println("Data will not be saved unless you create or open a session");
     }
     
-    private Properties loadProperties() {
-        // Properties work as follows :
-        //    Read the defaults from the .jar.
-        //    Then look for a props file in the user's home directory, and load it if it exists
-        
-        String sep = System.getProperty("file.separator");
-        String props = "WebScarab.properties";
-        String home = System.getProperty("user.home");
-
-        InputStream is = null;
-        
-        Properties defaults = new Properties();
-        is = ClassLoader.getSystemResourceAsStream(props);
-        if (is == null) {
-            System.err.println("Couldn't find the default props file!");
-        } else {
-            try {
-                defaults.load(is);
-            } catch (IOException ioe) {
-                System.err.println("Error reading default properties file " + ioe);
-            }
-        }
-        
-        Properties homeProps = new Properties(defaults);
-        try {
-            is = new FileInputStream(home + sep + props);
-        } catch (FileNotFoundException fnfe) {
-            is = null;
-        }
-        if (is != null) {
-            try {
-                homeProps.load(is);
-            } catch (IOException ioe) {
-                System.err.println("IOError reading " + home + sep + props + " : " + ioe);
-            }
-        }
-
-        return homeProps;
-    }
-    
-    public void writeProperties(Properties props) {
-        String home = System.getProperty("user.home");
-        String sep = System.getProperty("file.separator");
-        String propfile = home + sep + "WebScarab.properties";
-
-        FileOutputStream fos;
-        try {
-            fos = new FileOutputStream(propfile);
-        } catch (Exception e) {
-            fos = null;
-        }
-        if (fos == null) {
-            System.err.println("Couldn't write to " + propfile);
-        } else {
-            try {
-                props.store(fos,"WebScarab Properties");
-                fos.close();
-            } catch (IOException ioe) {
-                System.err.println("IOException writing to " + propfile + " : " + ioe);
-            }
-        }
-    }
 
     public void addPlugin(SwingPlugin plugin) {
         if (_plugins == null) {
@@ -269,6 +211,12 @@ public class WebScarab extends javax.swing.JFrame {
         toolsMenu.add(optionsMenuItem);
 
         saveConfigMenuItem.setText("Save Configuration");
+        saveConfigMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveConfigMenuItemActionPerformed(evt);
+            }
+        });
+
         toolsMenu.add(saveConfigMenuItem);
 
         mainMenuBar.add(toolsMenu);
@@ -293,6 +241,14 @@ public class WebScarab extends javax.swing.JFrame {
         setBounds((screenSize.width-800)/2, (screenSize.height-600)/2, 800, 600);
     }//GEN-END:initComponents
 
+    private void saveConfigMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveConfigMenuItemActionPerformed
+        try {
+            Preferences.savePreferences();
+        } catch (Exception e) {
+            System.out.println("Error writing preferences : " + e);
+        }
+    }//GEN-LAST:event_saveConfigMenuItemActionPerformed
+
     private void proxyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_proxyMenuItemActionPerformed
         new ProxyConfig(this, true, _prop).show();
         System.out.println("ProxyConfig has returned");
@@ -300,9 +256,6 @@ public class WebScarab extends javax.swing.JFrame {
     }//GEN-LAST:event_proxyMenuItemActionPerformed
 
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
-        // Should check to see if the model has been saved (somewhere where the 
-        // user will find it, offer to rename the base directory to something
-        // useful, before exiting.
         saveSessionData();
         System.exit(0);
     }//GEN-LAST:event_exitMenuItemActionPerformed
@@ -365,9 +318,6 @@ public class WebScarab extends javax.swing.JFrame {
     
     /** Exit the Application */
     private void exitForm(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_exitForm
-        // Should check to see if the model has been saved (somewhere where the 
-        // user will find it, offer to rename the base directory to something
-        // useful, before exiting.
         saveSessionData();
         System.exit(0);
     }//GEN-LAST:event_exitForm
@@ -378,6 +328,14 @@ public class WebScarab extends javax.swing.JFrame {
         } catch (StoreException se) {
             // pop up an alert dialog box or something
             System.err.println("Error saving session : " + se);
+        }
+    }
+    
+    private void savePreferences() {
+        try {
+            Preferences.savePreferences();
+        } catch (Exception e) {
+            System.err.println("Could not write to prefs file : " + e);
         }
     }
     
@@ -402,8 +360,7 @@ public class WebScarab extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        Framework fw = new Framework();
-        new WebScarab(fw).show();
+        new WebScarab(args).show();
     }
     
     
