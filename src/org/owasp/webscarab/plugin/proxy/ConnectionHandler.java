@@ -99,9 +99,15 @@ public class ConnectionHandler implements Runnable {
             }
             // if we are servicing a CONNECT, or operating as a reverse
             // proxy with an https:// base URL, negotiate SSL
-            if (_base != null && _base.startsWith("https://")) {
-                System.err.println("Intercepting SSL connection!");
-                negotiateSSL();
+            if (_base != null) {
+                if (_base.startsWith("https://")) {
+                    System.err.println("Intercepting SSL connection!");
+                    negotiateSSL();
+                }
+                // make sure that the base does not end with a "/"
+                while (_base.endsWith("/")) {
+                    _base = _base.substring(0,_base.length()-1);
+                }
             }
             
             // URLFetcher implements HTTPClient!
@@ -140,7 +146,7 @@ public class ConnectionHandler implements Runnable {
                         _request.addHeader("Proxy-Authorization",proxyAuth);
                     }
                 }
-                System.out.println("Requested : " + _request.getURL().toString());
+                System.out.println("Requested : " + _request.getMethod() + " " + _request.getURL().toString());
                 
                 // pass the request through the plugins, and return the response
                 Response response = hc.fetchResponse(_request);
@@ -163,6 +169,7 @@ public class ConnectionHandler implements Runnable {
             } while (connection != null && connection.equals("Keep-Alive"));
         } catch (Exception e) {
             System.err.println("Got an error : " + e);
+            e.printStackTrace();
         } finally {
             try {
                 clientin.close();
