@@ -31,6 +31,7 @@ public class Cookie {
                    |       "Version" "=" 1*DIGIT
 
      *
+     * added support for Microsoft's new httponly flag - untested, and largely unused!
      */
     
     private Date _date = null;
@@ -43,6 +44,7 @@ public class Cookie {
     private String _maxage = null;
     private boolean _secure = false;
     private String _version = null;
+    private boolean _httponly = false;
     
     /** Creates a new instance of Cookie */
     public Cookie(Date date, URL url, String setHeader) {
@@ -86,6 +88,8 @@ public class Cookie {
         for (int i=1; i<parts.length; i++) {
             if (parts[i].equalsIgnoreCase("secure")) {
                 _secure = true;
+            } else if (parts[i].equalsIgnoreCase("httponly")) {
+                    _httponly = true;
             } else {
                 av = parts[i].split("=", 2);
                 if (av.length != 2) {
@@ -138,6 +142,10 @@ public class Cookie {
         return _secure;
     }
     
+    public boolean getHTTPOnly() {
+        return _httponly;
+    }
+    
     public String getVersion() {
         return _version;
     }
@@ -163,6 +171,9 @@ public class Cookie {
         }
         if (_secure) {
             buf.append("; Secure");
+        }
+        if (_httponly) {
+            buf.append("; httponly");
         }
         if (_version != null) {
             buf.append("; Version=" + _version);
