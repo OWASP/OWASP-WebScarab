@@ -84,7 +84,7 @@ public class ManualEditFrame extends javax.swing.JFrame {
         getContentPane().add(_responsePanel, gridBagConstraints);
     }
 
-    public synchronized Request editRequest(Request request) {
+    public Request editRequest(Request request) {
         synchronized (this) {
             _request = request;
             SwingUtilities.invokeLater(new Runnable() {
@@ -107,19 +107,13 @@ public class ManualEditFrame extends javax.swing.JFrame {
         }
     }
     
-    public Response editResponse(Request request, Response response) {
-        synchronized (this) {
-            _requestPanel.setEditable(false);
-            _requestPanel.setRequest(request);
-            return editResponse(response);
-        }
-    }
-    
-    public Response editResponse(Response response) {
+    public Response editResponse(final Request request, final Response response) {
         synchronized (this) {
             _response = response;
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
+                    _requestPanel.setEditable(false);
+                    _requestPanel.setRequest(request);
                     _responsePanel.setEditable(true);
                     _responsePanel.setResponse(_response);
                     _responsePanel.setVisible(true);
