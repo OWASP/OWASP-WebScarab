@@ -7,6 +7,7 @@
 package org.owasp.webscarab.model;
 
 import java.net.URL;
+import java.util.Date;
 
 /**
  *
@@ -32,8 +33,10 @@ public class Cookie {
      *
      */
     
-    private String _name;
-    private String _value;
+    private Date _date = null;
+    private String _name = null;
+    private String _value = null;
+    private String _key = null;
     private String _comment = null;
     private String _domain = null;
     private String _path = null;
@@ -42,7 +45,8 @@ public class Cookie {
     private String _version = null;
     
     /** Creates a new instance of Cookie */
-    public Cookie(URL url, String setHeader) {
+    public Cookie(Date date, URL url, String setHeader) {
+        _date = date;
         _domain = url.getHost();
         _path = url.getPath(); // FIXME : should we try to eliminate parameters in the path?
         int index = _path.lastIndexOf("/");
@@ -52,13 +56,17 @@ public class Cookie {
             _path = "/";
         }
         parseHeader(setHeader);
+        _key = _domain + _path + " " + _name;
     }
     
+    
     /** This variant of the constuctor should only be called when we are sure that the
-     * setHeader already contains the domain and path.
+     * setHeader already contains the domain and path. e.g. when we are reading the cookies from disk
      */    
-    public Cookie(String setHeader) {
+    public Cookie(Date date, String setHeader) {
+        _date = date;
         parseHeader(setHeader);
+        _key = _domain + _path + " " + _name;
     }
     
     private void parseHeader(String setHeader) {
@@ -98,6 +106,14 @@ public class Cookie {
         }
     }
     
+    public String getKey() {
+        return _key;
+    }
+    
+    public Date getDate() {
+        return _date;
+    }
+    
     public String getName() {
         return _name;
     }
@@ -105,7 +121,7 @@ public class Cookie {
     public String getValue() {
         return _value;
     }
-    
+
     public String getDomain() {
         return _domain;
     }
@@ -126,7 +142,11 @@ public class Cookie {
         return _version;
     }
     
-    public String toString() {
+    public String getComment() {
+        return _comment;
+    }
+    
+    public String setCookie() {
         StringBuffer buf = new StringBuffer();
         buf.append(_name + "=" + _value);
         if (_comment != null) {
