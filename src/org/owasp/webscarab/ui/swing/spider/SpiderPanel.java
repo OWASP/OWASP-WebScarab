@@ -272,7 +272,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
         unseenLinkTree.clearSelection();
         String[] urls = new String[selection.length];
         for (int i=0; i<selection.length; i++) {
-            URLTreeModel.URLNode node = (URLTreeModel.URLNode) selection[0].getLastPathComponent();
+            URLTreeModel.URLNode node = (URLTreeModel.URLNode) selection[i].getLastPathComponent();
             urls[i] = node.getURL();
         }
         _spider.requestLinks(urls);
