@@ -45,6 +45,7 @@ public class ContentPanel extends javax.swing.JPanel {
     // private ObjectPanel _objectPanel = new ObjectPanel();
     
     private String[] _editorClasses = new String[] {
+        "org.owasp.webscarab.ui.swing.editors.SerializedObjectPanel",
         "org.owasp.webscarab.ui.swing.editors.ImagePanel",
         "org.owasp.webscarab.ui.swing.editors.HTMLPanel",
         "org.owasp.webscarab.ui.swing.editors.TextPanel",
@@ -71,6 +72,10 @@ public class ContentPanel extends javax.swing.JPanel {
                 System.err.println("Error instantiating " + _editorClasses[i] + " : " + e);
             }
         }
+        setEditable(false);
+        // FIXME : Strange - this is required to prevent exceptions when setting a 
+        // non-null content for the first time :-(
+        setContent(null); 
     }
     
     public void setContentType(String type) {
@@ -83,13 +88,32 @@ public class ContentPanel extends javax.swing.JPanel {
     
     public void setContent(byte[] content) {
         _modified = false;
-        viewTabbedPane.removeAll();
         if (content == null) {
             _data = null;
         } else {
             _data = new byte[content.length];
             System.arraycopy(content, 0, _data, 0, content.length);
         }
+        if (SwingUtilities.isEventDispatchThread()) {
+            addEditors();        
+            updatePanel(viewTabbedPane.getSelectedIndex());
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        addEditors();        
+                        updatePanel(viewTabbedPane.getSelectedIndex());
+                    }
+                });
+            } catch (Exception e) {
+                System.err.println("Exception in runnable");
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    private void addEditors() {
+        viewTabbedPane.removeAll();
         if (_contentType != null) {
             Iterator it = _editors.iterator();
             while (it.hasNext()) {
@@ -106,16 +130,10 @@ public class ContentPanel extends javax.swing.JPanel {
         if (_data != null || _editable) {
             viewTabbedPane.add(_hexPanel.getName(), _hexPanel);
         }
-        
         _upToDate = new boolean[viewTabbedPane.getTabCount()];
         invalidatePanels();
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                updatePanel(viewTabbedPane.getSelectedIndex());
-            }
-        });
     }
-    
+
     public boolean isModified() {
         ByteArrayEditor ed = ((ByteArrayEditor) viewTabbedPane.getSelectedComponent());
         boolean selectedModified = false;
@@ -187,7 +205,7 @@ public class ContentPanel extends javax.swing.JPanel {
     
     
     public static void main(String[] args) {
-        byte[] content = new byte[0];
+        org.owasp.webscarab.model.Response response = new org.owasp.webscarab.model.Response();
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             /*
@@ -199,10 +217,12 @@ public class ContentPanel extends javax.swing.JPanel {
             }
             content = baos.toByteArray();
              */
-            java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/santam/webscarab/conversations/44-response");
-            org.owasp.webscarab.model.Response response = new org.owasp.webscarab.model.Response();
+            String filename = "c:/temp/2-response";
+            if (args.length == 1) {
+                filename = args[0];
+            }
+            java.io.FileInputStream fis = new java.io.FileInputStream(filename);
             response.read(fis);
-            content = response.getContent();
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(0);
@@ -228,10 +248,12 @@ public class ContentPanel extends javax.swing.JPanel {
         top.setBounds(100,100,600,400);
         top.show();
         try {
-            cp.setContentType("text/html");
-            cp.setEditable(false);
+            // Thread.currentThread().sleep(5000);
+            cp.setContentType(response.getHeader("Content-Type"));
+            cp.setEditable(true);
             // cp.setContent(null);
-            cp.setContent(content);
+            // Thread.currentThread().sleep(5000);
+            cp.setContent(response.getContent());
         } catch (Exception e) {
             e.printStackTrace();
         }
