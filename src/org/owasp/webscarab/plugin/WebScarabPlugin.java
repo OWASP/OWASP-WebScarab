@@ -19,13 +19,6 @@ import org.owasp.webscarab.model.StoreException;
  */
 public interface WebScarabPlugin {
     
-    /** Configures the plugin, based on any properties read from a configuration file.
-     * If any plugin specific properties were not set in the configuration file, copies
-     * the default values into the supplied Properties class.
-     * @param prop The properties read from a configuration file, or similar
-     */    
-    void setProperties ( Properties prop );
-    
     /** The plugin name
      * @return The name of the plugin
      */    

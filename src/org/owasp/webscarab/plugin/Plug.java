@@ -9,6 +9,8 @@ package org.owasp.webscarab.plugin;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
+import java.util.Properties;
+
 /**
  *
  * @author  rdawes
@@ -18,5 +20,7 @@ public interface Plug {
     void addPlugin( WebScarabPlugin plugin );
     
     String addConversation( Request request, Response response );
+
+    Properties getProperties();
     
 }

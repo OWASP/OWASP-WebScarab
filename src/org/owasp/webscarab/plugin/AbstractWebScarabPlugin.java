@@ -30,7 +30,7 @@ public abstract class AbstractWebScarabPlugin implements WebScarabPlugin {
      * the default values into the supplied Prop instance.
      * @param prop The properties read from a configuration file, or similar
      */    
-    public void setProperties(Properties prop) {
+    public void mergeProperties(Properties prop) {
         // This just allows us to copy our defaults over into
         // the main properties class, if they are not set already
         Iterator it = _prop.keySet().iterator();
@@ -43,15 +43,6 @@ public abstract class AbstractWebScarabPlugin implements WebScarabPlugin {
         }
         // any future changes are made directly into the system wide props
         _prop = prop;
-        // Now perform plugin-specific configuration
-        configure();
-    }
-    
-    /** This method is to allow the plugin writer to take any properties that they set
-     * in the Prop _prop, and convert them to the appropriate data type, e.g. int,
-     * InetAddr, etc for use within the plugin.
-     */    
-    protected void configure() {
     }
     
     /** Called by the WebScarab data model once the {@link Response} has been parsed. It
