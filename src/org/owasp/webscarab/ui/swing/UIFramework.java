@@ -27,6 +27,7 @@ import javax.swing.text.Position.Bias;
 
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.FrameworkUI;
 import org.owasp.webscarab.util.TextFormatter;
@@ -164,6 +165,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("WebScarab");
         addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentMoved(java.awt.event.ComponentEvent evt) {
@@ -175,7 +177,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
         });
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
-                exitForm(evt);
+                UIFramework.this.windowClosing(evt);
             }
         });
 
@@ -361,7 +363,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
         setJMenuBar(mainMenuBar);
 
     }//GEN-END:initComponents
-
+    
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
         if (_loader != null) {
             _loader.openSession(this, _framework);
@@ -369,9 +371,9 @@ public class UIFramework extends JFrame implements FrameworkUI {
             _logger.severe("OPEN called, but loader is null");
         }
     }//GEN-LAST:event_openMenuItemActionPerformed
-
+    
     private void newMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newMenuItemActionPerformed
-        if (_loader != null) { 
+        if (_loader != null) {
             _loader.newSession(this, _framework);
         } else {
             _logger.severe("NEW called, but loader is null");
@@ -433,7 +435,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
         exit();
     }//GEN-LAST:event_exitMenuItemActionPerformed
-            
+    
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
         String[] message = new String[] {
             "OWASP WebScarab - version " + _framework.getVersion(),
@@ -441,17 +443,22 @@ public class UIFramework extends JFrame implements FrameworkUI {
             "See http://www.owasp.org/software/webscarab.html",
             "", "Primary Developer : ",
             "         Rogan Dawes (rogan at dawes.za.net)",
-//            "         Ingo Struck (ingo at ingostruck.de)"
+            //            "         Ingo Struck (ingo at ingostruck.de)"
         };
         JOptionPane.showMessageDialog(this, message, "About WebScarab", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_aboutMenuItemActionPerformed
     
     /** Exit the Application */
-    private void exitForm(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_exitForm
+    private void windowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_windowClosing
         exit();
-    }//GEN-LAST:event_exitForm
+    }//GEN-LAST:event_windowClosing
     
     private void exit() {
+        if (_framework.isBusy()) {
+            String[] status = _framework.getStatus();
+            JOptionPane.showMessageDialog(this, status, "Error - Plugins are busy", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         try {
             _framework.exit();
         } catch (Exception e) {
