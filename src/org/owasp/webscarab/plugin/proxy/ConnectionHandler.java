@@ -7,6 +7,7 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 
 import org.owasp.webscarab.httpclient.HTTPClient;
+import org.owasp.webscarab.httpclient.FixedLengthInputStream;
 
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.model.Request;
@@ -52,7 +53,7 @@ public class ConnectionHandler implements Runnable {
         
         try {
             sock.setTcpNoDelay(true);
-            sock.setSoTimeout(5 * 60 * 1000);
+            sock.setSoTimeout(30 * 1000);
         } catch (SocketException se) {
             System.err.println("Error setting socket parameters");
         }
@@ -148,6 +149,17 @@ public class ConnectionHandler implements Runnable {
                     _request.read(clientin);
                     if (proxyAuth != null) {
                         _request.addHeader("Proxy-Authorization",proxyAuth);
+                    }
+                }
+                String cl = _request.getHeader("Content-Length");
+                InputStream cs = _request.getContentStream();
+                if (cs != null && cl != null) {
+                    try {
+                        int length = Integer.parseInt(cl);
+                        _request.setContentStream(new FixedLengthInputStream(cs, length));
+                    } catch (NumberFormatException nfe) {
+                        System.err.println("Error parsing ContentLength");
+                        throw nfe;
                     }
                 }
                 System.out.println("Requested : " + _request.getMethod() + " " + _request.getURL().toString());

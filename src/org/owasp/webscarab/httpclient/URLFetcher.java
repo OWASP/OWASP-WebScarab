@@ -192,15 +192,11 @@ public class URLFetcher implements HTTPClient {
         }
         // Still send the real request
         try {
-            // Not ideal, but likely won't affect anything too negatively
-            // This could slow down large POST's a lot, since we read it all before starting to write
-            // needed so that we can associate the request content with the Response later.
-            if (request.getContentStream() != null) {
-                request.readContentStream();
-            }
-            /*if (sslsocket != null) {
-                request.writeDirect(out);
-            } else*/ if (proxysocket != null) {
+            // FIXME : we don't handle gzipped content properly yet. I"ve seen problems with content-length, etc
+            request.deleteHeader("Accept-Encoding");
+            
+            // depending on whether we are connected directly to the server, or via a proxy
+            if (proxysocket != null) {
                 request.write(out);
             } else if (serversocket != null) {
                 request.writeDirect(out);
@@ -361,6 +357,7 @@ public class URLFetcher implements HTTPClient {
             req.setURL("http://localhost:8080/examples/jsp/num/numguess.jsp");
             req.setVersion("HTTP/1.1");
             req.setHeader("Connection","Keep-Alive");
+            req.setHeader("Host","localhost:8080");
             // req.setHeader("ETag","6684-1036786167000");
             // req.setHeader("If-Modified-Since","Fri, 08 Nov 2002 20:09:27 GMT");
             URLFetcher uf = new URLFetcher();

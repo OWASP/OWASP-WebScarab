@@ -58,21 +58,27 @@ public class Message extends Header {
      */    
     protected void write(OutputStream os, String crlf) throws IOException {
         super.write(os, crlf);
-        os.write("\r\n".getBytes());
-        InputStream is = getContentStream();
-        if (is == null) {
-            return;
-        }
-        byte[] buf = new byte[1024];
-        int got = is.read(buf);
-        while (got > -1) {
-            os.write(buf,0,got);
-            got = is.read(buf);
+        os.write(crlf.getBytes());
+        if (content != null) {
+            os.write(content);
+        } else if (contentStream != null) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buf = new byte[1024];
+            int got = contentStream.read(buf);
+            while (got > 0) {
+                os.write(buf,0,got);
+                baos.write(buf,0,got);
+                got = contentStream.read(buf);
+            }
+            contentStream = null;
+            content = baos.toByteArray();
         }
     }
     
     /** getContent returns the message body that accompanied the request. If
      * the class was read from an InputStream, this method will return null.
+     * That is, unless readContentStream() or write() has been called, in which
+     * case, the contentStream will have been read, and the content updated.
      * If the class was instantiated with no InputStream, it simply
      * returns the content that was set in the message, or an empty array if no 
      * content was ever set.
@@ -121,11 +127,6 @@ public class Message extends Header {
      * @return An InputStream from which the message body can be read.
      */    
     public InputStream getContentStream() {
-        if (contentStream == null && content == null) {
-            return null;
-        } else if (content != null) {
-            return new ByteArrayInputStream(content);
-        }
         return contentStream;
     }
     
