@@ -17,6 +17,8 @@ import org.owasp.webscarab.model.URLInfo;
 import org.owasp.webscarab.plugin.spider.SpiderStore;
 import org.owasp.webscarab.plugin.spider.Link;
 
+import org.owasp.util.DateUtil;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -30,6 +32,8 @@ import java.io.FileNotFoundException;
 import java.util.Set;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Date;
+import java.text.ParseException;
 
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -337,7 +341,13 @@ public class FileSystemStore implements SiteModelStore, SpiderStore {
         String line;
         try {
             while ((line=br.readLine()) != null) {
-                cookies.add(new Cookie(line.substring(line.indexOf(":")+1)));
+                try {
+                    Date date = DateUtil.parseRFC822(line.substring(0, line.indexOf("\t")));
+                    String setCookie = line.substring(line.indexOf("\t")+1);
+                    cookies.add(new Cookie(date, setCookie));
+                } catch (ParseException pe) {
+                    System.err.println("Error parsing the cookie date : " + line);
+                }
             }
             br.close();
         } catch (IOException ioe) {
@@ -363,14 +373,13 @@ public class FileSystemStore implements SiteModelStore, SpiderStore {
         }
         try {
             for (int i=0; i<cookie.length; i++) {
-                fw.write(cookie[i].getDomain() + cookie[i].getPath() + ":" + cookie.toString() + "\r\n");
+                fw.write(DateUtil.rfc822Format(cookie[i].getDate()) + "\t" + cookie[i].setCookie() + "\r\n");
             }
             fw.flush();
             fw.close();
         } catch (IOException ioe) {
             throw new StoreException("Error writing to cookiejar : " + ioe);
         }
-        
     }
     
     
