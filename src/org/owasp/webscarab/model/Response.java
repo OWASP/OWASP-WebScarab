@@ -11,10 +11,12 @@ import java.io.OutputStream;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 
+import java.text.ParseException;
+
 /** Represents a HTTP response as sent by an HTTP server
  * @author rdawes
  */
-public class Response extends Message implements Cloneable {
+public class Response extends Message {
     
     private String version = null;
     private String status = null;
@@ -53,9 +55,32 @@ public class Response extends Message implements Cloneable {
             setMessage("");
         }
         super.read(is);
-        if (status.startsWith("1") || status.equals("304") || status.equals("204")) {
+        if (status.equals("304") || status.equals("204")) {
             // These messages MUST NOT include a body
-            setContentStream(null);
+            setNoBody();
+        }
+    }
+    
+    public void parse (String string) throws ParseException {
+        parse(new StringBuffer(string));
+    }
+    
+    protected void parse(StringBuffer buff) throws ParseException {
+        String line = getLine(buff);
+        String[] parts = line.split(" ", 3);
+        if (parts.length >= 2) {
+            setVersion(parts[0]);
+            setStatus(parts[1]);
+        }
+        if (parts.length == 3) {
+            setMessage(parts[2]);
+        } else {
+            setMessage("");
+        }
+        super.parse(buff);
+        if (status.equals("304") || status.equals("204")) {
+            // These messages MUST NOT include a body
+            setNoBody();
         }
     }
     
@@ -116,11 +141,10 @@ public class Response extends Message implements Cloneable {
     
     /** returns a string containing the response, using the provided string to separate lines. */    
     public String toString(String crlf) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {
-            write(baos, crlf);
-        } catch (IOException ioe) {}
-        return new String(baos.toByteArray());
+        StringBuffer buff = new StringBuffer();
+        buff.append(version + " " + getStatusLine() + crlf);
+        buff.append(super.toString(crlf));
+        return buff.toString();
     }
     
     /** associates this Response with the provided Request */
@@ -132,10 +156,5 @@ public class Response extends Message implements Cloneable {
     public Request getRequest() {
         return _request;
     }
-    
-    public Object clone() throws CloneNotSupportedException {
-        Response copy = (Response) super.clone();
-        return copy;
-    }
-    
+        
 }

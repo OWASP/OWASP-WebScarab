@@ -105,18 +105,7 @@ public class ResponsePanel extends javax.swing.JPanel {
             if (_textPanel.isModified()) {
                 try {
                     Response r = new Response();
-                    ByteArrayInputStream bais = new ByteArrayInputStream(_textPanel.getBytes());
-                    r.read(bais);
-                    r.getContent();
-                    String cl = _response.getHeader("Content-Length");
-                    if (cl != null) {
-                        byte[] content = _response.getContent(); // read the content
-                        if (content == null) {
-                            _response.setHeader("Content-Length","0"); // update the header
-                        } else {
-                            _response.setHeader("Content-Length", Integer.toString(content.length));
-                        }
-                    }
+                    r.parse(new String(_textPanel.getBytes()));
                     _response = r;
                 } catch (Exception e) {
                     System.err.println("Error parsing the rawTextArea, abandoning changes : " + e);

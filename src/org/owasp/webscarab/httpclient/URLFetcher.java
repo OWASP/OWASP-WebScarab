@@ -18,8 +18,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.FileOutputStream;
 
-import java.util.zip.GZIPInputStream;
-
 import java.net.UnknownHostException;
 import java.net.SocketException;
 
@@ -236,8 +234,6 @@ public class URLFetcher implements HTTPClient {
         }
         // Still send the real request
         try {
-            // FIXME : we don't handle gzipped content properly yet. I"ve seen problems with content-length, etc
-            request.deleteHeader("Accept-Encoding");
             
             // depending on whether we are connected directly to the server, or via a proxy
             if (_proxysocket != null) {
@@ -256,27 +252,6 @@ public class URLFetcher implements HTTPClient {
                 response.read(_in);
             } while (response.getStatus().equals("100"));
             
-            String length = response.getHeader("Content-Length");
-            if (length != null) {
-                try {
-                    int cl = Integer.parseInt(length);
-                    response.setContentStream(new FixedLengthInputStream(response.getContentStream(),cl));
-                } catch (NumberFormatException nfe) {
-                    System.err.println("NumberFormatException parsing content length = '" + length + "'\n " + nfe);
-                }
-            }
-            String chunked = response.getHeader("Transfer-Encoding");
-            if (chunked != null && chunked.equalsIgnoreCase("chunked")) {
-                response.setContentStream(new ChunkedInputStream(response.getContentStream()));
-                response.deleteHeader("Transfer-Encoding");
-                response.setHeader("X-Transfer-Encoding", chunked);
-            }
-            String gzipped = response.getHeader("Content-Encoding");
-            if (gzipped != null && gzipped.equalsIgnoreCase("gzip")) {
-                response.setContentStream(new GZIPInputStream(response.getContentStream()));
-                response.deleteHeader("Content-Encoding");
-                response.setHeader("X-Content-Encoding", gzipped);
-            }
             System.err.println(request.getURL() +" : " + response.getStatusLine());
             
             String connection = response.getHeader("Connection");
@@ -434,18 +409,24 @@ public class URLFetcher implements HTTPClient {
             req.setURL("https://www.ebucks.com:443/");
             req.setVersion("HTTP/1.1");
             // req.setHeader("Connection","Keep-Alive");
-            req.setHeader("Host","localhost:8080");
+            req.setHeader("Host","www.ebucks.com");
             // req.setHeader("ETag","6684-1036786167000");
             // req.setHeader("If-Modified-Since","Fri, 08 Nov 2002 20:09:27 GMT");
             URLFetcher uf = new URLFetcher();
             Response resp = uf.fetchResponse(req);
-            resp.getContent();
-            resp = uf.fetchResponse(req);
-            resp.getContent();
+            System.out.println(resp.toString());
+            Response resp2 = new Response();
+            resp2.parse(resp.toString());
+            System.out.println("\n\n\n\n\n" + resp2.toString());
+            
+//            resp = uf.fetchResponse(req);
+//            System.out.println(resp.toString());
         } catch (MalformedURLException mue) {
             System.out.println("MUE " + mue);
         } catch (IOException ioe) {
             System.out.println("IOException " + ioe);
+        } catch (java.text.ParseException pe) {
+            System.err.println("ParseException " + pe);
         }
     }
 }

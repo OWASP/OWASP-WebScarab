@@ -114,18 +114,7 @@ public class RequestPanel extends javax.swing.JPanel {
             if (_textPanel.isModified()) {
                 try {
                     Request r = new Request();
-                    ByteArrayInputStream bais = new ByteArrayInputStream(_textPanel.getBytes());
-                    r.read(bais);
-                    r.getContent();
-                    String cl = _request.getHeader("Content-Length");
-                    if (cl != null) {
-                        byte[] content = _request.getContent(); // read the content
-                        if (content == null) {
-                            _request.setHeader("Content-Length","0"); // update the header
-                        } else {
-                            _request.setHeader("Content-Length", Integer.toString(content.length));
-                        }
-                    }
+                    r.parse(new String(_textPanel.getBytes()));
                     _request = r;
                 } catch (Exception e) {
                     System.err.println("Error parsing the rawTextArea, abandoning changes : " + e);

@@ -188,17 +188,7 @@ public class ConnectionHandler implements Runnable {
                         request.addHeader("Proxy-Authorization",proxyAuth);
                     }
                 }
-                String cl = request.getHeader("Content-Length");
-                InputStream cs = request.getContentStream();
-                if (cs != null && cl != null) {
-                    try {
-                        int length = Integer.parseInt(cl);
-                        request.setContentStream(new FixedLengthInputStream(cs, length));
-                    } catch (NumberFormatException nfe) {
-                        System.err.println("Error parsing ContentLength = '" + cl + "'");
-                        return;
-                    }
-                }
+                
                 System.out.println("Requested : " + request.getMethod() + " " + request.getURL().toString());
                 
                 // pass the request through the plugins, and return the response

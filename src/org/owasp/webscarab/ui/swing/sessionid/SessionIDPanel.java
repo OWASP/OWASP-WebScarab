@@ -459,13 +459,13 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
     
     private Request parseRequestPanel() {
         try {
-            ByteArrayInputStream bais = new ByteArrayInputStream(_requestTextPanel.getBytes());
             Request request = new Request();
-            request.read(bais);
+            request.parse(new String(_requestTextPanel.getBytes()));
             if (request.getVersion() != null) {
                 return request;
             }
-        } catch (IOException ioe) {
+        } catch (Exception e) {
+            System.err.println("Parse error : " + e);
         }
         return null;
     }
