@@ -1,3 +1,52 @@
+2004-06-03 17:31  rogan
+
+	* installer/izpack.xml: added the Changelog to the distribution
+
+2004-06-03 17:06  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/ConnectionHandler.java:
+	  removed some unused code, added some support for unit testing
+
+2004-06-03 17:03  rogan
+
+	* src/org/owasp/webscarab/model/: Message.java, Request.java,
+	  Response.java: implemented equals()
+
+2004-06-03 13:39  rogan
+
+	* src/org/owasp/webscarab/model/Request.java: buffer direct writes
+	  too
+
+2004-06-03 12:58  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/module/ManualEdit.java:
+	  Handle 'abort request' properly
+
+2004-06-03 12:57  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/: Listener.java, Proxy.java:
+	  Don't even create a network Simulator when it is 'Unlimited'
+
+2004-06-03 12:56  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/NetworkSimulator.java: Fix
+	  problems with reading when wrapping an SSL socket
+
+2004-06-03 12:55  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/ConnectionHandler.java: Only
+	  add forwarded for header if it is not localhost
+
+2004-06-03 12:55  rogan
+
+	* src/org/owasp/webscarab/model/: Request.java, Response.java:
+	  Buffer writes into bigger buffer
+
+2004-06-03 12:54  rogan
+
+	* src/org/owasp/webscarab/model/: Conversation.java, URLInfo.java:
+	  removed Observable hack, never used
+
 2004-06-01 11:22  rogan
 
 	* src/org/owasp/webscarab/ui/swing/proxy/ProxyPanel.java: Put
