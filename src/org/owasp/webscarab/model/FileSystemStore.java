@@ -49,7 +49,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.text.ParseException;
+// import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -137,7 +137,7 @@ public class FileSystemStore implements SiteModelStore {
                         id = new ConversationID(cid);
                         map = new HashMap();
                         _conversationProperties.put(id, map);
-                    } catch (ParseException pe) {
+                    } catch (NumberFormatException nfe) {
                         throw new StoreException("Malformed conversation ID (" + cid +") parsing conversation log");
                     }
                 } else if (line.equals("")) {
