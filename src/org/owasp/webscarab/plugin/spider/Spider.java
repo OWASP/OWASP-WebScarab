@@ -178,13 +178,18 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     }
     
     public void requestLinksUnder(String root) {
+        System.err.println("Root is '" + root + "'");
         synchronized(_unseenLinks) {
             Iterator it = _unseenLinks.keySet().iterator();
             while (it.hasNext()) {
                 String url = (String) it.next();
-                if (url.startsWith(root) && allowedURL(url)) {
-                    Link link = (Link) _unseenLinks.get(url);
-                    queueLink(link);
+                if (url.startsWith(root)) {
+                    if (!forbiddenPath(url)) {
+                        Link link = (Link) _unseenLinks.get(url);
+                        queueLink(link);
+                    } else {
+                        System.out.println(url + " is a forbidden path!");
+                    }
                 }
             }
         }
@@ -247,22 +252,28 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
      * particular URL
      */
     public synchronized void analyse(Request request, Response response, Conversation conversation, URLInfo urlinfo, Object parsed) {
-        String referer = canonicalURL(request.getURL().toString());
-        if (referer == null) {
-            System.err.println("referer was a malformed URL!");
-            return;
-        }
+        URL referer = request.getURL();
         synchronized (_unseenLinks) {
             if (_unseenLinks.containsKey(referer)) {
                 int index = _unseenLinks.indexOf(referer);
                 _unseenLinks.remove(referer);
                 _unseenLinkTableModel.fireTableRowsDeleted(index, index);
-                _unseenLinkTreeModel.remove(referer);
+                _unseenLinkTreeModel.remove(referer.toString());
             }
             _seenLinks.put(referer,""); // actual value is irrelevant, could be a sequence no, for amusement
         }
         if (response.getStatus().equals("302")) {
-            addUnseenLink(response.getHeader("Location"), referer);
+            String location = response.getHeader("Location");
+            if (location != null) {
+                try {
+                    URL url = new URL(location);
+                    addUnseenLink(url, referer);
+                } catch (MalformedURLException mue) {
+                    System.err.println("Badly formed Location header : " + location);
+                }
+            } else {
+                System.err.println("302 received, but no Location header!");
+            }
             return;
         }
         if (parsed != null && parsed instanceof NodeList) { // the parsed content is HTML
@@ -271,7 +282,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         } // else maybe it is a parsed Flash document? Anyone? :-)
     }
     
-    private void recurseHtmlNodes(NodeList nodelist, String referer) {
+    private void recurseHtmlNodes(NodeList nodelist, URL referer) {
         try {
             for (NodeIterator ni = nodelist.elements(); ni.hasMoreNodes();) {
                 Node node = ni.nextNode();
@@ -279,25 +290,35 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                     LinkTag linkTag = (LinkTag) node;
                     if (! linkTag.isHTTPLikeLink() )
                         continue;
-                    String url = linkTag.getLink();
-                    if (url.startsWith("irc://")) // for some reason the htmlparser thinks IRC:// links are httpLike()
+                    String link = linkTag.getLink();
+                    if (link == null || link.startsWith("irc://")) // for some reason the htmlparser thinks IRC:// links are httpLike()
                         continue;
-                    addUnseenLink(url, referer);
+                    try {
+                        URL url = new URL(link);
+                        addUnseenLink(url, referer);
+                    } catch (MalformedURLException mue) {
+                        System.err.println("Malformed link : " + link);
+                    }
                 } else if (node instanceof CompositeTag) {
                     CompositeTag ctag = (CompositeTag) node;
                     recurseHtmlNodes(ctag.getChildren(), referer);
                 } else if (node instanceof Tag) { // this is horrendous! Why is this not a FrameTag?!
                     Tag tag = (Tag) node;
                     if (tag.getTagName().equals("FRAME")) {
-                        String url = tag.getAttribute("src");
-                        if (url.startsWith("http:") || url.startsWith("https://")) {
-                            addUnseenLink(url, referer);
-                        } else if (!url.startsWith("about:")) {
-                            // eeeww! icky!
+                        String src = tag.getAttribute("src");
+                        if (src.startsWith("http:") || src.startsWith("https://")) {
                             try {
-                                addUnseenLink(new URL(new URL(referer), url).toString(), referer);
+                                URL url = new URL(src);
+                                addUnseenLink(url, referer);
                             } catch (MalformedURLException mue) {
-                                System.out.println("Bad URL " + url);
+                                System.err.println("Malformed Frame src : " + src);
+                            }
+                        } else if (!src.startsWith("about:")) {
+                            try {
+                                URL url = new URL(referer, src);
+                                addUnseenLink(url, referer);
+                            } catch (MalformedURLException mue) {
+                                System.out.println("Bad relative URL (" + referer.toString() + ") : " + src);
                             }
                         }
                     }
@@ -308,8 +329,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         }
     }
     
-    private void addUnseenLink(String url, String referer) {
-        url = canonicalURL(url);
+    private void addUnseenLink(URL url, URL referer) {
         if (url == null) {
             return;
         }
@@ -319,7 +339,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 _unseenLinks.put(url, link);
                 int index = _unseenLinks.size()-1;
                 _unseenLinkTableModel.fireTableRowsInserted(index, index);
-                _unseenLinkTreeModel.add(url);
+                _unseenLinkTreeModel.add(url.toString());
                 if (_recursive && allowedURL(url)) {
                     queueLink(link);
                 }
@@ -331,24 +351,20 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         return newGetRequest(link.getURL(), link.getReferer());
     }
     
-    private Request newGetRequest(String url, String referer) {
+    private Request newGetRequest(URL url, URL referer) {
         Request req = new Request();
         req.setMethod("GET");
-        try {
-            req.setURL(url);
-        } catch (MalformedURLException mue) {
-            System.err.println("Invalid URL '" + url + "' : " + mue);
-            return null;
-        }
+        req.setURL(url);
         req.setVersion("HTTP/1.0"); // 1.1 or 1.0?
         if (referer != null) {
-            req.setHeader("Referer", referer);
+            req.setHeader("Referer", referer.toString());
         }
+        req.setHeader("Host", url.getHost());
         req.setHeader("Connection", "Keep-Alive");
         return req;
     }
     
-    private boolean allowedURL(String url) {
+    private boolean allowedURL(URL url) {
         // check here if it is on the primary site, or sites, or matches an exclude Regex
         // etc
         // This only applies to the automated recursive spidering. If the operator
@@ -356,11 +372,39 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         // Yes, this is effectively the classifier from websphinx, we can use that if it fits nicely
         
         // OK if the URL matches the domain
-        if (_allowedDomains!= null && !_allowedDomains.equals("") && url.matches(_allowedDomains)) {
-            // NOT OK if it matches the path
-            if (_forbiddenPaths != null && !_forbiddenPaths.equals("") && url.matches(_forbiddenPaths)) {
-                return false;
-            }
+        if (allowedDomain(url) && !forbiddenPath(url)) {
+            return true;
+        }
+        return false;
+    }
+    
+    public boolean allowedDomain(String url) {
+        try {
+            return allowedDomain(new URL(url));
+        } catch (MalformedURLException mue) {
+            System.err.println("Malformed URL : " + url);
+            return false;
+        }
+    }
+    
+    public boolean allowedDomain(URL url) {
+        if (_allowedDomains!= null && !_allowedDomains.equals("") && url.getHost().matches(_allowedDomains)) {
+            return true;
+        }
+        return false;
+    }
+    
+    public boolean forbiddenPath(String url) {
+        try {
+            return forbiddenPath(new URL(url));
+        } catch (MalformedURLException mue) {
+            System.err.println("Malformed URL : " + url);
+            return true;
+        }
+    }
+    
+    public boolean forbiddenPath(URL url) {
+        if (_forbiddenPaths != null && !_forbiddenPaths.equals("") && url.getPath().matches(_forbiddenPaths)) {
             return true;
         }
         return false;
@@ -403,7 +447,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 Link[] links = _store.readUnseenLinks();
                 for (int i=0; i<links.length; i++) {
                     _unseenLinks.put(links[i].getURL(),links[i]);
-                    _unseenLinkTreeModel.add(links[i].getURL());
+                    _unseenLinkTreeModel.add(links[i].getURL().toString());
                 }
                 _unseenLinkTableModel.fireTableDataChanged();
             }

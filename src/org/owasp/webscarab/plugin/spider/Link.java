@@ -6,27 +6,29 @@
 
 package org.owasp.webscarab.plugin.spider;
 
+import java.net.URL;
+
 /**
  *
  * @author  rdawes
  */
 public class Link {
     
-    private String _url;
-    private String _referer;
+    private URL _url;
+    private URL _referer;
     private String _type = null; // href, img, frame, etc
     
     /** Creates a new instance of Link */
-    public Link(String url, String referer) {
+    public Link(URL url, URL referer) {
         _url = url;
         _referer = referer;
     }
     
-    public String getURL() {
+    public URL getURL() {
         return _url;
     }
     
-    public String getReferer() {
+    public URL getReferer() {
         return _referer;
     }
     
