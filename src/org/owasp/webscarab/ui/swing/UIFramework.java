@@ -95,30 +95,21 @@ public class UIFramework extends JFrame implements FrameworkUI {
     /** Creates new form WebScarab */
     public UIFramework(Framework framework) {
         _framework = framework;
+        _model = framework.getModel();
         
         initComponents();
         setPreferredSize();
         
-        _summaryPanel = new SummaryPanel();
-        mainTabbedPane.add(_summaryPanel, "Summary");
-        
-        _cookieJarViewer = new CookieJarViewer();
-        
-        initLogging();
-        
         framework.setUI(this);
         
-        setModel(framework.getModel());
-    }
-    
-    public void setModel(final SiteModel model) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                _model = model;
-                _summaryPanel.setModel(model);
-                _cookieJarViewer.setModel(model);
-            }
-        });
+        _summaryPanel = new SummaryPanel(_model);
+        mainTabbedPane.add(_summaryPanel, "Summary");
+        
+        _cookieJarViewer = new CookieJarViewer(_model);
+        
+        initLogging();
+        initEditorViews();
+        
     }
     
     public void run() {
@@ -131,8 +122,13 @@ public class UIFramework extends JFrame implements FrameworkUI {
         }
     }
     
+    public void initEditorViews() {
+        String wrap = Preferences.getPreference("TextPanel.wrap", "false");
+        if (wrap != null && wrap.equals("true")) wrapTextCheckBoxMenuItem.setSelected(true);
+    }
+    
     private void initLogging() {
-        _dh = new DocumentHandler();
+        _dh = new DocumentHandler(10240); // limit it to 10kB
         _dh.setFormatter(new TextFormatter());
         _logger.addHandler(_dh);
         
@@ -195,12 +191,14 @@ public class UIFramework extends JFrame implements FrameworkUI {
         newMenuItem = new javax.swing.JMenuItem();
         openMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
+        viewMenu = new javax.swing.JMenu();
+        editorMenu = new javax.swing.JMenu();
+        wrapTextCheckBoxMenuItem = new javax.swing.JCheckBoxMenuItem();
         toolsMenu = new javax.swing.JMenu();
         proxyMenuItem = new javax.swing.JMenuItem();
         certsMenuItem = new javax.swing.JMenuItem();
         cookieJarMenuItem = new javax.swing.JMenuItem();
         transcoderMenuItem = new javax.swing.JMenuItem();
-        conversationSearchMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         aboutMenuItem = new javax.swing.JMenuItem();
         logMenu = new javax.swing.JMenu();
@@ -289,8 +287,27 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         mainMenuBar.add(fileMenu);
 
+        viewMenu.setMnemonic('V');
+        viewMenu.setText("View");
+        editorMenu.setMnemonic('E');
+        editorMenu.setText("Content Editors");
+        wrapTextCheckBoxMenuItem.setMnemonic('W');
+        wrapTextCheckBoxMenuItem.setText("Wrap Text");
+        wrapTextCheckBoxMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                wrapTextCheckBoxMenuItemActionPerformed(evt);
+            }
+        });
+
+        editorMenu.add(wrapTextCheckBoxMenuItem);
+
+        viewMenu.add(editorMenu);
+
+        mainMenuBar.add(viewMenu);
+
         toolsMenu.setMnemonic('T');
         toolsMenu.setText("Tools");
+        proxyMenuItem.setMnemonic('P');
         proxyMenuItem.setText("Proxies");
         proxyMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -300,6 +317,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         toolsMenu.add(proxyMenuItem);
 
+        certsMenuItem.setMnemonic('C');
         certsMenuItem.setText("Certificates");
         certsMenuItem.setToolTipText("Allows configuration of client certificates");
         certsMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -310,6 +328,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         toolsMenu.add(certsMenuItem);
 
+        cookieJarMenuItem.setMnemonic('S');
         cookieJarMenuItem.setText("Shared Cookies");
         cookieJarMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -319,6 +338,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         toolsMenu.add(cookieJarMenuItem);
 
+        transcoderMenuItem.setMnemonic('T');
         transcoderMenuItem.setText("Transcoder");
         transcoderMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -327,15 +347,6 @@ public class UIFramework extends JFrame implements FrameworkUI {
         });
 
         toolsMenu.add(transcoderMenuItem);
-
-        conversationSearchMenuItem.setText("Search Conversations");
-        conversationSearchMenuItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                conversationSearchMenuItemActionPerformed(evt);
-            }
-        });
-
-        toolsMenu.add(conversationSearchMenuItem);
 
         mainMenuBar.add(toolsMenu);
 
@@ -351,6 +362,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         helpMenu.add(aboutMenuItem);
 
+        logMenu.setMnemonic('L');
         logMenu.setText("Log level");
         logMenu.setToolTipText("Configures the level of logging output displayed");
         severeLogRadioButtonMenuItem.setText("SEVERE");
@@ -410,6 +422,10 @@ public class UIFramework extends JFrame implements FrameworkUI {
         setJMenuBar(mainMenuBar);
 
     }//GEN-END:initComponents
+
+    private void wrapTextCheckBoxMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_wrapTextCheckBoxMenuItemActionPerformed
+        Preferences.setPreference("TextPanel.wrap", Boolean.toString(wrapTextCheckBoxMenuItem.isSelected()));
+    }//GEN-LAST:event_wrapTextCheckBoxMenuItemActionPerformed
     
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
         String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
@@ -421,8 +437,9 @@ public class UIFramework extends JFrame implements FrameworkUI {
             File dir = jfc.getSelectedFile();
             try {
                 if (FileSystemStore.isExistingSession(dir)) {
-                    FileSystemStore store = new FileSystemStore(dir);
-                    _framework.setSession(new SiteModel(store), "FileSystem", dir);
+                    _framework.stopPlugins();
+                    _framework.setSession("FileSystem", dir, "");
+                    _framework.startPlugins();
                 } else {
                     // FIXME to change this to prompt to create it if it does not already exist
                     JOptionPane.showMessageDialog(null, new String[] {dir + " does not contain a session ", }, "Error", JOptionPane.ERROR_MESSAGE);
@@ -442,11 +459,11 @@ public class UIFramework extends JFrame implements FrameworkUI {
         int returnVal = jfc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File dir = jfc.getSelectedFile();
-            // String dir = file.toString() + System.getProperty("file.separator");
             try {
                 if (! FileSystemStore.isExistingSession(dir)) {
-                    FileSystemStore store = new FileSystemStore(dir);
-                    _framework.setSession(new SiteModel(store), "FileSystem", dir);
+                    _framework.stopPlugins();
+                    _framework.setSession("FileSystem", dir, "");
+                    _framework.startPlugins();
                 } else {
                     // FIXME to change this to prompt to open it if it already exists
                     JOptionPane.showMessageDialog(null, new String[] {dir + " already contains a session ", }, "Error", JOptionPane.ERROR_MESSAGE);
@@ -469,12 +486,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
         Preferences.getPreferences().setProperty("WebScarab.position.x",Integer.toString(getX()));
         Preferences.getPreferences().setProperty("WebScarab.position.y",Integer.toString(getY()));
     }//GEN-LAST:event_formComponentMoved
-    
-    private void conversationSearchMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_conversationSearchMenuItemActionPerformed
-        _logger.warning("Searching is not implemented at the moment");
-        // new ConversationSearchFrame(_framework.getSiteModel()).show();
-    }//GEN-LAST:event_conversationSearchMenuItemActionPerformed
-    
+        
     private void logLevelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logLevelActionPerformed
         String cmd = evt.getActionCommand().toUpperCase();
         if (cmd.equals("SEVERE")) { _dh.setLevel(Level.SEVERE); }
@@ -558,8 +570,8 @@ public class UIFramework extends JFrame implements FrameworkUI {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JMenuItem certsMenuItem;
-    private javax.swing.JMenuItem conversationSearchMenuItem;
     private javax.swing.JMenuItem cookieJarMenuItem;
+    private javax.swing.JMenu editorMenu;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JRadioButtonMenuItem fineLogRadioButtonMenuItem;
@@ -580,6 +592,8 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private javax.swing.JRadioButtonMenuItem severeLogRadioButtonMenuItem;
     private javax.swing.JMenu toolsMenu;
     private javax.swing.JMenuItem transcoderMenuItem;
+    private javax.swing.JMenu viewMenu;
+    private javax.swing.JCheckBoxMenuItem wrapTextCheckBoxMenuItem;
     // End of variables declaration//GEN-END:variables
     
     private class TextScroller implements DocumentListener {

@@ -41,6 +41,31 @@
             </MenuItem>
           </SubComponents>
         </Menu>
+        <Menu class="javax.swing.JMenu" name="viewMenu">
+          <Properties>
+            <Property name="mnemonic" type="int" value="86"/>
+            <Property name="text" type="java.lang.String" value="View"/>
+          </Properties>
+          <SubComponents>
+            <Menu class="javax.swing.JMenu" name="editorMenu">
+              <Properties>
+                <Property name="mnemonic" type="int" value="69"/>
+                <Property name="text" type="java.lang.String" value="Content Editors"/>
+              </Properties>
+              <SubComponents>
+                <MenuItem class="javax.swing.JCheckBoxMenuItem" name="wrapTextCheckBoxMenuItem">
+                  <Properties>
+                    <Property name="mnemonic" type="int" value="87"/>
+                    <Property name="text" type="java.lang.String" value="Wrap Text"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="wrapTextCheckBoxMenuItemActionPerformed"/>
+                  </Events>
+                </MenuItem>
+              </SubComponents>
+            </Menu>
+          </SubComponents>
+        </Menu>
         <Menu class="javax.swing.JMenu" name="toolsMenu">
           <Properties>
             <Property name="mnemonic" type="int" value="84"/>
@@ -49,6 +74,7 @@
           <SubComponents>
             <MenuItem class="javax.swing.JMenuItem" name="proxyMenuItem">
               <Properties>
+                <Property name="mnemonic" type="int" value="80"/>
                 <Property name="text" type="java.lang.String" value="Proxies"/>
               </Properties>
               <Events>
@@ -57,6 +83,7 @@
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="certsMenuItem">
               <Properties>
+                <Property name="mnemonic" type="int" value="67"/>
                 <Property name="text" type="java.lang.String" value="Certificates"/>
                 <Property name="toolTipText" type="java.lang.String" value="Allows configuration of client certificates"/>
               </Properties>
@@ -66,6 +93,7 @@
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="cookieJarMenuItem">
               <Properties>
+                <Property name="mnemonic" type="int" value="83"/>
                 <Property name="text" type="java.lang.String" value="Shared Cookies"/>
               </Properties>
               <Events>
@@ -74,18 +102,11 @@
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="transcoderMenuItem">
               <Properties>
+                <Property name="mnemonic" type="int" value="84"/>
                 <Property name="text" type="java.lang.String" value="Transcoder"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="transcoderMenuItemActionPerformed"/>
-              </Events>
-            </MenuItem>
-            <MenuItem class="javax.swing.JMenuItem" name="conversationSearchMenuItem">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Search Conversations"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="conversationSearchMenuItemActionPerformed"/>
               </Events>
             </MenuItem>
           </SubComponents>
@@ -107,6 +128,7 @@
             </MenuItem>
             <Menu class="javax.swing.JMenu" name="logMenu">
               <Properties>
+                <Property name="mnemonic" type="int" value="76"/>
                 <Property name="text" type="java.lang.String" value="Log level"/>
                 <Property name="toolTipText" type="java.lang.String" value="Configures the level of logging output displayed"/>
               </Properties>
