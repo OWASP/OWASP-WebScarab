@@ -1,7 +1,7 @@
 package org.owasp.webscarab.plugin.proxy;
 
 /*
- * $Id: Proxy.java,v 1.2 2003/08/04 19:35:01 rogan Exp $
+ * $Id: Proxy.java,v 1.3 2003/08/07 21:53:31 rogan Exp $
  */
 import java.net.*;
 import java.io.*;
@@ -175,22 +175,5 @@ public class Proxy
             _pluginArray[i].loadSessionData(dir);
         }
     }
-    
-    /**
-     * @param args the command line arguments
-     */
-		/* NOT ALLOWED HERE
-		 
-    public static void main(String[] args) {
-        Plug ws = new Plug();
-        Proxy proxy = new Proxy(ws);
-        ManualEdit me = new ManualEdit();
-
-        ws.addPlugin(proxy);
-
-        proxy.addPlugin(me);
-        
-        proxy.run();
-    }*/
 
 }

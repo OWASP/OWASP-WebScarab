@@ -25,7 +25,6 @@ public class ConversationRecorder implements HTTPClient {
     
     /** Creates a new instance of ConversationRecorder */
     public ConversationRecorder(HTTPClient client) {
-        System.out.println("Created a ConversationRecorder");
         _client = client;
     }
     
@@ -80,4 +79,8 @@ public class ConversationRecorder implements HTTPClient {
         return _response;
     }
 
+    public void reset() {
+        _request = null;
+        _response = null;
+    }
 }

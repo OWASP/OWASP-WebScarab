@@ -157,21 +157,23 @@ public class ConnectionHandler implements Runnable {
                 logger.info("Got a response : " + response.getStatusLine());
                 response.write(clientout);
                 if (_plug != null) {
-                    Conversation c = new Conversation(recorder.getRequest(), recorder.getResponse());
-                    _plug.addConversation(c);
+                    Request req = recorder.getRequest();
+                    Response resp = recorder.getResponse();
+                    if (req != null && resp != null) {
+                        Conversation c = new Conversation(req, resp);
+                        _plug.addConversation(c);
+                    }
+                    recorder.reset();
                 }
                 _request = null;
                 connection = response.getHeader("Connection");
             } while (connection != null && connection.equals("Keep-Alive"));
-                    
-            
         } catch (Exception e) {
             logger.warning("Got an error : " + e);
         } finally {
             try {
                 clientin.close();
                 clientout.close();
-                logger.info("Closing client socket");
                 _sock.close();
             } catch (IOException ioe2) {
                 logger.warning("Error closing client socket : " + ioe2);
