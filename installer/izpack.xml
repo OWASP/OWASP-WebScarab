@@ -35,7 +35,6 @@
             <singlefile src="README" target="$INSTALL_PATH/README.txt"/>
             <singlefile src="LICENSE" target="$INSTALL_PATH/LICENSE.txt"/>
             <file src="webscarab.jar" targetdir="$INSTALL_PATH"/>
-            <file src="serverkeys" targetdir="$INSTALL_PATH"/>
             <file src="bin/webscarab.sh" targetdir="$INSTALL_PATH" os="unix"/>
             <file src="bin/webscarab.bat" targetdir="$INSTALL_PATH" os="windows"/>
             <file src="lib/owasp.jar" targetdir="$INSTALL_PATH/lib/"/>
@@ -55,6 +54,7 @@
         <pack name="Sources" required="no" preselected="no">
             <description>The sources</description>
             <singlefile src="build_rogan.xml" target="$INSTALL_PATH/build.xml"/>
+            <file src="serverkeys" targetdir="$INSTALL_PATH"/>
             <fileset dir="src" targetdir="$INSTALL_PATH/src/">
                 <include name="**/*.java"/>
                 <include name="**/*.form"/>
