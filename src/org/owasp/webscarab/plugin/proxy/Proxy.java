@@ -1,7 +1,7 @@
 package org.owasp.webscarab.plugin.proxy;
 
 /*
- * $Id: Proxy.java,v 1.6 2003/08/28 20:46:11 rogan Exp $
+ * $Id: Proxy.java,v 1.7 2003/08/31 23:01:44 rogan Exp $
  */
 
 import java.net.ServerSocket;
@@ -13,125 +13,162 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 
 import java.lang.NumberFormatException;
-import java.util.logging.Logger;
 import java.util.ArrayList;
+import java.util.TreeMap;
 
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
 
-public class Proxy
-	extends AbstractWebScarabPlugin
-	implements Runnable
-{
+public class Proxy extends AbstractWebScarabPlugin {
     
     private Plug _plug = null;
     
-    private ArrayList _plugins = null;
-    private ProxyPlugin[] _pluginArray = new ProxyPlugin[0];
-    
-    private boolean portChanged = false;
-    
-    private String listenHost = null;
-    private int listenPort = 0;
-    
-    private ServerSocket serversocket;
-    private Logger logger = Logger.getLogger("Plug.Proxy");
+    private ArrayList _plugins = new ArrayList();
+    private TreeMap _listeners = new TreeMap();
     
     public Proxy(Plug plug) {
         _plug = plug;
-        _prop.put("Proxy.listenAddress", "127.0.0.1:8008");
-        configure();
-    }
-    
-    protected void configure() {
-        String prop = "Proxy.listenAddress";
-        String value = _prop.getProperty(prop);
-        String[] listenAddress = value.split(":");
-        if (listenAddress.length == 2) {
-            try {
-                setListenAddress(listenAddress[0], Integer.parseInt(listenAddress[1]));
-            } catch (NumberFormatException nfe) {
-                System.out.println("Error parsing property '" + prop + "' = '" + value + "'");
-            }
+        
+        _prop = plug.getProperties();
+        if (_prop.getProperty("Proxy.listeners") == null) {
+            startProxy("127.0.0.1", 8008, null, true);
+            startProxy("127.0.0.1", 8009, null, false);
         } else {
-            logger.severe("Error parsing property '" + prop + "' = '" + value + "'");
-	}
-    }
-
-    public void setListenAddress(String server, int port) {
-        if (port > 0 && port != this.listenPort || !server.equals(listenHost)) {
-            this.listenPort = port;
-            this.listenHost = server;
-            this.portChanged = true;
-            _prop.put("Proxy.listenAddress",server + ":" + port);
+            parseProperties();
         }
     }
     
-    public String getListenServer() {
-        return listenHost;
+    private void parseProperties() {
+        String prop = "Proxy.listeners";
+        String value = _prop.getProperty(prop).trim();
+        String[] listeners = value.split(" *,+ *");
+        
+        String addr;
+        int port = 0;
+        String base;
+        boolean usePlugins = false;
+        
+        for (int i=0; i<listeners.length; i++) {
+            addr = listeners[i].substring(0, listeners[i].indexOf(":"));
+            try {
+                port = Integer.parseInt(listeners[i].substring(listeners[i].indexOf(":")+1));
+            } catch (NumberFormatException nfe) {
+                System.err.println("Error parsing port for " + listeners[i] + ", skipping it!");
+                continue;
+            }
+            prop = "Proxy.listener." + listeners[i] + ".base";
+            base = _prop.getProperty(prop);
+            if (base != null && base.equals("")){
+                base = null;
+            }
+            
+            prop = "Proxy.listener." + listeners[i] + ".useplugins";
+            value = _prop.getProperty(prop);
+            
+            if (value == null) {
+                usePlugins = false;
+            } else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes")) {
+                usePlugins = true;
+            } else {
+                usePlugins = false;
+            }
+            
+            startProxy(addr, port, base, usePlugins);
+        }
     }
     
-    public int getListenPort() {
-        return listenPort;
+    public String[] getProxies() {
+        if (_listeners.size()==0) {
+            return new String[0];
+        }
+        return (String[]) _listeners.keySet().toArray(new String[0]);
     }
     
+    public String getAddress(String key) {
+        Listener l = (Listener) _listeners.get(key);
+        if (l != null) {
+            return l.getAddress();
+        } else {
+            return null;
+        }
+    }
+    
+    public int getPort(String key) {
+        Listener l = (Listener) _listeners.get(key);
+        if (l != null) {
+            return l.getPort();
+        } else {
+            return -1;
+        }
+    }
+    
+    public String getBase(String key) {
+        Listener l = (Listener) _listeners.get(key);
+        if (l != null) {
+            return l.getBase();
+        } else {
+            return null;
+        }
+    }
+
+    public boolean getPlugins(String key) {
+        Listener l = (Listener) _listeners.get(key);
+        if (l != null) {
+            return (l.getPlugins() != null);
+        } else {
+            return false;
+        }
+    }
+
+    public String startProxy(String address, int port, String base, boolean usePlugins) {
+        String key = address + ":" + port;
+        try {
+            if (base != null && base.equals("")) {
+                base = null;
+            }
+            Listener l = new Listener(_plug, address, port, base, usePlugins ? _plugins : null);
+            _listeners.put(key,l);
+            String value = _prop.getProperty("Proxy.listeners");
+            if (value == null) {
+                value = key;
+            } else {
+                value = value + ", " + key;
+            }
+            _prop.setProperty("Proxy.listeners", value);
+            _prop.setProperty("Proxy.listener." + key + ".base", base == null ? "" : base);
+            _prop.setProperty("Proxy.listener." + key + ".useplugins", usePlugins == true ? "yes" : "no");
+            return key;
+        } catch (Exception e) {
+            System.out.println("Exception starting the proxy : " + e);
+            return null;
+        }
+    }
+    
+    public boolean stopProxy(String key) {
+        System.out.println("listeners is " + _listeners);
+        System.out.println("Key is " + key);
+        Listener l = (Listener) _listeners.remove(key);
+        System.out.println("l is " + l);
+        if (l != null && l.stop()) {
+            String listeners = _prop.getProperty("Proxy.listeners");
+            int index = listeners.indexOf(key);
+            if (index>0) {
+                listeners = listeners.replaceFirst(", *" + key, "");
+            } else {
+                listeners = listeners.substring(key.length()+1);
+            }
+            _prop.setProperty("Proxy.listeners", listeners);
+            _prop.remove("Proxy.listener." + key + ".base");
+            _prop.remove("Proxy.listener." + key + ".useplugins");
+            return true;
+        } else {
+            return false;
+        }
+    }
+            
     public void addPlugin(ProxyPlugin plugin) {
-        if (_plugins == null) {
-            _plugins = new ArrayList();
-        }
         _plugins.add(plugin);
-        _pluginArray = (ProxyPlugin[]) _plugins.toArray(_pluginArray);
-    }
-    
-    public void run() {
-        Socket sock;
-
-        while (true) {
-            portChanged = false;
-            serversocket = null;
-            while (serversocket == null) {
-                try {
-                    synchronized (listenHost) {
-                        InetAddress addr = null;
-                        if (!listenHost.equals("") && !listenHost.equals("*")) {
-                            addr = InetAddress.getByName(listenHost);
-                        }
-                        logger.info("Listening on " + listenHost + ":" + listenPort);
-                        serversocket = new ServerSocket(listenPort, 5, addr);
-                    }
-                } catch (Exception e) {
-                    logger.severe("Could not bind to " + listenHost + ":" + listenPort + " : " + e);
-                    logger.severe("sleeping for 5 seconds while you do something about it");
-                    try {
-                        Thread.currentThread().sleep(5000);
-                    } catch (InterruptedException ie) {}
-                }
-            }
-            try {
-                serversocket.setSoTimeout(100);
-            } catch (SocketException se) {
-                logger.info("Error setting sockettimeout " + se);
-            }
-            logger.info("Proxy server started");
-            while (! portChanged) {
-                try {
-                    sock = serversocket.accept();
-                    logger.info("Connect from " + sock.getInetAddress().getHostAddress() + ":" + sock.getPort());
-                    new ConnectionHandler(sock, _plug, null, _pluginArray);
-                } catch (IOException e) {
-                    if (!e.getMessage().equals("Accept timed out")) {
-                        logger.severe("I/O error while waiting for a connection : " + e.getMessage());
-                    }
-                }
-            }
-            logger.info("ListenPort was changed. Closing and re-opening the socket");
-            try {
-                serversocket.close();
-            } catch (IOException ioe) {
-                logger.severe("Error closing the listen socket");
-            }
-        }
     }
     
     /** The plugin name
@@ -139,20 +176,20 @@ public class Proxy
      *
      */
     public String getPluginName() {
-        return new String("Proxy");
+        return new String("Proxies");
     }
     
     public void setSessionStore(Object store) throws StoreException {
         // we keep no state of our own, but maybe the plugins do?
-        for (int i=0; i<_pluginArray.length; i++) {
-            _pluginArray[i].setSessionStore(store);
+        for (int i=0; i<_plugins.size(); i++) {
+            ((ProxyPlugin)_plugins.get(i)).setSessionStore(store);
         }
     }
 
     public void saveSessionData() throws StoreException {
         // we keep no state of our own, but maybe the plugins do?
-        for (int i=0; i<_pluginArray.length; i++) {
-            _pluginArray[i].saveSessionData();
+        for (int i=0; i<_plugins.size(); i++) {
+            ((ProxyPlugin)_plugins.get(i)).saveSessionData();
         }
     }
 
