@@ -50,6 +50,7 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.jar.Attributes.Name;
 import java.util.logging.Logger;
+import java.util.Vector;
 
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 import org.owasp.webscarab.model.ConversationID;
@@ -75,13 +76,24 @@ public class Framework {
     
     private FrameworkUI _ui = null;
     
+    private ScriptManager _scriptManager;
+    
+    private Hook _allowAddConversation;
+    
+    private Hook _analyseConversation;
+    
     /**
      * Creates a new instance of Framework
      */
     public Framework() {
         _model = new SiteModel();
+        _scriptManager = new ScriptManager(this);
         extractVersionFromManifest();
         configureHTTPClient();
+    }
+    
+    public ScriptManager getScriptManager() {
+        return _scriptManager;
     }
     
     /**
@@ -157,6 +169,8 @@ public class Framework {
      */
     public void addPlugin(Plugin plugin) {
         _plugins.add(plugin);
+        Hook[] hooks = plugin.getScriptingHooks();
+        _scriptManager.registerHooks(plugin.getPluginName(), hooks);
     }
     
     /**

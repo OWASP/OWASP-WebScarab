@@ -55,6 +55,7 @@ import org.owasp.webscarab.model.SiteModel;
 
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
+import org.owasp.webscarab.plugin.Hook;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,7 +80,7 @@ import javax.swing.event.EventListenerList;
  *
  * @author  rdawes
  */
-public class SessionIDAnalysis extends Plugin {
+public class SessionIDAnalysis implements Plugin {
     
     private Framework _framework = null;
     
@@ -98,6 +99,7 @@ public class SessionIDAnalysis extends Plugin {
     
     private SessionIDStore _store = null;
     
+    private boolean _running = false;
     private boolean _stopping = false;
     private boolean _modified = false;
     private Thread _runThread = null;
@@ -355,10 +357,22 @@ public class SessionIDAnalysis extends Plugin {
         return _modified;
     }
     
+    public boolean isRunning() {
+        return _running;
+    }
+    
     public void analyse(ConversationID id, Request request, Response response, String origin) {
     }
     
-    public void setSession(String type, Object session, String id) throws StoreException {
+    public void setSession(String type, Object store, String session) throws StoreException {
+    }
+    
+    public Object getScriptableObject() {
+        return null;
+    }
+    
+    public Hook[] getScriptingHooks() {
+        return new Hook[0];
     }
     
 }

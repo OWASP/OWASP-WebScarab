@@ -55,6 +55,7 @@ import org.owasp.webscarab.parser.Parser;
 
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
+import org.owasp.webscarab.plugin.Hook;
 
 import org.owasp.webscarab.httpclient.AsyncFetcher;
 
@@ -87,7 +88,7 @@ import java.io.IOException;
  * @author  rdawes
  */
 
-public class Spider extends Plugin {
+public class Spider implements Plugin {
     
     private SiteModel _model = null;
     private Framework _framework = null;
@@ -106,6 +107,7 @@ public class Spider extends Plugin {
     private String _allowedDomains = null;
     private String _forbiddenPaths = null;
     
+    private boolean _running = false;
     private boolean _stopping = false;
     
     private Thread _runThread = null;
@@ -531,7 +533,19 @@ public class Spider extends Plugin {
         return false; // our modifications are kept in the SiteModel
     }
     
-    public void setSession(String type, Object session, String id) throws StoreException {
+    public boolean isRunning() {
+        return _running;
+    }
+    
+    public void setSession(String type, Object store, String session) throws StoreException {
+    }
+    
+    public Object getScriptableObject() {
+        return null;
+    }
+    
+    public Hook[] getScriptingHooks() {
+        return new Hook[0];
     }
     
 }

@@ -66,6 +66,7 @@ import org.owasp.webscarab.parser.Parser;
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
 import org.owasp.webscarab.plugin.PluginUI;
+import org.owasp.webscarab.plugin.Hook;
 
 import org.owasp.webscarab.util.Encoding;
 
@@ -73,13 +74,11 @@ import org.owasp.webscarab.util.Encoding;
  * This plugin looks for comments and scripts in the source of HTML pages.
  * @author knoppix
  */
-public class Fragments extends Plugin {
-    
-    private Thread _runThread = null;
+public class Fragments implements Plugin {
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
-    private boolean _stopping = false;
+    private boolean _running = false;
     private boolean _modified = false;
     
     private SiteModel _model = null;
@@ -108,9 +107,9 @@ public class Fragments extends Plugin {
      * Sets the store that this plugin uses
      * @param session the new session
      */    
-    public void setSession(String type, Object session, String id) throws StoreException {
-        if (type.equals("FileSystem") && (session instanceof File)) {
-            _store = new FileSystemStore((File) session);
+    public void setSession(String type, Object store, String session) throws StoreException {
+        if (type.equals("FileSystem") && (store instanceof File)) {
+            _store = new FileSystemStore((File) store);
         } else {
             throw new StoreException("Store type '" + type + "' is not supported in " + getClass().getName());
         }
@@ -318,6 +317,18 @@ public class Fragments extends Plugin {
     
     public boolean isModified() {
         return _modified;
+    }
+    
+    public boolean isRunning() {
+        return _running;
+    }
+    
+    public Object getScriptableObject() {
+        return null;
+    }
+    
+    public Hook[] getScriptingHooks() {
+        return new Hook[0];
     }
     
 }

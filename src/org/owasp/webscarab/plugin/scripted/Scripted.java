@@ -16,6 +16,7 @@ import org.owasp.webscarab.httpclient.AsyncFetcher;
 
 import org.owasp.webscarab.plugin.Plugin;
 import org.owasp.webscarab.plugin.Framework;
+import org.owasp.webscarab.plugin.Hook;
 
 import org.apache.bsf.BSFManager;
 import org.apache.bsf.BSFException;
@@ -32,7 +33,7 @@ import java.io.PrintStream;
  *
  * @author  rogan
  */
-public class Scripted extends Plugin {
+public class Scripted implements Plugin {
     
     private Framework _framework;
     private ScriptedUI _ui = null;
@@ -45,6 +46,7 @@ public class Scripted extends Plugin {
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
+    private boolean _running = false;
     private boolean _stopping = false;
     
     private boolean _runScript = false;
@@ -140,6 +142,10 @@ public class Scripted extends Plugin {
         return false;
     }
     
+    public boolean isRunning() {
+        return _running;
+    }
+    
     public void run() {
         _pluginThread = Thread.currentThread();
         _running = true;
@@ -173,7 +179,7 @@ public class Scripted extends Plugin {
         _running = false;
     }
     
-    public void setSession(String type, Object session, String id) throws StoreException {
+    public void setSession(String type, Object store, String session) throws StoreException {
         // we handle no persistent storage in this plugin
     }
     
@@ -195,6 +201,14 @@ public class Scripted extends Plugin {
                 _lock.notifyAll();
             }
         }
+    }
+    
+    public Object getScriptableObject() {
+        return null;
+    }
+    
+    public Hook[] getScriptingHooks() {
+        return new Hook[0];
     }
     
 }

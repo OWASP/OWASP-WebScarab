@@ -65,7 +65,7 @@ public class ConnectionHandler implements Runnable {
     private static char[] _keypassword = "password".toCharArray();
     
     private ProxyPlugin[] _plugins = null;
-    private Listener _listener;
+    private Proxy _proxy;
     private Socket _sock = null;
     private HttpUrl _base;
     private NetworkSimulator _simulator;
@@ -79,13 +79,13 @@ public class ConnectionHandler implements Runnable {
     private InputStream _serverIn = null;
     private OutputStream _serverOut = null;
     
-    public ConnectionHandler(Listener listener, Socket sock, HttpUrl base, NetworkSimulator simulator, boolean usePlugins) {
+    public ConnectionHandler(Proxy proxy, Socket sock, HttpUrl base, NetworkSimulator simulator, boolean usePlugins) {
+        _proxy = proxy;
         _sock = sock;
-        _listener = listener;
         _base = base;
         _simulator = simulator;
         if (usePlugins) {
-            _plugins = _listener.getPlugins();
+            _plugins = _proxy.getPlugins();
         }
         try {
             _sock.setTcpNoDelay(true);
@@ -96,6 +96,10 @@ public class ConnectionHandler implements Runnable {
     }
     
     public void run() {
+        ScriptableConnection connection = new ScriptableConnection(_sock);
+        _proxy.allowClientConnection(connection);
+        if (_sock.isClosed()) return;
+        
         try {
             _clientIn = _sock.getInputStream();
             _clientOut = _sock.getOutputStream();
@@ -185,7 +189,7 @@ public class ConnectionHandler implements Runnable {
             if (from.equals("127.0.0.1")) from = null;
             
             // do we keep-alive?
-            String connection = null;
+            String keepAlive = null;
             String version = null;
             
             do {
@@ -210,7 +214,15 @@ public class ConnectionHandler implements Runnable {
                 _logger.fine("Browser requested : " + request.getMethod() + " " + request.getURL().toString());
                 
                 // report the request to the listener, and get the allocated ID
-                id = _listener.gotRequest(request);
+                id = _proxy.gotRequest(request);
+                
+                // pass the request for possible modification or analysis
+                connection.setRequest(request);
+                connection.setResponse(null);
+                _proxy.interceptRequest(connection);
+                request = connection.getRequest();
+                
+                if (request == null) throw new IOException("Request was cancelled");
                 
                 // pass the request through the plugins, and return the response
                 Response response = null;
@@ -221,14 +233,21 @@ public class ConnectionHandler implements Runnable {
                     _logger.severe("IOException retrieving the response for " + request.getURL() + " : " + ioe);
                     response = errorResponse(request, "IOException retrieving the response: " + ioe);
                     // prevent the conversation from being submitted/recorded
-                    _listener.failedResponse(id, ioe.toString());
-                    _listener = null;
+                    _proxy.failedResponse(id, ioe.toString());
+                    _proxy = null;
                 }
                 if (response == null) {
                     _logger.severe("Got a null response from the fetcher");
-                    _listener.failedResponse(id, "Null response");
+                    _proxy.failedResponse(id, "Null response");
                     return;
                 }
+                
+                // pass the response for analysis or modification by the scripts
+                connection.setResponse(response);
+                _proxy.interceptResponse(connection);
+                response = connection.getResponse();
+                if (response == null) throw new IOException("Response was cancelled");
+                
                 _logger.fine("Response : " + response.getStatusLine());
                 try {
                     if (_clientOut != null) {
@@ -246,21 +265,21 @@ public class ConnectionHandler implements Runnable {
                     _logger.warning("Response had no associated request!");
                     response.setRequest(request);
                 }
-                if (_listener != null && !request.getMethod().equals("CONNECT")) {
-                    _listener.gotResponse(id, response);
+                if (_proxy != null && !request.getMethod().equals("CONNECT")) {
+                    _proxy.gotResponse(id, response);
                 }
                 
-                connection = response.getHeader("Connection");
+                keepAlive = response.getHeader("Connection");
                 version = response.getVersion();
                 
                 request = null;
                 
                 _logger.fine("Version: " + version + " Connection: " + connection);
-            } while ((version.equals("HTTP/1.0") && "keep-alive".equalsIgnoreCase(connection)) ||
-            (version.equals("HTTP/1.1") && !"close".equalsIgnoreCase(connection)));
+            } while ((version.equals("HTTP/1.0") && "keep-alive".equalsIgnoreCase(keepAlive)) ||
+            (version.equals("HTTP/1.1") && !"close".equalsIgnoreCase(keepAlive)));
             _logger.fine("Finished handling connection");
         } catch (Exception e) {
-            if (id != null) _listener.failedResponse(id, e.getMessage());
+            if (id != null) _proxy.failedResponse(id, e.getMessage());
             _logger.severe("ConnectionHandler got an error : " + e);
             e.printStackTrace();
         } finally {

@@ -50,58 +50,55 @@ import org.owasp.webscarab.model.SiteModel;
  * This abstract class lists the basics that a WebScarab plugin will need to provide
  * @author rdawes
  */
-public abstract class Plugin implements Runnable {
+public interface Plugin extends Runnable {
     
-    public abstract void analyse(ConversationID id, Request request, Response response, String origin);
-    
-    /**
-     * indicates whether the plugin is running or not
+    /** The plugin name
+     * @return The name of the plugin
      */    
-    protected boolean _running = false;
+    String getPluginName();
     
     /**
      * informs the plugin that the Session has changed
      * @param model the new model
      */    
-    public abstract void setSession(String type, Object store, String session) throws StoreException;
+    void setSession(String type, Object store, String session) throws StoreException;
     
-    /** The plugin name
-     * @return The name of the plugin
-     */    
-    public abstract String getPluginName();
+    /**
+     * starts the plugin running
+     */
+    void run();
+    
+    boolean isRunning();
+    
+    /** called to test whether the plugin is able to be stopped
+     * @return false if the plugin can be stopped
+     */
+    boolean isBusy();
+    
+    /** called to determine what the current status of the plugin is
+     */
+    String getStatus();
+    
+    /**
+     * called to suspend or stop the plugin
+     */
+    boolean stop();
+    
+    /** called to determine whether the data stored within the plugin has been modified
+     * and should be saved
+     */
+    boolean isModified();
     
     /**
      * called to instruct the plugin to flush any memory-only state to the store.
      * @throws StoreException if there is any problem saving the session data
      */    
-    public abstract void flush() throws StoreException;
+    void flush() throws StoreException;
     
-    public boolean isRunning() {
-        return _running;
-    }
+    void analyse(ConversationID id, Request request, Response response, String origin);
     
-    /** called to determine whether the data stored within the plugin has been modified
-     * and should be saved
-     */
-    public abstract boolean isModified();
+    Hook[] getScriptingHooks();
     
-    /** called to test whether the plugin is able to be stopped
-     * @return false if the plugin can be stopped
-     */
-    public abstract boolean isBusy();
-    
-    /** called to determine what the current status of the plugin is
-     */
-    public abstract String getStatus();
-    
-    /**
-     * starts the plugin running
-     */
-    public abstract void run();
-    
-    /**
-     * called to suspend or stop the plugin
-     */
-    public abstract boolean stop();
+    Object getScriptableObject();
     
 }

@@ -117,8 +117,8 @@ public class Listener implements Runnable {
         while (! _stop) {
             try {
                 sock = _serversocket.accept();
-                _logger.info("Connect from " + sock.getInetAddress().getHostAddress() + ":" + sock.getPort());
-                ch = new ConnectionHandler(this, sock, _base, _simulator, _usePlugins);
+                InetAddress address = sock.getInetAddress();
+                ch = new ConnectionHandler(_proxy, sock, _base, _simulator, _usePlugins);
                 thread = new Thread(ch, Thread.currentThread().getName()+"-"+Integer.toString(_count++));
                 thread.setDaemon(true);
                 thread.start();
@@ -201,44 +201,6 @@ public class Listener implements Runnable {
     
     public String getKey() {
         return _address + ":" + _port;
-    }
-    
-    /**
-     * used by ConnectionHandler to notify the Proxy (and any listeners) that it is
-     * handling a particular request
-     * @param request the request to log
-     * @return the conversation ID
-     */
-    protected ConversationID gotRequest(Request request) {
-        return _proxy.gotRequest(request);
-    }
-    
-    /**
-     * used by ConnectionHandler to notify the Proxy (and any listeners) that it has
-     * handled a particular request and response, and that it should be logged and
-     * analysed
-     * @param id the Conversation ID
-     * @param response the Response
-     */
-    protected void gotResponse(ConversationID id, Response response) {
-    	_proxy.gotResponse(id, response);
-    }
-    
-    /**
-     * notifies any observers that the request failed to complete, and the reason for it
-     * @param reason the reason for failure
-     * @param id the conversation ID
-     */
-    protected void failedResponse(ConversationID id, String reason) {
-        _proxy.failedResponse(id, reason);
-    }
-    
-    /**
-     * called by ConnectionHandler to see which plugins have been configured.
-     * @return an array of ProxyPlugin's
-     */
-    protected ProxyPlugin[] getPlugins() {
-    	return _proxy.getPlugins();
     }
     
 }

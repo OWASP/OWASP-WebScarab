@@ -26,13 +26,13 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
 
 /*
- * $Id: Proxy.java,v 1.20 2005/01/05 11:18:59 rogan Exp $
+ * $Id: Proxy.java,v 1.21 2005/02/04 15:12:32 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.proxy;
@@ -40,6 +40,7 @@ package org.owasp.webscarab.plugin.proxy;
 import java.io.IOException;
 
 import java.lang.NumberFormatException;
+import java.util.Vector;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.Iterator;
@@ -56,15 +57,21 @@ import org.owasp.webscarab.model.Response;
 
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
+import org.owasp.webscarab.plugin.Hook;
+import org.owasp.webscarab.plugin.Script;
+import org.owasp.webscarab.plugin.ScriptManager;
 
 import java.net.MalformedURLException;
+import java.net.InetAddress;
 
 /**
  * The Proxy plugin supports multiple Listeners, and starts and stops them as
  * instructed. All requests and responses are submitted to the model, unless there
  * is an error while retrieving the response.
  */
-public class Proxy extends Plugin {
+public class Proxy implements Plugin {
+    
+    private boolean _running = false;
     
     private Framework _framework = null;
     
@@ -74,10 +81,14 @@ public class Proxy extends Plugin {
     private TreeMap _listeners = new TreeMap();
     private TreeMap _simulators = new TreeMap();
     
-    private Logger _logger = Logger.getLogger(this.getClass().getName());
+    private Logger _logger = Logger.getLogger(getClass().getName());
     
     private String _status = "Stopped";
     private int _pending = 0;
+    
+    private Proxy.AllowConnection _allowConnection = new AllowConnection();
+    private Hook _interceptRequest = null;
+    private Hook _interceptResponse = null;
     
     /**
      * Creates a Proxy Object with a reference to the SiteModel. Creates (but does not
@@ -88,6 +99,35 @@ public class Proxy extends Plugin {
         _framework = framework;
         createSimulators();
         createListeners();
+    }
+    
+    public Hook[] getScriptingHooks() {
+        return new Hook[] { _allowConnection };
+    }
+    
+    public Object getScriptableObject() {
+        return null;
+    }
+    
+    /**
+     * called by Listener to determine whether to allow a connection or not
+     */
+    public void allowClientConnection(ScriptableConnection connection) {
+        _allowConnection.runScripts(connection);
+    }
+    
+    /**
+     * called by Connectionhandler via Listener to perform any required
+     * modifications to the Request
+     */
+    public void interceptRequest(ScriptableConnection connection) {
+    }
+    
+    /**
+     * called by Connectionhandler via Listener to perform any required
+     * modifications to the Response
+     */
+    public void interceptResponse(ScriptableConnection connection) {
     }
     
     public void setUI(ProxyUI ui) {
@@ -482,6 +522,31 @@ public class Proxy extends Plugin {
             ProxyPlugin plugin = (ProxyPlugin) it.next();
             plugin.setSession(type, store, session);
         }
+    }
+    
+    public boolean isRunning() {
+        return _running;
+    }
+    
+    private class AllowConnection extends Hook {
+        
+        public AllowConnection() {
+            super("Allow connection", "Called when a new connection is received from a browser");
+        }
+        
+        public void runScripts(ScriptableConnection connection) {
+            if (_bsfManager == null) return;
+            synchronized(_bsfManager) {
+                try {
+                    _bsfManager.declareBean("connection", connection, connection.getClass());
+                    super.runScripts();
+                    _bsfManager.undeclareBean("connection");
+                } catch (Exception e) {
+                    _logger.severe("Declaring or undeclaring a bean should not throw an exception! " + e);
+                }
+            }
+        }
+        
     }
     
 }

@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: ManualRequest.java,v 1.12 2005/01/05 11:15:43 rogan Exp $
+ * $Id: ManualRequest.java,v 1.13 2005/02/04 15:12:32 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.manualrequest;
@@ -50,13 +50,14 @@ import org.owasp.webscarab.model.Response;
 
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
+import org.owasp.webscarab.plugin.Hook;
 
 import java.io.IOException;
 
 import java.util.Date;
 import java.util.logging.Logger;
 
-public class ManualRequest extends Plugin {
+public class ManualRequest implements Plugin {
     
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
@@ -71,6 +72,7 @@ public class ManualRequest extends Plugin {
     private SiteModel _model = null;
     private Framework _framework = null;
     
+    private boolean _running = false;
     private boolean _busy = false;
     private String _status = "Stopped";
     
@@ -166,6 +168,10 @@ public class ManualRequest extends Plugin {
         // we do not manage our own store
     }
     
+    public boolean isRunning() {
+        return _running;
+    }
+    
     public boolean isBusy() {
         return _busy;
     }
@@ -182,8 +188,16 @@ public class ManualRequest extends Plugin {
         // we do no analysis
     }
     
-    public void setSession(String type, Object session, String id) throws StoreException {
+    public void setSession(String type, Object store, String session) throws StoreException {
         // we maintain no model of our own
+    }
+    
+    public Object getScriptableObject() {
+        return null;
+    }
+    
+    public Hook[] getScriptingHooks() {
+        return new Hook[0];
     }
     
 }
