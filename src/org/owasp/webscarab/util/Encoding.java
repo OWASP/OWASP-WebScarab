@@ -65,11 +65,14 @@ import java.util.Arrays;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+
 /**
  * Utilities to (de-)code data.
  *
  * @since 0.1
- * @version 0.2rc<br />CVS $Revision: 1.2 $ $Author: rogan $
+ * @version 0.2rc<br />CVS $Revision: 1.3 $ $Author: rogan $
  * @author <a href="mailto:ingo@ingostruck.de">ingo@ingostruck.de</a>
  */
 public final class Encoding {
@@ -335,6 +338,37 @@ public final class Encoding {
         }
         return output.toString();
     }
+    /**
+     *  Description of the Method
+     *
+     *@param  str  Description of the Parameter
+     *@return      Description of the Return Value
+     */
+    public static String urlDecode( String str ) {
+        try {
+            return ( URLDecoder.decode( str, "utf-8" ) );
+        }
+        catch ( Exception e ) {
+            return ( "Decoding error" );
+        }
+    }
+    
+    
+    /**
+     *  Description of the Method
+     *
+     *@param  str  Description of the Parameter
+     *@return      Description of the Return Value
+     */
+    public static String urlEncode( String str ) {
+        try {
+            return ( URLEncoder.encode( str, "utf-8" ) );
+        }
+        catch ( Exception e ) {
+            return ( "Encoding error" );
+        }
+    }
+    
 
 } // class Base64
 
