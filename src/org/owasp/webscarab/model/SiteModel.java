@@ -117,7 +117,7 @@ public class SiteModel {
      */
     public void addConversation(ConversationID id, Request request, Response response, String origin) {
         try {
-            _logger.info("Adding conversation " + id + ": " + request.getURL());
+            // _logger.info("Adding conversation " + id + ": " + request.getURL());
             HttpUrl url = request.getURL();
             addUrl(url); // fires appropriate events
             _rwl.writeLock().acquire();
@@ -131,7 +131,7 @@ public class SiteModel {
             _rwl.readLock().release();
             addUrlProperty(url, "METHODS", request.getMethod());
             addUrlProperty(url, "STATUS", response.getStatusLine());
-            _logger.info("Added conversation " + id + ": " + request.getURL());
+            // _logger.info("Added conversation " + id + ": " + request.getURL());
         } catch (InterruptedException ie) {
             _logger.severe("Interrupted! " + ie);
         }
