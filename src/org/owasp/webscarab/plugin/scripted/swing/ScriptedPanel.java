@@ -230,13 +230,8 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
         return _scripted.getPluginName();
     }
     
-    public void iteration(int i) {
-        _logger.info("Script iteration: " + i);
-    }
-    
     public void scriptError(final String reason, final Throwable error) {
         if (SwingUtilities.isEventDispatchThread()) {
-            // String message = "Script execution error : " + error.getMessage();
             JOptionPane.showMessageDialog(ScriptedPanel.this, error, "Script execution error", JOptionPane.ERROR_MESSAGE);
         } else {
             SwingUtilities.invokeLater(new Runnable() {
