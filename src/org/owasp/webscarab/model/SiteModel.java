@@ -53,6 +53,8 @@ import javax.swing.event.EventListenerList;
 import org.owasp.webscarab.util.MRUCache;
 import org.owasp.webscarab.util.ReentrantReaderPreferenceReadWriteLock;
 
+import java.io.File;
+
 /**
  * Provides a model of the conversations that have been seen
  * @author rogan
@@ -75,16 +77,17 @@ public class SiteModel {
     Logger _logger = Logger.getLogger(getClass().getName());
     
     /**
-     * Creates a new ConversationModel backed by the supplied store
-     * @param store the store providing long term storage of the conversations
+     * Creates a new ConversationModel
      */
-    public SiteModel(SiteModelStore store) {
-        if (store == null) throw new NullPointerException("Store may not be null");
-        _store = store;
+    public SiteModel() {
     }
     
-    public void setStore(SiteModelStore store) {
-        _store = store;
+    public void setSession(String type, Object store, String session) throws StoreException {
+        if (type.equals("FileSystem") && store instanceof File) {
+            _store = new FileSystemStore((File) store);
+        } else {
+            throw new StoreException("Unknown store type " + type + " and store " + store);
+        }
         fireDataChanged();
     }
     
@@ -300,6 +303,7 @@ public class SiteModel {
      * @return the number of conversations related to the specified URL
      */    
     public int getConversationCount(HttpUrl url) {
+        if (_store == null) return 0;
         try {
             _rwl.readLock().acquire();
             try {
@@ -506,6 +510,7 @@ public class SiteModel {
      * @return the number of children
      */    
     public int getChildUrlCount(HttpUrl parent) {
+        if (_store == null) return 0;
         try {
             _rwl.readLock().acquire();
             try {
@@ -546,6 +551,7 @@ public class SiteModel {
      * @return the number of children
      */    
     public int getQueryCount(HttpUrl parent) {
+        if (_store == null) return 0;
         try {
             _rwl.readLock().acquire();
             try {
@@ -769,6 +775,7 @@ public class SiteModel {
      * @return the number of cookies
      */
     public int getCookieCount() {
+        if (_store == null) return 0;
         try {
             _rwl.readLock().acquire();
             try {
