@@ -44,10 +44,15 @@ public class Response extends Message {
      */    
     public void read(InputStream is) throws IOException {
         String line = readLine(is);
+        if (line == null) {
+            throw new IOException("No data received from the server");
+        }
         String[] parts = line.split(" ", 3);
         if (parts.length >= 2) {
             setVersion(parts[0]);
             setStatus(parts[1]);
+        } else {
+            throw new IOException("Invalid response line read from the server: \"" + line + "\"");
         }
         if (parts.length == 3) {
             setMessage(parts[2]);
