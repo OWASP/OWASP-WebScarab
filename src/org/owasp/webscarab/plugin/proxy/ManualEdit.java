@@ -46,6 +46,8 @@ import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
+import java.util.regex.PatternSyntaxException;
+
 /**
  *
  * @author  rdawes
@@ -167,18 +169,22 @@ public class ManualEdit extends ProxyPlugin {
         
         public Response fetchResponse(Request request) throws IOException {
             if (_interceptRequest) {
-                String url = request.getURL().toString();
-                if (! url.matches(_excludeRegex) && url.matches(_includeRegex)) {
-                    String method = request.getMethod();
-                    for (int i=0; i<_interceptMethods.length; i++) {
-                        if (method.equals(_interceptMethods[i])) {
-                            if (_ui != null) {
-                                request = _ui.editRequest(request);
-                                if (request == null) 
-                                    throw new IOException("Request aborted in Manual Edit");
+                try {
+                    String url = request.getURL().toString();
+                    if (! url.matches(_excludeRegex) && url.matches(_includeRegex)) {
+                        String method = request.getMethod();
+                        for (int i=0; i<_interceptMethods.length; i++) {
+                            if (method.equals(_interceptMethods[i])) {
+                                if (_ui != null) {
+                                    request = _ui.editRequest(request);
+                                    if (request == null) 
+                                        throw new IOException("Request aborted in Manual Edit");
+                                }
                             }
                         }
                     }
+                } catch (PatternSyntaxException pse) {
+                    _logger.warning("Include Regex pattern is invalid, skipping! " + pse);
                 }
             }
             Response response = _in.fetchResponse(request);

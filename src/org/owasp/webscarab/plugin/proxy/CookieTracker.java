@@ -44,6 +44,7 @@ import java.util.Date;
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.Preferences;
+import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.SiteModel;
@@ -129,10 +130,10 @@ public class CookieTracker extends ProxyPlugin {
             }
             Response response = _in.fetchResponse(request);
             if (_readResponses && response != null) {
-                String[][] headers = response.getHeaders();
+                NamedValue[] headers = response.getHeaders();
                 for (int i=0; i<headers.length; i++) {
-                    if (headers[i][0].equals("Set-Cookie") || headers[i][0].equals("Set-Cookie2")) {
-                        Cookie cookie = new Cookie(new Date(), request.getURL(), headers[i][1]);
+                    if (headers[i].getName().equalsIgnoreCase("Set-Cookie") || headers[i].getName().equalsIgnoreCase("Set-Cookie2")) {
+                        Cookie cookie = new Cookie(new Date(), request.getURL(), headers[i].getValue());
                         _model.addCookie(cookie);
                     }
                 }

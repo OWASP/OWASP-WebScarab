@@ -41,6 +41,7 @@ package org.owasp.webscarab.plugin.proxy;
 
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.model.Preferences;
+import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.proxy.ProxyPlugin;
@@ -54,6 +55,8 @@ import java.io.IOException;
 public class NTLMFilter extends ProxyPlugin {
     
     private boolean _enabled = false;
+    
+    private static NamedValue[] NO_HEADERS = new NamedValue[0];
     
     /** Creates a new instance of RevealHidden */
     public NTLMFilter() {
@@ -96,11 +99,11 @@ public class NTLMFilter extends ProxyPlugin {
             Response response = _in.fetchResponse(request);
             if (_enabled) {
                 boolean changed = false;
-                String[][] headers = response.getHeaders();
+                NamedValue[] headers = response.getHeaders();
                 for (int i=0; i< headers.length; i++) {
-                    if (headers[i][0].equals("WWW-Authenticate") || 
-                        headers[i][0].equals("Proxy-Authenticate")) {
-                        String value = headers[i][1];
+                    if (headers[i].getName().equalsIgnoreCase("WWW-Authenticate") || 
+                        headers[i].getName().equalsIgnoreCase("Proxy-Authenticate")) {
+                        String value = headers[i].getValue();
                         String scheme = value.substring(0, value.indexOf(" "));
                         if (scheme.equalsIgnoreCase("Basic")) {
                             int realmstart = value.indexOf("realm=\"")+7;
@@ -108,20 +111,20 @@ public class NTLMFilter extends ProxyPlugin {
                             int nextscheme = value.indexOf(",", realmend);
                             String realm = value.substring(realmstart, realmend);
                             if (nextscheme > -1) {
-                                headers[i][1] = value.substring(0, nextscheme -1);
+                                headers[i] = new NamedValue(headers[i].getName(),value.substring(0, nextscheme -1));
                                 changed = true;
                             }
                         } else {
-                            headers[i][1] = null;
+                            headers[i] = null;
                             changed = true;
                         }
                     }
                 }
                 if (changed) {
-                    response.setHeaders(new String[0][0]);
+                    response.setHeaders(NO_HEADERS);
                     for (int i=0; i< headers.length; i++) {
-                        if (headers[i][1] != null) {
-                            response.addHeader(headers[i][0], headers[i][1]);
+                        if (headers[i] != null) {
+                            response.addHeader(headers[i]);
                         }
                     }
                     response.addHeader("X-NTLMFilter", "modified");

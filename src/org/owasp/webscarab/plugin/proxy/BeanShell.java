@@ -209,7 +209,7 @@ public class BeanShell extends ProxyPlugin {
                         _interpreter.unset("response");
                         _interpreter.unset("nextClient");
                         _interpreter.unset("request");
-                        response.addHeader("X-BeanShell", "possibly modified");
+                        response.setHeader("X-BeanShell", "possibly modified");
                         return response;
                     }
                 } catch (EvalError e) {
