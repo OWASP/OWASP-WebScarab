@@ -25,6 +25,10 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.owasp.util.Convert;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 // SiteModel.java
 
 /** SiteModel represents the most significant part of the WebScarab system. It contains the
@@ -78,7 +82,7 @@ public class SiteModel {
     }
     
     public String addFragment(String fragment) {
-        String key = null;
+        String key = hashMD5(fragment.getBytes());
         if (_store != null) {
             try {
                 _store.writeFragment(key, fragment);
@@ -244,8 +248,6 @@ public class SiteModel {
             100, 100
         };
         
-        private Logger logger = Logger.getLogger("za.org.dragon.exodus.ConversationTableModel");
-        
         public ConversationTableModel() {
         }
         
@@ -260,15 +262,15 @@ public class SiteModel {
             return preferredColumnWidths[column];
         }
         
-        public synchronized int getColumnCount() {
+        public int getColumnCount() {
             return columnNames.length;
         }
         
-        public synchronized int getRowCount() {
+        public int getRowCount() {
             return _conversationList.size();
         }
         
-        public synchronized Object getValueAt(int row, int column) {
+        public Object getValueAt(int row, int column) {
             if (row<0 || row >= _conversationList.size()) {
                 System.err.println("Attempt to get row " + row + ", column " + column + " : row does not exist!");
                 return null;
@@ -281,7 +283,34 @@ public class SiteModel {
                 return null;
             }
         }
+        
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            return columnNames[columnIndex].equalsIgnoreCase("Comment");
+        }
+        
+        public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+            if (rowIndex <0 || rowIndex >= _conversationList.size()) {
+                System.err.println("Attempt to get row " + rowIndex + ", column " + columnIndex + " : row does not exist!");
+                return;
+            }
+            if (columnNames[columnIndex].equalsIgnoreCase("Comment")) {
+                Conversation c = (Conversation) _conversationList.get(rowIndex);
+                c.setProperty(columnNames[columnIndex].toUpperCase(), aValue.toString());
+            }
+        }
+        
     }
     
-
+    private String hashMD5 (byte[] bytes) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance( "MD5" );
+            md.update( bytes );
+        }
+        catch ( NoSuchAlgorithmException e ) {
+            e.printStackTrace();
+            // it's got to be there
+        }
+        return Convert.toHexString( md.digest() );
+    }
 }
