@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -57,6 +57,12 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 
 import java.util.logging.Logger;
+
+import javax.swing.JButton;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 /**
  *
@@ -127,7 +133,8 @@ public class ConversationPanel extends javax.swing.JPanel {
         _request = request;
         _requestEditable = editable;
         _requestModified = false;
-        _requestPanel.setRequest(_request, editable);
+        _requestPanel.setEditable(editable);
+        _requestPanel.setRequest(_request);
     }
     
     public boolean isRequestModified() {
@@ -147,7 +154,8 @@ public class ConversationPanel extends javax.swing.JPanel {
         _response = response;
         _responseEditable = editable;
         _responseModified = false;
-        _responsePanel.setResponse(response, editable);
+        _responsePanel.setEditable(editable);
+        _responsePanel.setResponse(response);
     }
     
     public boolean isResponseModified() {
@@ -223,6 +231,65 @@ public class ConversationPanel extends javax.swing.JPanel {
     
     public JFrame getFrame() {
         return _frame;
+    }
+    
+    public static void main(String[] args) {
+        final JFrame top = new JFrame("Response Panel");
+        top.getContentPane().setLayout(new java.awt.BorderLayout());
+        top.addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                System.exit(0);
+            }
+        });
+        final ConversationPanel cp = new ConversationPanel();
+        top.getContentPane().add(cp);
+        top.setBounds(100,100,800,600);
+        top.show();
+        if (args.length == 0) {
+            JButton button = new JButton("NEXT");
+            final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            top.getContentPane().add(button, java.awt.BorderLayout.SOUTH);
+            button.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    loadConversation(top, cp, br);
+                }
+            });
+            loadConversation(top, cp, br);
+        } else if (args.length == 1) {
+            loadConversation(top, cp, args[0]);
+        }
+    }
+    
+    private static void loadConversation(JFrame top, ConversationPanel cp, String file) {
+        Request request = new Request();
+        Response response = new Response();
+        try {
+            FileInputStream fis = new FileInputStream(file+"-request");
+            request.read(fis);
+            request.flushContentStream();
+            fis.close();
+            fis = new FileInputStream(file+"-response");
+            response.read(fis);
+            response.flushContentStream();
+            fis.close();
+        } catch (IOException ioe) {
+            System.err.println(file + ": IOException: " + ioe.getMessage());
+        }
+        cp.setRequest(request, false);
+        cp.setResponse(response, false);
+        top.setTitle(file);
+    }
+    
+    private static void loadConversation(JFrame top, ConversationPanel cp, BufferedReader br) {
+        try {
+            String file = br.readLine();
+            if (file == null) {
+                System.exit(0);
+            }
+            loadConversation(top, cp, file);
+        } catch (IOException ioe) {
+            System.err.println("IOException: " + ioe.getMessage());
+        }
     }
     
 }
