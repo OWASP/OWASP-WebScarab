@@ -8,12 +8,14 @@ package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.ui.Framework;
 import org.owasp.webscarab.model.URLTreeModel;
+import org.owasp.webscarab.model.Conversation;
+import org.owasp.webscarab.model.URLInfo;
 
 import javax.swing.JTree;
-// import org.owasp.webscarab.model.URLTreeNode;
 
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeSelectionModel;
+import javax.swing.tree.TreePath;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -23,12 +25,20 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.Action;
+import javax.swing.AbstractAction;
+import java.awt.event.ActionEvent;
+import javax.swing.JMenuItem;
 
 import java.util.TreeMap;
+import java.util.ArrayList;
 
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.SiteModel;
+
+import java.net.URL;
+import java.net.MalformedURLException;
 
 /**
  *
@@ -41,6 +51,8 @@ public class SummaryPanel extends javax.swing.JPanel implements SwingPlugin {
     private ConversationTableModel _ctm;
     private SiteModel _siteModel;
     private TreeMap _windowCache = new TreeMap();
+    private ArrayList _conversationActions = new ArrayList();
+    private ArrayList _urlActions = new ArrayList();
     
     /** Creates new form SummaryPanel */
     public SummaryPanel(Framework framework) {
@@ -49,33 +61,87 @@ public class SummaryPanel extends javax.swing.JPanel implements SwingPlugin {
         
         initComponents();
         
-        _urlTreeTable = new JTreeTable(new SiteInfoModel(framework.getSiteModel()));
+        initTree();
+        addTreeListeners();
+        addTreeActions();
+        
+        initTable();
+        addTableListeners();
+        addTableActions();
+        
+    }
+    
+    private void initTree() {
+        _urlTreeTable = new JTreeTable(new SiteInfoModel(_framework.getSiteModel()));
         treeTableScrollPane.setViewportView(_urlTreeTable);
+        
         JTree urlTree = _urlTreeTable.getTree();
         urlTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         urlTree.setRootVisible(false);
         urlTree.setShowsRootHandles(true);
-
+    }
+    
+    private void addTreeListeners() {
         // Listen for when the selection changes.
+        // We use this to set the selected URLInfo for each action, and eventually
+        // to filter the conversation list
+        final JTree urlTree = _urlTreeTable.getTree();
         urlTree.addTreeSelectionListener(new TreeSelectionListener() {
             public void valueChanged(TreeSelectionEvent e) {
-                // System.out.println("Selected " + e.toString());
-                // URLTreeModel.URLNode node = (URLTreeModel.URLNode) urlTree.getLastSelectedPathComponent();
-                // Object node = urlTree.getLastSelectedPathComponent();
-                // if (node == null) return;
-                // System.out.println("Selected " + node.getURL());
-                // We can do something like display the entries in the URLInfo. Ideally, we should 
-                // have this as part of an JTreeTable, but the license worries me :-(
+                TreePath selection = urlTree.getSelectionPath();
+                URLInfo u = null;
+                if (selection != null) {
+                    Object o = selection.getLastPathComponent();
+                    if (o instanceof URLTreeModel.URLNode) {
+                        URLTreeModel.URLNode un = (URLTreeModel.URLNode) o;
+                        String url = un.getURL();
+                        try {
+                            u = _siteModel.getURLInfo(new URL(url));
+                        } catch (MalformedURLException mue) {
+                            System.err.println("Malformed URL " + url + " : " + mue);
+                        }
+                    }
+                }
+                synchronized (_urlActions) {
+                    for (int i=0; i<_urlActions.size(); i++) {
+                        AbstractAction action = (AbstractAction) _urlActions.get(i);
+                        action.putValue("TARGET", u);
+                    }
+                }
             }
         });
-        
-        conversationTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        conversationTable.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) 
-                    showSelectedConversation();
+        _urlTreeTable.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+            public void mouseReleased(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+            private void maybeShowPopup(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    urlPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+                }
             }
         });
+    }
+    
+    private void addTreeActions() {
+        Action a = new FragmentAction("COMMENTS");
+        addURLAction(a);
+        a = new FragmentAction("SCRIPTS");
+        addURLAction(a);
+    }
+    
+    public void addURLAction(Action action) {
+        synchronized (_urlActions) {
+            _urlActions.add(action);
+        }
+        synchronized (urlPopupMenu) {
+            urlPopupMenu.add(new JMenuItem(action));
+        }
+    }
+    
+    private void initTable() {
         _ctm = new ConversationTableModel(_siteModel.getConversationListModel());
         conversationTable.setModel(_ctm);
         
@@ -85,37 +151,102 @@ public class SummaryPanel extends javax.swing.JPanel implements SwingPlugin {
         }
     }
     
+    private void addTableListeners() {
+        // conversationTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        // This listener updates the registered actions with the selected Conversation
+        conversationTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getValueIsAdjusting()) return;
+                int row = conversationTable.getSelectedRow();
+                Conversation c = null;
+                if (row >-1) {
+                    String id = (String) _ctm.getValueAt(row, 0);
+                    c = _siteModel.getConversation(id);
+                }
+                synchronized (_conversationActions) {
+                    for (int i=0; i<_conversationActions.size(); i++) {
+                        AbstractAction action = (AbstractAction) _conversationActions.get(i);
+                        action.putValue("TARGET", c);
+                    }
+                }
+            }
+        });
+        
+        conversationTable.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+            public void mouseReleased(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+            private void maybeShowPopup(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    conversationPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && e.getButton() == e.BUTTON1) {
+                    showSelectedConversation();
+                }
+            }
+        });
+        
+    }
+    
+    private void addTableActions() {
+        AbstractAction a = new ShowDetailAction();
+        addConversationAction(a);
+        a = new FragmentAction("COMMENTS");
+        addConversationAction(a);
+        a = new FragmentAction("SCRIPTS");
+        addConversationAction(a);
+    }
+    
+    public void addConversationAction(Action action) {
+        synchronized (_conversationActions) {
+            _conversationActions.add(action);
+        }
+        synchronized (conversationPopupMenu) {
+            conversationPopupMenu.add(new JMenuItem(action));
+        }
+    }
+    
     private void showSelectedConversation() {
         int row = conversationTable.getSelectedRow();
         if (row >= 0) {
-            final String id = (String) _ctm.getValueAt(row, 0);
-            Request request = _siteModel.getRequest(id);
-            Response response = _siteModel.getResponse(id);
-            if (request == null && response == null) {
-                JOptionPane.showMessageDialog(null, "Conversation was not saved! Please start a new session first!", "Error", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            synchronized (_windowCache) {
-                ConversationPanel cp = (ConversationPanel) _windowCache.get("Conversation " + id);
-                if (cp == null) {
-                    cp = new ConversationPanel();
-                    _windowCache.put("Conversation " + id, cp);
-                    cp.setRequest(request, false);
-                    cp.setResponse(response, false);
-                }
-                JFrame frame = cp.inFrame("Conversation " + id);
-                frame.addWindowListener(new java.awt.event.WindowAdapter() {
-                    public void windowClosing(java.awt.event.WindowEvent evt) {
-                        synchronized (_windowCache) {
-                            _windowCache.remove("Conversation " + id); 
-                        }
-                    }
-                });
-                frame.show();
-            }
+            String id = (String) _ctm.getValueAt(row, 0);
+            showConversationDetails(id);
         }
     }
-
+    
+    public void showConversationDetails(final String id) {
+        Request request = _siteModel.getRequest(id);
+        Response response = _siteModel.getResponse(id);
+        if (request == null && response == null) {
+            JOptionPane.showMessageDialog(null, "Conversation " + id + " was not saved! Please start a new session first!", "Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        synchronized (_windowCache) {
+            ConversationPanel cp = (ConversationPanel) _windowCache.get("Conversation " + id);
+            if (cp == null) {
+                cp = new ConversationPanel();
+                _windowCache.put("Conversation " + id, cp);
+                cp.setRequest(request, false);
+                cp.setResponse(response, false);
+            }
+            JFrame frame = cp.inFrame("Conversation " + id);
+            frame.addWindowListener(new java.awt.event.WindowAdapter() {
+                public void windowClosing(java.awt.event.WindowEvent evt) {
+                    synchronized (_windowCache) {
+                        _windowCache.remove("Conversation " + id);
+                    }
+                }
+            });
+            frame.show();
+        }
+    }
+    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -124,6 +255,8 @@ public class SummaryPanel extends javax.swing.JPanel implements SwingPlugin {
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
+        urlPopupMenu = new javax.swing.JPopupMenu();
+        conversationPopupMenu = new javax.swing.JPopupMenu();
         jSplitPane1 = new javax.swing.JSplitPane();
         urlPanel = new javax.swing.JPanel();
         jCheckBox1 = new javax.swing.JCheckBox();
@@ -131,6 +264,9 @@ public class SummaryPanel extends javax.swing.JPanel implements SwingPlugin {
         conversationPanel = new javax.swing.JPanel();
         conversationTableScrollPane = new javax.swing.JScrollPane();
         conversationTable = new javax.swing.JTable();
+
+        urlPopupMenu.setLabel("URL Actions");
+        conversationPopupMenu.setLabel("Conversation Actions");
 
         setLayout(new java.awt.BorderLayout());
 
@@ -193,23 +329,129 @@ public class SummaryPanel extends javax.swing.JPanel implements SwingPlugin {
         add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
     }//GEN-END:initComponents
-
+    
     public javax.swing.JPanel getPanel() {
         return this;
-    }    
+    }
     
     public String getPluginName() {
         return "Summary";
-    }    
+    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel conversationPanel;
+    private javax.swing.JPopupMenu conversationPopupMenu;
     private javax.swing.JTable conversationTable;
     private javax.swing.JScrollPane conversationTableScrollPane;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JScrollPane treeTableScrollPane;
     private javax.swing.JPanel urlPanel;
+    private javax.swing.JPopupMenu urlPopupMenu;
     // End of variables declaration//GEN-END:variables
+    
+    private class ShowDetailAction extends AbstractAction {
+        public ShowDetailAction() {
+            putValue(Action.NAME, "Show details");
+            putValue(Action.SHORT_DESCRIPTION, "Opens a new window showing the request and response");
+            putValue("TARGET", null);
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+            Object o = getValue("TARGET");
+            if (o != null && o instanceof Conversation) {
+                Conversation c = (Conversation) o;
+                String id = c.getProperty("ID");
+                if (id != null) {
+                    showConversationDetails(id);
+                } else {
+                    System.err.println("ID was null!");
+                }
+            }
+        }
+        
+        public void putValue(String key, Object value) {
+            super.putValue(key, value);
+            if (key != null && key.equals("TARGET")) {
+                Conversation c = (Conversation) value;
+                if (c == null) {
+                    setEnabled(false);
+                } else {
+                    setEnabled(true);
+                }
+            }
+        }
+    }
+    
+    private class FragmentAction extends AbstractAction {
+        private String _type;
+        public FragmentAction(String type) {
+            _type = type;
+            putValue(Action.NAME, "Show " + _type.toLowerCase());
+            putValue(Action.SHORT_DESCRIPTION, "Show " + _type.toLowerCase());
+            putValue("TARGET", null);
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+            Object o = getValue("TARGET");
+            if (o == null) return;
+            String[] checksums = null;
+            String title = "";
+            if (o instanceof Conversation) {
+                Conversation c = (Conversation) o;
+                checksums = c.getPropertyAsArray(_type);
+                title = "Conversation " + c.getProperty("ID") + " " + _type.toLowerCase();
+            }
+            if (o != null && o instanceof URLInfo) {
+                URLInfo u = (URLInfo) o;
+                checksums = u.getPropertyAsArray(_type);
+                title = "URL " + u.getURL() + " " + _type.toLowerCase();
+            }
+            if (checksums != null) {
+                synchronized (_windowCache) {
+                    FragmentsFrame ff = (FragmentsFrame) _windowCache.get(title);
+                    if (ff == null) {
+                        ff = new FragmentsFrame(_siteModel);
+                        ff.setTitle(title);
+                        ff.loadFragments(checksums);
+                        _windowCache.put(title, ff);
+                    }
+                    final String key = title;
+                    ff.addWindowListener(new java.awt.event.WindowAdapter() {
+                        public void windowClosing(java.awt.event.WindowEvent evt) {
+                            synchronized (_windowCache) {
+                                _windowCache.remove(key);
+                            }
+                        }
+                    });
+                    ff.show();
+                }
+            } else {
+                System.err.println("No checksums to display");
+            }
+        }
+        
+        public void putValue(String key, Object value) {
+            super.putValue(key, value);
+            if (key != null && key.equals("TARGET")) {
+                if (value != null) {
+                    if (value instanceof Conversation) {
+                        Conversation c = (Conversation) value;
+                        if (c.getProperty(_type) != null) {
+                            setEnabled(true);
+                            return;
+                        }
+                    } else if (value instanceof URLInfo) {
+                        URLInfo u = (URLInfo) value;
+                        if (u.getProperty(_type) != null) {
+                            setEnabled(true);
+                            return;
+                        }
+                    }
+                }
+                setEnabled(false);
+            }
+        }
+    }
     
 }

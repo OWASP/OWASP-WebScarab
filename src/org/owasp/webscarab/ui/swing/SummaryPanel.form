@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <Form version="1.0" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+  <NonVisualComponents>
+    <Menu class="javax.swing.JPopupMenu" name="urlPopupMenu">
+      <Properties>
+        <Property name="label" type="java.lang.String" value="URL Actions"/>
+      </Properties>
+    </Menu>
+    <Menu class="javax.swing.JPopupMenu" name="conversationPopupMenu">
+      <Properties>
+        <Property name="label" type="java.lang.String" value="Conversation Actions"/>
+      </Properties>
+    </Menu>
+  </NonVisualComponents>
 
   <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
   <SubComponents>
