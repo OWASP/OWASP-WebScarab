@@ -96,8 +96,8 @@ public class ProxyConfig extends javax.swing.JDialog {
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         getContentPane().add(jLabel2, gridBagConstraints);
 
-        httpProxyServerTextField.setMinimumSize(new java.awt.Dimension(150, 20));
-        httpProxyServerTextField.setPreferredSize(new java.awt.Dimension(150, 20));
+        httpProxyServerTextField.setMinimumSize(new java.awt.Dimension(250, 20));
+        httpProxyServerTextField.setPreferredSize(new java.awt.Dimension(250, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -129,8 +129,8 @@ public class ProxyConfig extends javax.swing.JDialog {
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         getContentPane().add(jLabel4, gridBagConstraints);
 
-        httpsProxyServerTextField.setMinimumSize(new java.awt.Dimension(150, 20));
-        httpsProxyServerTextField.setPreferredSize(new java.awt.Dimension(150, 20));
+        httpsProxyServerTextField.setMinimumSize(new java.awt.Dimension(250, 20));
+        httpsProxyServerTextField.setPreferredSize(new java.awt.Dimension(250, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -163,11 +163,12 @@ public class ProxyConfig extends javax.swing.JDialog {
         getContentPane().add(jLabel1, gridBagConstraints);
 
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        jScrollPane1.setMinimumSize(new java.awt.Dimension(100, 48));
-        jScrollPane1.setPreferredSize(new java.awt.Dimension(103, 51));
+        jScrollPane1.setMinimumSize(new java.awt.Dimension(250, 48));
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(250, 51));
         noProxyTextArea.setLineWrap(true);
         noProxyTextArea.setToolTipText("Enter a comma separated list of hosts that do not need to go through the proxy");
-        noProxyTextArea.setPreferredSize(null);
+        noProxyTextArea.setMinimumSize(new java.awt.Dimension(250, 40));
+        noProxyTextArea.setPreferredSize(new java.awt.Dimension(250, 40));
         jScrollPane1.setViewportView(noProxyTextArea);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -203,20 +204,26 @@ public class ProxyConfig extends javax.swing.JDialog {
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         getContentPane().add(jPanel1, gridBagConstraints);
 
+        pack();
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width-400)/2, (screenSize.height-120)/2, 400, 120);
+        java.awt.Dimension dialogSize = getSize();
+        setLocation((screenSize.width-dialogSize.width)/2,(screenSize.height-dialogSize.height)/2);
     }//GEN-END:initComponents
     
     private void applyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyButtonActionPerformed
+        String error = null;
         String httpserver = httpProxyServerTextField.getText().trim();
         int httpport = -1;
         try {
             String p = httpProxyPortTextField.getText().trim();
-            if (!p.equals("")) 
-                httpport = Integer.parseInt(p);
-            // FIXME check that the port is acceptable (1..65535)
+            if (httpserver.equals("") && p.equals("")) p = "3128";
+            httpport = Integer.parseInt(p);
+            if (httpport<1 || httpport>65535) error = "HTTP Proxy port must be between 0 and 65536";
         } catch (NumberFormatException nfe) {
-            _logger.severe("Error parsing the upstream HTTP Proxy port");
+            error = "Error parsing the HTTP Proxy port number";
+        }
+        if (error != null) {
+            JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
@@ -224,11 +231,14 @@ public class ProxyConfig extends javax.swing.JDialog {
         int httpsport = -1;
         try {
             String p = httpsProxyPortTextField.getText().trim();
-            if (!p.equals(""))
-                httpsport = Integer.parseInt(p);
-            // FIXME check that the port is acceptable (1..65535)
+            if (httpsserver.equals("") && p.equals("")) p = "3128";
+            httpsport = Integer.parseInt(p);
+            if (httpsport<1 || httpsport>65535) error = "HTTPS Proxy port must be between 0 and 65536";
         } catch (NumberFormatException nfe) {
-            _logger.severe("Error parsing the upstream HTTPS Proxy port");
+            error = "Error parsing the HTTPS Proxy port number";
+        }
+        if (error != null) {
+            JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
@@ -254,11 +264,13 @@ public class ProxyConfig extends javax.swing.JDialog {
         _props.setProperty("WebScarab.httpsProxy", httpsserver+":"+httpsport);
         _props.setProperty("WebScarab.noProxy", noProxyTextArea.getText());
         
-        this.closeDialog(new WindowEvent(this,WindowEvent.WINDOW_CLOSED));
+        setVisible(false);
+        dispose();
     }//GEN-LAST:event_applyButtonActionPerformed
     
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
-        this.closeDialog(new WindowEvent(this,WindowEvent.WINDOW_CLOSED));
+        setVisible(false);
+        dispose();
     }//GEN-LAST:event_cancelButtonActionPerformed
     
     /** Closes the dialog */
