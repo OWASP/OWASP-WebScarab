@@ -20,7 +20,7 @@ public interface Plug {
     
     void addPlugin( WebScarabPlugin plugin );
     
-    String addConversation( Request request, Response response );
+    String addConversation( String origin, Request request, Response response );
 
     CookieJar getCookieJar();
 }
