@@ -115,7 +115,7 @@ public class Response extends Message {
      * @param buff
      * @throws ParseException
      */    
-    protected void parse(StringBuffer buff) throws ParseException {
+    public void parse(StringBuffer buff) throws ParseException {
         String line = getLine(buff);
         String[] parts = line.split(" ", 3);
         if (parts.length >= 2) {

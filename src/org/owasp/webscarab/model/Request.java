@@ -142,7 +142,7 @@ public class Request extends Message {
      * @param buff a StringBuffer containing the request. Note that the contents of the StringBuffer are consumed during parsing.
      * @throws ParseException if there are any errors parsing the request
      */    
-    protected void parse(StringBuffer buff) throws ParseException {
+    public void parse(StringBuffer buff) throws ParseException {
         String line = null;
         line = getLine(buff);
         String[] parts = line.split(" ");
