@@ -64,14 +64,22 @@ public class CookieJar {
             // f.e. it is set using JavaScript. We need to do something about those
         // }
         if (cookies.size() > 0) {
-            Cookie cookie = (Cookie) cookies.get(0);
-            String newheader = cookie.getName() + "=" + cookie.getValue();
-            for (int i=1; i<cookies.size(); i++) {
+            Cookie cookie;
+            String newheader = null;
+            String name;
+            String value;
+            for (int i=0; i<cookies.size(); i++) {
                 cookie = (Cookie) cookies.get(i);
-                newheader = newheader + "; " + cookie.getName() + "=" + cookie.getValue();
+                name = cookie.getName();
+                value = cookie.getValue();
+                if (value.equals("")) continue;
+                if (newheader == null) {
+                    newheader = name + "=" + value;
+                } else {
+                    newheader = newheader + "; " + name + "=" + value;
+                }
             }
-            if (header == null || !newheader.equals(header)) {
-                System.out.println("Request previously had '" + header + "'");
+            if (newheader != null && (header == null || !newheader.equals(header))) {
                 request.setHeader("Cookie", newheader);
             }
         }
