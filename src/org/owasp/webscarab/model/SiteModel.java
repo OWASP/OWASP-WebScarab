@@ -26,7 +26,7 @@ import org.owasp.webscarab.util.ReentrantReaderPreferenceReadWriteLock;
  */
 public class SiteModel {
     
-    private ReadWriteLock _rwl = new ReentrantReaderPreferenceReadWriteLock();
+    private ReentrantReaderPreferenceReadWriteLock _rwl = new ReentrantReaderPreferenceReadWriteLock();
     
     private static final Cookie[] NO_COOKIES = new Cookie[0];
     
@@ -360,6 +360,7 @@ public class SiteModel {
                             // _rwl.writeLock().acquire();
                             while (!_rwl.writeLock().attempt(5000)) {
                                 _logger.severe("Timed out waiting for write lock, trying again");
+                                _rwl.debug();
                             }
                             if (!_store.isKnownUrl(path[i])) {
                                 _store.addUrl(path[i]);

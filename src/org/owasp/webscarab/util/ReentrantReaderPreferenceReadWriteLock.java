@@ -8,6 +8,8 @@ package org.owasp.webscarab.util;
 
 import EDU.oswego.cs.dl.util.concurrent.ReentrantWriterPreferenceReadWriteLock;
 
+import java.util.Iterator;
+
 /** Provides an implementation of a reentrant Read/Write lock that gives preference
  * to readers, rather than writers. This makes sense in the context of the webscarab
  * model because updates are fired with a read lock held, we want our listeners
@@ -34,6 +36,21 @@ public class ReentrantReaderPreferenceReadWriteLock extends ReentrantWriterPrefe
      */
     protected boolean allowReader() {
         return activeWriter_ == null || activeWriter_ == Thread.currentThread();
+    }
+    
+    public void debug() {
+        Iterator it = readers_.keySet().iterator();
+        System.err.println("Readers:");
+        while(it.hasNext()) {
+            Object key = it.next();
+            Object value = readers_.get(key);
+            System.err.println(key + " : " + value);
+        }
+        System.err.println("Done");
+        System.err.println("Writer thread:");
+        System.err.println(activeWriter_.getName());
+        System.err.println("Stack Trace:");
+        activeWriter_.dumpStack();
     }
     
 }
