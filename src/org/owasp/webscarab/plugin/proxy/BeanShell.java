@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -56,6 +56,7 @@ import java.util.logging.Logger;
 
 import bsh.Interpreter;
 import bsh.EvalError;
+import bsh.TargetError;
 
 /**
  *
@@ -69,7 +70,7 @@ public class BeanShell extends ProxyPlugin {
     
     private String _scriptFile = "";
     private String _beanScript;
-    private String _defaultScript = 
+    private String _defaultScript =
     "/* Please read the JavaDoc and/or the source to understand what methods are available */\n" +
     "\n" +
     "import org.owasp.webscarab.model.SiteModel;\n" +
@@ -112,7 +113,7 @@ public class BeanShell extends ProxyPlugin {
         if (!_scriptFile.equals("")) {
             loadScriptFile(_scriptFile);
         } else {
-            try { 
+            try {
                 setScript(_defaultScript);
             } catch (EvalError ee) {
                 _logger.severe("Invalid default script string " + ee);
@@ -203,7 +204,14 @@ public class BeanShell extends ProxyPlugin {
                         _interpreter.set("model", _model);
                         _interpreter.set("nextClient", _in);
                         _interpreter.set("request", request);
-                        _interpreter.eval("Response response = fetchResponse(nextClient, request);");
+                        try {
+                            _interpreter.eval("Response response = fetchResponse(nextClient, request);");
+                        } catch (TargetError te) {
+                            if (te.getTarget() instanceof IOException) {
+                                throw (IOException) te.getTarget();
+                            }
+                            throw te;
+                       }
                         Response response = (Response) _interpreter.get("response");
                         _interpreter.unset("model");
                         _interpreter.unset("response");
@@ -213,7 +221,8 @@ public class BeanShell extends ProxyPlugin {
                         return response;
                     }
                 } catch (EvalError e) {
-                    if (_ui != null) _ui.getErr().println(e.getMessage());
+                    System.err.println("e is a " + e.getClass());
+                    if (_ui != null) _ui.getErr().println(e.toString());
                     throw new IOException("Error evaluating bean script : " + e);
                 }
             } else {
