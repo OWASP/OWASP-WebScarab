@@ -7,7 +7,7 @@
 package org.owasp.webscarab.plugin.scripted;
 
 import java.io.PrintStream;
-import bsh.EvalError;
+import java.io.File;
 
 /**
  *
@@ -27,4 +27,9 @@ public interface ScriptedUI {
     
     void setEnabled(boolean enabled);
     
+    void scriptFileChanged(File file);
+    
+    void scriptLanguageChanged(String language);
+    
+    void scriptChanged(String script);
 }

@@ -13,6 +13,8 @@ import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.DocumentOutputStream;
 
+import java.awt.Container;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Action;
@@ -22,6 +24,8 @@ import javax.swing.event.DocumentEvent;
 import java.awt.Color;
 
 import java.io.PrintStream;
+import java.io.File;
+import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;
@@ -34,41 +38,33 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
     
     private static ColumnDataModel[] NO_COLUMNS = new ColumnDataModel[0];
     private static Action[] NO_ACTIONS = new Action[0];
-    private PrintStream _printStream;
-    private Scripted _scripted = null;
-    private boolean _modified = false;
-    private Color _modifiedColor = new Color(255,228,228);
-    private Color _unmodifiedColor = new Color(255,255,255);
     
+    private Scripted _scripted = null;
+    private File _scriptFile = null;
+    
+    private PrintStream _printStream;
+    
+    private Container _top = null; // used to set the title of the floating toolbar
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates new form ScriptedPanel */
     public ScriptedPanel(Scripted scripted) {
         initComponents();
         _scripted = scripted;
-        scriptLanguageTextField.setText(_scripted.getScriptLanguage());
-        scriptTextPane.setText(_scripted.getScript());
-        
-        scriptTextPane.getDocument().addDocumentListener(new DocumentListener() {
-            public void changedUpdate(DocumentEvent evt) {
-                scriptTextPane.setBackground(_modifiedColor);
-                _modified = true;
-            }
-            public void removeUpdate(DocumentEvent evt) {
-                scriptTextPane.setBackground(_modifiedColor);
-                _modified = true;
-            }
-            public void insertUpdate(DocumentEvent evt) {
-                scriptTextPane.setBackground(_modifiedColor);
-                _modified = true;
-            }
-        });
         
         DocumentOutputStream dos = new DocumentOutputStream(10240);
         _printStream = new PrintStream(dos);
         outputTextArea.setDocument(dos.getDocument());
         
         _scripted.setUI(this);
+        _scripted.setOut(_printStream);
+        _scripted.setErr(_printStream);
+        
+        saveButton.setEnabled(_scripted.getScriptFile() != null);
+        scriptLanguageTextField.setText(_scripted.getScriptLanguage());
+        scriptTextPane.setText(_scripted.getScript());
+        
+        setEnabled(_scripted.isRunning());
     }
     
     /** This method is called from within the constructor to
@@ -79,20 +75,108 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
+        scriptToolBar = new javax.swing.JToolBar();
+        newButton = new javax.swing.JButton();
+        loadButton = new javax.swing.JButton();
+        saveButton = new javax.swing.JButton();
+        saveAsButton = new javax.swing.JButton();
+        startButton = new javax.swing.JButton();
+        stopButton = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        scriptLanguageTextField = new javax.swing.JTextField();
         jSplitPane1 = new javax.swing.JSplitPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         scriptTextPane = new javax.swing.JTextPane();
         jScrollPane2 = new javax.swing.JScrollPane();
         outputTextArea = new javax.swing.JTextArea();
-        jPanel1 = new javax.swing.JPanel();
-        startButton = new javax.swing.JButton();
-        stopButton = new javax.swing.JButton();
-        commitButton = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        scriptLanguageTextField = new javax.swing.JTextField();
 
         setLayout(new java.awt.BorderLayout());
+
+        newButton.setText("New");
+        newButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                newButtonActionPerformed(evt);
+            }
+        });
+
+        scriptToolBar.add(newButton);
+
+        loadButton.setText("Load");
+        loadButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                loadButtonActionPerformed(evt);
+            }
+        });
+
+        scriptToolBar.add(loadButton);
+
+        saveButton.setText("Save");
+        saveButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveButtonActionPerformed(evt);
+            }
+        });
+
+        scriptToolBar.add(saveButton);
+
+        saveAsButton.setText("Save As");
+        saveAsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveAsButtonActionPerformed(evt);
+            }
+        });
+
+        scriptToolBar.add(saveAsButton);
+
+        scriptToolBar.addSeparator();
+        startButton.setText("Start");
+        startButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                startButtonActionPerformed(evt);
+            }
+        });
+
+        scriptToolBar.add(startButton);
+
+        stopButton.setText("Stop");
+        stopButton.setEnabled(false);
+        stopButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                stopButtonActionPerformed(evt);
+            }
+        });
+
+        scriptToolBar.add(stopButton);
+
+        add(scriptToolBar, java.awt.BorderLayout.NORTH);
+
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jPanel2.setLayout(new java.awt.GridBagLayout());
+
+        jLabel1.setText("Language : ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(jLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weightx = 1.0;
+        jPanel2.add(scriptLanguageTextField, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanel1.add(jPanel2, gridBagConstraints);
 
         jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         jSplitPane1.setResizeWeight(0.7);
@@ -113,88 +197,67 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
 
         jSplitPane1.setRightComponent(jScrollPane2);
 
-        add(jSplitPane1, java.awt.BorderLayout.CENTER);
-
-        jPanel1.setLayout(new java.awt.GridBagLayout());
-
-        startButton.setText("Start");
-        startButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                startButtonActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 2);
-        jPanel1.add(startButton, gridBagConstraints);
+        gridBagConstraints.weighty = 1.0;
+        jPanel1.add(jSplitPane1, gridBagConstraints);
 
-        stopButton.setText("Stop");
-        stopButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                stopButtonActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(2, 2, 4, 4);
-        jPanel1.add(stopButton, gridBagConstraints);
-
-        commitButton.setText("Commit");
-        commitButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                commitButtonActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        jPanel1.add(commitButton, gridBagConstraints);
-
-        add(jPanel1, java.awt.BorderLayout.SOUTH);
-
-        jPanel2.setLayout(new java.awt.GridBagLayout());
-
-        jLabel1.setText("Language : ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel2.add(jLabel1, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel2.add(scriptLanguageTextField, gridBagConstraints);
-
-        add(jPanel2, java.awt.BorderLayout.NORTH);
+        add(jPanel1, java.awt.BorderLayout.CENTER);
 
     }//GEN-END:initComponents
-    
-    private void commitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_commitButtonActionPerformed
-        _scripted.setScript(scriptTextPane.getText());
-        _modified = false;
-        scriptTextPane.setBackground(_unmodifiedColor);
-    }//GEN-LAST:event_commitButtonActionPerformed
+
+    private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
+        try {
+            _scripted.saveScript(_scripted.getScriptFile());
+        } catch (IOException ioe) {
+            JOptionPane.showMessageDialog(null, new String[] {"Error saving script: ", ioe.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
+            _logger.warning("Error saving script: " + ioe.getMessage());
+        }
+    }//GEN-LAST:event_saveButtonActionPerformed
+
+    private void saveAsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsButtonActionPerformed
+        JFileChooser jfc = new JFileChooser();
+        jfc.setDialogTitle("Save as");
+        int returnVal = jfc.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File script = jfc.getSelectedFile();
+            try {
+                _scripted.saveScript(script);
+            } catch (IOException ioe) {
+                JOptionPane.showMessageDialog(null, new String[] {"Error saving script: ", ioe.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_saveAsButtonActionPerformed
+
+    private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
+        JFileChooser jfc = new JFileChooser();
+        jfc.setDialogTitle("Load script");
+        int returnVal = jfc.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File script = jfc.getSelectedFile();
+            try {
+                _scripted.loadScript(script);
+            } catch (IOException ioe) {
+                JOptionPane.showMessageDialog(null, new String[] {"Error loading script: ", ioe.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_loadButtonActionPerformed
+
+    private void newButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newButtonActionPerformed
+        try {
+            _scripted.loadScript(null);
+        } catch (IOException ioe) {} // can't throw an exception here
+    }//GEN-LAST:event_newButtonActionPerformed
     
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
         _scripted.stopScript();
     }//GEN-LAST:event_stopButtonActionPerformed
     
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
-        if (_modified) {
-            commitButtonActionPerformed(null);
-        }
+        _scripted.setScript(scriptLanguageTextField.getText(), scriptTextPane.getText());
         _scripted.runScript();
     }//GEN-LAST:event_startButtonActionPerformed
     
@@ -262,17 +325,36 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
         });
     }
     
+    public void scriptFileChanged(File file) {
+        saveButton.setEnabled(file != null);
+    }
+    
+    public void scriptChanged(String script) {
+        if (! scriptTextPane.getText().equals(script)) {
+            scriptTextPane.setText(script);
+            scriptTextPane.setCaretPosition(0);
+        }
+    }
+    
+    public void scriptLanguageChanged(String language) {
+        scriptLanguageTextField.setText(language);
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton commitButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSplitPane jSplitPane1;
+    private javax.swing.JButton loadButton;
+    private javax.swing.JButton newButton;
     private javax.swing.JTextArea outputTextArea;
+    private javax.swing.JButton saveAsButton;
+    private javax.swing.JButton saveButton;
     private javax.swing.JTextField scriptLanguageTextField;
     private javax.swing.JTextPane scriptTextPane;
+    private javax.swing.JToolBar scriptToolBar;
     private javax.swing.JButton startButton;
     private javax.swing.JButton stopButton;
     // End of variables declaration//GEN-END:variables

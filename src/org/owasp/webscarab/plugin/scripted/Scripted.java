@@ -13,6 +13,8 @@ import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.StoreException;
 
 import org.owasp.webscarab.httpclient.AsyncFetcher;
+import org.owasp.webscarab.httpclient.HTTPClient;
+import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
 import org.owasp.webscarab.plugin.Plugin;
 import org.owasp.webscarab.plugin.Framework;
@@ -23,10 +25,17 @@ import org.apache.bsf.BSFException;
 
 import java.util.logging.Logger;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.File;
+import java.io.Reader;
+import java.io.Writer;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+
 import java.io.PrintStream;
 
 /**
@@ -38,6 +47,7 @@ public class Scripted implements Plugin {
     private Framework _framework;
     private ScriptedUI _ui = null;
     
+    private File _scriptFile = null;
     private String _script = null;
     private String _scriptLanguage = null;
     
@@ -56,67 +66,106 @@ public class Scripted implements Plugin {
     private Object _lock = new Object();
     
     private ScriptedObjectModel _som;
+    
+    private HTTPClient _fetcher = null;
+    private AsyncFetcher _fetchers = null;
+    
     private PrintStream _out = System.out;
     private PrintStream _err = System.err;
     
     /** Creates a new instance of Scripted */
     public Scripted(Framework framework) {
         _framework = framework;
-        _som = new ScriptedObjectModel(_framework);
+        _som = new ScriptedObjectModel(_framework, this);
         try {
-            InputStream is = null;
             String defaultScript = Preferences.getPreference("Scripted.script");
-            String language;
             if (defaultScript != null && !defaultScript.equals("")) {
-                is = new FileInputStream(defaultScript);
-                language = _bsfManager.getLangFromFilename(defaultScript);
+                loadScript(new File(defaultScript));
             } else {
-                is = getClass().getResourceAsStream("script.bsh");
-                language = "beanshell";
+                InputStream is = getClass().getResourceAsStream("script.bsh");
+                String language = "beanshell";
+                if (is == null) return;
+                loadScript(language, new InputStreamReader(is));
             }
-            if (is == null) return;
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
-            String line;
-            StringBuffer script = new StringBuffer();
-            while ((line = br.readLine()) != null) {
-                script.append(line).append("\n");
-            }
-            setScriptLanguage(language);
-            setScript(script.toString());
-        } catch (Exception e) {
-            _logger.warning("Error loading default script" + e);
+        } catch (IOException ioe) {
+            _logger.warning("Error loading default script" + ioe.getMessage());
         }
     }
     
     public void setUI(ScriptedUI ui) {
         _ui = ui;
-        if (_ui != null) {
-            _ui.setEnabled(isRunning());
-            PrintStream ps = _ui.getOutputStream();
-            if (ps != null) _out = ps;
-            ps = _ui.getErrorStream();
-            if (ps != null) _err = ps;
-        } else {
+        if (_ui == null) {
             _out = System.out;
             _err = System.err;
         }
-        
     }
     
-    public void setScriptLanguage(String language) {
-        _scriptLanguage = language;
+    public void setOut(PrintStream out) {
+        if (out != null) {
+            _out = out;
+        } else {
+            _out = System.out;
+        }
+    }
+    
+    public void setErr(PrintStream err) {
+        _err = err;
+    }
+    
+    public void loadScript(File file) throws IOException {
+        if (file == null) {
+            _scriptFile = null;
+            if (_ui != null) _ui.scriptFileChanged(file);
+            setScript("", "");
+            return;
+        }
+        String language = "Unknown";
+        try {
+            language = _bsfManager.getLangFromFilename(file.getName());
+        } catch (Throwable t) {}
+        loadScript(language, new FileReader(file));
+        _scriptFile = file;
+        if (_ui != null) _ui.scriptFileChanged(file);
+    }
+    
+    public void saveScript(File file) throws IOException {
+        BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+        bw.write(_script);
+        bw.close();
+    }
+    
+    private void loadScript(String language, Reader reader) throws IOException {
+        _scriptFile = null;
+        setScript("", "");
+        BufferedReader br = new BufferedReader(reader);
+        String line;
+        StringBuffer script = new StringBuffer();
+        while ((line = br.readLine()) != null) {
+            script.append(line).append("\n");
+        }
+        br.close();
+        setScript(language, script.toString());
+    }
+    
+    public File getScriptFile() {
+        return _scriptFile;
     }
     
     public String getScriptLanguage() {
         return _scriptLanguage;
     }
     
-    public void setScript(String script) {
-        _script = script;
-    }
-    
     public String getScript() {
         return _script;
+    }
+    
+    public void setScript(String language, String script) {
+        _scriptLanguage = language;
+        _script = script;
+        if (_ui != null) {
+            _ui.scriptLanguageChanged(language);
+            _ui.scriptChanged(script);
+        }
     }
     
     public void analyse(ConversationID id, Request request, Response response, String origin) {
@@ -150,6 +199,8 @@ public class Scripted implements Plugin {
         _pluginThread = Thread.currentThread();
         _running = true;
         _stopping = false;
+        _fetcher = HTTPClientFactory.getInstance().getHTTPClient();
+        _fetchers = new AsyncFetcher("Scripted", 4);
         while (! _stopping) {
             synchronized(_lock) {
                 try {
@@ -170,13 +221,51 @@ public class Scripted implements Plugin {
                     _bsfManager.exec(_scriptLanguage, "Scripted", 0, 0, _script);
                 } catch (BSFException bsfe) {
                     if (_ui != null) _ui.scriptError("Unknown reason", bsfe);
-                // } catch (InterruptedException ie) {
-                    // interrupted by the user
+                }
+                while (_fetchers.isBusy()) {
+                    _logger.warning("Flushing abandoned requests");
+                    if (_fetchers.hasResponse()) {
+                        while (_fetchers.hasResponse()) {
+                            try {
+                                _fetchers.receive();
+                            } catch (IOException ioe) {
+                                _logger.warning("Error flushing abandoned request : " + ioe.getMessage());
+                            }
+                        }
+                    } else {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException ie) {}
+                    }
                 }
                 if (_ui != null) _ui.scriptStopped();
             }
         }
         _running = false;
+    }
+    
+    Response fetchResponse(Request request) throws IOException {
+        return _fetcher.fetchResponse(request);
+    }
+    
+    boolean hasAsyncCapacity() {
+        return _fetchers.hasCapacity();
+    }
+    
+    void submitAsyncRequest(Request request) {
+        _fetchers.submit(request);
+    }
+    
+    boolean isAsyncBusy() {
+        return _fetchers.isBusy();
+    }
+    
+    boolean hasAsyncResponse() {
+        return _fetchers.hasResponse();
+    }
+    
+    Response getAsyncResponse() throws IOException {
+        return _fetchers.receive();
     }
     
     public void setSession(String type, Object store, String session) throws StoreException {
@@ -190,7 +279,7 @@ public class Scripted implements Plugin {
     }
     
     public void stopScript() {
-        if (_pluginThread != null && _pluginThread.isAlive()) 
+        if (_pluginThread != null && _pluginThread.isAlive())
             _pluginThread.interrupt();
     }
     

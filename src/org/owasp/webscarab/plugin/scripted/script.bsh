@@ -1,26 +1,76 @@
-import org.owasp.webscarab.httpclient.HTTPClientFactory;
-import org.owasp.webscarab.httpclient.HTTPClient;
-
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
-HTTPClient fetcher = HTTPClientFactory.getInstance().getHTTPClient();
+// define subroutines BEFORE the main part of the script executes,
+// otherwise they won't be found
 
-// create a template that contains that basics
-Request _request = new Request();
-_request.setMethod("GET");
-_request.setURL(new HttpUrl("http://localhost:8080/"));
-_request.setVersion("HTTP/1.0");
-_request.setHeader("User-Agent","WebScarab");
-
-for (int i=0; i<10; i++) {
-    // create a new request based on the template
-    Request request = new Request(_request);
-    // now customise this request object
-    request.setHeader("Authorization", "Basic whatever " + i);
-    Response response = fetcher.fetchResponse(request);
-    out.println("Conversation " + scripted.addConversation(request, response));
+// call this to fetch the requests one after another
+void fetchSequentially() {
+    while (hasMoreRequests()) {
+        request = getNextRequest();
+        response = scripted.fetchResponse(request);
+        out.println("Conversation " + scripted.addConversation(response));
+    }
 }
+
+// call this to fetch them in parallel
+// the number of simultaneous connections is controlled by the Scripting plugin 
+// It is currently fixed at 4 simultaneous requests
+
+void fetchParallel() {
+    while (hasMoreRequests() || scripted.isAsyncBusy()) {
+        while (scripted.hasAsyncCapacity() && hasMoreRequests()) {
+            scripted.submitAsyncRequest(getNextRequest());
+        }
+        if (scripted.hasAsyncResponse()) {
+            while (scripted.hasAsyncResponse()) {
+                response = scripted.getAsyncResponse();
+                request = response.getRequest();
+                out.println("Conversation " + scripted.addConversation(response));
+            }
+        } else Thread.sleep(100);
+    }
+}
+
+/******************************************************************************
+ ***************** USER EDITABLE SCRIPT STARTS HERE ***************************
+ *                                                                            *
+ * Of course, you can modify the bits above, but you shouldn't need           *
+ * to, if you follow the algorithm suggested below.                           *
+ *                                                                            *
+ ******************************************************************************/
+
+// modify this routine to determine when we are finished
+boolean hasMoreRequests() {
+    return i<10;
+}
+
+// modify this routine to construct the next request
+Request getNextRequest() {
+    // create a new request copied from the template
+    Request request = new Request(template);
+    // now customise it
+    request.setHeader("Authorization", "Basic whatever " + i++);
+    return request;
+}
+
+// Do some initialisation here
+
+// create a template that contains the basics
+Request template = new Request();
+template.setMethod("GET");
+template.setURL(new HttpUrl("http://localhost:8080/"));
+template.setVersion("HTTP/1.0");
+template.setHeader("User-Agent","WebScarab");
+
+// a counter, so we can know when to stop
+int i=0;
+
+// Choose how to submit the requests, sequentially, or in parallel
+
+// fetchSequential();
+
+fetchParallel();
 
