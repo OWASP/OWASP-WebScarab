@@ -40,7 +40,7 @@
 package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.model.SiteModel;
-import org.owasp.webscarab.model.SiteModelAdapter;
+import org.owasp.webscarab.model.FilteredSiteModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.ConversationID;
 
@@ -95,7 +95,12 @@ public class SummaryPanel extends javax.swing.JPanel {
     
     /** Creates new form SummaryPanel */
     public SummaryPanel(SiteModel model) {
-        _model = model;
+        // FIXME this is the wrong place for this, I think?
+        _model = new FilteredSiteModel(model, true, false) {
+            protected boolean shouldFilter(HttpUrl url) {
+                return this._model.getConversationCount(url) == 0;
+            }
+        };
         initComponents();
         
         initTree();

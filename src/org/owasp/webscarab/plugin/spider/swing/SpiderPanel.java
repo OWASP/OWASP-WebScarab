@@ -43,6 +43,7 @@ import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.SiteModel;
 
 import org.owasp.webscarab.plugin.spider.Spider;
+import org.owasp.webscarab.plugin.spider.SpiderModel;
 import org.owasp.webscarab.plugin.spider.SpiderUI;
 import org.owasp.webscarab.plugin.spider.Link;
 
@@ -65,7 +66,7 @@ import java.util.logging.Logger;
  */
 public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, SpiderUI {
     
-    private SiteModel _model;
+    private SpiderModel _model;
     private Spider _spider;
     
     private Logger _logger = Logger.getLogger(this.getClass().getName());
@@ -77,11 +78,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
         _spider = spider;
         _model = _spider.getModel();
         
-        TreeModel treeModel = new SiteTreeModelAdapter(_model) {
-            public boolean isFiltered(HttpUrl url) {
-                return _model.getConversationCount(url) > 0;
-            }
-        };
+        TreeModel treeModel = new SiteTreeModelAdapter(_model);
         unseenLinkTree.setModel(treeModel);
         unseenLinkTree.setRootVisible(false);
         unseenLinkTree.setShowsRootHandles(true);
@@ -101,10 +98,10 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
     }
     
     private void configure() {
-        recursiveCheckBox.setSelected(_spider.getRecursive());
-        cookieSyncCheckBox.setSelected(_spider.getCookieSync());
-        domainRegexTextField.setText(_spider.getAllowedDomains());
-        pathRegexTextField.setText(_spider.getForbiddenPaths());
+        recursiveCheckBox.setSelected(_model.getRecursive());
+        cookieSyncCheckBox.setSelected(_model.getCookieSync());
+        domainRegexTextField.setText(_model.getAllowedDomains());
+        pathRegexTextField.setText(_model.getForbiddenPaths());
     }
     
     /** This method is called from within the constructor to
@@ -270,7 +267,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
     }//GEN-END:initComponents
     
     private void cookieSyncCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cookieSyncCheckBoxActionPerformed
-        _spider.setCookieSync(cookieSyncCheckBox.isSelected());
+        _model.setCookieSync(cookieSyncCheckBox.isSelected());
     }//GEN-LAST:event_cookieSyncCheckBoxActionPerformed
     
     private void linkTreeFetchTreeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_linkTreeFetchTreeButtonActionPerformed
@@ -305,23 +302,23 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
     }//GEN-LAST:event_linkTreeFetchSelectionButtonActionPerformed
     
     private void pathRegexTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pathRegexTextFieldFocusLost
-        _spider.setForbiddenPaths(pathRegexTextField.getText());
+        _model.setForbiddenPaths(pathRegexTextField.getText());
     }//GEN-LAST:event_pathRegexTextFieldFocusLost
     
     private void pathRegexTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pathRegexTextFieldActionPerformed
-        _spider.setForbiddenPaths(pathRegexTextField.getText());
+        _model.setForbiddenPaths(pathRegexTextField.getText());
     }//GEN-LAST:event_pathRegexTextFieldActionPerformed
     
     private void domainRegexTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_domainRegexTextFieldActionPerformed
-        _spider.setAllowedDomains(domainRegexTextField.getText());
+        _model.setAllowedDomains(domainRegexTextField.getText());
     }//GEN-LAST:event_domainRegexTextFieldActionPerformed
     
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
-        _spider.resetRequestQueue();
+        _spider.clearQueue();
     }//GEN-LAST:event_stopButtonActionPerformed
     
     private void recursiveCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recursiveCheckBoxActionPerformed
-        _spider.setRecursive(recursiveCheckBox.isSelected());
+        _model.setRecursive(recursiveCheckBox.isSelected());
     }//GEN-LAST:event_recursiveCheckBoxActionPerformed
     
     public Action[] getConversationActions() {

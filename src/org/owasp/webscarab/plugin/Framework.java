@@ -57,6 +57,7 @@ import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.Preferences;
+import org.owasp.webscarab.model.DefaultSiteModel;
 import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.StoreException;
 
@@ -68,7 +69,7 @@ public class Framework {
     
     private List _plugins = new ArrayList();
     
-    private SiteModel _model;
+    private DefaultSiteModel _model;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -86,7 +87,7 @@ public class Framework {
      * Creates a new instance of Framework
      */
     public Framework() {
-        _model = new SiteModel();
+        _model = new DefaultSiteModel();
         _scriptManager = new ScriptManager(this);
         extractVersionFromManifest();
         configureHTTPClient();
@@ -298,6 +299,7 @@ public class Framework {
                     plugin.analyse(id, request, response, origin);
                 } catch (Exception e) {
                     _logger.warning(plugin.getPluginName() + " failed to process " + id + ": " + e);
+                    e.printStackTrace();
                 }
             }
         }

@@ -44,12 +44,9 @@ import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.NamedValue;
-import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.SiteModel;
-
-import org.owasp.webscarab.model.SiteModelAdapter;
 
 import org.owasp.webscarab.parser.Parser;
 
@@ -70,9 +67,9 @@ import org.htmlparser.util.ParserException;
 import org.htmlparser.filters.OrFilter;
 import org.htmlparser.filters.HasAttributeFilter;
 
-import java.util.Vector;
-import java.lang.ArrayIndexOutOfBoundsException;
-import java.util.Properties;
+import java.util.List;
+import java.util.LinkedList;
+
 import java.util.Date;
 
 import java.util.logging.Logger;
@@ -90,22 +87,13 @@ import java.io.IOException;
 
 public class Spider implements Plugin {
     
-    private SiteModel _model = null;
+    private SpiderModel _model = null;
     private Framework _framework = null;
     
     private SpiderUI _ui = null;
     
-    private Vector _linkQueue = new Vector();
-    private Vector _conversationQueue = new Vector();
-    
     private AsyncFetcher _fetcher = null;
     private int _threads = 4;
-    
-    private boolean _recursive = false;
-    private boolean _cookieSync = true;
-    
-    private String _allowedDomains = null;
-    private String _forbiddenPaths = null;
     
     private boolean _running = false;
     private boolean _stopping = false;
@@ -119,35 +107,15 @@ public class Spider implements Plugin {
     /** Creates a new instance of Spider */
     public Spider(Framework framework) {
         _framework = framework;
-        _model = _framework.getModel();
-        parseProperties();
+        _model = new SpiderModel(_framework.getModel());
     }
     
-    public SiteModel getModel() {
+    public SpiderModel getModel() {
         return _model;
     }
     
     public void setUI(SpiderUI ui) {
         _ui = ui;
-        if (_ui != null) _ui.setEnabled(_running);
-    }
-    
-    public void parseProperties() {
-        String prop = "Spider.domains";
-        String value = Preferences.getPreference(prop, ".*localhost.*");
-        setAllowedDomains(value);
-        
-        prop = "Spider.excludePaths";
-        value = Preferences.getPreference(prop, "");
-        setForbiddenPaths(value);
-        
-        prop = "Spider.synchroniseCookies";
-        value = Preferences.getPreference(prop, "true");
-        setCookieSync(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
-        
-        prop = "Spider.recursive";
-        value = Preferences.getPreference(prop, "false");
-        setRecursive(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
     }
     
     public String getPluginName() {
@@ -184,37 +152,34 @@ public class Spider implements Plugin {
     private boolean queueRequests() {
         // if the request queue is empty, add the latest cookies etc to the
         // request and submit it
-        Link link;
-        synchronized (_linkQueue) {
-            if (_linkQueue.size() > 0 && _fetcher.hasCapacity()) {
-                link = (Link) _linkQueue.remove(0);
-                if (_ui != null) _ui.linkDequeued(link, _linkQueue.size());
-            } else {
+        if (_model.getQueuedLinkCount() == 0) return false;
+        if (! _fetcher.hasCapacity()) return false;
+        while (_model.getQueuedLinkCount() > 0 && _fetcher.hasCapacity()) {
+            Link link = _model.dequeueLink();
+            if (link == null) {
+                _logger.warning("Got a null link from the link queue");
                 return false;
             }
-        }
-        if (link == null) {
-            _logger.warning("Got a null link from the link queue");
-            return false;
-        }
-        Request request = newGetRequest(link);
-        if (_cookieSync) {
-            Cookie[] cookies = _model.getCookiesForUrl(request.getURL());
-            if (cookies.length>0) {
-                StringBuffer buff = new StringBuffer();
-                buff.append(cookies[0].getName()).append("=").append(cookies[0].getValue());
-                for (int i=1; i<cookies.length; i++) {
-                    buff.append("; ").append(cookies[i].getName()).append("=").append(cookies[i].getValue());
+            Request request = newGetRequest(link);
+            if (_model.getCookieSync()) {
+                Cookie[] cookies = _model.getCookiesForUrl(request.getURL());
+                if (cookies.length>0) {
+                    StringBuffer buff = new StringBuffer();
+                    buff.append(cookies[0].getName()).append("=").append(cookies[0].getValue());
+                    for (int i=1; i<cookies.length; i++) {
+                        buff.append("; ").append(cookies[i].getName()).append("=").append(cookies[i].getValue());
+                    }
+                    request.setHeader("Cookie", buff.toString());
                 }
-                request.setHeader("Cookie", buff.toString());
             }
+            _fetcher.submit(request);
         }
-        _fetcher.submit(request);
         return true;
     }
     
     private boolean dequeueResponses() {
         // see if there are any responses waiting for us
+        if (! _fetcher.hasResponse()) return false;
         Response response = null;
         try {
             response = _fetcher.receive();
@@ -229,7 +194,7 @@ public class Spider implements Plugin {
             return false;
         }
         _framework.addConversation(request, response, "Spider");
-        if (_cookieSync) {
+        if (_model.getCookieSync()) {
             NamedValue[] headers = response.getHeaders();
             for (int i=0; i<headers.length; i++) {
                 if (headers[i].getName().equalsIgnoreCase("Set-Cookie") || headers[i].getName().equalsIgnoreCase("Set-Cookie2")) {
@@ -243,44 +208,70 @@ public class Spider implements Plugin {
     
     public boolean isBusy() {
         if (!_running) return false;
-        synchronized(_linkQueue) {
-            return _linkQueue.size() > 0;
+        return _model.getQueuedLinkCount()>0;
+    }
+    
+    private boolean allowedURL(HttpUrl url) {
+        // check here if it is on the primary site, or sites, or matches an exclude Regex
+        // etc
+        // This only applies to the automated recursive spidering. If the operator
+        // really wants to fetch something offsite, more power to them
+        // Yes, this is effectively the classifier from websphinx, we can use that if it fits nicely
+        
+        // OK if the URL matches the domain
+        if (isAllowedDomain(url) && !isForbiddenPath(url)) {
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isAllowedDomain(HttpUrl url) {
+        String allowedDomains = _model.getAllowedDomains();
+        try {
+            return allowedDomains != null && !allowedDomains.equals("") && url.getHost().matches(allowedDomains);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    private boolean isForbiddenPath(HttpUrl url) {
+        String forbiddenPaths = _model.getForbiddenPaths();
+        try {
+            return forbiddenPaths != null && !forbiddenPaths.equals("") && url.getPath().matches(forbiddenPaths);
+        } catch (Exception e) {
+            return true;
         }
     }
     
     public void requestLinksUnder(HttpUrl url) {
-        try {
-            _model.readLock().acquire();
-            try {
-                queueLinksUnder(url);
-            } finally {
-                _model.readLock().release();
-            }
-        } catch (InterruptedException ie) {
-            _logger.info("Interrupted!");
-        }
+        int count = 0;
+        List links = new LinkedList();
+        // build up a list of links
+        queueLinksUnder(url, links, 100);
+        // queue them
+        while (links.size()>0) _model.queueLink((Link) links.remove(0));
     }
     
-    private void queueLinksUnder(HttpUrl url) {
+    private void queueLinksUnder(HttpUrl url, List links, int max) {
         Link link;
         String referer;
-        if (_model.getConversationCount(url) == 0) {
-            if (! forbiddenPath(url)) {
-                referer = _model.getUrlProperty(url, "REFERER");
-                queueLink(new Link(url, referer));
+        if (_model.isUnseen(url)) {
+            if (! isForbiddenPath(url)) {
+                referer = _model.getReferer(url);
+                links.add(new Link(url, referer));
             } else {
                 _logger.warning("Skipping forbidden path " + url);
             }
         }
+        if (links.size() == max) return;
         // fetch the queries for the url first
         int count = _model.getQueryCount(url);
         for (int i=0; i<count; i++) {
             HttpUrl query = _model.getQueryAt(url, i);
-            if (! forbiddenPath(query)) {
-                if (_model.getConversationCount(query) == 0) {
-                    referer = _model.getUrlProperty(query, "REFERER");
-                    queueLink(new Link(query, referer));
-                }
+            if (_model.isUnseen(query) && ! isForbiddenPath(query)) {
+                referer = _model.getReferer(query);
+                links.add(new Link(query, referer));
+                if (links.size() == max) return;
             } else {
                 _logger.warning("Skipping forbidden path " + query);
             }
@@ -289,58 +280,22 @@ public class Spider implements Plugin {
         count = _model.getChildUrlCount(url);
         for (int i=0; i<count; i++) {
             HttpUrl child = _model.getChildUrlAt(url, i);
-            queueLinksUnder(child);
+            queueLinksUnder(child, links, max);
+            if (links.size() == max) return;
         }
     }
     
     public void requestLinks(HttpUrl[] urls) {
         Link link;
         for (int i=0; i<urls.length; i++) {
-            String referer = _model.getUrlProperty(urls[i], "REFERER");
+            String referer = _model.getReferer(urls[i]);
             link = new Link(urls[i], referer);
-            queueLink(link);
+            _model.queueLink(link);
         }
     }
     
-    private void queueLink(Link link) {
-        _logger.info("Queueing " + link);
-        int size;
-        synchronized (_linkQueue) {
-            _linkQueue.add(link);
-            size = _linkQueue.size();
-        }
-        if (_ui != null) _ui.linkQueued(link, size);
-    }
-    
-    /** removes all pending requests from the queues - effectively stops the spider */
-    public void resetRequestQueue() {
-        Link link;
-        synchronized(_linkQueue) {
-            while(_linkQueue.size()>0) {
-                link = (Link) _linkQueue.remove(0);
-            }
-        }
-        if (_ui != null) _ui.linkDequeued(null, 0);
-    }
-    
-    public void setRecursive(boolean bool) {
-        _recursive = bool;
-        String prop = "Spider.recursive";
-        Preferences.setPreference(prop,Boolean.toString(bool));
-    }
-    
-    public boolean getRecursive() {
-        return _recursive;
-    }
-    
-    public void setCookieSync(boolean enabled) {
-        _cookieSync = enabled;
-        String prop = "Spider.synchroniseCookies";
-        Preferences.setPreference(prop,Boolean.toString(enabled));
-    }
-    
-    public boolean getCookieSync() {
-        return _cookieSync;
+    public void clearQueue() {
+        _model.clearLinkQueue();
     }
     
     private Request newGetRequest(Link link) {
@@ -356,54 +311,6 @@ public class Spider implements Plugin {
         req.setHeader("Host", url.getHost() + ":" + url.getPort());
         req.setHeader("Connection", "Keep-Alive");
         return req;
-    }
-    
-    private boolean allowedURL(HttpUrl url) {
-        // check here if it is on the primary site, or sites, or matches an exclude Regex
-        // etc
-        // This only applies to the automated recursive spidering. If the operator
-        // really wants to fetch something offsite, more power to them
-        // Yes, this is effectively the classifier from websphinx, we can use that if it fits nicely
-        
-        // OK if the URL matches the domain
-        if (allowedDomain(url) && !forbiddenPath(url)) {
-            return true;
-        }
-        return false;
-    }
-    
-    private boolean allowedDomain(HttpUrl url) {
-        if (_allowedDomains!= null && !_allowedDomains.equals("") && url.getHost().matches(_allowedDomains)) {
-            return true;
-        }
-        return false;
-    }
-    
-    private boolean forbiddenPath(HttpUrl url) {
-        if (_forbiddenPaths != null && !_forbiddenPaths.equals("") && url.getPath().matches(_forbiddenPaths)) {
-            return true;
-        }
-        return false;
-    }
-    
-    public void setAllowedDomains(String regex) {
-        _allowedDomains = regex;
-        String prop = "Spider.domains";
-        Preferences.setPreference(prop,regex);
-    }
-    
-    public String getAllowedDomains() {
-        return _allowedDomains;
-    }
-    
-    public void setForbiddenPaths(String regex) {
-        _forbiddenPaths = regex;
-        String prop = "Spider.excludePaths";
-        Preferences.setPreference(prop,regex);
-    }
-    
-    public String getForbiddenPaths() {
-        return _forbiddenPaths;
     }
     
     public void flush() throws StoreException {
@@ -424,7 +331,7 @@ public class Spider implements Plugin {
     public String getStatus() {
         if (isBusy())
             return "Started, " +
-            _linkQueue.size() + " queued for fetching";
+            _model.getQueuedLinkCount() + " queued for fetching";
         return _status;
     }
     
@@ -435,7 +342,7 @@ public class Spider implements Plugin {
             if (location != null) {
                 try {
                     HttpUrl url = new HttpUrl(location);
-                    addUnseenLink(url, base);
+                    _model.addUnseenLink(url, base);
                 } catch (MalformedURLException mue) {
                     _logger.warning("Badly formed Location header : " + location);
                 }
@@ -488,7 +395,7 @@ public class Spider implements Plugin {
         if (link.startsWith("http://") || link.startsWith("https://")) {
             try {
                 HttpUrl url = new HttpUrl(link);
-                addUnseenLink(url, base);
+                _model.addUnseenLink(url, base);
             } catch (MalformedURLException mue) {
                 _logger.warning("Malformed link : " + link);
             }
@@ -502,7 +409,7 @@ public class Spider implements Plugin {
             _logger.fine("Creating a new relative URL with " + base + " and " + link + " '");
             try {
                 HttpUrl url = new HttpUrl(base, link);
-                addUnseenLink(url, base);
+                _model.addUnseenLink(url, base);
             } catch (MalformedURLException mue) {
                 _logger.warning("Bad relative URL (" + base.toString() + ") : " + link);
             }
@@ -514,18 +421,6 @@ public class Spider implements Plugin {
             _logger.info("Script opens a window : " + script);
         } else if (script.startsWith("location.href")) {
             _logger.info("Script sets location : " + script);
-        }
-    }
-    
-    private void addUnseenLink(HttpUrl url, HttpUrl referer) {
-        if (url == null) {
-            return;
-        }
-        if (_model.getConversationCount(url) == 0) {
-            String first = _model.getUrlProperty(url, "REFERER");
-            if (first == null || first.equals("")) {
-                _model.setUrlProperty(url, "REFERER", referer.toString());
-            }
         }
     }
     

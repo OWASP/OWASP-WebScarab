@@ -58,14 +58,14 @@ public interface SiteModelListener extends EventListener {
      * called after a new conversation has been added to the model
      * @param id the id of the conversation
      */    
-    void conversationAdded(ConversationID id);
+    void conversationAdded(SiteModelEvent evt);
     
     /**
      * called after a conversation property has been changed
      * @param id the id of the conversation
      * @param property the name of the property that changed
      */    
-    void conversationChanged(ConversationID id, String property);
+    void conversationChanged(SiteModelEvent evt);
     
     /**
      * called after a conversation has been removed from the model.
@@ -75,44 +75,44 @@ public interface SiteModelListener extends EventListener {
      * @param position the position in the overall conversation list prior to removal
      * @param urlposition the position in the per-url conversation list prior to removal
      */    
-    void conversationRemoved(ConversationID id, int position, int urlposition);
+    void conversationRemoved(SiteModelEvent evt);
     
     /**
      * called after an Url has been added to the store
      * @param url the url that was added
      */    
-    void urlAdded(HttpUrl url);
+    void urlAdded(SiteModelEvent evt);
     
     /**
      * called after an Url property has been changed
      * @param url the url that changed
      * @param property the name of the property that changed
      */    
-    void urlChanged(HttpUrl url, String property);
+    void urlChanged(SiteModelEvent evt);
     
     /**
      * called after an Url has been removed from the model
      * @param url the url that was removed
      * @param position the index of this url under its parent url
      */    
-    void urlRemoved(HttpUrl url, int position);
+    void urlRemoved(SiteModelEvent evt);
     
     /**
      * called after a completely new cookie is added to the model
      * i.e. a new domain, new path, or new cookie name
      * @param cookie the cookie that was added
      */    
-    void cookieAdded(Cookie cookie);
+    void cookieAdded(SiteModelEvent evt);
     
     /**
      * fired after a cookie has been removed from the model. A previous cookie 
      * might still exist.
      * @param cookie the cookie that was removed
      */    
-    void cookieRemoved(Cookie cookie);
+    void cookieRemoved(SiteModelEvent evt);
     
     /** called after the entire model has changed
      */
-    void dataChanged();
+    void dataChanged(SiteModelEvent evt);
     
 }

@@ -110,7 +110,7 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         _fragments = fragments;
         createActions();
         
-        _model.addSiteModelListener(_listener);
+        _model.addModelListener(_listener);
         _fragments.setUI(this);
     }
     

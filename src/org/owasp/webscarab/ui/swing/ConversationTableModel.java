@@ -43,6 +43,7 @@ import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.SiteModelAdapter;
+import org.owasp.webscarab.model.SiteModelEvent;
 
 import org.owasp.webscarab.util.swing.ExtensibleTableModel;
 
@@ -67,7 +68,7 @@ public class ConversationTableModel extends ExtensibleTableModel {
     /** Creates a new instance of ConversationTableModel */
     public ConversationTableModel(SiteModel model) {
         _model = model;
-        _model.addSiteModelListener(_listener);
+        _model.addModelListener(_listener);
     }
     
     public void setUrl(HttpUrl url) {
@@ -124,65 +125,66 @@ public class ConversationTableModel extends ExtensibleTableModel {
         return super.getColumnClass(column-1);
     }
     
-    protected void addedConversation(ConversationID id) {
+    protected void addedConversation(SiteModelEvent evt) {
+        ConversationID id = evt.getConversationID();
         int row = indexOfKey(id);
         fireTableRowsInserted(row, row);
     }
     
-    protected void removedConversation(ConversationID id, int position, int urlposition) {
+    protected void removedConversation(SiteModelEvent evt) {
         fireTableDataChanged();
     }
     
-    protected void changedConversations() {
+    protected void changedConversations(SiteModelEvent evt) {
         fireTableDataChanged();
     }
     
     private class Listener extends SiteModelAdapter {
         
-        public void conversationAdded(final ConversationID id) {
+        public void conversationAdded(final SiteModelEvent evt) {
             if (SwingUtilities.isEventDispatchThread()) {
-                addedConversation(id);
+                addedConversation(evt);
             } else {
                 try {
                     SwingUtilities.invokeAndWait(new Runnable() {
                         public void run() {
-                            addedConversation(id);
+                            addedConversation(evt);
                         }
                     });
                 } catch (Exception e) {
-                    _logger.warning("Exception! " + e);
+                    _logger.warning("Exception processing " + evt + ": " + e);
                 }
             }
         }
         
-        public void conversationRemoved(final ConversationID id, final int position, final int urlposition) {
+        public void conversationRemoved(final SiteModelEvent evt) {
             if (SwingUtilities.isEventDispatchThread()) {
-                removedConversation(id, position, urlposition);
+                removedConversation(evt);
             } else {
                 try {
                     SwingUtilities.invokeAndWait(new Runnable() {
                         public void run() {
-                            removedConversation(id, position, urlposition);
+                            removedConversation(evt);
                         }
                     });
                 } catch (Exception e) {
-                    _logger.warning("Exception! " + e);
+                    _logger.warning("Exception processing " + evt + ": " + e);
                 }
             }
         }
         
-        public void dataChanged() {
+        public void dataChanged(final SiteModelEvent evt) {
             if (SwingUtilities.isEventDispatchThread()) {
-                changedConversations();
+                changedConversations(evt);
             } else {
                 try {
                     SwingUtilities.invokeAndWait(new Runnable() {
                         public void run() {
-                            changedConversations();
+                            changedConversations(evt);
                         }
                     });
                 } catch (Exception e) {
-                    _logger.warning("Exception! " + e);
+                    _logger.warning("Exception processing " + evt + ": " + e);
                 }
             }
         }

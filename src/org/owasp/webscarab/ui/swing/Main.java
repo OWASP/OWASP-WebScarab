@@ -62,6 +62,9 @@ import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.fragments.Fragments;
 import org.owasp.webscarab.plugin.fragments.swing.FragmentsPanel;
 
+import org.owasp.webscarab.plugin.fuzz.Fuzzer;
+import org.owasp.webscarab.plugin.fuzz.swing.FuzzerPanel;
+
 import org.owasp.webscarab.plugin.manualrequest.ManualRequest;
 import org.owasp.webscarab.plugin.manualrequest.swing.ManualRequestPanel;
 
@@ -161,7 +164,7 @@ public class Main {
         _uif.run();
         
         if (tempDir != null) {
-            recursiveDelete(tempDir);
+            TempDir.recursiveDelete(tempDir);
         }
         try {
             Preferences.savePreferences();
@@ -169,23 +172,6 @@ public class Main {
             System.err.println("Could not save preferences: " + ioe);
         }
         System.exit(0);
-    }
-    
-    /**
-     * Recursive delete files.
-     */
-    private static void recursiveDelete(File dir) {
-        String[] ls = dir.list();
-        
-        for (int i = 0; i < ls.length; i++) {
-            File file = new File(dir, ls[i]);
-            if (file.isDirectory()) {
-                recursiveDelete(file);
-            } else {
-                file.delete();
-            }
-        }
-        dir.delete();
     }
     
     private static void initLogging() {
@@ -201,6 +187,13 @@ public class Main {
         Fragments fragments = new Fragments(_framework);
         _framework.addPlugin(fragments);
         _uif.addPlugin(new FragmentsPanel(fragments));
+        
+        /* Not ready for prime time yet!
+        Fuzzer fuzzer = new Fuzzer(_framework);
+        _framework.addPlugin(fuzzer);
+        FuzzerPanel fuzzerPanel = new FuzzerPanel(fuzzer);
+        _uif.addPlugin(fuzzerPanel);
+        */
         
         Proxy proxy = new Proxy(_framework);
         _framework.addPlugin(proxy);

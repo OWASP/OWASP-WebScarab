@@ -42,6 +42,7 @@ package org.owasp.webscarab.ui.swing;
 import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.SiteModelAdapter;
+import org.owasp.webscarab.model.SiteModelEvent;
 
 import javax.swing.AbstractListModel;
 import javax.swing.SwingUtilities;
@@ -63,7 +64,7 @@ public class ConversationListModel extends AbstractListModel {
     /** Creates a new instance of ConversationTableModel */
     public ConversationListModel(SiteModel model) {
         _model = model;
-        _model.addSiteModelListener(_listener);
+        _model.addModelListener(_listener);
         fireContentsChanged(this, 0, getSize());
     }
     
@@ -77,21 +78,25 @@ public class ConversationListModel extends AbstractListModel {
         return _size;
     }
     
-    protected void addedConversation(ConversationID id) {
+    protected void addedConversation(SiteModelEvent evt) {
+        ConversationID id = evt.getConversationID();
         int row = _model.getIndexOfConversation(id);
         fireIntervalAdded(this, row, row);
     }
     
-    protected void changedConversation(ConversationID id, String property) {
+    protected void changedConversation(SiteModelEvent evt) {
+        ConversationID id = evt.getConversationID();
         int row = _model.getIndexOfConversation(id);
         fireContentsChanged(this, row, row);
     }
     
-    protected void removedConversation(ConversationID id, int position, int urlposition) {
+    protected void removedConversation(SiteModelEvent evt) {
+        ConversationID id = evt.getConversationID();
+        int position = _model.getIndexOfConversation(id);
         fireIntervalRemoved(this, position, position);
     }
     
-    protected void conversationsChanged() {
+    protected void conversationsChanged(SiteModelEvent evt) {
         if (_size>0)
             fireIntervalRemoved(this, 0, _size);
         fireIntervalAdded(this, 0,  getSize());
@@ -99,14 +104,14 @@ public class ConversationListModel extends AbstractListModel {
     
     private class Listener extends SiteModelAdapter {
         
-        public void conversationAdded(final ConversationID id) {
+        public void conversationAdded(final SiteModelEvent evt) {
             if (SwingUtilities.isEventDispatchThread()) {
-                addedConversation(id);
+                ConversationListModel.this.addedConversation(evt);
             } else {
                 try {
                     SwingUtilities.invokeAndWait(new Runnable() {
                         public void run() {
-                            addedConversation(id);
+                            ConversationListModel.this.addedConversation(evt);
                         }
                     });
                 } catch (Exception e) {
@@ -115,14 +120,14 @@ public class ConversationListModel extends AbstractListModel {
             }
         }
         
-        public void conversationChanged(final ConversationID id, final String property) {
+        public void conversationChanged(final SiteModelEvent evt) {
             if (SwingUtilities.isEventDispatchThread()) {
-                changedConversation(id, property);
+                ConversationListModel.this.changedConversation(evt);
             } else {
                 try {
                     SwingUtilities.invokeAndWait(new Runnable() {
                         public void run() {
-                            changedConversation(id, property);
+                            ConversationListModel.this.changedConversation(evt);
                         }
                     });
                 } catch (Exception e) {
@@ -131,14 +136,14 @@ public class ConversationListModel extends AbstractListModel {
             }
         }
         
-        public void conversationRemoved(final ConversationID id, final int position, final int urlposition) {
+        public void conversationRemoved(final SiteModelEvent evt) {
             if (SwingUtilities.isEventDispatchThread()) {
-                removedConversation(id, position, urlposition);
+                ConversationListModel.this.removedConversation(evt);
             } else {
                 try {
                     SwingUtilities.invokeAndWait(new Runnable() {
                         public void run() {
-                            removedConversation(id, position, urlposition);
+                            ConversationListModel.this.removedConversation(evt);
                         }
                     });
                 } catch (Exception e) {
@@ -147,14 +152,14 @@ public class ConversationListModel extends AbstractListModel {
             }
         }
         
-        public void dataChanged() {
+        public void dataChanged(final SiteModelEvent evt) {
             if (SwingUtilities.isEventDispatchThread()) {
-                conversationsChanged();
+                ConversationListModel.this.conversationsChanged(evt);
             } else {
                 try {
                     SwingUtilities.invokeAndWait(new Runnable() {
                         public void run() {
-                            conversationsChanged();
+                            ConversationListModel.this.conversationsChanged(evt);
                         }
                     });
                 } catch (Exception e) {
