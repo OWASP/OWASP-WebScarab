@@ -141,7 +141,7 @@ public class Main {
         
         try {
             File dir = null;
-            if (args == null || args.length == 0) {
+            if (args == null || args.length == 0 || args[0].equals("")) {
                 try {
                     tempDir = TempDir.createTempDir("webscarab", ".tmp", null);
                     dir = tempDir;
@@ -188,12 +188,12 @@ public class Main {
         _framework.addPlugin(fragments);
         _uif.addPlugin(new FragmentsPanel(fragments));
         
-        /* Not ready for prime time yet!
+        /* Not ready for prime time yet! */
         Fuzzer fuzzer = new Fuzzer(_framework);
         _framework.addPlugin(fuzzer);
         FuzzerPanel fuzzerPanel = new FuzzerPanel(fuzzer);
         _uif.addPlugin(fuzzerPanel);
-        */
+        /* */
         
         Proxy proxy = new Proxy(_framework);
         _framework.addPlugin(proxy);
