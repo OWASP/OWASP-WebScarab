@@ -1,5 +1,17 @@
 <html><body><h1>Using WebScarab</h1>
 
-On running WebScarab, you will see a number of menu options, several tabs, and two windows at the bottom, labeled stdout and stderr. These windows can be resized (vertically and horizontally), and will show various messages while WebScarab is running. Since WebScarab is still in development, it is a good idea to keep an eye on these messages, especially if there is a sudden loss of functionality. You may find a stacktrace or other message that would indicate why.
+<p>On running WebScarab, you will see a menu at the top, a tabbed pane with several tabs, and a window at the bottom. The window at the bottom can be resized vertically, and will show various messages while WebScarab is running. Since WebScarab is still quite rough around the edges, it is a good idea to keep an eye on these messages, especially if there is a sudden loss of functionality. You may find a message that would indicate why.</p>
+<p>The File menu allows you to create new sessions, or reopen existing ones.</p>
+<p>The View menu allows you to set some preferences relating to content viewers.</p>
+<p>The Tools menu allows you to configure an upstream proxy, as well as an SSL client certificate if desired. It also allows you to view any cookies that have been identified. Finally, there is a Transcoder window which allows you to perform various encoding options on the data in the window.</p>
+<p>The Help menu does not offer very much at the moment, just a simply splash screen.</p>
+
+<p>The Summary tab shows a tree view of URL's that have been "seen". That is, URL's that have a conversation (a request and a corresponding response) associated with them. This tree view also shows the HTTP methods that have been used to access those URL's, as well as the various status responses that have been observed for the URL.</p>
+<p>The tree may also have other columns which are plugin-dependent. Discussion of those columns will be saved for the plugin documentation.<p>
+<p>Under the URL tree is a table that shows all the conversations that have been seen. At a minimum, this table includes a Conversation identifier, the HTTP method used, the host part of the URL, the path component of the URL, and any parameters that were in the URL. Finally, it includes the servers response status message.</p>
+<p>Please note that, although the URL spec does not describe path components such as "/path/;JSESSIONID=abc" as a parameter, the "JSESSIONID=abc" is considered to be a parameter by WebScarab, and as such is included in the parameters column.</p>
+<p>There is a checkbox above the tree view, which can be used to restrict the conversation table to only those conversations that apply to a particular URL, when that URL is selected in the tree view.</p>
+<p>The other tabs are created by the various plugins, and discussion of those tabs can be found later.</p>
+<p>Both the URL tree and the Conversation table have a right-click menu defined, which can be used to access plugin specific behaviour. One menu item that is always defined for the Conversation table, however, is the "Show Details" option. This opens a new window, containing the complete Request and Response. You can use this window to look at the Request and Response headers and message content. The "parsed" tabs attempt to make life a little easier for us mortals, by presenting the data in tabular form where appropriate, or showing the content using an appropriate viewer, depending on the Content-Type header. Currently available viewers include Text, HTML, Image, Url-Encoded and Multi-Part. If the content-type is unknown or unhandled, a Hex viewer is used.</p>
 </body>
 </html>
