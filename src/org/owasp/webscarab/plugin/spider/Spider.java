@@ -97,7 +97,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         Thread me = new Thread(this);
         me.setDaemon(true);
         me.start();
-        System.out.println("Spider initialised");
+        System.err.println("Spider initialised");
     }
 
     public void parseProperties() {
@@ -140,13 +140,16 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 if (_linkQueue.size() > 0 && _requestQueue.size() == 0) {
                     Link link = (Link) _linkQueue.remove(0);
                     if (link != null) {
+                        System.out.println(_linkQueue.size() + " remaining, queueing " + link.getURL());
                         request = newGetRequest(link);
                         if (request != null) {
                             if (_cookieSync) {
                                 _cookieJar.addRequestCookies(request);
                             }
                             // we should set the UserAgent, Accept headers, etc
-                            _requestQueue.add(request);
+                            synchronized(_requestQueue) {
+                                _requestQueue.add(request);
+                            }
                         }
                     }
                 }
@@ -154,7 +157,9 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
             
             // see if there are any responses waiting for us
             try {
-                response = (Response) _responseQueue.remove(0);
+                synchronized (_responseQueue) {
+                    response = (Response) _responseQueue.remove(0);
+                }
                 if (response != null) {
                     request = response.getRequest();
                     if (request != null) {
@@ -193,7 +198,6 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     /** removes all pending reuqests from the queues - effectively stops the spider */
     public void resetRequestQueue() {
-        System.out.println("Clearing request queue");
         synchronized(_linkQueue) {
             _linkQueue.clear();
         }
