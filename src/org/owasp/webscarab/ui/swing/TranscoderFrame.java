@@ -391,7 +391,7 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
      */
     public static String urlDecode( String str ) {
         try {
-            return ( URLDecoder.decode( str ) );
+            return ( URLDecoder.decode( str, "utf-8" ) );
         }
         catch ( Exception e ) {
             return ( "Decoding error" );
@@ -407,7 +407,7 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
      */
     public static String urlEncode( String str ) {
         try {
-            return ( URLEncoder.encode( str ) );
+            return ( URLEncoder.encode( str, "utf-8" ) );
         }
         catch ( Exception e ) {
             return ( "Encoding error" );
