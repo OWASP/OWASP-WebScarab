@@ -54,18 +54,14 @@ import java.awt.event.ActionEvent;
  */
 public class ShowConversationAction extends AbstractAction {
     
-    private SiteModel _model = null;
+    private SiteModel _model;
     
     /** Creates a new instance of ShowConversationAction */
-    public ShowConversationAction() {
+    public ShowConversationAction(SiteModel model) {
+        _model = model;
         putValue(NAME, "Show conversation");
         putValue(SHORT_DESCRIPTION, "Opens a new window showing the request and response");
         putValue("CONVERSATION", null);
-    }
-    
-    public void setModel(SiteModel model) {
-        _model = model;
-        setEnabled(false);
     }
     
     public void actionPerformed(ActionEvent e) {

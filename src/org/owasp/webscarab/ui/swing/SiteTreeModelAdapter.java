@@ -68,24 +68,10 @@ public class SiteTreeModelAdapter extends AbstractTreeModel {
     
     private Object _root = new String("RooT");
     
-    public SiteTreeModelAdapter() {
-        this(null);
-    }
-    
     public SiteTreeModelAdapter(SiteModel model) {
-        setModel(model);
-    }
-    
-    public void setModel(SiteModel model) {
-        if (_model != null) {
-            _model.removeSiteModelListener(_listener);
-        }
         _model = model;
-        if (_model != null) {
-            _model.addSiteModelListener(_listener);
-            updateFiltered();
-        }
-        fireStructureChanged();
+        _model.addSiteModelListener(_listener);
+        updateFiltered();
     }
     
     private void updateFiltered() {
@@ -328,59 +314,75 @@ public class SiteTreeModelAdapter extends AbstractTreeModel {
     private class Listener extends SiteModelAdapter {
         
         public void urlAdded(final HttpUrl url) {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        addedUrl(url);
-                    }
-                });
-            } catch (Exception e) {
-                _logger.warning("Exception adding " + url + " " + e);
-                e.getCause().printStackTrace();
-                // System.exit(1);
+            if (SwingUtilities.isEventDispatchThread()) {
+                addedUrl(url);
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            urlAdded(url);
+                        }
+                    });
+                } catch (Exception e) {
+                    _logger.warning("Exception adding " + url + " " + e);
+                    e.getCause().printStackTrace();
+                    // System.exit(1);
+                }
             }
         }
         
         public void urlChanged(final HttpUrl url, final String property) {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        changedUrl(url, property);
-                    }
-                });
-            } catch (Exception e) {
-                _logger.warning("Exception changing " + url + " property " + property + " " + e);
-                e.getCause().printStackTrace();
-                // System.exit(1);
+            if (SwingUtilities.isEventDispatchThread()) {
+                changedUrl(url, property);
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            urlChanged(url, property);
+                        }
+                    });
+                } catch (Exception e) {
+                    _logger.warning("Exception changing " + url + " property " + property + " " + e);
+                    e.getCause().printStackTrace();
+                    // System.exit(1);
+                }
             }
         }
         
         public void urlRemoved(final HttpUrl url, final int position) {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        removedUrl(url, position);
-                    }
-                });
-            } catch (Exception e) {
-                _logger.warning("Exception removing " + url + " " + e);
-                e.getCause().printStackTrace();
-                // System.exit(1);
+            if (SwingUtilities.isEventDispatchThread()) {
+                removedUrl(url, position);
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            urlRemoved(url, position);
+                        }
+                    });
+                } catch (Exception e) {
+                    _logger.warning("Exception removing " + url + " " + e);
+                    e.getCause().printStackTrace();
+                    // System.exit(1);
+                }
             }
         }
         
         public void dataChanged() {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        updateFiltered();
-                        fireStructureChanged();
-                    }
-                });
-            } catch (Exception e) {
-                _logger.warning("Exception updating filter list");
-                e.getCause().printStackTrace();
-                // System.exit(1);
+            if (SwingUtilities.isEventDispatchThread()) {
+                updateFiltered();
+                fireStructureChanged();
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            dataChanged();
+                        }
+                    });
+                } catch (Exception e) {
+                    _logger.warning("Exception updating filter list");
+                    e.getCause().printStackTrace();
+                    // System.exit(1);
+                }
             }
         }
         

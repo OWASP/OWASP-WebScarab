@@ -91,12 +91,11 @@ public class SummaryPanel extends javax.swing.JPanel {
     
     private Map _urlColumns = new HashMap();
     
-    private ShowConversationAction _showConversationAction = new ShowConversationAction();
-    
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates new form SummaryPanel */
-    public SummaryPanel() {
+    public SummaryPanel(SiteModel model) {
+        _model = model;
         initComponents();
         
         initTree();
@@ -104,25 +103,11 @@ public class SummaryPanel extends javax.swing.JPanel {
         
         initTable();
         addTableListeners();
-        addConversationActions(new Action[] {_showConversationAction});
-    }
-    
-    public void setModel(SiteModel model) {
-        if (_model != null) {
-            _urlTreeTableModel.setModel(null);
-            _conversationTableModel.setModel(null);
-            _showConversationAction.setModel(null);
-        }
-        _model = model;
-        if (model != null) {
-            _urlTreeTableModel.setModel(_model);
-            _conversationTableModel.setModel(_model);
-            _showConversationAction.setModel(_model);
-        }
+        addConversationActions(new Action[] {new ShowConversationAction(_model)});
     }
     
     private void initTree() {
-        _urlTreeTableModel = new SiteTreeTableModelAdapter() {
+        _urlTreeTableModel = new SiteTreeTableModelAdapter(_model) {
             public boolean isFiltered(HttpUrl url) {
                 return ((SiteTreeTableModelAdapter)this)._model.getConversationCount(url) == 0;
             }
@@ -228,7 +213,7 @@ public class SummaryPanel extends javax.swing.JPanel {
     }
     
     private void initTable() {
-        _conversationTableModel = new ConversationTableModel();
+        _conversationTableModel = new ConversationTableModel(_model);
         
         ColumnDataModel cdm = new ColumnDataModel() {
             public Object getValue(Object key) {

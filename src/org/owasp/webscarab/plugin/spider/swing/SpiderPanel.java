@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -75,7 +75,17 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
         initComponents();
         
         _spider = spider;
-        setModel(null);
+        _model = _spider.getModel();
+        
+        TreeModel treeModel = new SiteTreeModelAdapter(_model) {
+            public boolean isFiltered(HttpUrl url) {
+                return _model.getConversationCount(url) > 0;
+            }
+        };
+        unseenLinkTree.setModel(treeModel);
+        unseenLinkTree.setRootVisible(false);
+        unseenLinkTree.setShowsRootHandles(true);
+        unseenLinkTree.setCellRenderer(new UrlTreeRenderer());
         
         configure();
         
@@ -264,7 +274,6 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
     }//GEN-LAST:event_cookieSyncCheckBoxActionPerformed
     
     private void linkTreeFetchTreeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_linkTreeFetchTreeButtonActionPerformed
-        _logger.info("called!");
         TreePath[] selection = unseenLinkTree.getSelectionPaths();
         if (selection != null && selection.length==1) {
             if (_spider.isBusy()) {
@@ -273,7 +282,6 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
                 return;
             }
             HttpUrl url = (HttpUrl) selection[0].getLastPathComponent();
-            _logger.info("Requesting any links under " + url);
             _spider.requestLinksUnder(url);
         } else {
             _logger.info("Cannot fetch a tree if there are 0 or many paths selected!");
@@ -350,32 +358,6 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
                 }
             });
         }
-    }
-    
-    public void setModel(final SiteModel model) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            _model = model;
-            if (model != null) {
-                TreeModel treeModel = new SiteTreeModelAdapter(_model) {
-                    public boolean isFiltered(HttpUrl url) {
-                        return _model.getConversationCount(url) > 0;
-                    }
-                };
-                unseenLinkTree.setModel(treeModel);
-                unseenLinkTree.setRootVisible(false);
-                unseenLinkTree.setShowsRootHandles(true);
-                unseenLinkTree.setCellRenderer(new UrlTreeRenderer());
-            } else {
-                unseenLinkTree.setModel(null);
-            }
-        } else {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    setModel(model);
-                }
-            });
-        }
-        
     }
     
     public void setEnabled(final boolean enabled) {

@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -62,22 +62,8 @@ public class ConversationListModel extends AbstractListModel {
     
     /** Creates a new instance of ConversationTableModel */
     public ConversationListModel(SiteModel model) {
-        setModel(model);
-    }
-    
-    /** Creates a new instance of ConversationTableModel */
-    public ConversationListModel() {
-    }
-    
-    public void setModel(SiteModel model) {
-        int oldsize = getSize();
-        if (_model != null) _model.removeSiteModelListener(_listener);
-        if (oldsize>0) {
-            _model = null;
-            fireIntervalRemoved(this, 0, oldsize);
-        }
         _model = model;
-        if (_model != null) _model.addSiteModelListener(_listener);
+        _model.addSiteModelListener(_listener);
         fireContentsChanged(this, 0, getSize());
     }
     
@@ -106,7 +92,7 @@ public class ConversationListModel extends AbstractListModel {
     }
     
     protected void conversationsChanged() {
-        if (_size>0) 
+        if (_size>0)
             fireIntervalRemoved(this, 0, _size);
         fireIntervalAdded(this, 0,  getSize());
     }
@@ -114,50 +100,66 @@ public class ConversationListModel extends AbstractListModel {
     private class Listener extends SiteModelAdapter {
         
         public void conversationAdded(final ConversationID id) {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        addedConversation(id);
-                    }
-                });
-            } catch (Exception e) {
-                _logger.warning("Exception! " + e);
+            if (SwingUtilities.isEventDispatchThread()) {
+                addedConversation(id);
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            addedConversation(id);
+                        }
+                    });
+                } catch (Exception e) {
+                    _logger.warning("Exception! " + e);
+                }
             }
         }
         
         public void conversationChanged(final ConversationID id, final String property) {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        changedConversation(id, property);
-                    }
-                });
-            } catch (Exception e) {
-                _logger.warning("Exception! " + e);
+            if (SwingUtilities.isEventDispatchThread()) {
+                changedConversation(id, property);
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            changedConversation(id, property);
+                        }
+                    });
+                } catch (Exception e) {
+                    _logger.warning("Exception! " + e);
+                }
             }
         }
         
         public void conversationRemoved(final ConversationID id, final int position, final int urlposition) {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        removedConversation(id, position, urlposition);
-                    }
-                });
-            } catch (Exception e) {
-                _logger.warning("Exception! " + e);
+            if (SwingUtilities.isEventDispatchThread()) {
+                removedConversation(id, position, urlposition);
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            removedConversation(id, position, urlposition);
+                        }
+                    });
+                } catch (Exception e) {
+                    _logger.warning("Exception! " + e);
+                }
             }
         }
         
         public void dataChanged() {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        conversationsChanged();
-                    }
-                });
-            } catch (Exception e) {
-                _logger.warning("Exception! " + e);
+            if (SwingUtilities.isEventDispatchThread()) {
+                conversationsChanged();
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            conversationsChanged();
+                        }
+                    });
+                } catch (Exception e) {
+                    _logger.warning("Exception! " + e);
+                }
             }
         }
         

@@ -54,11 +54,6 @@ public class SiteTreeTableModelAdapter extends SiteTreeModelAdapter implements T
     private List _columns = new ArrayList();
     private ColumnDataListener _columnListener;
     
-    public SiteTreeTableModelAdapter() {
-        super();
-        createListener();
-    }
-    
     public SiteTreeTableModelAdapter(SiteModel model) {
         super(model);
         createListener();

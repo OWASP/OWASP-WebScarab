@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -65,23 +65,9 @@ public class ConversationTableModel extends ExtensibleTableModel {
     protected Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates a new instance of ConversationTableModel */
-    public ConversationTableModel() {
-    }
-    
-    /** Creates a new instance of ConversationTableModel */
     public ConversationTableModel(SiteModel model) {
-        setModel(model);
-    }
-    
-    public void setModel(SiteModel model) {
-        if (_model != null) {
-            _model.removeSiteModelListener(_listener);
-        }
         _model = model;
-        if (_model != null) {
-            _model.addSiteModelListener(_listener);
-        }
-        fireTableDataChanged();
+        _model.addSiteModelListener(_listener);
     }
     
     public void setUrl(HttpUrl url) {
@@ -154,38 +140,50 @@ public class ConversationTableModel extends ExtensibleTableModel {
     private class Listener extends SiteModelAdapter {
         
         public void conversationAdded(final ConversationID id) {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        addedConversation(id);
-                    }
-                });
-            } catch (Exception e) {
-                _logger.warning("Exception! " + e);
+            if (SwingUtilities.isEventDispatchThread()) {
+                addedConversation(id);
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            addedConversation(id);
+                        }
+                    });
+                } catch (Exception e) {
+                    _logger.warning("Exception! " + e);
+                }
             }
         }
         
         public void conversationRemoved(final ConversationID id, final int position, final int urlposition) {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        removedConversation(id, position, urlposition);
-                    }
-                });
-            } catch (Exception e) {
-                _logger.warning("Exception! " + e);
+            if (SwingUtilities.isEventDispatchThread()) {
+                removedConversation(id, position, urlposition);
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            removedConversation(id, position, urlposition);
+                        }
+                    });
+                } catch (Exception e) {
+                    _logger.warning("Exception! " + e);
+                }
             }
         }
         
         public void dataChanged() {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        changedConversations();
-                    }
-                });
-            } catch (Exception e) {
-                _logger.warning("Exception! " + e);
+            if (SwingUtilities.isEventDispatchThread()) {
+                changedConversations();
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            changedConversations();
+                        }
+                    });
+                } catch (Exception e) {
+                    _logger.warning("Exception! " + e);
+                }
             }
         }
         

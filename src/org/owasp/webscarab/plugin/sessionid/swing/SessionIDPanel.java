@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -123,6 +123,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
     /** Creates new form SessionIDPanel */
     public SessionIDPanel(SessionIDAnalysis sa) {
         _sa = sa;
+        _model = _sa.getModel();
         
         initComponents();
         
@@ -143,6 +144,11 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         conversationSplitPane.setTopComponent(_requestPanel);
         conversationSplitPane.setBottomComponent(_responsePanel);
         
+        _sessionIDNames.clear();
+        for (int i=0; i<_sa.getSessionIDNameCount(); i++) {
+            _sessionIDNames.addElement(_sa.getSessionIDName(i));
+        }
+        
         requestComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Object o = requestComboBox.getSelectedItem();
@@ -160,14 +166,18 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         _tableModel = new SessionIDTableModel();
         _sidd = new SessionIDDataset();
         
+        _sidd.fireDatasetChanged();
+        _tableModel.fireTableDataChanged();
+        
         nameComboBox.setModel(new ListComboBoxModel(_sessionIDNames));
         _sa.setUI(this);
         
         idTable.setModel(new TableSorter(_tableModel, idTable.getTableHeader()));
         idTable.setDefaultRenderer(Date.class, new DateRenderer());
         
-        _conversationList = new ConversationListModel();
+        _conversationList = new ConversationListModel(_model);
         requestComboBox.setModel(new ListComboBoxModel(_conversationList));
+        requestComboBox.setRenderer(new ConversationRenderer(_model));
     }
     
     /** This method is called from within the constructor to
@@ -538,28 +548,6 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
     
     public javax.swing.Action[] getUrlActions() {
         return null;
-    }
-    
-    public void setModel(final SiteModel model) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            _model = model;
-            requestComboBox.setRenderer(null);
-            _conversationList.setModel(_model);
-            requestComboBox.setRenderer(new ConversationRenderer(_model));
-            
-            _sessionIDNames.clear();
-            for (int i=0; i<_sa.getSessionIDNameCount(); i++) {
-                _sessionIDNames.addElement(_sa.getSessionIDName(i));
-            }
-            _sidd.fireDatasetChanged();
-            _tableModel.fireTableDataChanged();
-        } else {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    setModel(model);
-                }
-            });
-        }
     }
     
     public void setEnabled(final boolean enabled) {
