@@ -50,6 +50,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 // import java.text.ParseException;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -90,6 +91,7 @@ public class FileSystemStore implements SiteModelStore {
     private Map _requestCache = new MRUCache(16);
     private Map _responseCache = new MRUCache(16);
     private Map _childCache = new MRUCache(16);
+    private Map _queryCache = new MRUCache(16);
     
     private SortedMap _cookies = new TreeMap();
     
@@ -334,21 +336,24 @@ public class FileSystemStore implements SiteModelStore {
         
         HttpUrl parent = url.getParentUrl();
         SortedSet childSet;
+        Map cache;
         if (url.getParameters() != null) {
             childSet = (SortedSet) _urlQueries.get(parent);
             if (childSet == null) {
                 childSet = new TreeSet();
                 _urlQueries.put(parent, childSet);
             }
+            cache = _queryCache;
         } else {
             childSet = (SortedSet) _urlChildren.get(parent);
             if (childSet == null) {
                 childSet = new TreeSet();
                 _urlChildren.put(parent, childSet);
             }
+            cache = _childCache;
         }
         childSet.add(url);
-        _childCache.put(parent,childSet.toArray(NO_CHILDREN));
+        cache.put(parent,childSet.toArray(NO_CHILDREN));
     }
     
     /**
@@ -428,6 +433,18 @@ public class FileSystemStore implements SiteModelStore {
         return children[index];
     }
     
+    public int getIndexOfUrl(HttpUrl url) {
+        HttpUrl[] children = (HttpUrl[]) _childCache.get(url);
+        if (children == null) {
+            SortedSet childSet = (SortedSet) _urlChildren.get(url);
+            if (childSet == null)
+                throw new IndexOutOfBoundsException(url + " has no children");
+            children = ((HttpUrl[]) childSet.toArray(NO_CHILDREN));
+            _childCache.put(url, children);
+        }
+        return Arrays.binarySearch(children, url);
+    }
+    
     /**
      * returns the number of URL's that are queries of the URL passed.
      * @param url the url
@@ -446,7 +463,7 @@ public class FileSystemStore implements SiteModelStore {
      * @return the query at position index.
      */
     public HttpUrl getUrlQueryAt(HttpUrl url, int index) {
-        HttpUrl[] children = (HttpUrl[]) _childCache.get(url);
+        HttpUrl[] children = (HttpUrl[]) _queryCache.get(url);
         if (children == null) {
             SortedSet childSet = (SortedSet) _urlQueries.get(url);
             if (childSet == null)
@@ -454,9 +471,21 @@ public class FileSystemStore implements SiteModelStore {
             if (index >= childSet.size())
                 throw new IndexOutOfBoundsException(url + " has only " + childSet.size() + " queries, not " + index);
             children = ((HttpUrl[]) childSet.toArray(NO_CHILDREN));
-            _childCache.put(url, children);
+            _queryCache.put(url, children);
         }
         return children[index];
+    }
+    
+    public int getIndexOfQuery(HttpUrl url) {
+        HttpUrl[] queries = (HttpUrl[]) _queryCache.get(url);
+        if (queries == null) {
+            SortedSet querySet = (SortedSet) _urlQueries.get(url);
+            if (querySet == null)
+                throw new IndexOutOfBoundsException(url + " has no queries");
+            queries = ((HttpUrl[]) querySet.toArray(NO_CHILDREN));
+            _queryCache.put(url, queries);
+        }
+        return Arrays.binarySearch(queries, url);
     }
     
     /**
@@ -496,9 +525,9 @@ public class FileSystemStore implements SiteModelStore {
      * This method returns the position of the specified conversation in the list of conversations
      * relating to the specified URL. If the URL is null, returns the position of the conversation
      * in the overall list of conversations.
-     * @return the position in the list of conversations, or -insert-1 if the conversation does not apply to the url
      * @param url acts as a filter on the overall list of conversations
      * @param id the conversation
+     * @return the position in the list, or the insertion point if it is not in the list
      */
     public int getIndexOfConversation(HttpUrl url, ConversationID id) {
         List list;
