@@ -67,17 +67,40 @@ public class URLFetcher implements HTTPClient {
     private int _port = 0;
     private long _lastRequestTime = 0;
     
+    // support for debugging proxy to server communication
+    private static Object _lock = new Object();
+    private static int _connectionCount = 1;
+    private int _connection;
+    private static String _tmpdir = System.getProperty("java.io.tmpdir");
+
     private PrintStream _debugRequest = null;
     private PrintStream _debugResponse = null;
     
     /** Creates a new instance of URLFetcher
      */
     public URLFetcher() {
+        synchronized (_lock) {
+            _connection = _connectionCount++;
+        }
     }
     
-    public void setDebug(PrintStream debugRequest, PrintStream debugResponse) {
-        _debugRequest = debugRequest;
-        _debugResponse = debugResponse;
+    public void setDebug(boolean debugRequest, boolean debugResponse) {
+        try {
+            if (debugRequest) {
+                _debugRequest = new PrintStream(new FileOutputStream(_tmpdir+"/toserver-"+_connection));
+            } else {
+                _debugRequest = null;
+            }
+            if (debugResponse) {
+                _debugResponse = new PrintStream(new FileOutputStream(_tmpdir+"/fromserver-"+_connection));
+            } else {
+                _debugResponse = null;
+            }
+        } catch (Exception e) {
+            System.err.println("Cannot write debug log : " + e);
+            _debugRequest = null;
+            _debugResponse = null;
+        }
     }
     
     /** Create and install a trust manager that does not verify server SSL certificates

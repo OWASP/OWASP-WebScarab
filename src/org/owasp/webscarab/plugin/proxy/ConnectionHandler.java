@@ -148,15 +148,7 @@ public class ConnectionHandler implements Runnable {
             
             // URLFetcher implements HTTPClient!
             URLFetcher uf = new URLFetcher();
-            PrintStream serverRequest = null;
-            PrintStream serverResponse = null;
-            if (_debugRequest) {
-                serverRequest = new PrintStream(new FileOutputStream(_tmpdir+"/toserver-"+_connection));
-            }
-            if (_debugResponse) {
-                serverResponse = new PrintStream(new FileOutputStream(_tmpdir+"/fromserver-"+_connection));
-            }
-            uf.setDebug(serverRequest, serverResponse);
+            uf.setDebug(_debugRequest, _debugResponse);
             HTTPClient hc = uf;
             
             // Maybe set SSL ProxyAuthorization here at a connection level?
