@@ -33,6 +33,7 @@ public class ExceptionHandler {
     
     public void handle(Throwable t) {
         t.printStackTrace();
+        System.exit(0);
         DocumentOutputStream dos = new DocumentOutputStream();
         t.printStackTrace(new PrintStream(dos));
         JTextArea ta = new JTextArea(dos.getDocument());
@@ -42,6 +43,7 @@ public class ExceptionHandler {
         JScrollPane sp = new JScrollPane(ta);
         sp.setPreferredSize(new java.awt.Dimension(600,300));
         JOptionPane.showMessageDialog(_parentComponent, sp, "An unhandled exception occurred!", JOptionPane.ERROR_MESSAGE);
+        System.setProperty("sun.awt.exception.handler", ExceptionHandler.class.getName());
     }
     
 }
