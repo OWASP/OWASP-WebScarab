@@ -28,14 +28,14 @@ public class ConnectionHandler implements Runnable {
     private String _base;
     private NetworkSimulator _simulator;
     
+    private HTTPClient _httpClient = null;
+    
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     private InputStream _clientIn = null;
     private OutputStream _clientOut = null;
     private InputStream _serverIn = null;
     private OutputStream _serverOut = null;
-    
-    private URLFetcher _uf = null;
     
     String keystore = "/server.p12";
     char keystorepass[] = "password".toCharArray();
@@ -53,32 +53,23 @@ public class ConnectionHandler implements Runnable {
         } catch (SocketException se) {
             _logger.warning("Error setting socket parameters");
         }
-        
-        _uf = new URLFetcher();
     }
     
-    public ConnectionHandler(Plug plug, InputStream clientIn, InputStream serverIn) {
-        _sock = null;
-        _plugins = null;
-        _plug = plug;
-        _clientIn = clientIn;
-        _serverIn = serverIn;
-        _uf = new URLFetcher(serverIn);
+    public void setHttpClient(HTTPClient httpClient) {
+        _httpClient = httpClient;
     }
     
     public void run() {
-        if (_sock != null) {
-            try {
-                _clientIn = _sock.getInputStream();
-                _clientOut = _sock.getOutputStream();
-                if (_simulator != null) {
-                    _clientIn = _simulator.wrapInputStream(_clientIn);
-                    _clientOut = _simulator.wrapOutputStream(_clientOut);
-                }
-            } catch (IOException ioe) {
-                _logger.severe("Error getting socket input and output streams! " + ioe);
-                return;
+        try {
+            _clientIn = _sock.getInputStream();
+            _clientOut = _sock.getOutputStream();
+            if (_simulator != null) {
+                _clientIn = _simulator.wrapInputStream(_clientIn);
+                _clientOut = _simulator.wrapOutputStream(_clientOut);
             }
+        } catch (IOException ioe) {
+            _logger.severe("Error getting socket input and output streams! " + ioe);
+            return;
         }
         try {
             Request request = null;
@@ -96,7 +87,7 @@ public class ConnectionHandler implements Runnable {
             // if we are a normal proxy (because request is not null)
             // and the request is a CONNECT, get the base URL from the request
             // and send the OK back. We set request to null so we read a new
-            // one from the SSL socket
+            // one from the SSL socket later
             // If it exists, we pull the ProxyAuthorization header from the CONNECT
             // so that we can use it upstream.
             String proxyAuth = null;
@@ -122,7 +113,9 @@ public class ConnectionHandler implements Runnable {
             // if we are servicing a CONNECT, or operating as a reverse
             // proxy with an https:// base URL, negotiate SSL
             if (_base != null) {
-                if (_base.startsWith("https://") && _sock != null) {
+                // we check isConnected for UnitTest purposes
+                // We provide a fake socket, but can't negotiate SSL on it!
+                if (_base.startsWith("https://") && _sock.isConnected() ) {
                     _logger.fine("Intercepting SSL connection!");
                     _sock = negotiateSSL(_sock);
                     _clientIn = _sock.getInputStream();
@@ -138,7 +131,9 @@ public class ConnectionHandler implements Runnable {
                 }
             }
             
-            HTTPClient hc = _uf;
+            if (_httpClient == null) _httpClient = new URLFetcher();
+            
+            HTTPClient hc = _httpClient;
             
             // Maybe set SSL ProxyAuthorization here at a connection level?
             // I prefer it in the Request itself, since it gets archived, and
@@ -154,6 +149,10 @@ public class ConnectionHandler implements Runnable {
                     hc = pp.getProxyPlugin(hc);
                 }
             }
+            
+            // do we add an X-Forwarded-For header?
+            String from = _sock.getInetAddress().getHostAddress();
+            if (from.equals("127.0.0.1")) from = null;
             
             // do we keep-alive?
             String connection = null;
@@ -174,11 +173,8 @@ public class ConnectionHandler implements Runnable {
                         request.addHeader("Proxy-Authorization",proxyAuth);
                     }
                 }
-                if (_sock != null) {
-                    String fwd = _sock.getInetAddress().getHostAddress();
-                    if (!fwd.equals("127.0.0.1")) {
-                        request.addHeader("X-Forwarded-For",fwd);
-                    }
+                if (from != null) {
+                    request.addHeader("X-Forwarded-For", from);
                 }
                 _logger.info("Browser requested : " + request.getMethod() + " " + request.getURL().toString());
                 
@@ -279,70 +275,6 @@ public class ConnectionHandler implements Runnable {
         template = template + "The error was : <P><pre>" + message + "</pre><P></HTML>";
         response.setContent(template.getBytes());
         return response;
-    }
-    
-    private class ParallelFetcher implements Runnable {
-        
-        private URLFetcher _puf = null;
-        Thread t = null;
-        private Request _request = null;
-        private Response _response = null;
-        
-        public ParallelFetcher(InputStream is) {
-            _puf = new URLFetcher(is);
-        }
-        
-        public void run() {
-            try {
-                _response = _puf.fetchResponse(_request);
-                _logger.fine("Got the response");
-                _response.flushContentStream();
-                _logger.fine("Flushed the contentStream");
-                synchronized(this) {
-                    this.notify();
-                }
-            } catch (IOException ioe) {
-                _logger.severe("IOException: " + ioe);
-                _response = null;
-            }
-        }
-        
-        public void readResponse(Request request) {
-            if (t == null || ! t.isAlive()) {
-                _request = request;
-                t = new Thread(this, "ParallelFetcher");
-                t.start();
-            } else {
-                _logger.severe("still reading previous response!");
-            }
-        }
-        
-        public Response getResponse() {
-            if (t == null) {
-                return null;
-            } else {
-                try {
-                    if (t.isAlive()) {
-                        synchronized(this) {
-                            this.wait(250);
-                        }
-                    }
-                    int count = 0;
-                    while(t.isAlive() && count++ < 5) {
-                        synchronized(this) {
-                            this.wait(20000);
-                        }
-                        _logger.fine("Sleeping while the thread reads the response");
-                    }
-                } catch (InterruptedException ie) {}
-            }
-            if (t.isAlive()) {
-                return null;
-            } else {
-                return _response;
-            }
-        }
-        
     }
     
 }
