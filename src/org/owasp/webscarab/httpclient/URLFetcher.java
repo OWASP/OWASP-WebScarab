@@ -4,7 +4,7 @@
  * Created on April 12, 2003, 1:31 AM
  */
 
-package src.org.owasp.webscarab.httpclient;
+package org.owasp.webscarab.httpclient;
 
 import java.net.URL;
 import java.net.MalformedURLException;

@@ -4,7 +4,7 @@
  * Created on May 25, 2003, 11:00 AM
  */
 
-package src.org.owasp.webscarab.httpclient;
+package org.owasp.webscarab.httpclient;
 
 import java.io.InputStream;
 import java.io.FilterInputStream;

@@ -4,7 +4,7 @@
  * Created on May 12, 2003, 11:10 PM
  */
 
-package src.org.owasp.webscarab.httpclient;
+package org.owasp.webscarab.httpclient;
 
 import java.io.IOException;
 import java.io.InputStream;
