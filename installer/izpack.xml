@@ -58,7 +58,8 @@
         <pack name="Sources" required="no" preselected="no">
             <description>The sources</description>
             <singlefile src="build.xml" target="$INSTALL_PATH/build.xml"/>
-            <file src="serverkeys" targetdir="$INSTALL_PATH"/>
+            <file src="server.p12" targetdir="$INSTALL_PATH"/>
+            <file src="client.p12" targetdir="$INSTALL_PATH"/>
             <fileset dir="src" targetdir="$INSTALL_PATH/src/">
                 <include name="**/*.java"/>
                 <include name="**/*.form"/>
