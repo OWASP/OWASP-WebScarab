@@ -38,9 +38,7 @@
             <file src="webscarab.jar" targetdir="$INSTALL_PATH"/>
             <file src="bin/webscarab.sh" targetdir="$INSTALL_PATH" os="unix"/>
             <file src="bin/webscarab.bat" targetdir="$INSTALL_PATH" os="windows"/>
-            <file src="lib/owasp.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/htmlparser.jar" targetdir="$INSTALL_PATH/lib/"/>
-            <file src="lib/vulnxml.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/bsh-2.0b1.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/jfreechart-0.9.12.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/jcommon-0.8.7.jar" targetdir="$INSTALL_PATH/lib/"/>

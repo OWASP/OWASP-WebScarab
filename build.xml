@@ -5,29 +5,22 @@
 		<property name="jarname" value="webscarab.jar"/>
 		<property name="source" value="src"/>
 		<property name="classes" value="classes"/>
-		<property name="mainclass" value="org.owasp.webscarab.ui.swing.WebScarab"/>
-
-                <property name="ocljar" value="lib/owasp.jar"/>
-             	<property name="junitjar" value="lib/junit-3.7.jar"/>
+		<property name="mainclass" value="org.owasp.webscarab.ui.swing.Main"/>
+                <property name="version" value="${DSTAMP}-${TSTAMP}"/>
+                
+             	<property name="concurrentjar" value="lib/concurrent.jar"/>
              	<property name="htmlparserjar" value="lib/htmlparser.jar"/>
-             	<property name="vulnxmljar" value="lib/vulnxml.jar"/>
              	<property name="beanshelljar" value="lib/bsh-2.0b1.jar"/>
              	<property name="jfreechartjar" value="lib/jfreechart-0.9.12.jar"/>
              	<property name="jcommonjar" value="lib/jcommon-0.8.7.jar"/>
        		
                 <path id="cpath">
 			<pathelement location="./classes/"/>
-			<pathelement path="${ocljar}"/>
-                        <pathelement path="${junitjar}"/>
+			<pathelement path="${concurrentjar}"/>
                         <pathelement path="${htmlparserjar}"/>
-			<pathelement location="${vulnxmljar}"/>
 			<pathelement location="${beanshelljar}"/>
 			<pathelement location="${jfreechartjar}"/>
 			<pathelement location="${jcommonjar}"/>
-			<pathelement path="/opt/owasp/vulnxml/lib/commons-collections.jar"/>
-			<pathelement path="/opt/owasp/vulnxml/lib/commons-digester.jar"/>
-			<pathelement path="/opt/owasp/vulnxml/lib/commons-logging.jar"/>
-			<pathelement path="/opt/owasp/vulnxml/lib/gnu-regexp-1.1.4.jar"/>
 		</path>
 	</target>
 	<target depends="init" name="clean">
@@ -52,7 +45,13 @@
 		<jar basedir="${classes}" jarfile="${jarname}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
-                        <attribute name="Class-Path" value="${ocljar} ${htmlparserjar} ${vulnxmljar} ${beanshelljar} ${jfreechartjar} ${jcommonjar}"/>
+                        <attribute name="Class-Path" value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar}"/>
+                        <!-- <attribute name="Built-By" value="${user.name}"/> -->
+                        <section name="common">
+                            <attribute name="Implementation-Title" value="common"/>
+                            <attribute name="Implementation-Version" value="${version}"/>
+                            <attribute name="Implementation-Vendor" value="OWASP Foundation."/>
+                        </section>
                     </manifest>
                 </jar>
 	</target>
@@ -69,7 +68,7 @@
                 <taskdef name="izpack" classpath="${basedir}/izpack/lib/compiler.jar"
                      classname="com.izforge.izpack.ant.IzPackTask"/>
 		<izpack input="${basedir}/installer/izpack.xml"
-			output="${basedir}/WebScarab-${DSTAMP}-${TSTAMP}.jar"
+			output="${basedir}/WebScarab-${version}.jar"
 			installerType="standard"
 			basedir="${basedir}"
 			izPackDir="${basedir}/izpack/"
