@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -49,8 +49,13 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.HyperlinkEvent.EventType;
+import javax.swing.text.ChangedCharSetException;
 
 import java.util.logging.Logger;
+
+import org.mozilla.intl.chardet.nsDetector;
+import org.mozilla.intl.chardet.nsICharsetDetectionObserver;
+import org.mozilla.intl.chardet.nsPSMDetector;
 
 /**
  *
@@ -102,21 +107,51 @@ public class HTMLPanel extends JPanel implements ByteArrayEditor {
         }
     }
     
+    private String getCharset(String contentType, byte[] bytes) {
+        String[] charsets;
+        nsDetector det = new nsDetector(nsPSMDetector.ALL);
+        
+        boolean isAscii = det.isAscii(bytes,bytes.length);
+        // DoIt if non-ascii and not done yet.
+        if (!isAscii)
+            det.DoIt(bytes,bytes.length, false);
+        charsets = det.getProbableCharsets();
+        det.DataEnd();
+        
+        if (isAscii) return "ASCII";
+        if (charsets.length == 0) return null;
+        if (charsets.length == 1 && charsets[0].equals("nomatch")) return null;
+        
+        return charsets[0];
+    }
+    
     private void loadBytes(String contentType, byte[] bytes) {
         _bytes = bytes;
         // htmlEditorPane.getDocument().putProperty("base","");
         if (bytes != null) {
+            String charset = null;
+            if (contentType.indexOf("charset") == -1) {
+                charset = getCharset(contentType, bytes);
+                contentType = contentType + "; charset="+charset;
+            } else {
+                charset = contentType.substring(contentType.indexOf("charset=")+8);
+            }
             htmlEditorPane.setContentType(contentType);
             // FIXME: may need to reset style sheets, etc here. Not sure how to do that, though
             // Maybe this will work?
             htmlEditorPane.setDocument(JEditorPane.createEditorKitForContentType("text/html").createDefaultDocument());
             htmlEditorPane.putClientProperty("IgnoreCharsetDirective", Boolean.TRUE);
             htmlEditorPane.getDocument().putProperty("IgnoreCharsetDirective", Boolean.TRUE);
+            
             try {
-                InputStream is = new ByteArrayInputStream(bytes);
-                htmlEditorPane.read(is, htmlEditorPane.getDocument());
+                if (charset != null) {
+                    htmlEditorPane.setText(new String(bytes, charset));
+                } else {
+                    htmlEditorPane.setText(new String(bytes));
+                }
             } catch (Exception e) {
-                _logger.warning("Exception setting HTML text : " + e);
+                _logger.warning("Error setting HTML text: " + e);
+                e.printStackTrace();
             }
         } else {
             htmlEditorPane.setText("");
@@ -190,6 +225,6 @@ public class HTMLPanel extends JPanel implements ByteArrayEditor {
         }
     }
     
-
+    
 }
 
