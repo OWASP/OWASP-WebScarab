@@ -3,7 +3,7 @@
         <appname>WebScarab</appname>
         <appversion>!</appversion>
         <authors>
-            <author email="rdawes@deloitte.co.za" name="Rogan Dawes"/>
+            <author email="rogan at dawes dot za dot net" name="Rogan Dawes"/>
         </authors>
         <url>http://owasp.org/development/webscarab</url>
     </info>
@@ -57,7 +57,7 @@
         </pack>
         <pack name="Sources" required="no" preselected="no">
             <description>The sources</description>
-            <singlefile src="build_rogan.xml" target="$INSTALL_PATH/build.xml"/>
+            <singlefile src="build.xml" target="$INSTALL_PATH/build.xml"/>
             <file src="serverkeys" targetdir="$INSTALL_PATH"/>
             <fileset dir="src" targetdir="$INSTALL_PATH/src/">
                 <include name="**/*.java"/>
