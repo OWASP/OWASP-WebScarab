@@ -29,12 +29,12 @@ public class SiteInfoModel extends AbstractTreeTableModel {
     private SiteModel _siteModel;
     
     // Names of the columns.
-    static protected String[]  cNames = {"URL", "Conversations", "Method", "Status", "TotalBytes", "Set-Cookie"};
+    static protected String[]  cNames = {"URL", "Method", "Status", "TotalBytes", "Set-Cookie", "Comments", "Scripts"};
     
     // Types of the columns.
     static protected Class[]  cTypes = { TreeTableModel.class,
-    String.class, String.class, String.class,
-    String.class, String.class};
+    String.class, String.class, String.class, 
+    Boolean.class, Boolean.class, Boolean.class};
     
     public SiteInfoModel(SiteModel siteModel) {
         super(siteModel.getURLTreeModel().getRoot());
@@ -123,7 +123,7 @@ public class SiteInfoModel extends AbstractTreeTableModel {
         try {
             ui = _siteModel.getURLInfo(new URL(fn.getURL()));
         } catch (MalformedURLException mue) {
-            System.err.println("Malformed URL : " + mue);
+            System.err.println("Malformed URL (" + fn.getURL() + ") : " + mue);
             return null;
         }
         
@@ -131,7 +131,14 @@ public class SiteInfoModel extends AbstractTreeTableModel {
             if (column == 0) {
                 return ui.toString();
             } else if (column < cNames.length) {
-                return ui.getProperty(cNames[column].toUpperCase());
+                String prop = ui.getProperty(cNames[column].toUpperCase());
+                if (prop == null || prop.getClass() == getColumnClass(column)) {
+                    return prop;
+                } else if (getColumnClass(column) == Boolean.class) {
+                    return new Boolean(prop);
+                } else {
+                    return prop;
+                }
             }
         } catch  (SecurityException se) { }
         
