@@ -20,6 +20,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.Action;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.DocumentEvent;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import java.awt.Color;
 
@@ -210,6 +212,7 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
     }//GEN-END:initComponents
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
+        _scripted.setScript(scriptLanguageTextField.getText(), scriptTextPane.getText());
         try {
             _scripted.saveScript(_scripted.getScriptFile());
         } catch (IOException ioe) {
@@ -219,6 +222,7 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
     }//GEN-LAST:event_saveButtonActionPerformed
 
     private void saveAsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsButtonActionPerformed
+        _scripted.setScript(scriptLanguageTextField.getText(), scriptTextPane.getText());
         JFileChooser jfc = new JFileChooser();
         jfc.setDialogTitle("Save as");
         int returnVal = jfc.showOpenDialog(this);
@@ -295,7 +299,24 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
     
     public void scriptError(final String reason, final Throwable error) {
         if (SwingUtilities.isEventDispatchThread()) {
-            JOptionPane.showMessageDialog(ScriptedPanel.this, error, "Script execution error", JOptionPane.ERROR_MESSAGE);
+            // "The application script threw an exception: java.net.ConnectException: Connection refused BSF info: Scripted at line: 0 column: columnNo"
+            String message = error.getMessage();
+            try {
+                int eStart = message.indexOf(":");
+                int eEnd = message.indexOf("BSF info:");
+                String info = message.substring(eEnd + 18);
+                String ex = message.substring(eStart + 2, eEnd - 1);
+                message = ex + "\n" + info;
+            } catch (Exception e) {}
+            JTextArea ta = new JTextArea(message);
+            ta.setEditable(false);
+            ta.setLineWrap(true);
+            ta.setWrapStyleWord(true);
+            ta.setBackground(new java.awt.Color(204,204,204));
+            JScrollPane sp = new JScrollPane(ta);
+            sp.setPreferredSize(new java.awt.Dimension(600,300));
+            sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            JOptionPane.showMessageDialog(ScriptedPanel.this, sp, "Script execution error", JOptionPane.ERROR_MESSAGE);
         } else {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
