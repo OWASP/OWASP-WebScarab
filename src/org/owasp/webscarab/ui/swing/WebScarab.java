@@ -30,6 +30,10 @@ import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 
 import javax.swing.JFileChooser;
+import javax.swing.JTextArea;
+import javax.swing.text.Document;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  *
@@ -48,8 +52,8 @@ public class WebScarab extends javax.swing.JFrame {
         initComponents();
         
         // capture STDOUT and STDERR to a TextArea
-        // System.setOut(new PrintStream(new DocumentOutputStream(stdoutTextArea.getDocument())));
-        // System.setErr(new PrintStream(new DocumentOutputStream(stderrTextArea.getDocument())));
+        System.setOut(redirectOutput(stdoutTextArea));
+        System.setErr(redirectOutput(stderrTextArea));
         
         // load the properties
         _framework = framework;
@@ -58,6 +62,7 @@ public class WebScarab extends javax.swing.JFrame {
         
         // load the conversation log GUI plugin
         addPlugin(new ConversationLog(_framework));
+        addPlugin(new URLTreePanel(_framework));
         
         // create the plugins, and their GUI's
         Proxy proxy = new Proxy(_framework);
@@ -375,6 +380,24 @@ public class WebScarab extends javax.swing.JFrame {
             System.err.println("Error saving session : " + se);
         }
     }
+    
+    private PrintStream redirectOutput(final JTextArea textarea) {
+        Document doc = textarea.getDocument();
+        // make the text area scroll automatically
+        doc.addDocumentListener(new DocumentListener() {
+            public void changedUpdate(DocumentEvent e) {
+                textarea.setCaretPosition(e.getOffset() + e.getLength());
+            }
+            public void insertUpdate(DocumentEvent e) {
+                textarea.setCaretPosition(e.getOffset() + e.getLength());
+            }
+            public void removeUpdate(DocumentEvent e) {
+                textarea.setCaretPosition(e.getOffset() + e.getLength());
+            }
+        });
+        return new PrintStream(new DocumentOutputStream(doc));
+    }
+        
     /**
      * @param args the command line arguments
      */
