@@ -1,0 +1,52 @@
+Using WebScarab
+
+WebScarab can be used stand-alone, or in conjunction with a browser. If you
+plan to use a browser, you will need to set the upstream proxy to point to 
+the computer on which WebScarab is running. WebScarab's proxy can intercept
+SSL as well as unencrypted connections. If necessary, you can configure 
+an upstream proxy in WebScarab, effectively placing WebScarab into a proxy
+"chain". WebScarab only supports Basic Authentication, so if your upstream
+proxy requires NTLM authentication, you will not be able to use WebScarab.
+We would appreciate assistance in implementing this feature.
+
+Once you have configured your browser and WebScarab, you should be able to
+simply browse the web site under test. 
+
+SECURITY NOTE: If it is an HTTPS site, you will be prompted by your 
+browser, since the certificate WebScarab uses to masquerade as the 
+destination web site will obviously not be the correct certificate 
+for the site. We recommend that you do not accept the certificate
+permanently, since that could lead you to trust a site that you should not,
+even when you are no longer using WebScarab. Rather accept the certificate 
+for the duraction of the session only.
+
+NOTE:
+
+When you start WebScarab, it will run with reduced functionality until
+you start a new session, or open an old one. In particular, you will be unable
+to see the details of the requests and responses in the conversation tab.
+This is because the requests and responses can take up a LOT of memory very
+quickly, and lead to exhaustion of available resources. Consequently, the
+requests and responses are discarded immediately after processing, and
+read back from disk if requested. If no session has been created, those
+requests and responses cannot be retrieved.
+
+While you are navigating the site using your browser, WebScarab will be 
+recording information about the requests and responses that it sees. This 
+information includes the request method, the URL, any cookies sent, and
+any parameters or entity body. It also records the response code and message, 
+any cookies set by the server, and other information extracted by the various
+plugins. Some of this information can be seen in the Conversation log, but
+the rest should be visible in the various plugins. 
+
+For example, the Spider plugin maintains a list of links that have been 
+seen, and not yet visited, arranged in both a list and tree view. These 
+links can be selected by the operator, and requested from the server, 
+using up to 4 (hard-coded) concurrent threads. If desired, the Spider can
+be instructed to retieve pages recursively, queueing new links as soon as it
+sees them. There is a method of controlling which pages may be fetched in
+this fashion, using regular expressions for the sites which may be spidered,
+as well as a regular expression for paths on those sites which should not
+be spidered. This can be used to prevent fetching binary files such as PDF, or
+following a URL that would invalidate a session cookie.
+
