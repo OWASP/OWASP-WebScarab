@@ -21,7 +21,6 @@ import java.util.logging.Logger;
 import java.net.UnknownHostException;
 import java.net.SocketException;
 
-import javax.net.ssl.*;
 import javax.net.SocketFactory;
 
 import org.owasp.webscarab.model.*;
@@ -39,12 +38,12 @@ public class URLFetcher {
     static private String[] noProxies = new String[0];
     
     // These represent the SSL classes required to connect to the server.
-    static private SSLSocketFactory factory = null;
-    static private TrustManager[] trustAllCerts = null;
+    //static private SSLSocketFactory factory = null;
+    //static private TrustManager[] trustAllCerts = null;
 
     private Socket proxysocket = null;
     private Socket serversocket = null;
-    private SSLSocket sslsocket = null;
+    //private SSLSocket sslsocket = null;
     
     // these represent an already connected socket, and the end point thereof.
     private InputStream in = null;
@@ -65,7 +64,7 @@ public class URLFetcher {
     
     /** Create and install a trust manager that does not verify server SSL certificates
      */    
-    
+   /* 
     private void initSSL() {
         // Create a trust manager that does not validate certificate chains
         trustAllCerts = new TrustManager[]{
@@ -91,6 +90,7 @@ public class URLFetcher {
             logger.severe("Error setting up SSL Support - Key management exception " + kme);
         }
     }
+		*/
     
     /** Tells all instances of URLFetcher which HTTP proxy to use, if any
      * @param proxy The address or name of the proxy server to use for HTTP requests
@@ -193,9 +193,9 @@ public class URLFetcher {
         }
         // Still send the real request
         try {
-            if (sslsocket != null) {
+            /*if (sslsocket != null) {
                 request.writeDirect(out);
-            } else if (proxysocket != null) {
+            } else*/ if (proxysocket != null) {
                 request.write(out);
             } else if (serversocket != null) {
                 request.writeDirect(out);
@@ -238,7 +238,7 @@ public class URLFetcher {
         // We initialise all sockets to null;
         proxysocket = null;
         serversocket = null;
-        sslsocket = null;
+        //sslsocket = null;
         response = null;
         in = null;
         out = null;
@@ -299,8 +299,9 @@ public class URLFetcher {
                 serversocket.setSoTimeout(60 * 1000);
             }
             
-            if (factory == null) {
-                initSSL();
+            /*
+						if (factory == null) {
+                //initSSL();
             }
             // Use the factory to create a secure socket connected to the
             // HTTPS port of the specified web server.
@@ -315,7 +316,7 @@ public class URLFetcher {
                 "\nYou may want to uncomment the 'startHandshake' line above :-)");
             }
             in = sslsocket.getInputStream();
-            out = sslsocket.getOutputStream();
+            out = sslsocket.getOutputStream(); */
             logger.info("Finished negotiating SSL");
         }
     }
