@@ -52,7 +52,7 @@ public class WebScarab extends javax.swing.JFrame {
     
     private Framework _framework;
     private ArrayList _plugins;
-
+    
     private File _defaultDir = null;
     private Properties _prop = null;
     
@@ -63,10 +63,10 @@ public class WebScarab extends javax.swing.JFrame {
         // capture STDOUT and STDERR to a TextArea
         System.setOut(redirectOutput(stdoutTextArea, System.out));
         System.setErr(redirectOutput(stderrTextArea, System.err));
-
+        
         // create the framework
         _framework = new Framework();
-
+        
         // load the properties
         _prop = Preferences.getPreferences();
         
@@ -77,30 +77,30 @@ public class WebScarab extends javax.swing.JFrame {
         
         // create the plugins, and their GUI's
         
-		// Proxy plugin
+        // Proxy plugin
         Proxy proxy = new Proxy(_framework);
         _framework.addPlugin(proxy);
-
-		// load the proxy modules
-		ManualEdit me = new ManualEdit();
+        
+        // load the proxy modules
+        ManualEdit me = new ManualEdit();
         proxy.addPlugin(me);
-
-		RevealHidden rh = new RevealHidden();
+        
+        RevealHidden rh = new RevealHidden();
         proxy.addPlugin(rh);
-
+        
         BrowserCache bc = new BrowserCache();
         proxy.addPlugin(bc);
-
-		CookieTracker ct = new CookieTracker(proxy.getCookieJar());
+        
+        CookieTracker ct = new CookieTracker(proxy.getCookieJar());
         proxy.addPlugin(ct);
-
-		// create the proxy GUI panels
+        
+        // create the proxy GUI panels
         ProxyPanel proxyPanel = new ProxyPanel(proxy);
         proxyPanel.addPlugin(new ManualEditPanel(me));
         proxyPanel.addPlugin(new MiscPanel(rh, bc, ct));
-		addPlugin(proxyPanel);
-
-		// Spider plugin
+        addPlugin(proxyPanel);
+        
+        // Spider plugin
         Spider spider = new Spider(_framework);
         _framework.addPlugin(spider);
         addPlugin(new SpiderPanel(spider));
@@ -128,7 +128,7 @@ public class WebScarab extends javax.swing.JFrame {
         }
     }
     
-
+    
     public void addPlugin(SwingPlugin plugin) {
         if (_plugins == null) {
             _plugins = new ArrayList();
@@ -136,7 +136,7 @@ public class WebScarab extends javax.swing.JFrame {
         _plugins.add(plugin);
         mainTabbedPane.add(plugin.getPanel(), plugin.getPluginName());
     }
-
+    
     
     /** This method is called from within the constructor to
      * initialize the form.
@@ -288,7 +288,7 @@ public class WebScarab extends javax.swing.JFrame {
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width-800)/2, (screenSize.height-600)/2, 800, 600);
     }//GEN-END:initComponents
-
+    
     private void saveConfigMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveConfigMenuItemActionPerformed
         try {
             Preferences.savePreferences();
@@ -296,19 +296,20 @@ public class WebScarab extends javax.swing.JFrame {
             System.out.println("Error writing preferences : " + e);
         }
     }//GEN-LAST:event_saveConfigMenuItemActionPerformed
-
+    
     private void proxyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_proxyMenuItemActionPerformed
         new ProxyConfig(this, true, _prop).show();
         System.out.println("ProxyConfig has returned");
         _framework.setProxies(_prop);
     }//GEN-LAST:event_proxyMenuItemActionPerformed
-
+    
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
         saveSessionData();
         System.exit(0);
     }//GEN-LAST:event_exitMenuItemActionPerformed
-
+    
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
+        saveSessionData();
         JFileChooser jfc = new JFileChooser(_defaultDir);
         jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         jfc.setDialogTitle("Choose a directory that contains a previous session");
@@ -330,8 +331,9 @@ public class WebScarab extends javax.swing.JFrame {
         }
         _defaultDir = jfc.getCurrentDirectory();
     }//GEN-LAST:event_openMenuItemActionPerformed
-
+    
     private void newMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newMenuItemActionPerformed
+        saveSessionData();
         JFileChooser jfc = new JFileChooser(_defaultDir);
         jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         jfc.setDialogTitle("Select a directory to write the session into");
@@ -354,7 +356,7 @@ public class WebScarab extends javax.swing.JFrame {
         }
         _defaultDir = jfc.getCurrentDirectory();
     }//GEN-LAST:event_newMenuItemActionPerformed
-
+    
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
         // FIXME
         System.out.println("Help/About not implemented yet!");
@@ -404,7 +406,7 @@ public class WebScarab extends javax.swing.JFrame {
         OutputStream[] streams = new OutputStream[] { old, new DocumentOutputStream(doc)};
         return new PrintStream(new TeeOutputStream(streams));
     }
-        
+    
     /**
      * @param args the command line arguments
      */
