@@ -15,8 +15,6 @@ import java.net.MalformedURLException;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 
-import java.util.logging.Logger;
-
 import org.owasp.webscarab.util.Util;
 
 /** This class represents a request that can be sent to an HTTP server.
@@ -28,8 +26,7 @@ public class Request extends Message {
     private URL url = null;
     private String version = null;
     InputStream is = null;
-    private URL base = null;
-    private Logger logger = Logger.getLogger("Request");
+    private String _base = null;
     
     /** Creates a new instance of Request */
     public Request() {
@@ -50,7 +47,7 @@ public class Request extends Message {
         String line = readLine(is);
         String[] parts = line.split(" ");
         if (parts.length == 0) {
-            logger.info("Empty request!");
+            System.err.println("Empty request!");
         } else if (parts.length == 2 || parts.length == 3) {
             setMethod(parts[0]);
             if (getMethod().equalsIgnoreCase("CONNECT")) {
@@ -124,17 +121,16 @@ public class Request extends Message {
      * appropriate when parsing an intercepted CONNECT Request, when the URL read will
      * no longer include the protocol://host:port.
      */    
-    public void setBaseURL(URL base) {
-        this.base = base;
+    public void setBaseURL(String base) {
+        _base = base;
     }
     
     /** Sets the Request URL */    
     public void setURL(String url) throws MalformedURLException {
-        if (base != null) {
-            setURL(new URL(base,url));
-            base = null;
+        if (_base != null) {
+            this.url = new URL(_base + url);
         } else {
-            setURL(new URL(url));
+            this.url = new URL(url);
         }
     }
     
@@ -259,7 +255,7 @@ public class Request extends Message {
                 if (fragment == null) {
                     fragment = new String(name + "=" + value);
                 } else {
-                    logger.warning("Not sure if an URL is permitted to have multiple fragments. Currently '" 
+                    System.err.println("Not sure if an URL is permitted to have multiple fragments. Currently '" 
                     + fragment + "', adding " + name + "=" + value);
                     fragment = fragment + "&" + name + "=" + value;
                 }
@@ -293,7 +289,7 @@ public class Request extends Message {
                 url = new URL(Util.getURLSHPP(url) + fragquery);
             }
         } catch (MalformedURLException mue) {
-            logger.severe("Error creating the URL with fragquery '" + fragquery + "' : " + mue);
+            System.err.println("Error creating the URL with fragquery '" + fragquery + "' : " + mue);
             return;
         }
         if (cookie != null) {
@@ -306,7 +302,7 @@ public class Request extends Message {
                 setContent(content.getBytes());
                 setHeader("Content-Length",Integer.toString(content.length()));
             } else {
-                logger.warning("GET does not support BODY parameters");
+                System.err.println("GET does not support BODY parameters");
             }
         } else {
             setContent(null);
