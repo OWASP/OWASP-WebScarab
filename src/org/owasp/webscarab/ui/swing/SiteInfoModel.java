@@ -44,15 +44,19 @@ public class SiteInfoModel extends AbstractTreeTableModel {
         _treeModel.addTreeModelListener(new TreeModelListener() {
             public void treeNodesChanged(TreeModelEvent e) {
                 fireTreeNodesChanged(e.getSource(), e.getPath(), e.getChildIndices(), e.getChildren());
+                System.err.println("Nodes changed");
             }
             public void treeNodesInserted(TreeModelEvent e) {
                 fireTreeNodesInserted(e.getSource(), e.getPath(), e.getChildIndices(), e.getChildren());
+                System.err.println("Nodes inserted");
             }
             public void treeNodesRemoved(TreeModelEvent e) {
                 fireTreeNodesRemoved(e.getSource(), e.getPath(), e.getChildIndices(), e.getChildren());
+                System.err.println("Nodes removed");
             }
             public void treeStructureChanged(TreeModelEvent e) {
                 fireTreeStructureChanged(e.getSource(), e.getPath(), e.getChildIndices(), e.getChildren());
+                System.err.println("Structure changed");
             }
         });
     }

@@ -40,7 +40,7 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         requestPanel.setBorder(new TitledBorder("Request"));
         conversationSplitPane.setLeftComponent(requestPanel);
 
-        responsePanel = new ResponsePanel(null);
+        responsePanel = new ResponsePanel();
         responsePanel.setBorder(new TitledBorder("Response"));
         conversationSplitPane.setRightComponent(responsePanel);
     }
