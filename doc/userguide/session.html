@@ -1,0 +1,13 @@
+<html><body><h1>Specifying a session directory</h1>
+
+WebScarab normally prompts for a directory to save its session data into. If you choose not to save your data, you will be unable to make use of the "View details" or "View Scripts/comments" options, and you will be unable to save your data at a later point. Opening a new session discards any existing data already in memory. You will be able to intercept and edit requests made through the proxy, and submit manual requests, etc, but they will not be saved.</P>
+
+It is also possible to provide WebScarab with a directory to use for session data when starting WebScarab. Simply pass the directory as the first parameter on the command line. If the directory does not exist, it will be created. If the directory does not contain an existing session, you will be prompted to create a new one, otherwise the session will be opened.</p>
+
+e.g.</p>
+<pre>
+webscarab.bat c:\temp\session\
+./webscarab.sh /tmp/session/
+</pre>
+</body>
+</html>

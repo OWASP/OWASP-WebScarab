@@ -1,0 +1,28 @@
+<html><body><h1>The Tools menu</h1>
+
+The Tools menu contains the following options:
+
+<li>Proxies</li></p>
+
+This menu allows you to specify any upstream proxies that may be required to access the target websites. You can specify different proxies for HTTP and HTTPS. The proxy exclusion list DOES NOT WORK YET, due to the developers not needing this functionality. If you need it, please have a go at implementing it yourself, and send patches to the developers.</p>
+
+<li>Shared Cookies</li></p>
+
+This displays a "Shared Cookie jar". This cookie jar is shared between the Proxy, Spider and Manual Request plugins. The various cookies are available in a drop-down list, and the main table shows what values that cookie has had in the past.</p>
+
+The Proxy plugin can be configured to record all cookies that it sees from the servers, and insert those cookies into requests that "should" have them. This may be useful if you are using multiple browsers, and want to share a session between them. Be careful, since flushing cookies from the browser may not have the effect that you expect, since WebScarab will insert the most recent cookie it knows about into the requests that it sees. (This can be disabled.)</p>
+
+The Spider plugin can also use these cookies when automatically traversing a site.</p>
+
+The Manual Request plugin has buttons allowing the user to automatically insert the appropriate cookies into the request, as well as extracting cookies from any responses.</p>
+
+<li>Transcoder</li></p>
+
+The Transcoder is a utility window that allows the user to perform certain manipulations of text. Examples include URL-encoding and decoding, Base64-encoding and decoding, and MD5 and SHA1 hashes. Data can be copied to and from the clipboard, and there is also undo/redo functionality available on the Edit menu.</p>
+
+<li>Save Configuration</li></p>
+
+WebScarab can store certain configuration options in a properties file. This is called WebScarab.properties, and is located in your home directory (~/ on Unix, and usually Documents and Setting\username\ on Win32). Examples of data that is saved include upstream Proxy settings, and settings for various plugins. This properties file is read on startup if it exists, but is only saved when this option is explicitly selected.</p>
+</ul>
+</body>
+</html>
