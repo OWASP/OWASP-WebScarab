@@ -41,6 +41,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import java.text.ParseException;
 
@@ -54,6 +55,7 @@ import java.net.MalformedURLException;
 public class FileSystemStore implements SiteModelStore, SpiderStore, SessionIDStore {
     
     private String _dir;
+    private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     public static boolean isExistingSession(String dir) {
         File f = new File(dir + "conversationlog");
@@ -102,9 +104,9 @@ public class FileSystemStore implements SiteModelStore, SpiderStore, SessionIDSt
         String fragments = _dir + "fragments";
         f = new File(fragments);
         if (!f.exists() && !f.mkdirs()) {
-            throw new StoreException("Couldn't create directory " + _dir + "conversations");
+            throw new StoreException("Couldn't create directory " + _dir + "fragments");
         } else if (!f.isDirectory()) {
-            throw new StoreException(_dir + "conversations exists, and is not a directory!");
+            throw new StoreException(_dir + "fragments exists, and is not a directory!");
         }
     }
 
@@ -514,18 +516,6 @@ public class FileSystemStore implements SiteModelStore, SpiderStore, SessionIDSt
         return list;
     }
     
-    public static void main(String[] args) {
-        FileSystemStore fss = new FileSystemStore("/tmp/webscarab/");
-        try {
-            Request req = fss.readRequest("1");
-            Request req2 = new Request(req);
-            System.out.println("Request is '" + req.toString() + "'");
-            System.out.println("Request2 is '" + req2.toString() + "'");
-        } catch (Exception e) {
-            System.out.println("Exception : " + e);
-        }
-    }
-
     /** retrieves a saved text fragment
      * @param key The key used previously to save the fragment
      * @return A String containing the fragment
