@@ -10,19 +10,12 @@ import org.owasp.webscarab.model.StoreException;
 
 import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.httpclient.HTTPClient;
-import java.util.Properties;
 
 /**
  *
  * @author  rdawes
  */
 public abstract class ProxyPlugin {
-    
-    protected Properties _props;
-    
-    protected ProxyPlugin(Properties props) {
-        _props = props;
-    }
     
     public void setModel(SiteModel model, String type, Object connection) {
     }
