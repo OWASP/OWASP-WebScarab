@@ -156,6 +156,7 @@ public class SiteModel {
                 _ctm.fireTableDataChanged();
             }
             synchronized (_urlinfo) {
+                _urltree.clear();
                 _urlinfo.clear();
                 URLInfo[] urlinfo = _store.readURLInfo();
                 for (int i=0; i<urlinfo.length; i++) {

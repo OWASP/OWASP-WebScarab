@@ -243,7 +243,11 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
      * particular URL
      */
     public synchronized void analyse(Request request, Response response, Conversation conversation, URLInfo urlinfo, Object parsed) {
-        String referer = request.getURL().toString();
+        String referer = canonicalURL(request.getURL().toString());
+        if (referer == null) {
+            System.err.println("referer was a malformed URL!");
+            return;
+        }
         synchronized (_unseenLinks) {
             if (_unseenLinks.containsKey(referer)) {
                 int index = _unseenLinks.indexOf(referer);
@@ -301,9 +305,9 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     }
     
     private void addUnseenLink(String url, String referer) {
-        int anchor = url.indexOf("#");
-        if (anchor>-1) {
-            url = url.substring(0,anchor);
+        url = canonicalURL(url);
+        if (url == null) {
+            return;
         }
         synchronized (_unseenLinks) {
             if (!_seenLinks.containsKey(url) && !_unseenLinks.containsKey(url)) {
@@ -390,6 +394,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         if (store != null && store instanceof SpiderStore) {
             _store = (SpiderStore) store;
             synchronized (_unseenLinks) {
+                _unseenLinkTreeModel.clear(); // this fires its own events
                 _unseenLinks.clear();
                 Link[] links = _store.readUnseenLinks();
                 for (int i=0; i<links.length; i++) {
@@ -428,6 +433,20 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 _store.writeSeenLinks(seen);
             }
         }
+    }
+    
+    private String canonicalURL(String url) {
+        try {
+            URL u = new URL(url);
+            url = URLUtil.schemeAuthPathQry(u);
+            if (u.getPath().equals("")) {
+                url=url+"/";
+            }
+        } catch (MalformedURLException mue) {
+            System.err.println("Malformed url '" + url + "' : " + mue);
+            return null;
+        }
+        return url;
     }
     
     private class UnseenLinkTableModel extends AbstractTableModel {
