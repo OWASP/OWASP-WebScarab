@@ -1,3 +1,0 @@
-Manifest-Version: 1.0
-Created-By: Open Web Application Security Project (OWASP)
-Main-Class: org.owasp.webscarab.ui.swing.WebScarab
