@@ -8,6 +8,8 @@ package org.owasp.webscarab.ui.swing.manualrequest;
 
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.model.Conversation;
+import org.owasp.webscarab.model.SiteModel;
 
 import org.owasp.webscarab.plugin.manualrequest.ManualRequest;
 
@@ -15,12 +17,22 @@ import org.owasp.webscarab.ui.swing.SwingPlugin;
 import org.owasp.webscarab.ui.swing.SwingWorker;
 import org.owasp.webscarab.ui.swing.RequestPanel;
 import org.owasp.webscarab.ui.swing.ResponsePanel;
+import org.owasp.webscarab.ui.swing.ListComboBoxModel;
+
 import org.owasp.webscarab.ui.Framework;
 
 import javax.swing.border.TitledBorder;
 
 import java.io.IOException;
 import javax.swing.JOptionPane;
+import javax.swing.ComboBoxModel;
+import javax.swing.ListModel;
+import javax.swing.JLabel;
+import java.awt.Component;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 import java.util.logging.Logger;
 
@@ -30,11 +42,12 @@ import java.util.logging.Logger;
  */
 public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugin {
     
+    private SiteModel _siteModel;
     private ManualRequest _manualRequest;
     private SwingWorker _sw = null;
     
-    private RequestPanel requestPanel;
-    private ResponsePanel responsePanel;
+    private final RequestPanel _requestPanel;
+    private final ResponsePanel _responsePanel;
     
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
@@ -44,15 +57,32 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         framework.addPlugin(_manualRequest);
         
         initComponents();
-
-        requestPanel = new RequestPanel();
-        requestPanel.setEditable(true);
-        requestPanel.setBorder(new TitledBorder("Request"));
-        conversationSplitPane.setLeftComponent(requestPanel);
-
-        responsePanel = new ResponsePanel();
-        responsePanel.setBorder(new TitledBorder("Response"));
-        conversationSplitPane.setRightComponent(responsePanel);
+        
+        _siteModel = framework.getSiteModel();
+        ListModel conversationList = _siteModel.getConversationListModel();
+        ComboBoxModel requestModel = new ListComboBoxModel(conversationList);
+        requestComboBox.setModel(requestModel);
+        requestComboBox.setRenderer(new ConversationRenderer());
+        requestComboBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Object o = requestComboBox.getSelectedItem();
+                if (o instanceof Conversation) {
+                    Conversation c = (Conversation) o;
+                    String id = c.getProperty("ID");
+                    Request r = _siteModel.getRequest(id);
+                    _requestPanel.setRequest(r);
+                    _responsePanel.setResponse(null);
+                }
+            }
+        });
+        _requestPanel = new RequestPanel();
+        _requestPanel.setEditable(true);
+        _requestPanel.setBorder(new TitledBorder("Request"));
+        conversationSplitPane.setLeftComponent(_requestPanel);
+        
+        _responsePanel = new ResponsePanel();
+        _responsePanel.setBorder(new TitledBorder("Response"));
+        conversationSplitPane.setRightComponent(_responsePanel);
     }
     
     /** This method is called from within the constructor to
@@ -63,6 +93,8 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
+        jLabel1 = new javax.swing.JLabel();
+        requestComboBox = new javax.swing.JComboBox();
         conversationSplitPane = new javax.swing.JSplitPane();
         getCookieButton = new javax.swing.JButton();
         fetchResponseButton = new javax.swing.JButton();
@@ -70,9 +102,26 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
 
         setLayout(new java.awt.GridBagLayout());
 
+        jLabel1.setText("Previous Requests :");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        add(jLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        add(requestComboBox, gridBagConstraints);
+
         conversationSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         conversationSplitPane.setResizeWeight(0.5);
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
@@ -87,8 +136,8 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.weightx = 1.0;
         add(getCookieButton, gridBagConstraints);
 
@@ -100,6 +149,8 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.weightx = 1.0;
         add(fetchResponseButton, gridBagConstraints);
 
@@ -111,28 +162,30 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.weightx = 1.0;
         add(updateCookiesButton, gridBagConstraints);
 
     }//GEN-END:initComponents
-
+    
     private void updateCookiesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateCookiesButtonActionPerformed
         _manualRequest.updateCookies();
     }//GEN-LAST:event_updateCookiesButtonActionPerformed
-
+    
     private void getCookieButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getCookieButtonActionPerformed
-        Request request = requestPanel.getRequest();
+        Request request = _requestPanel.getRequest();
         if (request != null) {
             _manualRequest.addRequestCookies(request);
-            requestPanel.setRequest(request);
+            _requestPanel.setRequest(request);
         }
     }//GEN-LAST:event_getCookieButtonActionPerformed
-
+    
     private void fetchResponseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fetchResponseButtonActionPerformed
-        final Request request = requestPanel.getRequest();
+        final Request request = _requestPanel.getRequest();
         if (request != null) {
             fetchResponseButton.setEnabled(false);
-            responsePanel.setResponse(null);
+            _responsePanel.setResponse(null);
             new SwingWorker() {
                 public Object construct() {
                     try {
@@ -141,14 +194,14 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
                         return ioe.toString();
                     }
                 }
-
+                
                 //Runs on the event-dispatching thread.
                 public void finished() {
                     Object obj = getValue();
                     if (obj instanceof Response) {
                         Response response = (Response) getValue();
                         if (response != null) {
-                            responsePanel.setResponse(response);
+                            _responsePanel.setResponse(response);
                         }
                     } else if (obj instanceof String) {
                         JOptionPane.showMessageDialog(null, new String[] {"Error fetching response: ", obj.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
@@ -161,14 +214,14 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
             _logger.severe("Can't fetch a null request");
         }
     }//GEN-LAST:event_fetchResponseButtonActionPerformed
-
+    
     public javax.swing.JPanel getPanel() {
         return this;
-    }    
+    }
     
     public String getPluginName() {
         return new String("Manual Request");
-    }    
+    }
     
     public static void main(String[] args) {
         SwingPlugin sp = new ManualRequestPanel(new Framework());
@@ -196,7 +249,43 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
     private javax.swing.JSplitPane conversationSplitPane;
     private javax.swing.JButton fetchResponseButton;
     private javax.swing.JButton getCookieButton;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JComboBox requestComboBox;
     private javax.swing.JButton updateCookiesButton;
     // End of variables declaration//GEN-END:variables
     
+    private class ConversationRenderer extends JLabel implements ListCellRenderer {
+        public ConversationRenderer() {
+            setOpaque(true);
+            setHorizontalAlignment(LEFT);
+            setVerticalAlignment(CENTER);
+        }
+        
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            if (isSelected) {
+                setBackground(list.getSelectionBackground());
+                setForeground(list.getSelectionForeground());
+            } else {
+                setBackground(list.getBackground());
+                setForeground(list.getForeground());
+            }
+            if (value instanceof Conversation) {
+                Conversation c = (Conversation) value;
+                StringBuffer buff = new StringBuffer(30);
+                buff.append(c.getProperty("ID")).append(" - ");
+                buff.append(c.getProperty("METHOD")).append(" ");
+                buff.append(c.getProperty("URL"));
+                String comment = c.getProperty("COMMENT");
+                if (comment != null && !comment.equals("")) {
+                    buff.append(" - ").append(comment);
+                }
+                setText(buff.toString());
+            } else if (value != null) {
+                setText(value.toString());
+            } else {
+                setText("");
+            }
+            return this;
+        }
+    }
 }
