@@ -1,0 +1,63 @@
+<installation version="1.0">
+    <info>
+        <appname>WebScarab</appname>
+        <appversion>!</appversion>
+        <authors>
+            <author email="rdawes@deloitte.co.za" name="Rogan Dawes"/>
+        </authors>
+        <url>http://owasp.org/development/webscarab</url>
+    </info>
+    <guiprefs height="480" resizable="no" width="640"/>
+    <locale>
+        <langpack iso3="eng"/>
+    </locale>
+    <resources>
+        <res id="Installer.image" src="webscarab_logo.gif"/>
+        <res id="LicencePanel.licence" src="LICENSE"/>
+        <res id="InfoPanel.info" src="README"/>
+        <res id="shortcutSpec.xml" src="installer/shortcutSpec.xml"/>
+        <res id="useNativeLAF" src="installer/useNativeLAF"/>
+    </resources>
+    <panels>
+        <panel classname="HelloPanel"/>
+        <panel classname="InfoPanel"/>
+        <panel classname="LicencePanel"/>
+        <panel classname="TargetPanel"/>
+        <panel classname="PacksPanel"/>
+        <panel classname="InstallPanel"/>
+        <panel classname="ShortcutPanel"/>
+        <panel classname="FinishPanel"/>
+    </panels>
+    <native type="izpack" name="ShellLink.dll"/>
+    <packs>
+        <pack name="Base" required="yes">
+            <description>The base files</description>
+            <singlefile src="README" target="$INSTALL_PATH/README.txt"/>
+            <singlefile src="LICENSE" target="$INSTALL_PATH/LICENSE.txt"/>
+            <file src="webscarab.jar" targetdir="$INSTALL_PATH"/>
+            <file src="serverkeys" targetdir="$INSTALL_PATH"/>
+            <file src="bin/webscarab.sh" targetdir="$INSTALL_PATH" os="unix"/>
+            <file src="bin/webscarab.bat" targetdir="$INSTALL_PATH" os="windows"/>
+            <file src="lib/owasp.jar" targetdir="$INSTALL_PATH/lib/"/>
+            <file src="lib/htmlparser.jar" targetdir="$INSTALL_PATH/lib/"/>
+            <parsable targetfile="$INSTALL_PATH/webscarab.sh" os="unix"/>
+            <executable targetfile="$INSTALL_PATH/webscarab.sh" os="unix"/>
+            <parsable targetfile="$INSTALL_PATH/webscarab.bat" os="windows"/>
+            <executable targetfile="$INSTALL_PATH/webscarab.bat" os="windows"/>
+        </pack>
+        <pack name="Docs" required="no" preselected="no">
+            <description>The documentation</description>
+            <fileset dir="doc" targetdir="$INSTALL_PATH/doc/">
+                <exclude name="**/CVS/*"/>
+            </fileset>
+        </pack>
+        <pack name="Sources" required="no" preselected="no">
+            <description>The sources</description>
+            <singlefile src="build_rogan.xml" target="$INSTALL_PATH/build.xml"/>
+            <fileset dir="src" targetdir="$INSTALL_PATH/src/">
+                <include name="**/*.java"/>
+                <include name="**/*.form"/>
+            </fileset>
+        </pack>
+    </packs>
+</installation>

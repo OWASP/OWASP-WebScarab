@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<shortcuts>
+
+  <programGroup defaultName="WebScarab" location="applications"/>
+  
+  <shortcut
+     name="WebScarab"
+     target="$INSTALL_PATH\webscarab.bat"
+     initialState="noShow"
+     programGroup="yes"
+     desktop="yes"
+     applications="no"
+     startMenu="no"
+     startup="no"
+     description="WebScarab Web Application testing tool" >
+   
+   </shortcut>
+
+   <shortcut
+     name="Uninstaller"
+     programGroup="yes"
+     desktop="no"
+     applications="no"
+     startMenu="no"
+     startup="no"
+     target="$INSTALL_PATH\Uninstaller\uninstaller.jar"
+     commandLine=""
+     description="WebScarab uninstaller">
+     
+   </shortcut>
+   
+</shortcuts>
