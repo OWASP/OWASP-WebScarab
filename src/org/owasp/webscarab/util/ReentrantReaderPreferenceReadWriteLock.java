@@ -7,6 +7,7 @@
 package org.owasp.webscarab.util;
 
 import EDU.oswego.cs.dl.util.concurrent.ReentrantWriterPreferenceReadWriteLock;
+import EDU.oswego.cs.dl.util.concurrent.Sync;
 
 import java.util.Iterator;
 
@@ -20,9 +21,12 @@ import java.util.Iterator;
  */
 public class ReentrantReaderPreferenceReadWriteLock extends ReentrantWriterPreferenceReadWriteLock {
     
+    private Sync _writeLock;
+    
     /** Creates a new instance of ReentrantReaderPreferenceReadWriteLock */
     public ReentrantReaderPreferenceReadWriteLock() {
         super();
+        _writeLock = new LoggingLock(super.writeLock());
     }
     
     
@@ -53,4 +57,47 @@ public class ReentrantReaderPreferenceReadWriteLock extends ReentrantWriterPrefe
         activeWriter_.dumpStack();
     }
     
+    public EDU.oswego.cs.dl.util.concurrent.Sync writeLock() {
+        return _writeLock;
+    }
+    
+    private class LoggingLock implements Sync {
+        
+        private Sync _sync;
+        
+        public LoggingLock(Sync sync) {
+            _sync = sync;
+        }
+        
+        public void acquire() throws InterruptedException {
+            System.err.println(Thread.currentThread().getName() + " acquiring");
+            while (!_sync.attempt(5000)) {
+                debug();
+            }
+            System.err.println(Thread.currentThread().getName() + " acquired");
+        }
+        
+        public boolean attempt(long msecs) throws InterruptedException {
+            System.err.println(Thread.currentThread().getName() + " attempting");
+            try {
+                boolean result = _sync.attempt(msecs);
+                if (result) {
+                    System.err.println(Thread.currentThread().getName() + " successful");
+                } else {
+                    System.err.println(Thread.currentThread().getName() + " unsuccessful");
+                }
+                return result;
+            } catch (InterruptedException ie) {
+                System.err.println(Thread.currentThread().getName() + " interrupted");
+                throw ie;
+            }
+        }
+        
+        public void release() {
+            System.err.println(Thread.currentThread().getName() + " releasing");
+            _sync.release();
+            System.err.println(Thread.currentThread().getName() + " released");
+        }
+        
+    }
 }
