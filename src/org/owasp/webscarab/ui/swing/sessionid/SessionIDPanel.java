@@ -518,6 +518,14 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
     public void intervalRemoved(ListDataEvent e) {
     }
     
+    public javax.swing.Action[] getConversationActions() {
+        return null;
+    }
+    
+    public javax.swing.Action[] getURLActions() {
+        return null;
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel4;

@@ -60,6 +60,7 @@ public class WebScarab extends javax.swing.JFrame {
     
     private ProxyConfig _proxyConfig = null;
     private CookieJarViewer _cookieJarViewer = null;
+    private SummaryPanel _summaryPanel;
     
     private File _defaultDir = null;
     private Properties _prop = null;
@@ -80,7 +81,8 @@ public class WebScarab extends javax.swing.JFrame {
         // load the properties
         _prop = Preferences.getPreferences();
         
-        addPlugin(new SummaryPanel(_framework));
+        _summaryPanel = new SummaryPanel(_framework);
+        mainTabbedPane.add(_summaryPanel, "Summary");
         
     }
     
@@ -97,6 +99,8 @@ public class WebScarab extends javax.swing.JFrame {
                 }
             });
         }
+        _summaryPanel.addURLActions(plugin.getURLActions());
+        _summaryPanel.addConversationActions(plugin.getConversationActions());
     }
     
     

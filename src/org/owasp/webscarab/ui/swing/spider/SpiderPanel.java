@@ -307,7 +307,15 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
     private void recursiveCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recursiveCheckBoxActionPerformed
         _spider.setRecursive(recursiveCheckBox.isSelected());
     }//GEN-LAST:event_recursiveCheckBoxActionPerformed
+
+    public javax.swing.Action[] getConversationActions() {
+        return null;
+    }    
         
+    public javax.swing.Action[] getURLActions() {
+        return null;
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel linkTablePanel;
     private javax.swing.JScrollPane jScrollPane1;

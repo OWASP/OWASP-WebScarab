@@ -269,7 +269,15 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
             _ltm.fireTableDataChanged();
         }
     }//GEN-LAST:event_stopButtonActionPerformed
+
+    public javax.swing.Action[] getConversationActions() {
+        return null;
+    }    
         
+    public javax.swing.Action[] getURLActions() {
+        return null;
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField addressTextField;
     private javax.swing.JTextField baseTextField;

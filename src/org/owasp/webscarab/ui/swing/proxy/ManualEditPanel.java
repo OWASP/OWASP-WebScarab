@@ -1,5 +1,5 @@
 /*
- * $Id: ManualEditPanel.java,v 1.5 2003/10/09 06:40:04 rogan Exp $
+ * $Id: ManualEditPanel.java,v 1.6 2003/12/20 14:17:23 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -387,15 +387,14 @@ public class ManualEditPanel extends javax.swing.JPanel implements SwingPlugin {
     
     public JPanel getPanel() {
         return this;
-    }    
-                
-    public void newSession(String dir) {
     }
     
-    public void openSession(String dir) {
+    public javax.swing.Action[] getConversationActions() {
+        return null;
     }
     
-    public void saveSession(String dir) {
+    public javax.swing.Action[] getURLActions() {
+        return null;
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

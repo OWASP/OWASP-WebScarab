@@ -44,7 +44,7 @@ import java.net.MalformedURLException;
  *
  * @author  rdawes
  */
-public class SummaryPanel extends javax.swing.JPanel implements SwingPlugin {
+public class SummaryPanel extends javax.swing.JPanel {
     
     private Framework _framework;
     private JTreeTable _urlTreeTable;
@@ -126,18 +126,24 @@ public class SummaryPanel extends javax.swing.JPanel implements SwingPlugin {
     }
     
     private void addTreeActions() {
-        Action a = new FragmentAction("COMMENTS");
-        addURLAction(a);
-        a = new FragmentAction("SCRIPTS");
-        addURLAction(a);
+        Action[] actions = new Action[] { 
+            new FragmentAction("COMMENTS"),
+            new FragmentAction("SCRIPTS"),
+        };
+        addURLActions(actions);
     }
     
-    public void addURLAction(Action action) {
+    public void addURLActions(Action[] actions) {
+        if (actions == null) return;
         synchronized (_urlActions) {
-            _urlActions.add(action);
+            for (int i=0; i<actions.length; i++) {
+                _urlActions.add(actions[i]);
+            }
         }
         synchronized (urlPopupMenu) {
-            urlPopupMenu.add(new JMenuItem(action));
+            for (int i=0; i<actions.length; i++) {
+                urlPopupMenu.add(new JMenuItem(actions[i]));
+            }
         }
     }
     
@@ -195,20 +201,25 @@ public class SummaryPanel extends javax.swing.JPanel implements SwingPlugin {
     }
     
     private void addTableActions() {
-        AbstractAction a = new ShowDetailAction();
-        addConversationAction(a);
-        a = new FragmentAction("COMMENTS");
-        addConversationAction(a);
-        a = new FragmentAction("SCRIPTS");
-        addConversationAction(a);
+        Action[] actions = new Action[] {
+            new ShowDetailAction(),
+            new FragmentAction("COMMENTS"),
+            new FragmentAction("SCRIPTS"),
+        };
+        addConversationActions(actions);
     }
     
-    public void addConversationAction(Action action) {
+    public void addConversationActions(Action[] actions) {
+        if (actions == null) return;
         synchronized (_conversationActions) {
-            _conversationActions.add(action);
+            for (int i=0; i<actions.length; i++) {
+                _conversationActions.add(actions[i]);
+            }
         }
         synchronized (conversationPopupMenu) {
-            conversationPopupMenu.add(new JMenuItem(action));
+            for (int i=0; i< actions.length; i++) {
+                conversationPopupMenu.add(new JMenuItem(actions[i]));
+            }
         }
     }
     
@@ -220,7 +231,7 @@ public class SummaryPanel extends javax.swing.JPanel implements SwingPlugin {
         }
     }
     
-    public void showConversationDetails(final String id) {
+    private void showConversationDetails(final String id) {
         Request request = _siteModel.getRequest(id);
         Response response = _siteModel.getResponse(id);
         if (request == null && response == null) {
@@ -329,15 +340,7 @@ public class SummaryPanel extends javax.swing.JPanel implements SwingPlugin {
         add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
     }//GEN-END:initComponents
-    
-    public javax.swing.JPanel getPanel() {
-        return this;
-    }
-    
-    public String getPluginName() {
-        return "Summary";
-    }
-    
+      
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel conversationPanel;
     private javax.swing.JPopupMenu conversationPopupMenu;

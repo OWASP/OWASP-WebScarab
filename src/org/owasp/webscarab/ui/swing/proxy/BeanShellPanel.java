@@ -1,5 +1,5 @@
 /*
- * $Id: BeanShellPanel.java,v 1.1 2003/10/22 19:22:30 rogan Exp $
+ * $Id: BeanShellPanel.java,v 1.2 2003/12/20 14:17:23 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -176,6 +176,14 @@ public class BeanShellPanel extends javax.swing.JPanel implements SwingPlugin {
     public JPanel getPanel() {
         return this;
     }    
+    
+    public javax.swing.Action[] getConversationActions() {
+        return null;
+    }
+    
+    public javax.swing.Action[] getURLActions() {
+        return null;
+    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel interceptrequestPanel;

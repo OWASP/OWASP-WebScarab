@@ -167,6 +167,14 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         top.show();
     }
     
+    public javax.swing.Action[] getConversationActions() {
+        return null;
+    }
+    
+    public javax.swing.Action[] getURLActions() {
+        return null;
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JSplitPane conversationSplitPane;
     private javax.swing.JButton fetchResponseButton;

@@ -7,6 +7,7 @@
 package org.owasp.webscarab.ui.swing;
 
 import javax.swing.JPanel;
+import javax.swing.Action;
 
 /**
  *
@@ -17,5 +18,9 @@ public interface SwingPlugin {
     String getPluginName();
     
     JPanel getPanel();
+    
+    Action[] getURLActions();
+    
+    Action[] getConversationActions();
     
 }

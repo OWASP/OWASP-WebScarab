@@ -145,6 +145,14 @@ public class MiscPanel extends javax.swing.JPanel implements SwingPlugin {
     private void interceptHiddenFieldCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_interceptHiddenFieldCheckBoxActionPerformed
         _revealHidden.setEnabled(interceptHiddenFieldCheckBox.isSelected());
     }//GEN-LAST:event_interceptHiddenFieldCheckBoxActionPerformed
+
+    public javax.swing.Action[] getConversationActions() {
+        return null;
+    }    
+    
+    public javax.swing.Action[] getURLActions() {
+        return null;
+    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox browserCacheCheckBox;
