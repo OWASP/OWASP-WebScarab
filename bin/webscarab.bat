@@ -1,2 +1,2 @@
 @echo off
-javaw -jar $INSTALL_PATH/webscarab.jar $*
+javaw -jar "$INSTALL_PATH\webscarab.jar" "%1"
