@@ -69,31 +69,43 @@ public class ConversationListModel extends AbstractListModel {
     }
     
     public Object getElementAt(int index) {
+        return getConversationAt(index);
+    }
+    
+    public int getIndexOfConversation(ConversationID id) {
+        return _model.getIndexOfConversation(id);
+    }
+    
+    public int getConversationCount() {
+        return _model.getConversationCount();
+    }
+    
+    public ConversationID getConversationAt(int index) {
         return _model.getConversationAt(index);
     }
     
     public int getSize() {
         if (_model == null) return 0;
-        _size = _model.getConversationCount();
+        _size = getConversationCount();
         return _size;
     }
     
     protected void addedConversation(SiteModelEvent evt) {
         ConversationID id = evt.getConversationID();
-        int row = _model.getIndexOfConversation(id);
-        fireIntervalAdded(this, row, row);
+        int row = getIndexOfConversation(id);
+        if (row>-1) fireIntervalAdded(this, row, row);
     }
     
     protected void changedConversation(SiteModelEvent evt) {
         ConversationID id = evt.getConversationID();
-        int row = _model.getIndexOfConversation(id);
-        fireContentsChanged(this, row, row);
+        int row = getIndexOfConversation(id);
+        if (row>-1) fireContentsChanged(this, row, row);
     }
     
     protected void removedConversation(SiteModelEvent evt) {
         ConversationID id = evt.getConversationID();
-        int position = _model.getIndexOfConversation(id);
-        fireIntervalRemoved(this, position, position);
+        int row = getIndexOfConversation(id);
+        if (row>-1) fireIntervalRemoved(this, row, row);
     }
     
     protected void conversationsChanged(SiteModelEvent evt) {
