@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="build" name="WebScarab">
+	<target name="init">
+        <tstamp/>
+		<property name="dist" value="webscarab"/>
+		<property name="jarname" value="webscarab-${DSTAMP}-${TSTAMP}"/>
+		<property name="source" value="src"/>
+		<property name="classes" value="classes"/>
+		<property name="mainclass" value="org.owasp.webscarab.ui.swing.WebScarab"/>
+             	<property name="ocljar" value="lib/owasp.jar"/>
+             	<property name="junitjar" value="lib/junit-3.7.jar"/>
+             	<property name="htmlparserjar" value="lib/htmlparser.jar"/>
+       		<path id="cpath">
+			<pathelement location="./classes/"/>
+			<pathelement path="${ocljar}"/>
+                        <pathelement path="${junitjar}"/>
+                        <pathelement path="${htmlparserjar}"/>
+		</path>
+	</target>
+	<target depends="init" name="clean">
+		<delete dir="${classes}"/>
+		<delete verbose="on">
+			<fileset defaultexcludes="org" dir="." includes="**/*~"/>
+			<fileset defaultexcludes="org" dir="." includes="**/*.class"/>
+		</delete>
+	</target>
+	<target depends="init" name="prepare">
+		<mkdir dir="${classes}"/>
+	</target>
+	<target depends="prepare" name="compile">
+		<javac classpathref="cpath" compiler="extJavac" deprecation="off" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}"/>
+	</target>
+	<target depends="compile" name="build">
+                <mkdir dir="${classes}/src"/>
+                <copy file="WebScarab.properties" todir="${classes}"/>
+                <copy file="serverkeys" todir="${classes}"/>
+                <!-- <copy todir="${classes}/src">
+                    <fileset dir="${source}">
+                        <exclude name="**/*.class"/>
+                    </fileset>
+                </copy> -->
+		<jar basedir="${classes}" jarfile="${jarname}.jar">
+                    <manifest>
+                        <attribute name="Main-Class" value="${mainclass}"/>
+                        <attribute name="Class-Path" value="lib/owasp.jar lib/htmlparser.jar"/>
+                    </manifest>
+                </jar>
+	</target>
+	<target depends="compile" name="run">
+		<java classname="${mainclass}" classpathref="cpath" fork="on">
+		</java>
+	</target>
+        
+</project>
