@@ -32,19 +32,13 @@ import javax.swing.tree.DefaultMutableTreeNode;
 public class SiteModel {
     
     private SequencedTreeMap _conversationList;  // maintains a list of conversations
-    private SequencedTreeMap _requestCache; // maintains a list of cached Requests
-    private SequencedTreeMap _responseCache; // maintains a list of cached Responses
-    
     private Map _urlinfo;              // maps urls to attrs
-    private int _cachesize = 10;
     
     private Logger logger = Logger.getLogger("WebScarab");
     
     private ConversationTableModel _ctm = new ConversationTableModel();
     
-    // the number of Requests and Responses to keep in memory at once. 
-    // This includes the complete Request and Response objects, so don't make it too large.
-    private static int CONVERSATIONCACHESIZE = 10;
+    private SiteModelStore _store = null;
     
     /**
      *  Constructor
@@ -52,31 +46,30 @@ public class SiteModel {
     public SiteModel() {
         _conversationList = new SequencedTreeMap();
         _urlinfo = Collections.synchronizedMap(new TreeMap());
-        _requestCache = new SequencedTreeMap();
-        _responseCache = new SequencedTreeMap();
     } // constructor SiteModel
     
-    /** Initialises the lists of conversations, URLInfos, etc */
-    public void clearSession() {
-        // clear the conversation list
-        _conversationList.clear();
-        // clear the Request and Response cache
-        _requestCache.clear();
-        _responseCache.clear();
-        // clear the conversationtablemodel
-        _ctm.fireTableDataChanged();
-        // clear the URLInfo.
-        _urlinfo.clear();
-    }
-    
     // returns the conversation ID
-    public String addConversation(Conversation conversation) {
+    public String addConversation(Conversation conversation, Request request, Response response) {
         String id;
         synchronized (_conversationList) {
             id = Integer.toString(_conversationList.size()+1); // FIXME!! Don't use size here!
+            conversation.setProperty("ID", id);
             _conversationList.put(id, conversation);
             int row = _conversationList.size();
             _ctm.fireTableRowsInserted(row, row);
+        }
+        System.err.println("Conversation added");
+        if (_store != null) {
+            try {
+                System.err.println("Writing to the store");
+                _store.writeRequest(id, request);
+                _store.writeResponse(id, response);
+                System.err.println("Done writing");
+            } catch (StoreException se) {
+                System.err.println("Error writing conversation " + id + " to the store : " + se);
+            }
+        } else {
+            System.err.println("Added conversation " + id + " before the store was initialised!");
         }
         return id;
     }
@@ -88,38 +81,36 @@ public class SiteModel {
     public Conversation getConversation(String id) {
         synchronized (_conversationList) {
             if (_conversationList.containsKey(id)) {
-                // this should always return here, since we cache all the 
-                // conversations in memory
                 return (Conversation) _conversationList.get(id);
             }
         }
         return null;
     }
     
-    public void setRequest(String id, Request request) {
-        synchronized (_requestCache) {
-            if (_requestCache.size() > CONVERSATIONCACHESIZE) {
-                _requestCache.remove(0);
-            }
-            _requestCache.put(id, request);
-        }
-    }
-    
     public Request getRequest(String id) {
-        return (Request) _requestCache.get(id);
-    }
-    
-    public void setResponse(String id, Response response) {
-        synchronized (_responseCache) {
-            if (_responseCache.size() > CONVERSATIONCACHESIZE) {
-                _responseCache.remove(0);
+        if (_store != null) {
+            try {
+                return _store.readRequest(id);
+            } catch (StoreException se) {
+                System.err.println("Error reading Request " + id + " from the store : " + se);
+                return null;
             }
-            _responseCache.put(id, response);
+        } else {
+            return null;
         }
     }
     
     public Response getResponse(String id) {
-        return (Response) _responseCache.get(id);
+        if (_store != null) {
+            try {
+                return _store.readResponse(id);
+            } catch (StoreException se) {
+                System.err.println("Error reading Response " + id + " from the store : " + se);
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
     
     public URLInfo getURLInfo(String url) {
@@ -132,6 +123,54 @@ public class SiteModel {
             }
         }
         return ui;
+    }
+    
+    
+    public void setSessionStore(Object store) throws StoreException {
+        if (store != null && store instanceof SiteModelStore) {
+            _store = (SiteModelStore) store;
+            synchronized (_conversationList) {
+                _conversationList.clear();
+                Conversation[] conversation = _store.readConversations();
+                for (int i=0; i<conversation.length; i++) {
+                    _conversationList.put(conversation[i].getProperty("ID"),conversation[i]);
+                }
+                _ctm.fireTableDataChanged();
+            }
+            synchronized (_urlinfo) {
+                _urlinfo.clear();
+                URLInfo[] urlinfo = _store.readURLInfo();
+                for (int i=0; i<urlinfo.length; i++) {
+                    _urlinfo.put(urlinfo[i].getURL(), urlinfo[i]);
+                }
+                // Fixme : if we keep a tree of URLInfo's, we should fire a tree changed
+                // event here
+            }
+        } else {
+            throw new StoreException("object passed does not implement SiteModelStore!");
+        }
+    }
+    
+    public void saveSessionData() throws StoreException {
+        if (_store != null) {
+            synchronized (_conversationList) {
+                Conversation[] conversations = new Conversation[_conversationList.size()];
+                for (int i=0; i<conversations.length; i++) {
+                    conversations[i] = (Conversation) _conversationList.get(i);
+                }
+                _store.writeConversations(conversations);
+            }
+            synchronized (_urlinfo) {
+                URLInfo[] urlinfo = new URLInfo[_urlinfo.size()];
+                Iterator urls = _urlinfo.keySet().iterator();
+                for (int i=0; i<urlinfo.length; i++) {
+                    urlinfo[i] = (URLInfo) _urlinfo.get(urls.next());
+                }
+                _store.writeURLInfo(urlinfo);
+            }
+        } else {
+            throw new StoreException("save called on a null session!");
+        }
     }
     
     public TableModel getConversationTableModel() {
@@ -174,11 +213,7 @@ public class SiteModel {
             }
             Conversation c = (Conversation) _conversationList.get(row);
             if (column <= columnNames.length) {
-                if (column == 0) {
-                    return new Integer(row+1).toString();
-                } else {
-                    return c.getProperty(columnNames[column].toUpperCase());
-                }
+                return c.getProperty(columnNames[column].toUpperCase());
             } else {
                 System.err.println("Attempt to get row " + row + ", column " + column + " : column does not exist!");
                 return null;
@@ -186,4 +221,5 @@ public class SiteModel {
         }
     }
     
+
 }
