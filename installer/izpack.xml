@@ -36,18 +36,13 @@
             <singlefile src="LICENSE" target="$INSTALL_PATH/LICENSE.txt"/>
             <singlefile src="ChangeLog" target="$INSTALL_PATH/ChangeLog.txt"/>
             <file src="webscarab.jar" targetdir="$INSTALL_PATH"/>
-            <file src="bin/webscarab.sh" targetdir="$INSTALL_PATH" os="unix"/>
-            <file src="bin/webscarab.bat" targetdir="$INSTALL_PATH" os="windows"/>
             <file src="lib/concurrent.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/htmlparser.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/bsh-2.0b1.jar" targetdir="$INSTALL_PATH/lib/"/>
+            <file src="lib/bsf-2.3.0.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/jfreechart-0.9.12.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/jcommon-0.8.7.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="doc/WebScarab-Howto.txt" targetdir="$INSTALL_PATH/doc/"/>
-            <parsable targetfile="$INSTALL_PATH/webscarab.sh" os="unix"/>
-            <executable targetfile="$INSTALL_PATH/webscarab.sh" os="unix"/>
-            <parsable targetfile="$INSTALL_PATH/webscarab.bat" os="windows"/>
-            <executable targetfile="$INSTALL_PATH/webscarab.bat" os="windows"/>
         </pack>
         <pack name="Docs" required="no" preselected="no">
             <description>The documentation</description>
@@ -61,8 +56,9 @@
             <file src="server.p12" targetdir="$INSTALL_PATH"/>
             <file src="client.p12" targetdir="$INSTALL_PATH"/>
             <fileset dir="src" targetdir="$INSTALL_PATH/src/">
-                <include name="**/*.java"/>
-                <include name="**/*.form"/>
+                <exclude name="**/*.class"/>
+                <exclude name="**/*~"/>
+                <exclude name="**/.*"/>
             </fileset>
         </pack>
     </packs>

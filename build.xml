@@ -47,7 +47,7 @@
 		<jar basedir="${classes.dir}" jarfile="${jar}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
-                        <attribute name="Class-Path" value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar}"/>
+                        <attribute name="Class-Path" value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar}"/>
                         <!-- <attribute name="Built-By" value="${user.name}"/> -->
                         <section name="common">
                             <attribute name="Implementation-Title" value="common"/>

@@ -6,7 +6,7 @@
   
   <shortcut
      name="WebScarab"
-     target="$INSTALL_PATH\webscarab.bat"
+     target="$INSTALL_PATH\webscarab.jar"
      initialState="noShow"
      programGroup="yes"
      desktop="yes"
