@@ -67,7 +67,7 @@
 		<pathelement path="/opt/owasp/vulnxml/lib/gnu-regexp-1.1.4.jar"/>
 	</path>
 	<target depends="compile" name="was">
-            <javac classpathref="cpath" compiler="extJavac" deprecation="off" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}" listfiles="yes">
+            <javac classpathref="vpath" compiler="extJavac" deprecation="off" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}" listfiles="yes">
             </javac>
             <java classname="org.owasp.webscarab.plugin.was.WASExecutor" classpathref="vpath" fork="on"/>
         </target>
