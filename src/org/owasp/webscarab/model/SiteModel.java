@@ -41,6 +41,9 @@ public class SiteModel {
     private SiteModelStore _store = null;
     
     private URLTreeModel _urltree;
+    
+    private CookieJar _cookieJar;
+    
     /**
      *  Constructor
      */
@@ -52,6 +55,7 @@ public class SiteModel {
                 return createURLInfo(url);
             }
         };
+        _cookieJar = new CookieJar();
     } // constructor SiteModel
     
     // returns the conversation ID
@@ -199,6 +203,10 @@ public class SiteModel {
     
     public TreeModel getURLTreeModel() {
         return _urltree;
+    }
+    
+    public CookieJar getCookieJar() {
+        return _cookieJar;
     }
     
     public class ConversationTableModel extends AbstractTableModel {
