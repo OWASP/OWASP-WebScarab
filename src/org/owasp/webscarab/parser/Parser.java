@@ -14,7 +14,7 @@ import org.owasp.webscarab.util.MRUCache;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-
+import java.util.logging.Logger;
 
 /**
  * provides an interface for generic parsing of message content. Allows for sharing
@@ -26,6 +26,7 @@ import java.util.Iterator;
 public class Parser {
     
     private static List _parsers = new ArrayList();
+    private static Logger _logger = Logger.getLogger("org.owasp.webscarab.parser.Parser");
     
     // we cache the 8 most recent messages and their parsed versions
     private static MRUCache _cache = new MRUCache(8);
