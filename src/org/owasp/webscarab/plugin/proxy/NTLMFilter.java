@@ -104,19 +104,29 @@ public class NTLMFilter extends ProxyPlugin {
                     if (headers[i].getName().equalsIgnoreCase("WWW-Authenticate") || 
                         headers[i].getName().equalsIgnoreCase("Proxy-Authenticate")) {
                         String value = headers[i].getValue();
-                        String scheme = value.substring(0, value.indexOf(" "));
-                        if (scheme.equalsIgnoreCase("Basic")) {
-                            int realmstart = value.indexOf("realm=\"")+7;
-                            int realmend = value.indexOf("\"",realmstart);
-                            int nextscheme = value.indexOf(",", realmend);
-                            String realm = value.substring(realmstart, realmend);
-                            if (nextscheme > -1) {
-                                headers[i] = new NamedValue(headers[i].getName(),value.substring(0, nextscheme -1));
-                                changed = true;
+                        String[] schemes = value.split(", *");
+                        if (schemes.length > 1) {
+                            for (int j=0; j<schemes.length; j++) {
+                                if (schemes[j].startsWith("NTLM")) {
+                                    schemes[j] = null;
+                                    changed = true;
+                                }
+                            }
+                            if (changed) {
+                                value = "";
+                                for (int j=0; j<schemes.length; j++) {
+                                    if (schemes[j] != null) {
+                                        if (value.length() > 0) value = value + ", ";
+                                        value = value + schemes[j];
+                                    }
+                                }
+                                headers[i] = new NamedValue(headers[i].getName(),value);
                             }
                         } else {
-                            headers[i] = null;
-                            changed = true;
+                            if (schemes[0].startsWith("NTLM")) {
+                                headers[i] = null;
+                                changed = true;
+                            }
                         }
                     }
                 }
