@@ -321,7 +321,8 @@ public class RequestPanel extends javax.swing.JPanel {
     }//GEN-END:initComponents
     
     public static void main(String[] args) {
-        javax.swing.JFrame top = new javax.swing.JFrame("Request Panel");
+        final RequestPanel panel = new RequestPanel();
+        javax.swing.JFrame top = new javax.swing.JFrame(panel.getName());
         top.getContentPane().setLayout(new java.awt.BorderLayout());
         top.addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
@@ -329,25 +330,26 @@ public class RequestPanel extends javax.swing.JPanel {
             }
         });
         javax.swing.JButton button = new javax.swing.JButton("GET");
-        final RequestPanel rp = new RequestPanel();
-        top.getContentPane().add(rp);
+        top.getContentPane().add(panel);
         top.getContentPane().add(button, java.awt.BorderLayout.SOUTH);
         button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                System.out.println(rp.getRequest());
+                System.out.println(panel.getRequest());
             }
         });
         top.setBounds(100,100,600,400);
+        top.show();
+        
         Request request = new Request();
         try {
-            java.io.FileInputStream fis = new java.io.FileInputStream("c:/temp/reverse/conversations/1-request");
+            java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/santam/webscarab/conversations/147-request");
             request.read(fis);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        rp.setEditable(true);
-        rp.setRequest(request);
-        top.show();
+        panel.setEditable(true);
+        panel.setRequest(request);
+        
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

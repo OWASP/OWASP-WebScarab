@@ -47,6 +47,7 @@ public class ContentPanel extends javax.swing.JPanel {
     private String[] _editorClasses = new String[] {
         "org.owasp.webscarab.ui.swing.editors.SerializedObjectPanel",
         "org.owasp.webscarab.ui.swing.editors.ImagePanel",
+        "org.owasp.webscarab.ui.swing.editors.UrlEncodedPanel",
         "org.owasp.webscarab.ui.swing.editors.HTMLPanel",
         "org.owasp.webscarab.ui.swing.editors.TextPanel",
     };
@@ -121,7 +122,7 @@ public class ContentPanel extends javax.swing.JPanel {
                 String[] types = editor.getContentTypes();
                 for (int i=0; i<types.length; i++) {
                     if (_contentType.matches(types[i])) {
-                        viewTabbedPane.add(editor.getName(), (Component) editor);
+                        viewTabbedPane.add((Component) editor);
                         continue;
                     }
                 }
@@ -205,7 +206,7 @@ public class ContentPanel extends javax.swing.JPanel {
     
     
     public static void main(String[] args) {
-        org.owasp.webscarab.model.Response response = new org.owasp.webscarab.model.Response();
+        org.owasp.webscarab.model.Request request = new org.owasp.webscarab.model.Request();
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             /*
@@ -217,12 +218,12 @@ public class ContentPanel extends javax.swing.JPanel {
             }
             content = baos.toByteArray();
              */
-            String filename = "c:/temp/2-response";
+            String filename = "/home/rdawes/santam/webscarab/conversations/147-request";
             if (args.length == 1) {
                 filename = args[0];
             }
             java.io.FileInputStream fis = new java.io.FileInputStream(filename);
-            response.read(fis);
+            request.read(fis);
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(0);
@@ -249,11 +250,11 @@ public class ContentPanel extends javax.swing.JPanel {
         top.show();
         try {
             // Thread.currentThread().sleep(5000);
-            cp.setContentType(response.getHeader("Content-Type"));
+            cp.setContentType(request.getHeader("Content-Type"));
             cp.setEditable(true);
             // cp.setContent(null);
             // Thread.currentThread().sleep(5000);
-            cp.setContent(response.getContent());
+            cp.setContent(request.getContent());
         } catch (Exception e) {
             e.printStackTrace();
         }

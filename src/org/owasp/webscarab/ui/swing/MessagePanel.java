@@ -7,9 +7,13 @@
 package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.model.Message;
-import javax.swing.table.AbstractTableModel;
+
 import java.awt.Dimension;
-import java.util.ArrayList;
+import javax.swing.event.TableModelListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.table.DefaultTableModel;
+
+import java.util.Vector;
 /**
  *
  * @author  rdawes
@@ -20,14 +24,27 @@ public class MessagePanel extends javax.swing.JPanel {
     private Message _message = null;
     private boolean _editable = false;
     private boolean _modified = false;
-    private HeaderTableModel _headerModel = new HeaderTableModel();
+    private DefaultTableModel _tableModel;
+    private Vector _columns;
     
     /** Creates new form MessagePanel */
     public MessagePanel() {
         initComponents();
-        headerTable.setModel(_headerModel);
+        setName("Message");
+        
+        _columns = new Vector();
+        _columns.add("Header");
+        _columns.add("Value");
+        _tableModel  = new DefaultTableModel(_columns.toArray(), 0);
+        _tableModel.addTableModelListener(new TableModelListener() {
+            public void tableChanged(TableModelEvent e) {
+                _modified = true;
+            }
+        });
+        headerTable.setModel(_tableModel);
         headerTable.getColumnModel().getColumn(0).setPreferredWidth(150);
         headerTable.getColumnModel().getColumn(1).setPreferredWidth(500);
+        
         _cp = new ContentPanel();
         _cp.setMinimumSize(new Dimension(400, 100));
         messageSplitPane.setRightComponent(_cp);
@@ -37,11 +54,15 @@ public class MessagePanel extends javax.swing.JPanel {
     public void setMessage(Message message) {
         _message = message;
         if (message != null) {
-            _headerModel.setHeaders(_message.getHeaders());
+            _tableModel.setDataVector(_message.getHeaders(), _columns.toArray());
+            headerTable.getColumnModel().getColumn(0).setPreferredWidth(150);
+            headerTable.getColumnModel().getColumn(1).setPreferredWidth(500);
             _cp.setContentType(message.getHeader("Content-Type"));
             _cp.setContent(message.getContent());
         } else {
-            _headerModel.setHeaders(null);
+            _tableModel.setDataVector(new Object[0][0], _columns.toArray());
+            headerTable.getColumnModel().getColumn(0).setPreferredWidth(150);
+            headerTable.getColumnModel().getColumn(1).setPreferredWidth(500);
             _cp.setContentType(null);
             _cp.setContent(null);
         }
@@ -51,7 +72,16 @@ public class MessagePanel extends javax.swing.JPanel {
     public Message getMessage() {
         if (_editable) {
             if (_modified) {
-                _message.setHeaders(_headerModel.getHeaders());
+                _message.setHeaders(new String[0][2]);
+                Vector pairs = _tableModel.getDataVector();
+                for (int i=0; i<pairs.size(); i++) {
+                    Vector v = (Vector) pairs.elementAt(i);
+                    String name = (String) v.elementAt(0);
+                    if (name == null || name.equals("")) continue;
+                    String value = (String) v.elementAt(1);
+                    if (value == null || value.equals("")) continue;
+                    _message.addHeader(name, value);
+                }
             }
             if (_cp.isModified()) {
                 _message.setContent(_cp.getContent());
@@ -190,16 +220,16 @@ public class MessagePanel extends javax.swing.JPanel {
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
         int rowIndex = headerTable.getSelectedRow();
         if (rowIndex > -1) {
-            _headerModel.deleteRow(rowIndex);
+            _tableModel.removeRow(rowIndex);
         }
     }//GEN-LAST:event_deleteButtonActionPerformed
 
     private void insertButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertButtonActionPerformed
         int rowIndex = headerTable.getSelectedRow();
         if (rowIndex > -1) {
-            _headerModel.insertRow(rowIndex);
+            _tableModel.insertRow(rowIndex, new Object[2]);
         } else {
-            _headerModel.insertRow(_headerModel.getRowCount());
+            _tableModel.insertRow(_tableModel.getRowCount(), new Object[2]);
         }
     }//GEN-LAST:event_insertButtonActionPerformed
     
@@ -254,82 +284,5 @@ public class MessagePanel extends javax.swing.JPanel {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSplitPane messageSplitPane;
     // End of variables declaration//GEN-END:variables
-    
-    private class HeaderTableModel extends AbstractTableModel {
-        
-        private ArrayList _headers = new ArrayList();
-        private String[] _columnNames = new String[] { "Header", "Value" };
-        
-        public HeaderTableModel() {
-        }
-        
-        public String getColumnName(int column) {
-            return _columnNames[column];
-        }
-        
-        public void setHeaders(String[][] headers) {
-            _headers.clear();
-            if (headers != null) {
-                for (int i=0; i<headers.length; i++) {
-                    _headers.add(headers[i]);
-                }
-            }
-            fireTableDataChanged();
-        }
-        
-        public String[][] getHeaders() {
-            int valid = 0;
-            for (int i=0; i<_headers.size(); i++) {
-                String[] header = (String[]) _headers.get(i);
-                if (header.length == 2 && !header[0].equals("") && !header[1].equals("")) {
-                    valid++;
-                }
-            }
-            String[][] headers = new String[valid][2];
-            valid = 0;
-            for (int i=0; i<_headers.size(); i++) {
-                String[] header = (String[]) _headers.get(i);
-                if (header.length == 2 && !header[0].equals("") && !header[1].equals("")) {
-                    headers[valid][0] = header[0];
-                    headers[valid][1] = header[1];
-                    valid++;
-                }
-            }
-            return headers;
-        }
-        
-        public int getColumnCount() {
-            return 2;
-        }
-        
-        public int getRowCount() {
-            return _headers.size();
-        }
-        
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            return ((String[])_headers.get(rowIndex))[columnIndex];
-        }
-        
-        public boolean isCellEditable(int rowIndex, int columnIndex) {
-            return _editable;
-        }
-        
-        public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-            ((String[])_headers.get(rowIndex))[columnIndex] = (String) aValue;
-            _modified = true;
-        }
-        
-        public void insertRow(int rowIndex) {
-            _headers.add(rowIndex, new String[] { "", "" });
-            fireTableRowsInserted(rowIndex, rowIndex);
-            _modified = true;
-        }
-        
-        public void deleteRow(int rowIndex) {
-            _headers.remove(rowIndex);
-            fireTableRowsDeleted(rowIndex, rowIndex);
-            _modified = true;
-        }
-    }
     
 }
