@@ -11,7 +11,9 @@ import org.owasp.webscarab.model.HttpUrl;
 
 import org.htmlparser.Parser;
 import org.htmlparser.Node;
-import org.htmlparser.NodeReader;
+import org.htmlparser.NodeFilter;
+import org.htmlparser.lexer.Source;
+import org.htmlparser.lexer.InputStreamSource;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.ParserException;
@@ -27,13 +29,10 @@ import java.util.logging.Logger;
  */
 public class HTMLParser implements ContentParser {
     
-    private Parser _parser;
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     /** Creates a new instance of HTMLParser */
     public HTMLParser() {
-        _parser = new Parser();
-        _parser.registerScanners();
     }
     
     /**
@@ -52,22 +51,18 @@ public class HTMLParser implements ContentParser {
         if (content == null || content.length == 0) {
             return null;
         }
-        NodeReader reader = new NodeReader(new InputStreamReader(new ByteArrayInputStream(content)), url.toString());
-        NodeList nodelist = new NodeList();
-        synchronized(_parser) {
-            _parser.setReader(reader);
-            try {
-                Node n;
-                for (NodeIterator ni = _parser.elements(); ni.hasMoreNodes(); ) {
-                    n = ni.nextNode();
-                    nodelist.add(n);
+        Parser parser = Parser.createParser(new String(content), null);
+        try {
+            NodeList nodelist = parser.extractAllNodesThatMatch(new NodeFilter() {
+		public boolean accept(Node node) {
+                    return true;
                 }
-            } catch (ParserException pe) {
-                _logger.severe(pe.toString());
-            }
+            });
+            return nodelist;
+        } catch (ParserException pe) {
+            _logger.severe(pe.toString());
+            return null;
         }
-        return nodelist;
-        
     }
     
 }
