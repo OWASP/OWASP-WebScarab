@@ -14,6 +14,7 @@ import org.owasp.webscarab.plugin.proxy.module.*;
 
 import java.util.ArrayList;
 import java.lang.Thread;
+import java.util.logging.Logger;
 
 /**
  *
@@ -22,6 +23,8 @@ import java.lang.Thread;
 public class WebScarab
 	implements Plug
 {
+
+    private Logger _logger = Logger.getLogger("WebScarab");
     
     private SiteModel _sitemodel;
     private Proxy _proxy;
@@ -49,11 +52,7 @@ public class WebScarab
         // get a summary of the URL so far.
         URLInfo urlinfo = _sitemodel.getURLInfo(conversation);
         
-        String ct = conversation.getResponse().getHeader("Content-Type");
-        if (ct != null && ct.startsWith("text/html")) {
-            // HTMLParser hp = new HTMLParser()
-            // hp.parse(conversation);
-        }
+        // call the plugins
         for (int i=0; i<_pluginArray.length; i++) {
             _pluginArray[i].analyse(conversation, urlinfo);
         }
