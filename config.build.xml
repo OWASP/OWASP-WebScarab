@@ -1,0 +1,207 @@
+<?xml version="1.0"?>
+<!-- (c) 2002 OWASP WebScarab project http://www.owasp.org/webscarab -->
+<project default="all" basedir=".">
+	
+	<!-- select the compiler for the javac task
+		use the value "modern" for javac
+		use the value "jikes" for jikes
+	--> 
+	<property name="build.compiler" value="jikes"/>
+	<property name="build.compiler.pedantic" value="on"/>
+	
+	<property name="global.revision" value="pre beta 1"/>
+
+	<property name="webscarab.root" value="/opt/owasp/webscarab" />
+	<property name="root" value="."/>
+	<property name="src" value="."/>
+	<property name="classdest" value="${root}/build/java/classes"/>
+	<property name="docdest" value="${root}/doc/api"/>
+	<property name="tdocdest" value="${root}/doc/test" />
+	<property name="jardest" value="${root}/build"/>
+	<property name="keyfile" value="owasp.key"/>
+	<property name="jarfile" value="webscarab.jar"/>
+	<property name="optjar" value="${root}/lib/optlib.jar"/>
+	<property name="ocljar" value="${root}/lib/owasp.jar"/>
+	<property name="cc" value="-- no commment --" />
+
+	<path id="class.path">
+		<pathelement location="${optjar}"/>
+		<pathelement location="${ocljar}"/>
+		<pathelement path="${classdest}"/>
+	</path>
+
+	<target name="init">
+		<echo message="Preparing build of ${src}"/>
+		<echo message="revision ${global.revision}"/>
+		<echo message="using compiler ${build.compiler}"/>
+		<tstamp />
+	</target>
+
+	<target name="clean" depends="init">
+		<delete dir="${classdest}/org/owasp" />
+	</target>
+
+	<target name="license">
+		<mkdir dir="${classdest}"/>
+		<javac srcdir="${root}"
+		       destdir="${classdest}"
+		       classpathref="class.path"
+		>
+			<include name="**/LICENSE.java"/>	
+		</javac>
+	</target>
+
+	<target name="debug_compile" depends="init,license" unless="production" >
+		<mkdir dir="${classdest}"/>
+		<javac srcdir="${src}"
+		       destdir="${classdest}"
+		       deprecation="on"
+		       debug="on"
+		       optimize="off"
+		       depend="on">
+			<classpath>
+				<path refid="class.path" />
+				<pathelement path="${root}/src" />
+			</classpath>
+		 	<include name="**/*.java"/>
+		 	<exclude name="**/test/**" />
+		</javac>			 
+	</target>
+
+	<target name="test_compile" depends="init,license" unless="production" >
+		<mkdir dir="${classdest}"/>
+		<javac srcdir="${src}"
+		       destdir="${classdest}"
+		       deprecation="on"
+		       debug="on"
+		       optimize="off"
+		       depend="on">
+			<classpath>
+				<path refid="class.path" />
+				<pathelement path="${root}/src" />
+			</classpath>
+			<include name="**/test/*.java"/>
+		</javac>			 
+	</target>
+
+	<target name="production_compile" depends="init,license" if="production" >
+		<mkdir dir="${classdest}"/>
+		<javac srcdir="${src}"
+		       destdir="${classdest}"
+		       deprecation="on"
+		       debug="off"
+		       optimize="on"
+		       depend="on">
+			<classpath>
+				<path refid="class.path" />
+				<pathelement path="${root}/src" />
+			</classpath>
+			<include name="**/*.java"/>
+			<exclude name="**/test/**" />
+		 </javac>			 
+	</target>
+
+	<target name="compile" depends="debug_compile,production_compile" />
+
+	<target name="jar" depends="properties">
+		<mkdir dir="${jardest}"/>
+		<jar jarfile="${jardest}/${jarfile}"
+		     basedir="${classdest}"
+		     includes="org/owasp/webscarab/**"
+		     excludes="**/test/**"
+		     manifest="${root}/src/META-INF/MANIFEST.MF"
+		/>
+	</target>
+
+	<target name="properties" depends="init">
+		<copy todir="${classdest}/org/owasp"
+		      overwrite="yes">
+			<fileset dir="${root}" includes="**/*.properties"/>
+		</copy>
+	</target>
+
+	<target name="all" depends="compile,properties">
+	</target>
+ 
+	<target name="up" depends="init">
+		<cvs cvsRoot=":ext:${developer}@cvs.webscarab.sourceforge.net:/cvsroot/webscarab"
+		     dest="${src}"
+		     command="update -d -P"
+		/>
+	</target>
+ 
+	 <!-- CVS tasks -->
+	<target name="cup" depends="init">
+		<cvs cvsRoot=":ext:${developer}@cvs.webscarab.sourceforge.net:/cvsroot/webscarab"
+		     dest="${src}"
+		     command="-n update -d -P"
+		/>
+	</target>
+	
+	<target name="cit" depends="init">
+		<cvs cvsRoot=":ext:${developer}@cvs.webscarab.sourceforge.net:/cvsroot/webscarab"
+		     dest="${src}"
+		     command="commit -m '${cc}'"
+		/>
+	</target>
+	
+	<target name="latest" depends="up,compile" />
+
+	<!-- JUnit tasks -->
+	<target name="test" depends="test_compile">
+		<junit
+			fork="no"
+			haltonerror="no"
+			haltonfailure="no"
+			printsummary="yes"
+		>
+			<formatter type="xml" />
+			<classpath>
+				<pathelement location="/usr/java/jdk1.3/jre/lib/rt.jar"/>
+				<pathelement location="${optjar}"/>
+				<pathelement path="${classdest}"/>
+			</classpath>
+			<test name="${ant.project.name}.test.Suite" todir="test/"
+			/> 
+		</junit>
+	</target>
+
+	<!-- javadoc tasks -->
+	<target name="jdoc" depends="init">
+		<javadoc packageList="jdoc.package.list" 
+		         destdir="${docdest}"
+		         sourcePath="${root}/../.."
+		         classpathref="class.path"
+		         stylesheetfile="${root}/jdoc.css"
+		         Private="yes"
+		         Windowtitle="org.owasp.webscarab source code documentation"
+		         Doctitle="org.owasp.webscarab source code documentation"
+		         Header="org.owasp.webscarab source code documentation"
+		         Footer="The mandatory version can be found at http://www.owasp.org/webscarab/doc/api"
+		         bottom="This documentation is published under the GPL."
+		         Overview="${root}/overview.html">
+			<link href="http://java.sun.com/j2se/1.3/docs/api/" />
+			<link href="http://java.sun.com/j2ee/sdk_1.3/techdocs/api/" />
+		</javadoc>
+	</target>
+
+	<!-- create jdoc for junit test suite -->
+	<target name="tjdoc" depends="init">
+		<javadoc packageList="jdoc.test.package.list" 
+		         destdir="${tdocdest}"
+		         sourcePath="${root}/../.."
+		         classpathref="class.path"
+		         stylesheetfile="${root}/jdoc.css"
+		         Public="yes"
+		         Windowtitle="org.owasp.webscarab api junit test documentation"
+		         Doctitle="org.owasp.webscarab &lt;b&gt;api junit test&lt;/b&gt; documentation"
+		         Header="org.owasp.webscarab &lt;b&gt;api junit test&lt;/b&gt; documentation"
+		         Footer="The mandatory version can be found at http://www.owasp.org/webscarab/doc/test"
+		         bottom="This documentation is published under the GPL."
+		         Overview="${root}/testoverview.html">
+			<link href="http://java.sun.com/j2se/1.3/docs/api/" />
+			<link href="http://java.sun.com/j2ee/sdk_1.3/techdocs/api/" />
+		</javadoc>
+	</target>
+
+</project>

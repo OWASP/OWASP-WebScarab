@@ -1,0 +1,16 @@
+To get this to work, you will need the following:
+
+1.  Version 1.4.1 of Ant.  You should install it so you can run it from
+ any command line.
+2.  Version 2.3.1 of Xalan with all the jars that comes with it in the.
+ ./lib directory.
+3.  Type ./ant and you should see a bunch of xslt process messages.
+4.  Now go look in the ./html directory for the stuff.
+
+
+TODO
+
+*  Need to create an XML and XSLT that will make the frame and index page.
+*  Migrate to Styler instead of Style
+
+

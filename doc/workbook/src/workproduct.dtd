@@ -1,0 +1,30 @@
+<!ELEMENT workproduct (header, details, issues?, metrics?, traceability, history)>
+    <!ATTLIST workproduct identifier CDATA #REQUIRED>
+    <!ATTLIST workproduct stage CDATA #REQUIRED>
+    <!ATTLIST workproduct project CDATA #REQUIRED>
+    
+    <!ELEMENT header (date+, author+, owner+, status+)>
+        <!ELEMENT date (#PCDATA)>
+        <!ELEMENT author (#PCDATA)>
+        <!ELEMENT owner (#PCDATA)>
+        <!ELEMENT status (#PCDATA)>
+            <!ATTLIST status value (Initial | Development | Verification | Production) #REQUIRED>
+
+    <!ELEMENT details ANY>
+    
+    <!ELEMENT issues (item+)>
+        <!ELEMENT item ANY>
+    
+    <!ELEMENT metrics (item+)>
+    
+    <!ELEMENT traceability (impacted-by*,impacts*)>
+        <!ELEMENT impacted-by EMPTY>
+            <!ATTLIST impacted-by stage CDATA #REQUIRED>
+            <!ATTLIST impacted-by identifier CDATA #REQUIRED>
+        <!ELEMENT impacts EMPTY>
+            <!ATTLIST impacts identifier CDATA #REQUIRED>
+            <!ATTLIST impacts stage CDATA #REQUIRED>
+    
+    <!ELEMENT history (entry+)>
+        <!ELEMENT entry (#PCDATA)>
+            <!ATTLIST entry date CDATA #REQUIRED>

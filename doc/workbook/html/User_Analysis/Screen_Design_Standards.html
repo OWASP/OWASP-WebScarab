@@ -1,0 +1,322 @@
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>WebScarab: Screen Design Standards</title>
+</head>
+<body bgcolor="#FFFFFF">
+<h2>User Analysis: Screen Design Standards</h2>
+
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" border="0" cellpadding="3" cellspacing="0">
+<tr>
+        
+<td><b>$Date: 2002/10/30 20:46:55 $</b></td>
+	<td><b>$Author: istr $</b></td>
+	<td><b>Owner: </b>  $Author: istr $</td>
+	<td><b>Status:</b>  Initial</td>
+
+</tr>
+</table>
+</td>
+</tr>
+</table>
+	
+	
+<p></p>
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" border="0" cellpadding="3" cellspacing="0">
+<tr>
+<td>
+<h3>Details</h3>
+</td>
+</tr>
+<tr>
+<td>
+<h3>Control Standards</h3>
+<p>Control Standards dictate which controls should be used for particular types of information
+	in presentation.  It attempts to define which choices we will make for different interaction
+	needs.  For example, when presented with a Yes/No selection, we should use a check-box.  A
+	short list of selections should check-boxes or radio buttons (if mutually exclusive).  The
+	following is the list:</p>
+<table border="1">
+	
+<tr>
+	  
+<th>Control Choice</th>
+	  <th>Information Requirements</th>
+	  <th>Output Quantity</th>
+	  <th>Input Quantity</th>
+	
+</tr>
+	
+<tr>
+	  
+<td>Check-box</td>
+	  <td>Yes/No or On/Off</td>
+	  <td>1</td>
+	  <td>1</td>
+	
+</tr>
+
+	
+<tr>
+	  
+<td>Radio Group</td>
+	  <td>Selection</td>
+	  <td>&lt; 5</td>
+	  <td>1</td>
+	
+</tr>
+
+	
+<tr>
+	  
+<td>Check-box</td>
+	  <td>Selection</td>
+	  <td>&lt; 5</td>
+	  <td>&lt; 5</td>
+	
+</tr>
+
+	
+<tr>
+	  
+<td>Pull-Down</td>
+	  <td>Selection</td>
+	  <td>5+</td>
+	  <td>1</td>
+	
+</tr>
+
+	
+<tr>
+	  
+<td>List Box</td>
+	  <td>Selection</td>
+	  <td>5+</td>
+	  <td>5+</td>
+	
+</tr>
+
+	
+<tr>
+	  
+<td>Password Field</td>
+	  <td>Hidden Input</td>
+	  <td>0</td>
+	  <td>1</td>
+	
+</tr>
+
+	
+<tr>
+	  
+<td>Input Field</td>
+	  <td>Variable Input</td>
+	  <td>1</td>
+	  <td>1</td>
+	
+</tr>
+
+	
+<tr>
+	  
+<td>Spin Box</td>
+	  <td>Small Number Changes</td>
+	  <td>1</td>
+	  <td>1</td>
+	
+</tr>
+
+	
+<tr>
+	  
+<td>Input Field</td>
+	  <td>Large Number Changes</td>
+	  <td>1</td>
+	  <td>1</td>
+	
+</tr>
+
+	
+<tr>
+	  
+<td>Mini-Chat Window </td>
+	  <td>Agent Communication</td>
+	  <td>*</td>
+	  <td>*</td>
+	
+</tr>
+
+	
+<tr>
+	  
+<td>Mini-Chat Window </td>
+	  <td>Agent Communication</td>
+	  <td>*</td>
+	  <td>*</td>
+	
+</tr>
+
+	
+</table>
+<h3>Product/Process Window Standards</h3>
+<p>The product/process window standards define how the different products (if we use a product
+	focus) and processes (if we use a process focus) will be designed.  For the most part, there isn't
+	much of this in our system since we have a very non-business oriented system.  In the business
+	world, everything is easily broken down into process or product.  They are designed to reduce
+	the amount of interaction that a user is allowed to do in order to reduce error rates.</p>
+<p>In the application there are a few places where a process is used.  Wizard interfaces are
+	to be used whenever the interface requires many choices or where the interaction is fairly
+	complex.  We should also decide to focus on the process in these instances.  For example,
+	if the user wants to manage the list of keys they know about, they would be presented with 
+	a fairly dynamic interface.  But, handling the first start-up of the application where the
+	user must set certain options should be done with a wizard.</p>
+<h3>Dialog Box Standards</h3>
+<p>Dialog box standards are designed to set how dialogs should be organized and colored 
+	on the interface.  Such things as the fonts used, where buttons are located, how menus are
+	organized, and so on.</p>
+<p>The following list is taken from [Mayhew, 2001].</p>
+<ul>
+	  
+<li>Always use default colors of the widget set.</li>
+	  
+<li>Match Title bar to the menu bar selection that brought it up, left justified in the title bar.</li>
+	  
+<li>Create vertical groups of logical related fields</li>
+	  
+<li>Within field groups, left-align captions, left-align fields, try to minimize white space between captions and fields (through careful labeling), use first-letter caps for all main words in captions, include a colon immediately following each caption.</li>
+	  
+<li>Use group boxes, embed all-caps titles in upper left of group box.</li>
+	  
+<li>Order groups left to right, top to bottom according to natural order or expected frequency of use.</li>
+	  
+<li>Use white space to set off and reinforce groups.</li>
+	  
+<li>Right-justify or decimal-align numbers and currency <i>upon display</i> (allow left-justified input).</li>
+	  
+<li>Never use scroll bars in dialog boxes.</li>
+	  
+<li>Background colors for fields:</li>
+	  
+<ul>
+	    
+<li>Read-only -- medium grey</li>
+	    
+<li>Required -- white</li>
+	    
+<li>Optional -- dark grey</li>
+	  
+</ul>
+	  
+<li>Use consistent labels for common fields.</li>
+	  
+<li>Use consistent display format for all dates:  Jan 1, 20000</li>
+	  
+</ul>
+<h3>Message Box Standards</h3>
+<p>Message box standards define how different pop-up messages are organized and which ones
+	should be used for which.  For the most part, the messages should only be used to display 
+	short announcements that the user must attend to.  These should be kept to a minimum so as not
+	to interfere with the user's interaction with the interface.</p>
+<h3>Input Device Interaction Standards</h3>
+<p>The input device interaction standards describe how the user will use things like the
+	keyboard and mouse.  There isn't much we can do as to these two since they are so controlled
+	by the operating system.  The only guideline is to not violate the common key-bindings and
+	the mouse button interactions that are used on the system, but to pick a common denomonator
+	between the systems we may move the system to later.</p>
+<p>Overall, this means that we have to avoid most key bindings, and most uses of the right
+	mouse button.  This shouldn't be hard to do because of the simplicity of the interface.</p>
+<h3>Feedback Standards</h3>
+<p>The feedback standards define how we will provide feedback to the user's actions.  For 
+	the most part, we will use color changes and changes in "depth" (3D appearance of buttons)
+	to signify interaction.  Most of the default interactions provided by the widget set should
+	be maintained, but any time when the interactions are confusing, they should be augmented.</p>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+	
+	
+<p></p>
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" cellpadding="3" cellspacing="0" border="0">
+<tr>
+<td>
+<h3>Traceability</h3>
+</td>
+</tr>
+<tr>
+<td>
+<p>Impacted By:</p>
+<ul>
+<li>
+<a href="../Design/System%20Architecure.html">Design/System Architecure</a>
+</li>
+</ul>
+<p>Impacts:</p>
+<ul>
+<li>
+<a href="../Design/System%20Architecture.html">Design/System Architecture</a>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+	
+	
+<p></p>
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" border="0" cellpadding="3" cellspacing="0">
+<tr>
+<td>
+<h3>History</h3>
+</td>
+</tr>
+<tr>
+<td>
+<pre>
+	$Log: Screen_Design_Standards.html,v $
+	Revision 1.1  2002/10/30 20:46:55  istr
+	Initial revision
+	
+	Revision 1.1  2002/05/17 19:50:50  donalphonso
+	moved workbook
+	
+	Revision 1.1  2002/05/05 17:21:17  zedshaw
+	Initial import of project workbook
+	
+	Revision 1.5  2002/03/02 08:58:54  zedshaw
+	Added the Screen Design Standards and started the SDS Prototyping.
+	
+	Revision 1.4  2002/02/06 06:48:53  zedshaw
+	Spell checked everything and updated the headers to reflect their real names.
+	
+	Revision 1.3  2002/02/03 02:16:10  zedshaw
+	Put the Log keyword in all the history blocks.  You now don't have to
+	edit this history.
+	
+	</pre>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+</body>
+</html>

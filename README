@@ -1,0 +1,50 @@
+/*
+ * $Source: /cvsroot/owasp/webscarab/README,v $
+ * Copyright (c) 2002 owasp.org.
+ * This file is part of WebScarab.
+ * WebScarab is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * WebScarab is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The valid license text for this file can be retrieved with
+ * the call:   java -cp owasp.jar org.owasp.webscarab.LICENSE
+ * 
+ * If you are not able to view the LICENSE that way, which should
+ * always be possible within a valid and working WebScarab release,
+ * please write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+This is the WebScarab OpenSource project, hosted at
+http://www.owasp.org/webscarab.
+
+It aims to become a tool that may be used automatically or interactively
+to test web applications for their security.
+WebScarab is written 100% pure java and built completely modularized
+to easily enable the substition of one ore more of the components it
+contains.
+
+Basically WebScarab is divided into these parts:
+
+   util - generic utility classes that may be useful for other purposes
+          and that can be considered to be an extension of java.util
+   data - datastore that is used by all other components; it provides
+          persistent storage of all needed data as well as listener
+          mechanisms for dynamic data exchange between the modules
+ spider - a web spider that is used to retrieve targets to be attacked
+analyse - analyzer that decides which attacks shall be executed
+ attack - loads attack classes and performs the attacks in a secure
+          sandbox
+ proxy - a browser proxy to provide web access to the data
+    ui - different user interfaces (xml-, text-reports, swing-ui)
+ 
+----TODO: detailed description ---
+
+
+// end of $Source: /cvsroot/owasp/webscarab/README,v $

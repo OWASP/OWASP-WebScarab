@@ -1,0 +1,19 @@
+<html>
+<body>
+  This package provides the framework for examining Java code. 
+  <p>
+  The package <b><i>CodeSpy</i></b> implements rules in the 
+  package <code>com.owasp.codespy.rule</code>. New rules can be added to this or
+  another package and handled transparently by this framework as long as the
+  rule implements the {@link com.owasp.codespy.Rule} interface. 
+  <p>
+  Reports can be produced in lots of ways by implementing the
+  <code>com.owasp.CodeSpy.Report</code> interface. The reference implementation of
+  this interface is {@link com.owasp.codespy.PrintReport} which can display the 
+  report to the console.
+  <p>
+  A reference implementation of a complete audit based on the draft set of
+  rules which were taken from <b><i>Securing Java by Felten and McGraw</b><i> (cause it was on my desk) 
+  is {@link com.owasp.codespy.RunAudit}. These rules are just to demonstrate the concept !
+</body>
+</html>

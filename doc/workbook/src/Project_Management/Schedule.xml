@@ -1,0 +1,46 @@
+<workproduct identifier="Schedule" project="WebScarab" stage="Project Management">
+<header>
+		<date>$Date: 2002/10/30 20:47:09 $</date>
+		<author>$Author: istr $</author>
+		<owner>$Author: istr $</owner>
+		<status value="Initial" />
+	</header>
+	
+	<details>
+   <p>Mark Curphey has begun scheduling the project using Mr. Project which can be found
+	 <a href="project.mrproject">here</a>.  The general project defines the general schedule
+	 for the software development, but not any of the overall project management activities.
+	 These will be defined more clearly later.</p>
+	</details>
+
+	<issues>
+		<item>Finalize detailed schedule and develop project plan.</item>
+	</issues>
+	
+	
+	<traceability>
+		<impacted-by identifier="System_Architecure" stage="Design">
+            Description of how this workproduct is impacted by the "impacted-by" workproduct.    
+        </impacted-by>
+		<impacts identifier="System_Architecture" stage="Design">
+            Description of how this workprodcuct impacts the "impacts" workproduct.
+        </impacts>
+	</traceability>
+	
+	<history>
+	$Log: Schedule.xml,v $
+	Revision 1.1  2002/10/30 20:47:09  istr
+	Initial revision
+	
+	Revision 1.1  2002/05/17 19:49:16  donalphonso
+	moved workbook
+	
+	Revision 1.2  2002/05/13 07:36:30  zedshaw
+	Included the initial Mr. Project plan written by Mark.
+	
+	Revision 1.1  2002/05/05 17:21:16  zedshaw
+	Initial import of project workbook
+	
+	
+	</history>
+</workproduct>

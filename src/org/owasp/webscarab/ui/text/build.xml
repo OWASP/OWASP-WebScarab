@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!-- (c) 2002 OWASP WebScarab project http://www.owasp.org/webscarab -->
+<project name="org.owasp.webscarab.ui.text" default="compile" basedir=".">
+  <property name="root" value="../../../../../.."/>
+
+  <target name="compile">
+    <ant antfile="${root}/config.build.xml" target="compile">
+      <property name="root" value="${root}"/>
+    </ant>
+  </target>  
+  
+  <target name="clean">
+    <ant antfile="${root}/config.build.xml" target="clean">
+      <property name="root" value="${root}"/>
+    </ant>
+  </target>  
+
+  <target name="up">
+    <ant antfile="${root}/config.build.xml" target="up">
+      <property name="root" value="${root}"/>
+    </ant>
+  </target>  
+
+  <target name="cup">
+    <ant antfile="${root}/config.build.xml" target="cup">
+      <property name="root" value="${root}"/>
+    </ant>
+  </target>  
+
+  <target name="cit">
+    <ant antfile="${root}/config.build.xml" target="cit">
+      <property name="root" value="${root}"/>
+    </ant>
+  </target>  
+
+  <target name="test">
+    <ant antfile="${root}/config.build.xml" target="test">
+      <property name="root" value="${root}"/>
+    </ant>
+  </target>  
+
+</project>

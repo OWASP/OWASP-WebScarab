@@ -1,0 +1,524 @@
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>WebScarab: General Design Principles</title>
+</head>
+<body bgcolor="#FFFFFF">
+<h2>Requirements: General Design Principles</h2>
+  
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" border="0" cellpadding="3" cellspacing="0">
+<tr>
+    
+<td><b>$Date: 2002/10/30 20:47:04 $</b></td>
+
+    <td><b>$Author: istr $</b></td>
+
+    <td><b>Owner: </b>  $Author: istr $</td>
+
+    <td><b>Status:</b>  Initial</td>
+  
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+  
+<p></p>
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" border="0" cellpadding="3" cellspacing="0">
+<tr>
+<td>
+<h3>Details</h3>
+</td>
+</tr>
+<tr>
+<td>
+<H1>Design</H1>
+<P>This section describes the overall design for WebScarab.
+    This design has evolved from numerous conversations and
+    discussions online. This section describes how the overall
+    tool will work, the components we will build that make up the
+    tool and each components function within the tool. It does
+    not describe the inner workings of each component.
+    non-functional requirements, user profiles and other design
+    criteria can also be found in linked sections. Whilst
+    implementations of this design may change, it is expected
+    that the principles described here will remain constant and
+    can be used as a reference.</P>
+<P>WebScarab is being designed to be web application security
+    assessment tool. It will be able to check for a range of
+    security problems in web applications and web services, both
+    automated and manually.</P>
+<P>The tool will follow the basic flow of conducting a
+    security assessment;</P>
+<UL>
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">Find Applications</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P>Build Suitable Tests</P>
+      
+</LI>
+    
+</UL>
+<UL>
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">Execute Tests</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P>Examine Findings</P>
+      
+</LI>
+    
+</UL>
+<P>The find applications phase will be conducted with the use
+    of two components, a spider and a reverse proxy. The user may
+    use one, the other or both to more accurately complete this
+    phase.</P>
+<P>The tool will be based on the concept of a user session. A
+    user session will bind a target with configuration settings,
+    testing state and results. A session maybe thought of as a
+    workspace.</P>
+<H2>Spider</H2>
+<P>The spider will be given a set of basic information like a
+    starting URL and username / password and then crawl the
+    entire web site looking for applications that can be tested.
+    In the course of spidering the web site the spider will
+    examine all HTTP transactions such as requests and responses.
+    These will include HTTP control information such as headers
+    and entity bodies such as HTML. When the datastream comes in
+    to the spider it will process the datastream. Essentially it
+    will look for various specific items of interest such as
+    cookies or a referer header or another link (A HREF). When it
+    finds the item in question the spider will save all of the
+    data to rebuild the entire request sequence into the
+    database. This data will then be operated on to build attacks
+    by the analysis engine. The entire transaction is needed to
+    be recorded so that the test can also include data such as
+    whether a valid session cookie is required or other
+    pre-cursor data.</P>
+<P>The list of interesting things will be quite extensive.
+    For instance the first interesting thing maybe more links to
+    follow. Those links may occur in HTML or JavaScript or they
+    maybe in HTTP redirect responses. ODBC error codes would be
+    of interest to build SQL injection tests. Cookies may be of
+    interest to build cookie poisoning tests. Any URL parameters
+    maybe of interest to both create Cross Site Scripting tests
+    as well as parameter tampering tests. Parameters may be of
+    interest to create buffer-overflow tests and even simple
+    fully qualified URL's maybe of interest to build lists of
+    mutated page requests with alternative file extensions. And
+    so on.....</P>
+<P>Whilst the spiders job is just to find applications, as
+    you can see it needs to do some pre-processing to enable it
+    to determine if it should save data to be operated on. This
+    is however very distinct from building security tests, a
+    function performed by the analysis engine.</P>
+<P>Whilst on the face of it spidering is a simple task, in
+    reality a spider needs to be able to handle complex scenarios
+    and decisions in order to emulate human behavior. Take for
+    example the case of forms. Forms are used for many things
+    including search and user authentication. In as search
+    application such as google.com the user maybe presented with
+    a single form element that would allow them to enter
+    free-text and a different result would be returned or each
+    value. This could cause billions of possible requests. With
+    forms-based authentication the user is given two form fields
+    to enter a username and password into. However there is no
+    predefined form elements in the HTML spec for these forms and
+    so the spider would have to determine which form elements are
+    used for user authentication. JavaScript may be used to
+    submit forms as well or to set URL's. These many scenarios
+    will need to be able to be intelligently interpreted and
+    acted upon.</P>
+<P>The spider will be an extremely important part of the
+    tool. There is an excellent open source spider from which we
+    can base our spider design. It is extensible, Java and GPL.
+    Its called WebSphinx. It also works on the concept of
+    "classifiers". Classifiers are Java classes that look for
+    specific items. The default classifier is an HTML link which
+    allows the spider to find more links and follow them.
+    Examples are written where the spider finds pages with images
+    and concatenates them into one large page. We will need to
+    write classifiers for specific items in HTTP and HTML. By
+    default it handles HTTP auth but not forms based auth. It is
+    written for JDK 1.1 and uses some proprietary regex libraries
+    and deprecated threading classes that will need to be updated
+    among other things. WebSphinx will then need to have various
+    improvements made to it including forms handling, JavaScript
+    support to name but two. However these should all be fairly
+    independent of the other components in WebScarab.</P>
+<H2>Proxy</H2>
+<P>The transparent reverse proxy can be considered as an HTTP
+    recorder. It will work by allowing a user to point his
+    regular browser such as Netscrape or Internet Exploder
+    through the proxy. The proxy will make the requests on behalf
+    of the user and pass the entire HTTP stream back to the users
+    browser. The user will interact with is / her browser and the
+    application as if it were a normal session. The proxy will
+    intercept the HTTP stream and make the same determinations
+    for "interesting artifacts" that will trigger it to write the
+    HTTP transaction into the database. It seems sensible that we
+    make the proxy and spider share the same set of classifiers.
+    The proxy itself will need to talk to other reverse
+    proxies.</P>
+<P>Given the manual interactive nature of the proxy approach
+    it is probable that the proxy will be a far more accurate way
+    of navigating through a site. However clearly the user
+    typically can only select the options offered to him / her
+    (not the options that may work) and manually crawling any
+    large sites is infeasible. The proxy suits itself to be used
+    in two common scenarios.</P>
+<UL>
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">The user wants to test a
+        specific application and knows its location</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P>The user wants to make intelligent choices to help the
+        spider make decisions or overcome areas where the spider
+        can not continue</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P>The site uses technology we can not understand such as
+        an Active-X control with a link</P>
+      
+</LI>
+    
+</UL>
+<P>If the user wants to test a single CGI, it would not be a
+    good user experience to force the user to spider the entire
+    site before generating tests. The user would be able to use
+    the proxy to navigate the single application.</P>
+<P>There maybe many occasions when the spider is not able to
+    proceed or would generate an unfeasibly large amount of
+    possibilities. The forms examples discussed above are good
+    illustrations. The proxy can be used to interject and
+    interact with the user. It can for instance present the user
+    with a set of options or ranges and ask the user to select
+    which should be used. It maybe able to help the user mark a
+    form with criteria that can then be used by the spider when
+    it sees the form in the future. These type of interactions
+    will help prevent loops and enable the spider to use the the
+    user to make intelligent decisions on its behalf.</P>
+<P>As with WebSphinx, there is an excellent open source GPL
+    proxy that we can extend called Muffin. Muffin was designed
+    to do a variety of things like remove cookies and adverts
+    from web pages and is therefore in line with the design i.e.
+    looking for things in the HTTP stream and operating on them.
+    Muffin removes them, we would want to save them in the
+    database.</P>
+<H2>Analysis Engine</H2>
+<P>The analysis engine is the heart of WebScrarab. Its
+    function is to take data it is presented with and generate a
+    series of security tests that can be applied to an
+    application to determine if a security problem exists. The
+    tests will be passed to another component the "Attack Engine"
+    to conduct the tests.</P>
+<P>The Analysis engine will need to operate on a variety of
+    data and be able to produce an array of tests. In order to do
+    this we will use the concept of test modules. The test module
+    will be the logic behind a specific web application problem.
+    The analysis engine will take a module and apply the logic it
+    presents to the data to build the tests. This allows us to
+    develop tests and allow users to develop tests. It also
+    allows us to improve the test modules without having to
+    modify the tool. This is an important point. A module will be
+    a class that implements an interface. An example maybe a
+    module for SQL injection, cross site scripting or buffer
+    overflows.</P>
+<H3>VulnXML Parser (sub-component to analysis engine)</H3>
+<P>The VulnXML format has been designed by Rogan Dawes for
+    OWASP. A somewhat annoying issue of some of the earlier CGI
+    scanners was that they all relied on a proprietary format for
+    defining static checks. Here we define a static check by
+    example such as does a cgi called phf or root.exe exist. If
+    you wanted to check for these issues you had to run whisker,
+    cgiscanner etc to ensure you covered all of the known static
+    vulnerabilities. You couldn't share a common database of
+    issues. The VulnXML format is an open format that will allow
+    a check developer / security researcher to define the check
+    once and ultimately share it among other tools that also
+    accept the format. As a stand-alone format it also provides a
+    well defined format for which researchers can write and share
+    new checks with the VulnXML community. Kavado have committed
+    to enabling the ScanDo scanner which makes a compelling and
+    interesting model of WebScarab and a commercial tool being
+    able to share open source checks. The model for this format
+    to be used to its fullest extent clearly needs a significant
+    amount of work, but as a stand-alone format for use in
+    WebScarab alone this is still a great concept.</P>
+<P>We will need to build a VulnXML parser that will parse the
+    files and pass the checks to the Attack Engine. We will then
+    need to build the database of checks in this format, starting
+    with converting the Whisker scan.dbs and assign more recent
+    checks.</P>
+<H2>Attack Engine</H2>
+<P>The Attack Engines role is to actually launch the attacks
+    that are passed to it by the Analysis Engine and listen for
+    success criteria (also defined by the Analysis Engine). All
+    attacks will be passed in a pre-defined format. The attack
+    engine will be passed either an individual attack or a stream
+    of attacks from the Analysis Engine.</P>
+<H2>DataStore</H2>
+<P>The datastore is likely to be a relational database such
+    as Oracle, MySQL etc. Its been called the DataStore so as we
+    don't specifically define that it MUST be a database. It
+    maybe a simple file I/O store or network attached storage
+    device, essentially whatever is needed to scale to enterprise
+    levels. The datastore will be used as the authoritative
+    persistent source of record for both working data and
+    configuration data. It can also be used to improve
+    performance such as spider queue mechanisms. Working data
+    will be data that is sent to the datastore from the spider
+    and proxy, read from the datastore by the analysis engine and
+    attacks both potential and successful by the Attack Engine.
+    The datastore will also store tool configuration options,
+    user session information and GUI settings.</P>
+<H3>DataStore Portal (API) (sub-component of DataStore)</H3>
+<P>In order to abstract the datastore working from both
+    WebScarab component and module developers, the tool will have
+    an API to both read and write data to and from the datastore.
+    This will provide method calls to perform the functions
+    required of all of the components as well as providing data
+    encapsulation. The API will also be able to abstract the
+    transactions from the specific datastore types such as
+    Oracle. It is anticipated that the datastore effectively acts
+    as a object relational mapper. The datastore will eventually
+    be datastore type independent, that is to say the user gets
+    to select the datastore and the datatstore API will perform
+    any data transformations needed to ensure correct
+    transactions. We will use JAXME
+    (http://jaxme.sourceforge.net) for this functionality.</P>
+<H2>GUI</H2>
+<P>The GUI will allow users to interact with WebScarab. It
+    will allow users to make component configuration settings,
+    import modules and VulnXML, view progress during application
+    discovery phases and view / generate reports. It will be
+    initially written in SWING being multi-platform, but maybe
+    moved to a web interface in later revisions. Close attention
+    will be paid to the user interface to allow the user to
+    concentrate on testing the application and not running the
+    tool.</P>
+<P>The GUI will have the following components and views;</P>
+<UL>
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">Menus</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">Toolbar</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">Spider View</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P>Proxy View</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">Attack Generator View</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">Progress View (main
+        window)</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">Configuration Views (module
+        config etc.)</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P>Reporting Views (report config and results)</P>
+      
+</LI>
+    
+</UL>
+<H2>Reporting (sub-component of reporting)</H2>
+<P>The reporting will allow users to generate security
+    reports about the sites or applications they have tested.
+    Reporting will be initiated from the GUI and will be created
+    as XML. It will be presented to the user with XSLT as XHTML.
+    The reporting GUI will allow the user to select a sessions a
+    type of report. Based on this information the GUI will create
+    a db portal method call.</P>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+  
+<p></p>
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" cellpadding="3" cellspacing="0" border="0">
+<tr>
+<td>
+<h3>Traceability</h3>
+</td>
+</tr>
+<tr>
+<td>
+<p>Impacted By:</p>
+<ul>
+<li>
+<a href="../Requirements/Problem_Statement.html">Requirements/Problem_Statement</a>
+</li>
+<li>
+<a href="../Project_Management/Issues.html">Project_Management/Issues</a>
+</li>
+</ul>
+<p>Impacts:</p>
+<ul>
+<li>
+<a href="../Requirements/Prioritized_Requirements.html">Requirements/Prioritized_Requirements</a>
+</li>
+<li>
+<a href="../Requirements/Acceptance_Plan.html">Requirements/Acceptance_Plan</a>
+</li>
+<li>
+<a href="../Project_Management/Test_Plan.html">Project_Management/Test_Plan</a>
+</li>
+<li>
+<a href="../Analysis/Subject_Areas.html">Analysis/Subject_Areas</a>
+</li>
+<li>
+<a href="../Analysis/Analysis_Scenarios.html">Analysis/Analysis_Scenarios</a>
+</li>
+<li>
+<a href="../UI_Model/Screen_Flows.html">UI_Model/Screen_Flows</a>
+</li>
+<li>
+<a href="../UI_Model/Screen_Layouts.html">UI_Model/Screen_Layouts</a>
+</li>
+<li>
+<a href="../UI_Model/UI_Prototype.html">UI_Model/UI_Prototype</a>
+</li>
+<li>
+<a href="../Implementation/User_Support_Materials.html">Implementation/User_Support_Materials</a>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+  
+<p></p>
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" cellpadding="3" cellspacing="0" border="0">
+<tr>
+<td>
+<h3>Metrics</h3>
+</td>
+</tr>
+<tr>
+<td>
+<ul>
+    
+<li>Usability testing results.</li>
+  
+</ul>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+  
+<p></p>
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" border="0" cellpadding="3" cellspacing="0">
+<tr>
+<td>
+<h3>History</h3>
+</td>
+</tr>
+<tr>
+<td>
+<pre>
+	$Log: General_Design_Principles.html,v $
+	Revision 1.1  2002/10/30 20:47:04  istr
+	Initial revision
+	
+	Revision 1.5  2002/05/24 15:37:37  donalphonso
+	tiny fix
+	
+	Revision 1.4  2002/05/24 08:09:16  zedshaw
+	Fixed more xml problems, thanks to conflicts from cvs.
+	
+	</pre>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+</body>
+</html>

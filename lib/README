@@ -1,0 +1,52 @@
+/*
+ * $Source: /cvsroot/owasp/webscarab/lib/Attic/README,v $
+ * Copyright (c) 2002 owasp.org.
+ * This file is part of WebScarab.
+ * WebScarab is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * WebScarab is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The valid license text for this file can be retrieved with
+ * the call:   java -cp owasp.jar org.owasp.webscarab.LICENSE
+ * 
+ * If you are not able to view the LICENSE that way, which should
+ * always be possible within a valid and working WebScarab release,
+ * please write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+This is a compilation of the prerequisite libraries and tools needed to
+build and/or run WebScarab.
+Everything needed is included in the single file optlib.jar.
+If you want to exchange parts of it, please download the appropriate
+packages from the cvs module extern or any later releases found at
+the publisher's sites.
+
+ file: junit3.7.zip
+ what: java unit test suite framework
+where: http://www.junit.org/
+ note: We provide a junit-clean.jar since the original junit distro
+       is severely broken (no proper/clean builds)
+
+ file: jakarta-ant-1.4.1-src.tar.gz
+ what: XML based build tool
+where: http://jakarta.apache.org/ant/
+
+ file: argo-0.9.7.tar.gz 
+ what: OpenSource UML modelling tool
+where: http://argouml.tigris.org/
+ note: You may prefer to use Poseidon for UML that can be found in
+       our external cvs module. If you do so you may remove argo,
+			 since poseidon already contains a complete argo distribution.
+
+ file: rhino15R3.zip 
+ what: mozilla JavaScript package
+where: http://www.mozilla.org/rhino/
+
+* end of $Source: /cvsroot/owasp/webscarab/lib/Attic/README,v $

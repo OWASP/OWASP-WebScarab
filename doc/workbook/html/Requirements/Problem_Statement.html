@@ -1,0 +1,682 @@
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>WebScarab: Problem Statement</title>
+</head>
+<body bgcolor="#FFFFFF">
+<h2>Requirements: Problem Statement</h2>
+  
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" border="0" cellpadding="3" cellspacing="0">
+<tr>
+    
+<td><b>$Date: 2002/10/30 20:47:01 $</b></td>
+
+    <td><b>$Author: istr $</b></td>
+
+    <td><b>Owner: </b>  $Author: istr $</td>
+
+    <td><b>Status:</b>  Initial</td>
+  
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+  
+<p></p>
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" border="0" cellpadding="3" cellspacing="0">
+<tr>
+<td>
+<h3>Details</h3>
+</td>
+</tr>
+<tr>
+<td>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+        <FONT SIZE="4">
+          <B>Problem Statement</B>
+        </FONT>
+      </FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+        <FONT SIZE="3">
+          <B>Introduction</B>
+        </FONT>
+      </FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">Whilst
+      traditional "black-box" vulnerability scanners were
+      relatively good at finding static security bugs that occur
+      with the same state conditions, this technique does not
+      work for web applications which are almost always uniquely
+      developed and deployed. In a web application a class of
+      attack could occur in thousands of different ways.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">Current
+      commercial tools;</FONT>
+    
+</P>
+<UL>
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">
+          
+<FONT FACE="Arial, Helvetica, sans-serif">do not
+          function well in complex (and in some cases simple)
+          application environments</FONT>
+        
+</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">
+          
+<FONT FACE="Arial, Helvetica, sans-serif">are not
+          extensible or customizable</FONT>
+        
+</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">
+          
+<FONT FACE="Arial, Helvetica, sans-serif">have a
+          limited feature set and only cover on av. 40% of the
+          checks that should be made</FONT>
+        
+</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">
+          
+<FONT FACE="Arial, Helvetica, sans-serif">do not
+          accurately deal with specific attacks leaving the user
+          with a false sense of security</FONT>
+        
+</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">
+          
+<FONT FACE="Arial, Helvetica, sans-serif">are
+          expensive</FONT>
+        
+</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P>
+          
+<FONT FACE="Arial, Helvetica, sans-serif">are closed
+          source</FONT>
+        
+</P>
+      
+</LI>
+    
+</UL>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">As such a team of
+      developers are going to build an Open Source web
+      application scanner.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+        <FONT SIZE="3">
+          <B>Proposed Solution</B>
+        </FONT>
+      </FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">The OWASP Web
+      Scarab tool will be an automated web application security
+      assessment tool. It will be able to examine a complete web
+      system or individual applications running within a web
+      system for security issues.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">It will focus on
+      web application security issues only. It will NOT duplicate
+      web server checks and operating system checks found in
+      scanners like Nessus (although it may import them possibly
+      through an intermediary language like XML).</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">It will lead a
+      user down the path of doing structured security testing and
+      support the OWASP testing framework being developed.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">The tool will be
+      platform independent (probably written in Java) and Open
+      Source under the GNU Public License.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">It will be
+      designed in such a way that novices and high skilled
+      technicians can use its various features, as well as it
+      should be able to be driven automatically by machine
+      scripts (or scheduling).</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">It should be
+      extensible allowing users to add their own custom checks
+      either in Java or via an intermediary language or
+      XML.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">The tool will be
+      able to check for two types of problems</FONT>
+    
+</P>
+<UL>
+      
+<LI>
+        
+<P STYLE="margin-bottom: 0in">
+          
+<FONT FACE="Arial, Helvetica, sans-serif">Static
+          vulnerabilities</FONT>
+        
+</P>
+      
+</LI>
+
+      
+<LI>
+        
+<P>
+          
+<FONT FACE="Arial, Helvetica, sans-serif">Dynamic
+          vulnerabilities</FONT>
+        
+</P>
+      
+</LI>
+    
+</UL>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">A static
+      vulnerability would be a discrete problem that has been
+      published by a vulnerability database like CVE or Bugtraq.
+      An example would be "/samples.asp" on an IIS server.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">A dynamic
+      vulnerability would be a category of potential problems
+      like SQL injection or cross-site scripting.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">The tool should
+      be able to generate detailed technical reports about
+      problems tested for and problems found.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">The tool would
+      lead the user to work in phases</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">1. Configuration
+      <BR>
+
+      2. Find applications (optional to allow testing of a single
+      app)
+      <BR>
+
+      3. Run Static tests (optional to allow testing of a single
+      app)
+      <BR>
+
+      4. Build Dynamic tests
+      <BR>
+
+      5. Run Dynamic tests
+      <BR>
+
+      6. Report Results</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+      <B>Phase 1 - Configuration</B>
+
+      
+<BR>
+
+      The tool would allow a user to select a site URL, a
+      specific application URL, enter usernames and passwords,
+      claim to be a specific user-agent, customized 404s
+      etc</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+      <B>Phase 2 - Discover Applications</B>
+
+      
+<BR>
+
+      The tool would automatically or manually help a user find
+      applications running on the target site.</FONT>
+    
+</P>
+<BLOCKQUOTE>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+        <B>Auotmagically</B>
+      </FONT>
+    
+</BLOCKQUOTE>
+<BLOCKQUOTE>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">The tool would
+      need to be capable of spidering an entire site or subset of
+      a site and capture all HTTP and HTML. This would be stored
+      in a structured manner to allow analysis and the tool to
+      build tests.</FONT>
+    
+</BLOCKQUOTE>
+<BLOCKQUOTE>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">The spider and
+      tool generally would need to be able to use SSL where
+      needed and maintain HTTP state at all times. It would need
+      to be able to understand HTTP 1.1 fully. It would need to
+      be able to perform user authentication (forms and HTTP NTLM
+      (for .NET). It would be able to handle multiple MIME types
+      (and make decisions about whether to download content based
+      on MIME type). It would need to be smart enough to handle
+      loops like web boards.</FONT>
+    
+</BLOCKQUOTE>
+<BLOCKQUOTE>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+        <B>Manually</B>
+      </FONT>
+    
+</BLOCKQUOTE>
+<BLOCKQUOTE>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">The tool would
+      allow a user to point his regular browser through a proxy
+      and record the HTTP traffic flowing by. The user interacts
+      with the web site as if he were a regular user using his
+      regular browser.</FONT>
+    
+</BLOCKQUOTE>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+      <B>Phase 2 - Static Tests</B>
+
+      
+<BR>
+
+      The tool would then present the results of the spider and
+      allow the user to delete or add applications. It would then
+      perform a known files / application search. Essentially a
+      whisker / cgi-scan search. We definitely do NOT want to use
+      or have to be reliant on any other already developed tools.
+      The checks it does in this section can be coded into an XML
+      file (VulnXML Format) for extensibility. We can take the
+      best of known databases like whisker as well as CVE and the
+      other well documented lists. As well as looking for
+      vulnerable files, the tool would also run the actual
+      exploits of those vulnerable files if they were found to
+      avoid false positives.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+      <B>Phase 3 - Analysis / Build Relevant Dynamic Tests</B>
+
+      
+<BR>
+
+      The application would then process the data collected from
+      the spider / file enumeration and build relevant
+      tests.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">I would imagine
+      this would be a set of data tests, for example were there
+      any ODBC errors seen anywhere then build SQL injection
+      tests, or if any cookies then.Each test would
+      probably be a unique class implementing specific data tests
+      son the data tests could be written and modified without
+      affecting anything else in the application.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">The application
+      should then essentially build a selection of relevant tests
+      for the applications it found and present them to the user
+      in the form of predefined configurations i.e. checked boxes
+      saying it will do these tests on these URLS. A user could
+      then override the suggested checks and select all if so
+      desired.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">For
+      example</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">Application A at
+      URL X will be tested for 
+      <BR>
+
+      SQL Injection (256 request)
+      <BR>
+
+      Buffer Overflows (34 requests)
+      <BR>
+
+      Meta Characters (5669 requests)
+      <BR>
+
+      Null Characters (4000 requests)
+      <BR>
+
+      Directory Traversal (59 requests)</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">This logic would
+      obviously be pretty complex. Take for examples cookies.
+      Poisoning cookies is almost like exhaustive key space
+      unless you have some cool parsing algorithms. Maybe we
+      could have some configuration options like manipulate
+      integer values or try these ranges within these strings
+      etc. These would be user defined by the test module so if a
+      tester has time and wants to try all possible combinations
+      he could.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">More detailed
+      example of this logic can be found at XXXXXX?</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+      <B>Phase 4 - Run Dynamic Checks</B>
+
+      
+<BR>
+
+      These would be the actual test cases created from analysis.
+      There would be either single or HTTP requests or a series
+      of requests and an expected success criteria
+      response.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+      <B>Phase 5 - Report Results</B>
+
+      
+<BR>
+
+      The user would then generate reports. These would be
+      ordered descriptive reports containing both the specific
+      technical issue as well as stock text about the issue (we
+      have the ASAC descriptions for instance) and links to
+      things like CVE and how to fix etc.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+        <FONT SIZE="4">
+          <B>Existing Tools to Leverage</B>
+        </FONT>
+      </FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">We also have a
+      list of the different tools which might help us develop the
+      system quickly. All of these are already written in Java
+      although typically older versions.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+      <A HREF="http://www-2.cs.cmu.edu/%7Ercm/websphinx/">
+      WebSphinx</A>
+
+      : Is a GPL Spider that has a number of excellent features.
+      Its core architecture is based around the concept of
+      classifiers that record or act on items of interest.
+      WebSphinx looks like an excellent base from which to build
+      the spider.</FONT>
+    
+</P>
+<P>
+      
+<A HREF="http://muffin.doit.org/">
+        <FONT FACE="Arial, Helvetica, sans-serif">Muffin</FONT>
+      </A>
+
+      <FONT FACE="Arial, Helvetica, sans-serif">: Is a GPL
+      filtering proxy server for the World Wide Web.</FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">
+        <FONT SIZE="4">
+          <B>Summary</B>
+        </FONT>
+      </FONT>
+    
+</P>
+<P>
+      
+<FONT FACE="Arial, Helvetica, sans-serif">We are aiming to
+      build a web application scanning tool that is technically
+      superior than the current set of commercial offerings, open
+      source and free. It will be easy to use but cater for the
+      technically elite user who wants to get under the hood, as
+      well as novice user. We hope the community will continue to
+      extend it and make it THE platform for doing web
+      application testing in the same way as Nessus has been
+      adopted.</FONT>
+    
+</P>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+  
+<p></p>
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" border="0" cellpadding="3" cellspacing="0">
+<tr>
+<td>
+<h3>Issues</h3>
+</td>
+</tr>
+<tr>
+<td>
+<ul>
+    
+<li>Revise for second draft.</li>
+  
+</ul>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+  
+<p></p>
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" cellpadding="3" cellspacing="0" border="0">
+<tr>
+<td>
+<h3>Traceability</h3>
+</td>
+</tr>
+<tr>
+<td>
+<p>Impacted By:</p>
+<ul>
+<li>
+<a href="../Requirements/Issues.html">Requirements/Issues</a>
+</li>
+</ul>
+<p>Impacts:</p>
+<ul>
+<li>
+<a href="../Requirements/Use_Case_Model.html">Requirements/Use_Case_Model</a>
+</li>
+<li>
+<a href="../Requirements/Nonfunctional_Requirements.html">Requirements/Nonfunctional_Requirements</a>
+</li>
+<li>
+<a href="../Requirements/Prioritized_Requirements.html">Requirements/Prioritized_Requirements</a>
+</li>
+<li>
+<a href="../Requirements/Business_Case.html">Requirements/Business_Case</a>
+</li>
+<li>
+<a href="../Requirements/Subject_Areas.html">Requirements/Subject_Areas</a>
+</li>
+<li>
+<a href="../Requirements/User_Support_Materials.html">Requirements/User_Support_Materials</a>
+</li>
+<li>
+<a href="../Requirements/Glossary.html">Requirements/Glossary</a>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+  
+<p></p>
+<table bgcolor="#000000" cellpadding="1" cellspacing="0" width="100%" border="0">
+<tr>
+<td>
+<table bgcolor="#FFFFFF" width="100%" border="0" cellpadding="3" cellspacing="0">
+<tr>
+<td>
+<h3>History</h3>
+</td>
+</tr>
+<tr>
+<td>
+<pre>
+	$Log: Problem_Statement.html,v $
+	Revision 1.1  2002/10/30 20:47:01  istr
+	Initial revision
+	
+	Revision 1.3  2002/05/24 08:06:02  zedshaw
+	Fixed problems with the XML.
+	
+  2002/05/24 07:44:04  zedshaw Added Mark's user analysis documents.
+  2002/05/17 19:50:50 donalphonso moved workbook Revision 1.1
+  2002/05/05 17:21:16 zedshaw Initial import of project
+  workbook
+	</pre>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+</body>
+</html>

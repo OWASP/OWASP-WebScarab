@@ -1,0 +1,244 @@
+<workproduct identifier="Platform Capabilities"
+project="WebScarab" stage="Requirements">
+  <header>
+    <date>$Date: 2002/10/30 20:47:12 $</date>
+
+    <author>$Author: istr $</author>
+
+    <owner>$Author: istr $</owner>
+
+    <status value="Initial" />
+  </header>
+
+  <details>
+    <p>These are the prerequisite libraries and tools needed to
+    build and/or run WebScarab. Since bad experiences where made
+    with disappearing packages that one relies on, a copy of all
+    prerequisite libraries and tools is provided under CVS. If
+    you want to spare download time or if you are unwilling to
+    build these libs from scratch, or if you have already some of
+    the packages installed on your system, you may use the
+    optlib.jar that can be found under the cvs module 'extern'.
+    It contains all needed things in a bundle.</p>
+
+    <p>Your System must contain a working java jdk 1.4 available
+    at http://java.sun.com.</p>
+
+    <p>You will need no additional binaries, since the building
+    environment is based upon ant, a completely java-based build
+    tool.</p>
+
+    <p>In addition you will have to install either all of the
+    following packages with the given releases or put our
+    optlib.jar in your java CLASSPATH.</p>
+
+    <table border="1">
+      <tr>
+        <td>file</td>
+
+        <td>jakarta-ant-1.4.1-src.tar.gz</td>
+      </tr>
+
+      <tr>
+        <td>what</td>
+
+        <td>XML based build tool</td>
+      </tr>
+
+      <tr>
+        <td>where</td>
+
+        <td>http://jakarta.apache.org/ant/</td>
+      </tr>
+
+      <tr>
+        <td>file</td>
+
+        <td>Xerces-J-src-2.0.1.zip</td>
+      </tr>
+
+      <tr>
+        <td>what</td>
+
+        <td>apache's XML parser</td>
+      </tr>
+
+      <tr>
+        <td>where</td>
+
+        <td>http://xml.apache.org/xerces2-j/</td>
+      </tr>
+
+      <tr>
+        <td>file</td>
+
+        <td>xalan-j_2_3_1-src.tar.gz</td>
+      </tr>
+
+      <tr>
+        <td>what</td>
+
+        <td>apache's XSL processor</td>
+      </tr>
+
+      <tr>
+        <td>where</td>
+
+        <td>http://xml.apache.org/xalan-j/</td>
+      </tr>
+
+      <tr>
+        <td>file</td>
+
+        <td>junit3.7.zip</td>
+      </tr>
+
+      <tr>
+        <td>what</td>
+
+        <td>java unit test suite framework</td>
+      </tr>
+
+      <tr>
+        <td>where</td>
+
+        <td>http://www.junit.org/</td>
+      </tr>
+
+      <tr>
+        <td>file</td>
+
+        <td>junitperf1.8.zip</td>
+      </tr>
+
+      <tr>
+        <td>what</td>
+
+        <td>junit add-on for performance and load testing</td>
+      </tr>
+
+      <tr>
+        <td>where</td>
+
+        <td>http://www.clarkware.com</td>
+      </tr>
+
+      <tr>
+        <td>file</td>
+
+        <td>jdepend2.2.zip</td>
+      </tr>
+
+      <tr>
+        <td>what</td>
+
+        <td>dependency checker for java package structure, also
+        contains an ant interface</td>
+      </tr>
+
+      <tr>
+        <td>where</td>
+
+        <td>http://www.clarkware.com</td>
+      </tr>
+
+      <tr>
+        <td>file</td>
+
+        <td>argo-0.9.7.tar.gz</td>
+      </tr>
+
+      <tr>
+        <td>what</td>
+
+        <td>OpenSource UML modelling tool</td>
+      </tr>
+
+      <tr>
+        <td>where</td>
+
+        <td>http://argouml.tigris.org/</td>
+      </tr>
+
+      <tr>
+        <td>note</td>
+
+        <td>You may use the plain argo instead of poseidon if you
+        prefer to use a completely GPLd development
+        environment</td>
+      </tr>
+
+      <tr>
+        <td>file</td>
+
+        <td>PoseidonCE-1.2.1.zip</td>
+      </tr>
+
+      <tr>
+        <td>what</td>
+
+        <td>commercial argo extension, free community edition
+        (CE)</td>
+      </tr>
+
+      <tr>
+        <td>where</td>
+
+        <td>http://www.gentleware.com</td>
+      </tr>
+
+      <tr>
+        <td>note</td>
+
+        <td>If you use poseidon, you can spare argo installation
+        since poseidon already ships with a complete argo
+        distribution</td>
+      </tr>
+
+      <tr>
+        <td>file</td>
+
+        <td>rhino15R3.zip</td>
+      </tr>
+
+      <tr>
+        <td>what</td>
+
+        <td>mozilla JavaScript package</td>
+      </tr>
+
+      <tr>
+        <td>where</td>
+
+        <td>http://www.mozilla.org/rhino/</td>
+      </tr>
+    </table>
+  </details>
+
+  <issues>
+  </issues>
+
+  <traceability>
+    <impacted-by stage="Requirements"
+    identifier="Problem_Statement" />
+
+    <impacts stage="Requirements"
+    identifier="Prioritized_Requirements" />
+  </traceability>
+
+  <history>
+	$Log: Platform_Capabilities.xml,v $
+	Revision 1.1  2002/10/30 20:47:12  istr
+	Initial revision
+	
+	Revision 1.3  2002/05/24 08:06:02  zedshaw
+	Fixed problems with the XML.
+	
+  2002/05/24 07:44:04  zedshaw Added Mark's user analysis documents.
+  2002/05/17 19:50:50 donalphonso moved workbook Revision 1.1
+  2002/05/05 17:21:16 zedshaw Initial import of project
+  workbook
+	</history>
+</workproduct>
+
+

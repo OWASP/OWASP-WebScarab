@@ -1,0 +1,184 @@
+
+<workproduct identifier="Source Code" project="WebScarab" stage="Implementation">
+<header>
+		<date>$Date: 2002/10/30 20:47:08 $</date>
+		<author>$Author: istr $</author>
+		<owner>$Author: istr $</owner>
+		<status value="Initial" />
+	</header>
+	
+	<details>
+<h4>abstract</h4>
+<p>This document describes the tools and methods used to keep
+the java sourcecode of the WebScarab project clean, well-formed
+and functional. As for now it is a draft and still needs to
+be reviewed, extended and approved.</p>
+<h4>writing code</h4>
+<p>If some piece of code requires technical specifications of any
+kind, the tech spec must be written and approved by the developer
+team BEFORE the implementation process begins.<br />
+If it shows up, that some interface must be changed, this has
+to be announced. Again, the tech specs have to be rewritten first,
+after approval interfaces may be changed.<br />
+To assure that any piece of code is working exactly as one expects,
+junit tests are used.<br />The general contract is <b>to write tests first</b>,
+i.e. once you defined some interface ("interface" means members,
+methods and ctors of any class that have <code>public</code> scope)
+you should define it's behaviour by writing explicit tests for it.<br />
+<b>Example</b><br />
+<code><pre>
+class Foo {
+  int _x;
+  public Foo () {}
+  public int get() { }
+  public Object doSomething( Object val ) {}
+}</pre></code><br />
+Now let us assume you want the following behaviour:
+<ul>
+<li>a new Foo is initialized with x = 2</li>
+<li>doSomething never returns null</li>
+<li>every call to doSomething increments x</li>
+</ul>
+You would write junit tests like this:<br />
+<code><pre>
+void testInit () {
+  Foo f = new Foo();
+  assertEquals( 2, f.get() );
+}
+
+void testDoNotNull () {
+  Foo f = new Foo();
+  assertNotNull(  f.doSomething( null ) );
+}
+
+void testDoInc () {
+  Foo f = new Foo();
+  f.doSomething( "val" );
+  assertEquals( 3, f.get() );
+  f.doSomething( "val" );
+  assertEquals( 4, f.get() );
+}
+</pre></code>
+<br />
+Now <b>AFTER</b> having defined the behaviour of the interface
+you implement it:<br />
+<code><pre>
+class Foo {
+  int _x;
+  public Foo () { _x = 2; }
+  public int get() { return _x; }
+  public Object doSomething( Object val ) { return null == val ? "null" : val; }
+}</pre></code><br />
+
+Everything alright?<br />NO!<br />
+Surely you noticed that the last test will fail, since _x is not 
+incremented on doSomething().<br />
+By writing the test first you will discover immediately that something
+goes wrong.<br />
+
+If you do it this way around it is more likely that you do not forget to
+test for a behaviour that you want to have.<br />
+</p>
+<h4>requirements for "stable" branches / releases</h4>
+<p>Until the first major release, no backwards compatibility for obsolete
+interfaces will be provided.<br />
+After the first major stable release, old interfaces have to be
+maintained exactly for the next following minor release.<br />
+Old interfaces have to be marked as deprecated and MUST BE REMOVED
+AND SUBSTITUTED COMPLETELY with the next minor release.<br />
+Only sourcecode that fulfils the following requirements  will be allowed
+ to be published in "stable" releases or to be commited in "stable" CVS
+ branches:
+<ul>
+<li>complete test suite for the interface</li>
+<li>complete jdoc for the interface</li>
+<li>digitally signed (reviewed) by at least two developers</li>
+</ul>
+The last point is some assurance for the case that a developer who
+wrote some awfully efficient, but yet cryptic code suddenly disappears.<br />
+If every class (sourcefile) is at least known and understood by two
+<i>active</i> developers, one can be sure that every part of the whole
+system can be maintained by somebody.
+</p>
+<h4>source code format</h4><p>
+<table border="1">
+<tr><th align="left">what</th><th align="left">why</th></tr>
+<tr><td>exactly one tab per indentlevel</td>
+<td>the indentation denotes the logical structure of the sourcecode; 
+most people have different habits regarding the usage of tabstop sizes</td></tr>
+<tr><td>members start with an underscore, local variables don't</td>
+<td><ul><li>you can tell fields apart from local vars at the first glimpse</li>
+<li>you can use exactly the same name for field accesses in interface methods
+without using <code>this</code> which is not treated correctly in all situations
+(e.g. nested / inner classes)</li></ul></td></tr>
+<tr><td>complete jdoc</td><td>any other developer can learn about the usage of
+some piece of code fast and reliably</td></tr>
+<tr><td>no pattern imports (e.g. <code>import java.util.*;</code>)</td>
+<td><ul><li>javadoc will not be able to create references (i.e. @see / @link) to classes that
+are imported this way</li><li>a developer can see at the first glimpse on which
+classes some class depends on</li></ul></td></tr>
+<tr><td>no explicit direct imports (e.g. <code>java.util.Map myMap = 
+new java.util.HashMap()</code>)</td><td>name clashes will go undetected; you run the
+risk of creating multiple classes in different packages with the same name but with
+completely different purposes. If two classes bear the same name they should at least
+do similar things (e.g. ...ui.console.WebScarab and ui.swing.WebScarab). Any other
+class should then only use one of these.</td></tr>
+<tr><td>no endless loops</td><td>you run the risk of blocking if you change the body
+of the loop. Every endless loop can be transformed into a well-formed loop with the
+interruption criterion within the loop statement</td></tr>
+<tr><td>uppercase constants</td><td>just a convention</td></tr>
+<tr><td>inner words in names are uppercase</td><td>just a convention</td></tr>
+<tr><td>no numbers in names</td><td>just a convention</td></tr>
+<tr><td>singular names for scalars, plural names for aggregates</td>
+<td>a developer can determine from the name if the variable or return value denotes
+a scalar or an aggregate</td></tr>
+</table>
+</p>
+<h4>packaging</h4><p>
+These are the rules for package naming:
+<ul>
+<li>every package is a subpackage of <code>org.owasp.webscarab</code></li>
+<li>generic utility package: org.owasp.webscarab.util</li>
+<li>datastore main package: org.owasp.webscarab.data</li>
+<li>analyser main package: org.owasp.webscarab.analyse</li>
+<li>spider main package: orq.owasp.webscarab.spider</li>
+<li>attack generator main package: org.owasp.webscarab.attack</li>
+<li>browser proxy main package: org.owasp.webscarab.proxy</li>
+<li>client app main package: org.owasp.webscarab.ui</li>
+</ul>
+Every package may depend on ...util.<br />
+All interfaces used to exchange data between the main packages must
+be declared in the main packages and NOT in any subpackages.</p>
+<h4>package dependencies</h4>
+<p>The dependencies between packages must be strictly linear to
+ensure proper modularization. There <b>must not exist</b> any circular
+dependency. <br />If circular dependencies are detected, the packages
+will be reworked such that the circular deps disappear.</p>
+	</details>
+
+	<traceability>
+		<impacted-by identifier="System_Architecure" stage="Design">
+            Description of how this workproduct is impacted by the "impacted-by" workproduct.    
+        </impacted-by>
+		<impacts identifier="System_Architecture" stage="Design">
+            Description of how this workprodcuct impacts the "impacts" workproduct.
+        </impacts>
+	</traceability>
+	
+	<history>
+	$Log: Source_Code.xml,v $
+	Revision 1.1  2002/10/30 20:47:08  istr
+	Initial revision
+	
+	Revision 1.2  2002/07/13 12:55:37  istr
+	CC refinement
+	
+	Revision 1.1  2002/05/17 19:49:16  donalphonso
+	moved workbook
+	
+	Revision 1.1  2002/05/05 17:21:16  zedshaw
+	Initial import of project workbook
+	
+	
+	</history>
+</workproduct>
