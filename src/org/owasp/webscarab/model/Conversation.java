@@ -6,9 +6,10 @@
 
 package org.owasp.webscarab.model;
 
-import java.util.Properties;
+import org.owasp.util.Prop;
 
 import java.net.URL;
+import java.util.Set;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -24,15 +25,15 @@ import org.htmlparser.util.NodeList;
  */
 public class Conversation {
     
-    private Properties _props;
+    private Prop _props;
     
     /** Creates a new instance of Conversation */
     public Conversation() {
-        _props = new Properties();
+        _props = new Prop();
     }
     
     public Conversation(Request request, Response response) {
-        _props = new Properties();
+        _props = new Prop();
         String value;
         if (request != null) {
             setProperty("METHOD", request.getMethod());
@@ -70,11 +71,15 @@ public class Conversation {
     }
     
     public void setProperty(String key, String value) {
-        _props.setProperty(key, value);
+        _props.put(key, value);
     }
     
     public String getProperty(String key) {
-        return (String) _props.getProperty(key);
+        return (String) _props.get(key);
+    }
+    
+    public Set keySet() {
+        return _props.keySet();
     }
     
     private static String checksum(byte[] content) {

@@ -6,7 +6,8 @@
 
 package org.owasp.webscarab.model;
 
-import java.util.Properties;
+import org.owasp.util.Prop;
+import java.util.Set;
 
 /**
  *
@@ -14,7 +15,7 @@ import java.util.Properties;
  */
 public class URLInfo {
 
-    private Properties _props = new Properties();
+    private Prop _props = new Prop();
     private String _url;
     
     /** Creates a new instance of URLModel */
@@ -27,12 +28,15 @@ public class URLInfo {
     }
     
     public void setProperty(String key, String value) {
-        _props.setProperty(key, value);
+        _props.put(key, value);
     }
     
     public String getProperty(String key) {
-        return (String) _props.getProperty(key);
+        return _props.get(key);
     }
     
-    // also need to implement a reader and a writer (to a FileInput/OutputStream) ?
+    public Set keySet() {
+        return _props.keySet();
+    }
+    
 }
