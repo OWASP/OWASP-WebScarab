@@ -34,6 +34,9 @@ import org.owasp.webscarab.ui.swing.proxy.BeanShellPanel;
 import org.owasp.webscarab.ui.swing.spider.SpiderPanel;
 import org.owasp.webscarab.ui.swing.manualrequest.ManualRequestPanel;
 
+import org.owasp.webscarab.ui.swing.sessionid.SessionIDPanel;
+import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysis;
+
 import java.util.Properties;
 import java.util.ArrayList;
 
@@ -46,6 +49,7 @@ import javax.swing.JTextArea;
 import javax.swing.text.Document;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -66,7 +70,7 @@ public class WebScarab extends javax.swing.JFrame {
     
     
     /** Creates new form WebScarab */
-    public WebScarab(String[] args) {
+    public WebScarab() {
         initComponents();
         
         // capture STDOUT and STDERR to a TextArea
@@ -123,24 +127,12 @@ public class WebScarab extends javax.swing.JFrame {
         _framework.addPlugin(manualrequest);
         addPlugin(new ManualRequestPanel(manualrequest));
         
-        if (args != null && args.length ==1) {
-            try {
-                if (FileSystemStore.isExistingSession(args[0])) {
-                    FileSystemStore store = new FileSystemStore(args[0]);
-                    _framework.setSessionStore(store);
-                } else {
-                    System.err.println("No session found in " + args[0]);
-                }
-            } catch (StoreException se) {
-                // pop up an alert dialog box or something
-                System.err.println("Error loading session : " + se);
-            }
-        } else {
-            // This could/should be done as a pop-up alert, or a File/Open or File/New dialog?
-            System.out.println("Data will not be saved unless you create or open a session");
-        }
+        // SessionID Analysis plugin
+        SessionIDAnalysis sa = new SessionIDAnalysis(_framework);
+        _framework.addPlugin(sa);
+        addPlugin(new SessionIDPanel(sa));
+        
     }
-    
     
     public void addPlugin(SwingPlugin plugin) {
         if (_plugins == null) {
@@ -376,8 +368,7 @@ public class WebScarab extends javax.swing.JFrame {
 
         setJMenuBar(mainMenuBar);
 
-        java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width-1024)/2, (screenSize.height-768)/2, 1024, 768);
+        setSize(new java.awt.Dimension(924, 768));
     }//GEN-END:initComponents
 
     private void manualDebugRequestCheckBoxMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manualDebugRequestCheckBoxMenuItemActionPerformed
@@ -430,7 +421,6 @@ public class WebScarab extends javax.swing.JFrame {
     }//GEN-LAST:event_exitMenuItemActionPerformed
     
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
-        saveSessionData();
         JFileChooser jfc = new JFileChooser(_defaultDir);
         jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         jfc.setDialogTitle("Choose a directory that contains a previous session");
@@ -438,23 +428,52 @@ public class WebScarab extends javax.swing.JFrame {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = jfc.getSelectedFile();
             String dir = file.toString() + System.getProperty("file.separator");
-            try {
-                if (FileSystemStore.isExistingSession(dir)) {
-                    FileSystemStore store = new FileSystemStore(dir);
-                    _framework.setSessionStore(store);
-                } else {
-                    System.err.println("No session found in " + dir);
-                }
-            } catch (StoreException se) {
-                // pop up an alert dialog box or something
-                System.err.println("Error loading session : " + se);
+            if (loadSession(dir)) {
+                _defaultDir = jfc.getCurrentDirectory();
             }
         }
-        _defaultDir = jfc.getCurrentDirectory();
     }//GEN-LAST:event_openMenuItemActionPerformed
+
+    public boolean loadSession(String location) {
+        saveSessionData();
+        try {
+            if (FileSystemStore.isExistingSession(location)) {
+                FileSystemStore store = new FileSystemStore(location);
+                _framework.setSessionStore(store);
+                return true;
+            } else {
+                int choice = JOptionPane.showConfirmDialog(null, location + " does not contain a session. Do you want to create one?", "Confirm", JOptionPane.YES_NO_OPTION);
+                if (choice == JOptionPane.YES_OPTION) {
+                    return createSession(location);
+                }
+            }
+        } catch (StoreException se) {
+            JOptionPane.showMessageDialog(null, new String[] {"Error loading Session : ", se.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return false;
+    }
+    
+    public boolean createSession(String location) {
+        saveSessionData();
+        try {
+            if (FileSystemStore.isExistingSession(location)) {
+                int choice = JOptionPane.showConfirmDialog(null, location + " already contains a session. Do you want to open it?", "Confirm", JOptionPane.YES_NO_OPTION);
+                if (choice == JOptionPane.YES_OPTION) {
+                    return loadSession(location);
+                }
+            } else {
+                FileSystemStore store = new FileSystemStore(location);
+                store.init();
+                _framework.setSessionStore(store);
+                return true;
+            }
+        } catch (StoreException se) {
+            JOptionPane.showMessageDialog(null, new String[] {"Error creating Session : ", se.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return false;
+    }
     
     private void newMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newMenuItemActionPerformed
-        saveSessionData();
         JFileChooser jfc = new JFileChooser(_defaultDir);
         jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         jfc.setDialogTitle("Select a directory to write the session into");
@@ -462,29 +481,22 @@ public class WebScarab extends javax.swing.JFrame {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = jfc.getSelectedFile();
             String dir = file.toString() + System.getProperty("file.separator");
-            try {
-                if (FileSystemStore.isExistingSession(dir)) {
-                    System.err.println(dir + " is an existing session!");
-                } else {
-                    FileSystemStore store = new FileSystemStore(dir);
-                    store.init();
-                    _framework.setSessionStore(store);
-                }
-            } catch (StoreException se) {
-                // pop up an alert dialog box or something
-                System.err.println("Error loading session : " + se);
+            if (createSession(dir)) {
+                _defaultDir = jfc.getCurrentDirectory();
             }
         }
-        _defaultDir = jfc.getCurrentDirectory();
     }//GEN-LAST:event_newMenuItemActionPerformed
     
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
         // FIXME
-        System.out.println("Help/About not implemented yet!");
-        System.out.println("OWASP WebScarab - part of the Open Web Application Security Project");
-        System.out.println("See http://www.owasp.org/");
-        System.out.println("Coders : Rogan Dawes (rdawes at telkomsa.net / rdawes at deloitte.co.za)");
-        System.out.println("         Ingo Struck (ingo at ingostruck.de)");
+        String[] message = new String[] {
+            "OWASP WebScarab - part of the Open Web Application Security Project",
+            "See http://www.owasp.org/",
+            "", "Coders : ",
+            "         Rogan Dawes (rdawes at telkomsa.net / rdawes at deloitte.co.za)",
+            "         Ingo Struck (ingo at ingostruck.de)"
+        };
+        JOptionPane.showMessageDialog(this, message, "About WebScarab", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_aboutMenuItemActionPerformed
     
     /** Exit the Application */
@@ -532,40 +544,59 @@ public class WebScarab extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        WebScarab ws = new WebScarab(args);
-        // ws.setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
+        WebScarab ws = new WebScarab();
         ws.show();
+        boolean loaded = false;
+        if (args != null && args.length == 1 && !args[0].equals("")) {
+            loaded = ws.loadSession(args[0]);
+        } else {
+            JFileChooser jfc = new JFileChooser();
+            jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            jfc.setDialogTitle("Select a directory to write the session into");
+            int returnVal = jfc.showOpenDialog(ws);
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File file = jfc.getSelectedFile();
+                String dir = file.toString() + System.getProperty("file.separator");
+                if (FileSystemStore.isExistingSession(dir)) {
+                    loaded = ws.loadSession(dir);
+                } else {
+                    loaded = ws.createSession(dir);
+                }
+            }
+        }
+        if (!loaded) {
+            JOptionPane.showMessageDialog(null, "Conversations and other data will not be saved unless you create or open a session", "Warning", JOptionPane.WARNING_MESSAGE);
+        }
     }
     
-    
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenuItem aboutMenuItem;
-    private javax.swing.JMenuItem cookieJarMenuItem;
-    private javax.swing.JMenu debugMenu;
-    private javax.swing.JMenuItem exitMenuItem;
-    private javax.swing.JMenu fileMenu;
-    private javax.swing.JMenu helpMenu;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JMenuBar mainMenuBar;
+    private javax.swing.JMenuItem newMenuItem;
+    private javax.swing.JTextArea stderrTextArea;
     private javax.swing.JSplitPane mainSplitPane;
-    private javax.swing.JTabbedPane mainTabbedPane;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JMenu fileMenu;
+    private javax.swing.JMenuItem transcoderMenuItem;
+    private javax.swing.JMenuItem cookieJarMenuItem;
+    private javax.swing.JMenuItem saveConfigMenuItem;
+    private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu manualDebugMenu;
     private javax.swing.JCheckBoxMenuItem manualDebugRequestCheckBoxMenuItem;
-    private javax.swing.JCheckBoxMenuItem manualDebugResponseCheckBoxMenuItem;
-    private javax.swing.JMenuItem newMenuItem;
-    private javax.swing.JMenuItem openMenuItem;
-    private javax.swing.JMenuItem optionsMenuItem;
-    private javax.swing.JMenu proxyDebugMenu;
-    private javax.swing.JCheckBoxMenuItem proxyDebugRequestCheckBoxMenuItem;
+    private javax.swing.JMenuBar mainMenuBar;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JCheckBoxMenuItem proxyDebugResponseCheckBoxMenuItem;
-    private javax.swing.JMenuItem proxyMenuItem;
-    private javax.swing.JMenuItem saveConfigMenuItem;
-    private javax.swing.JTextArea stderrTextArea;
+    private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JTextArea stdoutTextArea;
+    private javax.swing.JCheckBoxMenuItem manualDebugResponseCheckBoxMenuItem;
+    private javax.swing.JCheckBoxMenuItem proxyDebugRequestCheckBoxMenuItem;
+    private javax.swing.JTabbedPane mainTabbedPane;
+    private javax.swing.JMenuItem optionsMenuItem;
     private javax.swing.JMenu toolsMenu;
-    private javax.swing.JMenuItem transcoderMenuItem;
+    private javax.swing.JMenuItem aboutMenuItem;
+    private javax.swing.JMenu helpMenu;
+    private javax.swing.JMenuItem proxyMenuItem;
+    private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JMenu proxyDebugMenu;
+    private javax.swing.JMenu debugMenu;
     // End of variables declaration//GEN-END:variables
     
 }
