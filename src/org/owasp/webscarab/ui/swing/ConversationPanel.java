@@ -26,13 +26,11 @@ public class ConversationPanel extends javax.swing.JPanel {
     /** Creates new form ConversationPanel */
     public ConversationPanel() {
         initComponents();
+        
         _requestPanel = new RequestPanel();
         _requestPanel.setBorder(new TitledBorder("Request"));
-        // _requestPanel.setMinimumSize(new Dimension(400, 100));
         _responsePanel = new ResponsePanel();
         _responsePanel.setBorder(new TitledBorder("Response"));
-        // _responsePanel.setMinimumSize(new Dimension(400, 100));
-        
         conversationSplitPane.setTopComponent(_requestPanel);
         conversationSplitPane.setBottomComponent(_responsePanel);
     }
@@ -64,7 +62,8 @@ public class ConversationPanel extends javax.swing.JPanel {
             return _frame;
         }
         _frame = new JFrame(title);
-        _frame.setBounds(new java.awt.Rectangle(800, 600));
+        _frame.getContentPane().setLayout(new java.awt.BorderLayout());
+        _frame.setSize(800, 600);
         _frame.getContentPane().add(this);
         return _frame;
     }
@@ -99,9 +98,15 @@ public class ConversationPanel extends javax.swing.JPanel {
         Request request = new Request();
         Response response = new Response();
         try {
-            java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/santam/webscarab/conversations/1-request");
+            String req = "c:/temp/reverse/conversations/1-request";
+            String resp = "c:/temp/reverse/conversations/1-response";
+            if (args.length == 2) {
+                req = args[0] + "/conversations/" + args[1] + "-request";
+                resp = args[0] + "/conversations/" + args[1] + "-response";
+            }
+            java.io.FileInputStream fis = new java.io.FileInputStream(req);
             request.read(fis);
-            fis = new java.io.FileInputStream("/home/rdawes/santam/webscarab/conversations/1-response");
+            fis = new java.io.FileInputStream(resp);
             response.read(fis);
         } catch (Exception e) {
             e.printStackTrace();
@@ -109,8 +114,10 @@ public class ConversationPanel extends javax.swing.JPanel {
         }
         
         final ConversationPanel cp = new ConversationPanel();
+        cp.setRequest(request, false);
+        cp.setResponse(response, false);
+
         JFrame top = cp.inFrame();
-        top.getContentPane().setLayout(new java.awt.BorderLayout());
         top.addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 System.exit(0);
@@ -125,10 +132,7 @@ public class ConversationPanel extends javax.swing.JPanel {
                 System.out.println(cp.getResponse());
             }
         });
-        top.setBounds(100,100,800,600);
         top.show();
-        cp.setRequest(request, false);
-        cp.setResponse(response, false);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
