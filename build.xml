@@ -37,7 +37,6 @@
 	</target>
 	<target depends="prepare" name="compile">
                 <copy file="server.p12" todir="${classes}"/>
-                <copy file="WebScarab.properties" todir="${classes}"/>
 		<javac classpathref="cpath" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}" listfiles="yes">
                 </javac>
 	</target>
