@@ -66,6 +66,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     private Vector _requestQueue = new Vector();
     private Vector _responseQueue = new Vector();
+    private Vector _linkQueue = new Vector();
     
     private AsyncFetcher[] _fetchers;
     private int _threads = 4;
@@ -132,6 +133,26 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         Response response;
         Conversation conversation;
         while (true) {
+            
+            // if the request queue is empty, add the latest cookies etc to the 
+            // request and submit it
+            synchronized (_linkQueue) {
+                if (_linkQueue.size() > 0 && _requestQueue.size() == 0) {
+                    Link link = (Link) _linkQueue.remove(0);
+                    if (link != null) {
+                        request = newGetRequest(link);
+                        if (request != null) {
+                            if (_cookieSync) {
+                                _cookieJar.addRequestCookies(request);
+                            }
+                            // we should set the UserAgent, Accept headers, etc
+                            _requestQueue.add(request);
+                        }
+                    }
+                }
+            }
+            
+            // see if there are any responses waiting for us
             try {
                 response = (Response) _responseQueue.remove(0);
                 if (response != null) {
@@ -151,51 +172,43 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         }
     }
     
-    public void queueRequestsUnder(String root) {
+    public void requestLinksUnder(String root) {
         synchronized(_unseenLinks) {
             Iterator it = _unseenLinks.keySet().iterator();
             while (it.hasNext()) {
                 String url = (String) it.next();
-                if (url.startsWith(root)) {
+                if (url.startsWith(root) && allowedURL(url)) {
                     Link link = (Link) _unseenLinks.get(url);
-                    queueRequest(newGetRequest(link));
+                    queueLink(link);
                 }
             }
         }
     }
     
-    private void queueRequest(Request request) {
-        // FIXME!
-        // we need to be more careful about adding requests to the queue.
-        // if we get cookies back, we want to be able to add them to following
-        // requests. The way we do it currently, those requests are already 
-        // queued, most likely :-(
-        //
-        // We could probably do that in the main run() loop, rather. Add the requests 
-        // to a local queue, and as we get responses from the AsyncFetchers, remove 
-        // pending requests, update the Cookies, and queue them to the AsyncFetchers.
-        //
-        if (_cookieSync) {
-            _cookieJar.addRequestCookies(request);
+    private void queueLink(Link link) {
+        synchronized (_linkQueue) {
+            _linkQueue.add(link);
         }
-        // set the UserAgent, Accept headerss, etc
-        _requestQueue.add(request);
     }
     
-    /** removes all pending reuqests from the queue - effectively stops the spider */
+    /** removes all pending reuqests from the queues - effectively stops the spider */
     public void resetRequestQueue() {
         System.out.println("Clearing request queue");
-        _requestQueue.clear();
+        synchronized(_linkQueue) {
+            _linkQueue.clear();
+        }
+        synchronized(_requestQueue) {
+            _requestQueue.clear();
+        }
     }
     
-    public void requestURLs(String[] urls) {
+    public void requestLinks(String[] urls) {
         Request req;
         Link link;
         for (int i=0; i<urls.length; i++) {
             link = (Link) _unseenLinks.get(urls[i]);
             if (link != null) {
-                req = newGetRequest(link);
-                queueRequest(req);
+                queueLink(link);
             }
         }
     }
@@ -300,7 +313,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 _unseenLinkTableModel.fireTableRowsInserted(index, index);
                 _unseenLinkTreeModel.add(url);
                 if (_recursive && allowedURL(url)) {
-                    queueRequest(newGetRequest(link));
+                    queueLink(link);
                 }
             }
         }
