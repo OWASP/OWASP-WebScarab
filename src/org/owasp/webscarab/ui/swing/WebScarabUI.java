@@ -19,24 +19,25 @@ import java.util.ArrayList;
  */
 public class WebScarabUI extends javax.swing.JFrame {
     
-    private org.owasp.webscarab.WebScarab _webscarab;
+    private WebScarab _webscarab;
     private ArrayList _plugins;
     private SwingPlugin[] _pluginArray = new SwingPlugin[0];
     
     /** Creates new form WebScarab */
-    public WebScarabUI(org.owasp.webscarab.WebScarab webscarab) {
+    public WebScarabUI(WebScarab webscarab) {
         _webscarab = webscarab;
         initComponents();
         
         // should instantiate a listener for Logger messages here, and insert it into the 
         // bottom part of the split pane . . .
         
+        addPlugin(new ConversationLog(webscarab));
+
         Proxy proxy = new Proxy(webscarab);
         new Thread(proxy).start();
         
         webscarab.addPlugin(proxy);
         addPlugin(new ProxyPanel(proxy));
-        
         // we could also add the spider, etc here.
 
     }
