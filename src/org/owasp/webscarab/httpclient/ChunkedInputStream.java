@@ -7,6 +7,7 @@
 package org.owasp.webscarab.httpclient;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import java.io.InputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -20,10 +21,10 @@ public class ChunkedInputStream extends FilterInputStream {
     int start = 0;
     int size = 0;
     String[][] _trailer = null;
+    private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     public ChunkedInputStream(InputStream in) throws IOException {
         super(in);
-        // System.err.println("Creating ChunkedInputStream");
         readChunk();
     }
     
@@ -35,34 +36,36 @@ public class ChunkedInputStream extends FilterInputStream {
         String line = readLine().trim();
         try {
             size = Integer.parseInt(line,16);
-            // System.err.println("Expecting " + size);
+            _logger.finest("Expecting a chunk of " + size + " bytes");
             chunk = new byte[size];
             int read = 0;
             while (read < size) {
-                int got = in.read(chunk,read, size-read);
+                int got = in.read(chunk,read, Math.min(1024,size-read));
+                _logger.finest("read " + got + " bytes");
                 if (got>0) {
                     read = read + got;
                 } else if (read == 0) {
-                    System.out.println("read 0 bytes from the input stream! Huh!?");
+                    _logger.info("read 0 bytes from the input stream! Huh!?");
                 } else {
-                    System.out.println("No more bytes to read from the stream, read " + read + " of " + size);
+                    _logger.info("No more bytes to read from the stream, read " + read + " of " + size);
                     continue;
                 }
             }
-            String crlf = readLine();
+            _logger.finest("Got " + size + " bytes");
             if (size == 0) { // read the trailer and the CRLF
                 readTrailer();
+            } else {
+                readLine(); // read the trailing line feed after the chunk body, but before the next chunk size
             }
-            // System.err.println("Got " + size);
             start = 0;
         } catch (NumberFormatException nfe) {
-            System.err.println("Error parsing chunk size from '" + line + "' : " + nfe);
+            _logger.severe("Error parsing chunk size from '" + line + "' : " + nfe);
         }
     }
     
     public int read() throws IOException {
         if (size == 0) {
-            throw new IOException("Read called on a chunk size of 0");
+            return -1;
         }
         if (start == size) {
             readChunk();
@@ -79,7 +82,7 @@ public class ChunkedInputStream extends FilterInputStream {
     
     public int read(byte[] b, int off, int len) throws IOException {
         if (size == 0) {
-            throw new IOException("Read called on a chunk size of 0");
+            return -1;
         }
         if (start == size) {
             readChunk();
@@ -120,7 +123,7 @@ public class ChunkedInputStream extends FilterInputStream {
         if (i == 13) { // 10 is unix LF, but DOS does 13+10, so read the 10 if we got 13
             i = in.read();
         }
-        // System.out.println("Read '" + line + "'");
+        _logger.finest("Read '" + line + "'");
         return line;
     }
     
