@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: BeanShellPanel.java,v 1.3 2004/12/15 11:42:06 rogan Exp $
+ * $Id: BeanShellPanel.java,v 1.4 2005/01/05 11:20:20 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -84,15 +84,12 @@ public class BeanShellPanel extends javax.swing.JPanel implements ProxyPluginUI,
         boolean enabled = _beanShell.getEnabled();
         enableCheckBox.setSelected(enabled);
         
-        scriptFileTextField.setEnabled(enabled);
-        scriptFileTextField.setText(_beanShell.getScriptFile());
-        
         scriptTextArea.setEnabled(enabled);
         scriptTextArea.setText(_beanShell.getScript());
         
         commitButton.setEnabled(enabled);
         
-        _dos = new DocumentOutputStream();
+        _dos = new DocumentOutputStream(10240);
         _docStream = new PrintStream(_dos);
         logTextArea.setDocument(_dos.getDocument());
     }
@@ -108,9 +105,6 @@ public class BeanShellPanel extends javax.swing.JPanel implements ProxyPluginUI,
         jSplitPane1 = new javax.swing.JSplitPane();
         scriptPanel = new javax.swing.JPanel();
         enableCheckBox = new javax.swing.JCheckBox();
-        ScriptFileLabel = new javax.swing.JLabel();
-        scriptFileTextField = new javax.swing.JTextField();
-        scriptLabel = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         scriptTextArea = new javax.swing.JTextArea();
         commitButton = new javax.swing.JButton();
@@ -137,38 +131,8 @@ public class BeanShellPanel extends javax.swing.JPanel implements ProxyPluginUI,
         gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         scriptPanel.add(enableCheckBox, gridBagConstraints);
 
-        ScriptFileLabel.setText("Script File : ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
-        scriptPanel.add(ScriptFileLabel, gridBagConstraints);
-
-        scriptFileTextField.setToolTipText("Use a regular expression to select which URLs to intercept. Leave blank to ignore.");
-        scriptFileTextField.setEnabled(false);
-        scriptFileTextField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                scriptFileTextFieldActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
-        scriptPanel.add(scriptFileTextField, gridBagConstraints);
-
-        scriptLabel.setText("Script : ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
-        scriptPanel.add(scriptLabel, gridBagConstraints);
-
+        scriptTextArea.setFont(new java.awt.Font("Monospaced", 0, 14));
+        scriptTextArea.setMargin(new java.awt.Insets(5, 5, 5, 5));
         jScrollPane1.setViewportView(scriptTextArea);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -215,20 +179,10 @@ public class BeanShellPanel extends javax.swing.JPanel implements ProxyPluginUI,
             _logger.severe("Script error: " + ee);
         }
     }//GEN-LAST:event_commitButtonActionPerformed
-
-    private void scriptFileTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_scriptFileTextFieldActionPerformed
-        try { 
-            _beanShell.setScriptFile(scriptFileTextField.getText());
-            scriptTextArea.setText(_beanShell.getScript());
-        } catch (EvalError ee) {
-            _logger.severe("Script error: " + ee);
-        }
-    }//GEN-LAST:event_scriptFileTextFieldActionPerformed
     
     private void enableCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enableCheckBoxActionPerformed
         boolean enabled = enableCheckBox.isSelected();
         _beanShell.setEnabled(enabled);
-        scriptFileTextField.setEnabled(enabled);
         scriptTextArea.setEnabled(enabled);
         commitButton.setEnabled(enabled);
     }//GEN-LAST:event_enableCheckBoxActionPerformed
@@ -252,12 +206,10 @@ public class BeanShellPanel extends javax.swing.JPanel implements ProxyPluginUI,
         super.setEnabled(enabled);
         commitButton.setEnabled(enabled);
         enableCheckBox.setEnabled(enabled);
-        scriptFileTextField.setEnabled(enabled && enableCheckBox.isSelected());
         scriptTextArea.setEnabled(enabled && enableCheckBox.isSelected());
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel ScriptFileLabel;
     private javax.swing.JButton commitButton;
     private javax.swing.JCheckBox enableCheckBox;
     private javax.swing.JPanel jPanel1;
@@ -265,8 +217,6 @@ public class BeanShellPanel extends javax.swing.JPanel implements ProxyPluginUI,
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTextArea logTextArea;
-    private javax.swing.JTextField scriptFileTextField;
-    private javax.swing.JLabel scriptLabel;
     private javax.swing.JPanel scriptPanel;
     private javax.swing.JTextArea scriptTextArea;
     // End of variables declaration//GEN-END:variables
