@@ -13,7 +13,7 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
 public class ListFilter extends AbstractListModel {
-	
+    
     private int[] _map = new int[0];
     private int _size = 0;
     private int _cap = 10;
@@ -22,16 +22,16 @@ public class ListFilter extends AbstractListModel {
     private FilterChangeListener _fcl = new FilterChangeListener();
     private ListListener _ll = new ListListener();
     
-	public ListFilter(ListModel lm, Filter filter) {
-		if (lm == null || filter == null) {
-			throw new NullPointerException("ListModel and Filter may not be null");
-		}
-		_lm = lm;
-		_filter = filter;
-		applyFilter();
-		_lm.addListDataListener(_ll);
-		_filter.addChangeListener(_fcl);
-	}
+    public ListFilter(ListModel lm, Filter filter) {
+        if (lm == null || filter == null) {
+            throw new NullPointerException("ListModel and Filter may not be null");
+        }
+        _lm = lm;
+        _filter = filter;
+        applyFilter();
+        _lm.addListDataListener(_ll);
+        _filter.addChangeListener(_fcl);
+    }
     
     public void setFilter(Filter filter) {
         if (filter == null) {
@@ -95,7 +95,7 @@ public class ListFilter extends AbstractListModel {
             // again, fill with MAX_VALUE so that searches work properly
             Arrays.fill(newmap, Integer.MAX_VALUE);
             // copy the part of the original map up to the insert point
-            // copy the new mapped entries 
+            // copy the new mapped entries
             // copy the remaining items from original map after the insert point
             System.arraycopy(_map, 0, newmap, 0, insert);
             System.arraycopy(map, 0, newmap, insert, size);
@@ -160,27 +160,19 @@ public class ListFilter extends AbstractListModel {
     }
     
     public String toString() {
-        StringBuffer buff = new StringBuffer();
-        int size = getSize();
-        if (size > 0) {
-            buff.append(getElementAt(0));
-            for (int i=1; i<size; i++) {
-                buff.append(", ").append(getElementAt(i));
-            }
-        }
-        return buff.toString();
+        return listModelToString(this);
     }
     
     private class FilterChangeListener implements ChangeListener {
-    
+        
         public void stateChanged(ChangeEvent e) {
             applyFilter();
         }
-    
+        
     }
     
     private class ListListener implements ListDataListener {
-    
+        
         public void contentsChanged(ListDataEvent e) {
             applyFilter();
         }
@@ -192,7 +184,7 @@ public class ListFilter extends AbstractListModel {
         public void intervalRemoved(ListDataEvent e) {
             delegateIntervalRemoved(e);
         }
-    
+        
     }
     
     private static String listModelToString(ListModel lm) {
@@ -253,6 +245,6 @@ public class ListFilter extends AbstractListModel {
         System.out.println("Elements are: " + lf);
     }
     
-
+    
 }
 
