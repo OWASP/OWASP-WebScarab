@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -80,23 +80,27 @@ public class SiteTreeModelAdapter extends AbstractTreeModel {
         if (_model != null) {
             _model.removeSiteModelListener(_listener);
         }
-        _filtered.clear();
-        _implicit.clear();
         _model = model;
         if (_model != null) {
-            try {
-                _model.readLock().acquire();
-                try {
-                    recurseTree(null);
-                } finally {
-                    _model.readLock().release();
-                }
-            } catch (InterruptedException ie) {
-                _logger.severe("Interrupted! " + ie);
-            }
             _model.addSiteModelListener(_listener);
+            updateFiltered();
         }
         fireStructureChanged();
+    }
+    
+    private void updateFiltered() {
+        try {
+            _filtered.clear();
+            _implicit.clear();
+            _model.readLock().acquire();
+            try {
+                recurseTree(null);
+            } finally {
+                _model.readLock().release();
+            }
+        } catch (InterruptedException ie) {
+            _logger.severe("Interrupted! " + ie);
+        }
     }
     
     public Object getRoot() {
@@ -360,6 +364,21 @@ public class SiteTreeModelAdapter extends AbstractTreeModel {
                 });
             } catch (Exception e) {
                 _logger.warning("Exception removing " + url + " " + e);
+                e.getCause().printStackTrace();
+                // System.exit(1);
+            }
+        }
+        
+        public void dataChanged() {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        updateFiltered();
+                        fireStructureChanged();
+                    }
+                });
+            } catch (Exception e) {
+                _logger.warning("Exception updating filter list");
                 e.getCause().printStackTrace();
                 // System.exit(1);
             }

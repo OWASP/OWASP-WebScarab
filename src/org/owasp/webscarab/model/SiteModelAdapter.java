@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -97,14 +97,18 @@ public class SiteModelAdapter implements SiteModelListener {
      * called after a completely new cookie is added to the model
      * i.e. a new domain, new path, or new cookie name
      * @param cookie the cookie that was added
-     */    
+     */
     public void cookieAdded(Cookie cookie) {}
     
     /**
-     * fired after a cookie has been removed from the model. A previous cookie 
+     * fired after a cookie has been removed from the model. A previous cookie
      * might still exist.
      * @param cookie the cookie that was removed
-     */    
+     */
     public void cookieRemoved(Cookie cookie) {}
+    
+    /** called after the entire model has changed
+     */
+    public void dataChanged() {}
     
 }

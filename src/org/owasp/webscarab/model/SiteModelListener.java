@@ -111,4 +111,8 @@ public interface SiteModelListener extends EventListener {
      */    
     void cookieRemoved(Cookie cookie);
     
+    /** called after the entire model has changed
+     */
+    void dataChanged();
+    
 }

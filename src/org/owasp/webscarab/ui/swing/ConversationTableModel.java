@@ -147,6 +147,10 @@ public class ConversationTableModel extends ExtensibleTableModel {
         fireTableDataChanged();
     }
     
+    protected void changedConversations() {
+        fireTableDataChanged();
+    }
+    
     private class Listener extends SiteModelAdapter {
         
         public void conversationAdded(final ConversationID id) {
@@ -166,6 +170,18 @@ public class ConversationTableModel extends ExtensibleTableModel {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
                         removedConversation(id, position, urlposition);
+                    }
+                });
+            } catch (Exception e) {
+                _logger.warning("Exception! " + e);
+            }
+        }
+        
+        public void dataChanged() {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        changedConversations();
                     }
                 });
             } catch (Exception e) {

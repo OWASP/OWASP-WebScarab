@@ -83,6 +83,11 @@ public class SiteModel {
         _store = store;
     }
     
+    public void setStore(SiteModelStore store) {
+        _store = store;
+        fireDataChanged();
+    }
+    
     public Sync readLock() {
         return _rwl.readLock();
     }
@@ -752,6 +757,7 @@ public class SiteModel {
                     ((SiteModelListener)listeners[i+1]).urlChanged(url, property);
                 } catch (Exception e) {
                     _logger.severe("Unhandled exception: " + e);
+                    e.printStackTrace();
                 }
             }
         }
@@ -1008,4 +1014,22 @@ public class SiteModel {
         }
     }
     
+    /**
+     * notifies listeners that all values in the model have changed.
+     */    
+    protected void fireDataChanged() {
+        // Guaranteed to return a non-null array
+        Object[] listeners = _listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==SiteModelListener.class) {
+                try {
+                    ((SiteModelListener)listeners[i+1]).dataChanged();
+                } catch (Exception e) {
+                    _logger.severe("Unhandled exception: " + e);
+                }
+            }
+        }
+    }
 }

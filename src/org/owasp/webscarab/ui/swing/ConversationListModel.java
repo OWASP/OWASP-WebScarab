@@ -56,6 +56,7 @@ public class ConversationListModel extends AbstractListModel {
     
     private SiteModel _model = null;
     private Listener _listener = new Listener();
+    private int _size = 0;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -85,8 +86,9 @@ public class ConversationListModel extends AbstractListModel {
     }
     
     public int getSize() {
-        if (_model == null) return 0; 
-        return _model.getConversationCount();
+        if (_model == null) return 0;
+        _size = _model.getConversationCount();
+        return _size;
     }
     
     protected void addedConversation(ConversationID id) {
@@ -103,6 +105,11 @@ public class ConversationListModel extends AbstractListModel {
         fireIntervalRemoved(this, position, position);
     }
     
+    protected void conversationsChanged() {
+        if (_size>0) 
+            fireIntervalRemoved(this, 0, _size);
+        fireIntervalAdded(this, 0,  getSize());
+    }
     
     private class Listener extends SiteModelAdapter {
         
@@ -135,6 +142,18 @@ public class ConversationListModel extends AbstractListModel {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
                         removedConversation(id, position, urlposition);
+                    }
+                });
+            } catch (Exception e) {
+                _logger.warning("Exception! " + e);
+            }
+        }
+        
+        public void dataChanged() {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        conversationsChanged();
                     }
                 });
             } catch (Exception e) {
