@@ -178,14 +178,16 @@ public class SessionIDAnalysis implements Plugin {
         if (_ui != null) _ui.setEnabled(_running);
         while (! _stopping) {
             try {
-                response = _fetcher.receive();
-                if (response != null) {
-                    Map ids = getIDsFromResponse(response, _name, _regex);
-                    Iterator it = ids.keySet().iterator();
-                    while (it.hasNext()) {
-                        String key = (String) it.next();
-                        SessionID id = (SessionID) ids.get(key);
-                        addSessionID(key, id);
+                while (_fetcher.hasResponse()) {
+                    response = _fetcher.receive();
+                    if (response != null) {
+                        Map ids = getIDsFromResponse(response, _name, _regex);
+                        Iterator it = ids.keySet().iterator();
+                        while (it.hasNext()) {
+                            String key = (String) it.next();
+                            SessionID id = (SessionID) ids.get(key);
+                          addSessionID(key, id);
+                        }
                     }
                 }
             } catch (IOException ioe) {
