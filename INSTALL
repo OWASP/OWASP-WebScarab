@@ -26,13 +26,19 @@ http://www.owasp.org/webscarab.
 All source code and development stuff is done under
 http://sourceforge.net/projects/owasp
 
-Prior to building and / or installing webscarab you have to get
-a copy of the owasp common library (ocl) from 
-http://sourceforge.net/projects/owasp
-The resulting owasp.jar has to be copied (or symlinked) to 
-lib/owasp.jar
+Prior to building WebScarab, you should download the various
+libraries that it depends on. You can see the list in the ant build.xml
+file, in this directory. If you got this file by checking out the source
+from the WebScarab CVS repository, you should have the required libraries
+already.
 
-----TODO: detailed description ---
+WebScarab uses the Apache Ant build tool. In order to build WebScarab, you
+should use a reasonably recent version of Ant.
 
+There are two Ant build tasks that depend on external tools, IzPack and 
+ProGuard. You are only likely to need these tools if you plan to build
+redistributable images of WebScarab. i.e. an installer, or the self-contained
+jar. There should be no problem running the common build tasks if you do not 
+have these external tools.
 
 // end of $Source: /cvsroot/owasp/webscarab/INSTALL,v $
