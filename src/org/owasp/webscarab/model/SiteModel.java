@@ -213,6 +213,13 @@ public class SiteModel {
             "Origin", "Comment"
         };
         
+        private int[] preferredColumnWidths = {
+            40, 60, 300, 200,
+            200, 100, 80,
+            150, 80, 50, 
+            100, 100
+        };
+        
         private Logger logger = Logger.getLogger("za.org.dragon.exodus.ConversationTableModel");
         
         public ConversationTableModel() {
@@ -223,6 +230,10 @@ public class SiteModel {
                 return columnNames[column];
             }
             return "";
+        }
+        
+        public int getPreferredColumnWidth(int column) {
+            return preferredColumnWidths[column];
         }
         
         public synchronized int getColumnCount() {
