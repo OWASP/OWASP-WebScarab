@@ -75,7 +75,9 @@ public class URLTreeModel implements TreeModel {
     public void clear() {
         synchronized (_treemap) {
             _treemap.clear();
-            _root = new URLNode(null, "", false);
+            while (_root.getChildCount()>0) {
+                _root.removeChild(0);
+            }
             _treemap.put("", _root);
             fireTreeStructureChanged(getRoot());
         }
@@ -387,6 +389,17 @@ public class URLTreeModel implements TreeModel {
                 }
             }
             return -1;
+        }
+        
+        public boolean removeChild(int index) {
+            if (_children.size() == 0) {
+                return false;
+            }
+            if (index >= 0) {
+                _children.remove(index);
+                return true;
+            }
+            return false;
         }
         
         public int removeChild(Object child) {
