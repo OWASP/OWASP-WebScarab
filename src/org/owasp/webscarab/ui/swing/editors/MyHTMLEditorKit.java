@@ -17,10 +17,17 @@ import javax.swing.text.Position;
 import javax.swing.text.BadLocationException;
 
 import java.awt.Shape;
+import java.awt.Rectangle;
+import java.awt.Graphics;
 
-/**
- *
- * @author  rdawes
+/** We need to override the Default HTMLEditorKit to stop it from trying to follow
+ * embedded links, such as images, and framesets. This is because we don't know the
+ * base URL of the HTML content we are rendering, and besides, we probably don't
+ * want to go fetching embedded frames, which could possibly affect things on the
+ * server. The ideal would probably be to get the most recent conversation for the
+ * required URL from our local cache, but that becomes very intricate, and this is
+ * probably good enough for now.
+ * @author rdawes
  */
 public class MyHTMLEditorKit extends javax.swing.text.html.HTMLEditorKit {
     private static final ViewFactory defaultFactory = new MyHTMLFactory();
@@ -31,36 +38,41 @@ public class MyHTMLEditorKit extends javax.swing.text.html.HTMLEditorKit {
     
     private static class MyHTMLFactory extends HTMLEditorKit.HTMLFactory {
         public View create(Element elem) {
-	    Object o = elem.getAttributes().getAttribute(StyleConstants.NameAttribute);
-	    if (o instanceof HTML.Tag) {
-		HTML.Tag kind = (HTML.Tag) o;
-		if (kind == HTML.Tag.FRAME || kind == HTML.Tag.FRAMESET || kind == HTML.Tag.IMG || kind == HTML.Tag.OBJECT || kind == HTML.Tag.APPLET) {
-		    return new BlockView(elem, View.X_AXIS) {
-			public float getPreferredSpan(int axis) {
-			    return 0;
-			}
-			public float getMinimumSpan(int axis) {
-			    return 0;
-			}
-			public float getMaximumSpan(int axis) {
-			    return 0;
-			}
-			protected void loadChildren(ViewFactory f) {
-			}
-                        public Shape modelToView(int pos, Shape a,
-                               Position.Bias b) throws BadLocationException {
-                            return a;
-                        }
-			public int getNextVisualPositionFrom(int pos,
-				     Position.Bias b, Shape a, 
-				     int direction, Position.Bias[] biasRet) {
-			    return getElement().getEndOffset();
-			}
-		    };
+            Object o = elem.getAttributes().getAttribute(StyleConstants.NameAttribute);
+            if (o instanceof HTML.Tag) {
+                HTML.Tag kind = (HTML.Tag) o;
+                if (kind == HTML.Tag.FRAME || 
+                    kind == HTML.Tag.FRAMESET || 
+                    kind == HTML.Tag.IMG || 
+                    kind == HTML.Tag.OBJECT || 
+                    kind == HTML.Tag.APPLET) {
+                    return new NoView(elem);
                 }
             }
             return super.create(elem);
         }
     }
     
+    private static class NoView extends View {
+        public NoView(Element elem) {
+            super(elem);
+            setSize(0.0f, 0.0f);
+        }
+
+        public int viewToModel(float fx, float fy, Shape a, Position.Bias[] bias) {
+            return 0;
+        }
+        
+        public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
+            return new Rectangle(0, 0);
+        }
+
+        public float getPreferredSpan(int axis) {
+            return 0.0f;
+        }
+
+        public void paint(Graphics g, Shape allocation) {
+        }
+    }
+
 }
