@@ -99,6 +99,7 @@ public class AsyncFetcher {
                 return _fetchers[i].receive();
             }
         }
+        _logger.info("receive called, but no response available");
         return null;
     }
     
@@ -177,6 +178,7 @@ public class AsyncFetcher {
         public synchronized Response receive() throws IOException {
             if (_request != null && ! hasResponse()) {
                 try {
+                    _logger.warning("Receive called before hasResponse returns true! Expect a deadlock!");
                     this.wait();
                 } catch (InterruptedException ie) {}
             }
