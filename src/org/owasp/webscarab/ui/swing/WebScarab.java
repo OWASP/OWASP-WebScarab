@@ -53,6 +53,9 @@ public class WebScarab extends javax.swing.JFrame {
     private Framework _framework;
     private ArrayList _plugins;
     
+    private ProxyConfig _proxyConfig = null;
+    private CookieJarViewer _cookieJarViewer = null;
+    
     private File _defaultDir = null;
     private Properties _prop = null;
     
@@ -161,6 +164,7 @@ public class WebScarab extends javax.swing.JFrame {
         toolsMenu = new javax.swing.JMenu();
         proxyMenuItem = new javax.swing.JMenuItem();
         optionsMenuItem = new javax.swing.JMenuItem();
+        cookieJarMenuItem = new javax.swing.JMenuItem();
         saveConfigMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         aboutMenuItem = new javax.swing.JMenuItem();
@@ -258,6 +262,15 @@ public class WebScarab extends javax.swing.JFrame {
         optionsMenuItem.setText("Options");
         toolsMenu.add(optionsMenuItem);
 
+        cookieJarMenuItem.setText("Shared Cookies");
+        cookieJarMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cookieJarMenuItemActionPerformed(evt);
+            }
+        });
+
+        toolsMenu.add(cookieJarMenuItem);
+
         saveConfigMenuItem.setText("Save Configuration");
         saveConfigMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -288,6 +301,13 @@ public class WebScarab extends javax.swing.JFrame {
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width-800)/2, (screenSize.height-600)/2, 800, 600);
     }//GEN-END:initComponents
+
+    private void cookieJarMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cookieJarMenuItemActionPerformed
+        if (_cookieJarViewer == null) {
+            _cookieJarViewer = new CookieJarViewer(_framework.getCookieJar());
+        }
+        _cookieJarViewer.show();
+    }//GEN-LAST:event_cookieJarMenuItemActionPerformed
     
     private void saveConfigMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveConfigMenuItemActionPerformed
         try {
@@ -417,6 +437,7 @@ public class WebScarab extends javax.swing.JFrame {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
+    private javax.swing.JMenuItem cookieJarMenuItem;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JMenu helpMenu;

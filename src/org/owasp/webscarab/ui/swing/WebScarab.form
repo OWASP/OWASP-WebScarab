@@ -58,6 +58,14 @@
                 <Property name="text" type="java.lang.String" value="Options"/>
               </Properties>
             </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="cookieJarMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Shared Cookies"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cookieJarMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="saveConfigMenuItem">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Save Configuration"/>
