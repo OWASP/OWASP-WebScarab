@@ -175,7 +175,10 @@ public class ConnectionHandler implements Runnable {
                     }
                 }
                 if (_sock != null) {
-                    request.addHeader("X-Forwarded-For",_sock.getInetAddress().getHostAddress());
+                    String fwd = _sock.getInetAddress().getHostAddress();
+                    if (!fwd.equals("127.0.0.1")) {
+                        request.addHeader("X-Forwarded-For",fwd);
+                    }
                 }
                 _logger.info("Browser requested : " + request.getMethod() + " " + request.getURL().toString());
                 
