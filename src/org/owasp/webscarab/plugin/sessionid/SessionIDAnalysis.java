@@ -81,7 +81,7 @@ public class SessionIDAnalysis implements WebScarabPlugin, Runnable {
                     }
                 }
             }
-        }, 10000, 500); // wait 10 seconds to initialise, then every half second
+        }, 10000, 100); // wait 10 seconds to initialise, then every tenth of a second
     }
     
     public void run() {
@@ -118,6 +118,10 @@ public class SessionIDAnalysis implements WebScarabPlugin, Runnable {
 
     public SessionID getIDfromResponse(Response response, int location, String name, String regex) {
         Request request = response.getRequest();
+        if (request == null) {
+            System.out.println("Request was null?");
+            return null;
+        }
         URL url = request.getURL();
         String dateString = response.getHeader("Date");
         Date date;

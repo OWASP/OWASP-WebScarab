@@ -133,6 +133,9 @@ public class CookieJar {
     }
     
     public DefaultListModel getCookieList(String cookiename) {
+        if (cookiename == null || cookiename.equals("")) {
+            return null;
+        }
         String domain = cookiename.substring(0, cookiename.indexOf("/"));
         String path = cookiename.substring(cookiename.indexOf("/"), cookiename.indexOf(" "));
         String name = cookiename.substring(cookiename.indexOf(" ")+1);

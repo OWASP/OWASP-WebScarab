@@ -6,9 +6,9 @@
 
 package org.owasp.webscarab.ui.swing.editors;
 
-import org.owasp.webscarab.ui.swing.JTreeTable;
-import org.owasp.webscarab.ui.swing.treetable.DefaultTreeTableModel;
-import org.owasp.webscarab.ui.swing.treetable.TreeTableModel;
+import org.owasp.webscarab.util.swing.JTreeTable;
+import org.owasp.webscarab.util.swing.treetable.DefaultTreeTableModel;
+import org.owasp.webscarab.util.swing.treetable.TreeTableModel;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;

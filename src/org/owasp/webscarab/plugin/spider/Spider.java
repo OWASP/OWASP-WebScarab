@@ -13,7 +13,7 @@ import org.owasp.webscarab.model.URLInfo;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.CookieJar;
 import org.owasp.webscarab.model.URLTreeModel;
-import org.owasp.webscarab.util.SequencedTreeMap;
+import org.owasp.webscarab.util.MappedListModel;
 
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
@@ -43,6 +43,8 @@ import java.net.MalformedURLException;
 import java.lang.Thread;
 import java.lang.Runnable;
 
+import javax.swing.ListModel;
+
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
@@ -62,7 +64,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     private Plug _plug;
     
-    private SequencedTreeMap _unseenLinks = new SequencedTreeMap();
+    private MappedListModel _unseenLinks = new MappedListModel();
     private TreeMap _seenLinks = new TreeMap();
     
     private Vector _requestQueue = new Vector();
@@ -77,7 +79,6 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     private String _allowedDomains = null;
     private String _forbiddenPaths = null;
     
-    private UnseenLinkTableModel _unseenLinkTableModel = new Spider.UnseenLinkTableModel();
     private URLTreeModel _unseenLinkTreeModel = new URLTreeModel();
     
     private SpiderStore _store = null;
@@ -102,22 +103,22 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         me.start();
         System.err.println("Spider initialised");
     }
-
+    
     public void parseProperties() {
         String prop = "Spider.domains";
         String value = _prop.getProperty(prop);
         if (value == null) value = "";
         setAllowedDomains(value);
-
+        
         prop = "Spider.excludePaths";
         value = _prop.getProperty(prop);
         if (value == null) value = "";
         setForbiddenPaths(value);
-
+        
         prop = "Spider.synchroniseCookies";
         value = _prop.getProperty(prop);
         setCookieSync(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
-
+        
         prop = "Spider.recursive";
         value = _prop.getProperty(prop);
         setRecursive(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
@@ -137,7 +138,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         Conversation conversation;
         while (true) {
             
-            // if the request queue is empty, add the latest cookies etc to the 
+            // if the request queue is empty, add the latest cookies etc to the
             // request and submit it
             synchronized (_linkQueue) {
                 if (_linkQueue.size() > 0 && _requestQueue.size() == 0) {
@@ -227,8 +228,8 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     public void setRecursive(boolean bool) {
         _recursive = bool;
-       String prop = "Spider.recursive";
-       setProperty(prop,Boolean.toString(bool));
+        String prop = "Spider.recursive";
+        setProperty(prop,Boolean.toString(bool));
     }
     
     public boolean getRecursive() {
@@ -237,8 +238,8 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     public void setCookieSync(boolean enabled) {
         _cookieSync = enabled;
-       String prop = "Spider.synchroniseCookies";
-       setProperty(prop,Boolean.toString(enabled));
+        String prop = "Spider.synchroniseCookies";
+        setProperty(prop,Boolean.toString(enabled));
     }
     
     public boolean getCookieSync() {
@@ -261,7 +262,6 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
             if (_unseenLinks.containsKey(refstr)) {
                 int index = _unseenLinks.indexOf(refstr);
                 _unseenLinks.remove(refstr);
-                _unseenLinkTableModel.fireTableRowsDeleted(index, index);
                 _unseenLinkTreeModel.remove(refstr);
             }
             _seenLinks.put(refstr,""); // actual value is irrelevant, could be a sequence no, for amusement
@@ -343,8 +343,6 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
             if (!_seenLinks.containsKey(urlstr) && !_unseenLinks.containsKey(urlstr)) {
                 Link link = new Link(url, referer);
                 _unseenLinks.put(urlstr, link);
-                int index = _unseenLinks.size()-1;
-                _unseenLinkTableModel.fireTableRowsInserted(index, index);
                 _unseenLinkTreeModel.add(urlstr);
                 if (_recursive && allowedURL(url)) {
                     queueLink(link);
@@ -418,8 +416,8 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     public void setAllowedDomains(String regex) {
         _allowedDomains = regex;
-       String prop = "Spider.domains";
-       setProperty(prop,regex);
+        String prop = "Spider.domains";
+        setProperty(prop,regex);
     }
     
     public String getAllowedDomains() {
@@ -428,22 +426,22 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     public void setForbiddenPaths(String regex) {
         _forbiddenPaths = regex;
-       String prop = "Spider.excludePaths";
-       setProperty(prop,regex);
+        String prop = "Spider.excludePaths";
+        setProperty(prop,regex);
     }
     
     public String getForbiddenPaths() {
         return _forbiddenPaths;
     }
     
-    public TableModel getUnseenLinkTableModel() {
-        return _unseenLinkTableModel;
+    public ListModel getUnseenLinkList() {
+        return _unseenLinks;
     }
     
     public TreeModel getUnseenLinkTreeModel() {
         return _unseenLinkTreeModel;
     }
-        
+    
     public void setSessionStore(Object store) throws StoreException {
         if (store != null && store instanceof SpiderStore) {
             _store = (SpiderStore) store;
@@ -456,7 +454,6 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                     _unseenLinks.put(urlstr,links[i]);
                     _unseenLinkTreeModel.add(urlstr);
                 }
-                _unseenLinkTableModel.fireTableDataChanged();
             }
             synchronized (_seenLinks) {
                 _seenLinks.clear();
@@ -502,49 +499,6 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
             return null;
         }
         return url;
-    }
-    
-    private class UnseenLinkTableModel extends AbstractTableModel {
-        
-        protected String [] columnNames = {
-            "ID", "URL", "Referer", "Link source"
-        };
-        
-        public String getColumnName(int column) {
-            if (column < columnNames.length) {
-                return columnNames[column];
-            }
-            return "";
-        }
-        
-        public synchronized int getColumnCount() {
-            return columnNames.length;
-        }
-        
-        public int getRowCount() {
-            return _unseenLinks.size();
-        }
-        
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            synchronized (_unseenLinks) {
-                if (rowIndex <0 || rowIndex >= getRowCount()) {
-                    throw new ArrayIndexOutOfBoundsException("Attempt to get row " + rowIndex + ", column " + columnIndex + " : row does not exist!");
-                }
-                Link link = (Link) _unseenLinks.get(rowIndex);
-                if (columnIndex <= columnNames.length) {
-                    switch (columnIndex) {
-                        case 0 : return new Integer(rowIndex+1).toString();
-                        case 1 : return link.getURL();
-                        case 2 : return link.getReferer();
-                        case 3 : return link.getType();
-                    }
-                    return "";
-                } else {
-                    throw new ArrayIndexOutOfBoundsException("Attempt to get row " + rowIndex + ", column " + columnIndex + " : column does not exist!");
-                }
-            }
-        }
-        
     }
         
 }

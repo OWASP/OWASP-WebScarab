@@ -9,10 +9,13 @@ package org.owasp.webscarab.ui.swing;
 import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.CookieJar;
 
+import org.owasp.webscarab.util.swing.TableRow;
+import org.owasp.webscarab.util.swing.ListTableModelAdaptor;
+import org.owasp.webscarab.util.swing.TableSorter;
+
 import javax.swing.ListModel;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.event.ListDataListener;
-import javax.swing.event.ListDataEvent;
+
+import java.util.Date;
 
 /**
  *
@@ -21,12 +24,17 @@ import javax.swing.event.ListDataEvent;
 public class CookieJarViewer extends javax.swing.JFrame {
     
     private CookieJar _cookieJar;
+    private ListTableModelAdaptor _ltma = new ListTableModelAdaptor(null, new CookieRow());
     
     /** Creates new form CookieJarViewer2 */
     public CookieJarViewer(CookieJar cookiejar) {
         initComponents();
+        cookieTable.setModel(new TableSorter(_ltma, cookieTable.getTableHeader()));
+
         _cookieJar = cookiejar;
         cookieComboBox.setModel(new ListComboBoxModel(cookiejar.getCookieList()));
+        String cookie = (String) cookieComboBox.getSelectedItem();
+        _ltma.setListModel(_cookieJar.getCookieList(cookie));
     }
                                                                                 
     /** This method is called from within the constructor to
@@ -105,7 +113,7 @@ public class CookieJarViewer extends javax.swing.JFrame {
 
     private void cookieComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cookieComboBoxActionPerformed
         String cookie = (String) cookieComboBox.getSelectedItem();
-        cookieTable.setModel(new CookieListTableModel(_cookieJar.getCookieList(cookie)));
+        _ltma.setListModel(_cookieJar.getCookieList(cookie));
     }//GEN-LAST:event_cookieComboBoxActionPerformed
 
     private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed
@@ -125,32 +133,15 @@ public class CookieJarViewer extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
     
-    private class CookieListTableModel extends AbstractTableModel {
-        
-        private ListModel _list;
+    private class CookieRow implements TableRow {
         
         private String[] _columnNames = new String[] {
-            "Value", "Secure", "MaxAge", "Comment"
+            "Date", "Value", "Secure", "MaxAge", "Comment"
         };
         
         private Class[] _columnClasses = new Class[] {
-            String.class, Boolean.class, String.class, String.class
+            Date.class, String.class, Boolean.class, String.class, String.class
         };
-        
-        public CookieListTableModel(ListModel list) {
-            _list = list;
-            _list.addListDataListener(new ListDataListener() {
-                public void contentsChanged(ListDataEvent evt) {
-                    fireTableDataChanged();
-                }
-		public void intervalAdded(ListDataEvent evt) {
-                    fireTableRowsInserted(evt.getIndex0(), evt.getIndex1());
-                }
-		public void intervalRemoved(ListDataEvent evt) {
-                    fireTableRowsDeleted(evt.getIndex0(), evt.getIndex1());
-                }
-            });
-        }
         
         public int getColumnCount() {
             return _columnNames.length;
@@ -164,19 +155,23 @@ public class CookieJarViewer extends javax.swing.JFrame {
             return _columnClasses[column];
         }
         
-        public int getRowCount() {
-            return _list.getSize();
-        }
-        
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            Cookie cookie = (Cookie) _list.getElementAt(rowIndex);
+        public Object getValueAt(Object object, int columnIndex) {
+            Cookie cookie = (Cookie) object;
             switch (columnIndex) {
-                case 0: return cookie.getValue();
-                case 1: return Boolean.valueOf(cookie.getSecure());
-                case 2: return cookie.getMaxAge();
-                case 3: return cookie.getComment();
+                case 0: return cookie.getDate();
+                case 1: return cookie.getValue();
+                case 2: return Boolean.valueOf(cookie.getSecure());
+                case 3: return cookie.getMaxAge();
+                case 4: return cookie.getComment();
             }
             return null;
+        }
+        
+        public boolean isFieldEditable(Object object, int column) {
+            return false;
+        }
+        
+        public void setValueAt(Object aValue, Object object, int column) {
         }
         
     }

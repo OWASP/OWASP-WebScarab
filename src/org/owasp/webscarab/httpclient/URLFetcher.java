@@ -8,6 +8,7 @@ package org.owasp.webscarab.httpclient;
 
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.ConnectException;
 
 import java.io.IOException;
 
@@ -196,7 +197,7 @@ public class URLFetcher implements HTTPClient {
         } catch (UnknownHostException uhe) {
             return errorResponse(request, "Unknown host exception " + uhe);
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            // ioe.printStackTrace();
             return errorResponse(request, "IOException " + ioe);
         }
         // Still send the real request
@@ -351,6 +352,7 @@ public class URLFetcher implements HTTPClient {
     
     private Response errorResponse(Request request, String message) {
         Response response = new Response();
+        response.setRequest(request);
         response.setVersion("HTTP/1.0");
         response.setStatus("500");
         response.setMessage("WebScarab error");

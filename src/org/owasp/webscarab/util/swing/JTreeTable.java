@@ -12,7 +12,7 @@
  * you entered into with Sun.
  */
 
-package org.owasp.webscarab.ui.swing;
+package org.owasp.webscarab.util.swing;
 
 import javax.swing.JTable;
 import javax.swing.JTree;
@@ -33,9 +33,9 @@ import java.awt.event.MouseEvent;
 
 import java.util.EventObject;
 
-import org.owasp.webscarab.ui.swing.treetable.TreeTableModel;
-import org.owasp.webscarab.ui.swing.treetable.TreeTableModelAdapter;
-import org.owasp.webscarab.ui.swing.treetable.AbstractCellEditor;
+import org.owasp.webscarab.util.swing.treetable.TreeTableModel;
+import org.owasp.webscarab.util.swing.treetable.TreeTableModelAdapter;
+import org.owasp.webscarab.util.swing.treetable.AbstractCellEditor;
 
 /**
  * This example shows how to create a simple JTreeTable component, 

@@ -272,7 +272,7 @@ public class WebScarab extends javax.swing.JFrame {
 
         setJMenuBar(mainMenuBar);
 
-        setSize(new java.awt.Dimension(924, 768));
+        pack();
     }//GEN-END:initComponents
 
     private void transcoderMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_transcoderMenuItemActionPerformed
@@ -380,8 +380,8 @@ public class WebScarab extends javax.swing.JFrame {
         String[] message = new String[] {
             "OWASP WebScarab - part of the Open Web Application Security Project",
             "See http://www.owasp.org/",
-            "", "Coders : ",
-            "         Rogan Dawes (rdawes at telkomsa.net / rdawes at deloitte.co.za)",
+            "", "Primary Coders : ",
+            "         Rogan Dawes (rogan at dawes.za.net)",
             "         Ingo Struck (ingo at ingostruck.de)"
         };
         JOptionPane.showMessageDialog(this, message, "About WebScarab", JOptionPane.INFORMATION_MESSAGE);

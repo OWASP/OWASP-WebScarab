@@ -10,8 +10,20 @@ import org.owasp.webscarab.ui.Framework;
 import org.owasp.webscarab.model.URLTreeModel;
 import org.owasp.webscarab.model.Conversation;
 import org.owasp.webscarab.model.URLInfo;
+import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.SiteModel;
+
+import org.owasp.webscarab.util.ConversationURLFilter;
+import org.owasp.webscarab.util.swing.JTreeTable;
+import org.owasp.webscarab.util.swing.ListFilter;
+import org.owasp.webscarab.util.swing.ListTableModelAdaptor;
+import org.owasp.webscarab.util.swing.TableRow;
+import org.owasp.webscarab.util.swing.TableSorter;
 
 import javax.swing.JTree;
+import javax.swing.ListModel;
+import javax.swing.table.TableModel;
 
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeSelectionModel;
@@ -33,10 +45,6 @@ import javax.swing.JMenuItem;
 import java.util.TreeMap;
 import java.util.ArrayList;
 
-import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.model.Request;
-import org.owasp.webscarab.model.SiteModel;
-
 import java.net.URL;
 import java.net.MalformedURLException;
 
@@ -48,12 +56,11 @@ public class SummaryPanel extends javax.swing.JPanel {
     
     private Framework _framework;
     private JTreeTable _urlTreeTable;
-    private ConversationTableModel _ctm;
+    private ConversationURLFilter _urlFilter;
     private SiteModel _siteModel;
     private TreeMap _windowCache = new TreeMap();
     private ArrayList _conversationActions = new ArrayList();
     private ArrayList _urlActions = new ArrayList();
-    private ConversationListFilter _listFilter;
     private String _treeURL = null;
     
     /** Creates new form SummaryPanel */
@@ -81,6 +88,15 @@ public class SummaryPanel extends javax.swing.JPanel {
         urlTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         urlTree.setRootVisible(false);
         urlTree.setShowsRootHandles(true);
+
+        int[] preferredColumnWidths = {
+            400, 80, 80, 50, 30, 30, 30
+        };
+        
+        javax.swing.table.TableColumnModel columnModel = _urlTreeTable.getColumnModel();
+        for (int i=0; i<Math.min(preferredColumnWidths.length, columnModel.getColumnCount()); i++) {
+            columnModel.getColumn(i).setPreferredWidth(preferredColumnWidths[i]);
+        }
     }
     
     private void addTreeListeners() {
@@ -107,7 +123,7 @@ public class SummaryPanel extends javax.swing.JPanel {
                     _treeURL = null;
                 }
                 if (treeCheckBox.isSelected()) {
-                    _listFilter.setURL(_treeURL);
+                    _urlFilter.setURL(_treeURL);
                 }
                 synchronized (_urlActions) {
                     for (int i=0; i<_urlActions.size(); i++) {
@@ -155,13 +171,22 @@ public class SummaryPanel extends javax.swing.JPanel {
     }
     
     private void initTable() {
-        _listFilter = new ConversationListFilter(_siteModel.getConversationListModel());
-        _ctm = new ConversationTableModel(_listFilter);
-        conversationTable.setModel(_ctm);
+        _urlFilter = new ConversationURLFilter();
+        ListModel clm = _siteModel.getConversationListModel();
+        ListModel flm = new ListFilter(clm, _urlFilter);
+        TableModel ctm = new ListTableModelAdaptor(flm, new ConversationRow());
+        TableSorter ts = new TableSorter(ctm, conversationTable.getTableHeader());
+        ts.setDebug(true);
+        conversationTable.setModel(ts);
         
+        int[] preferredColumnWidths = {
+            40, 60, 60, 300, 200, 200, 
+            100, 80, 150, 80, 50, 100, 100
+        };
+
         javax.swing.table.TableColumnModel columnModel = conversationTable.getColumnModel();
-        for (int i=0; i<_ctm.getColumnCount(); i++) {
-            columnModel.getColumn(i).setPreferredWidth(_ctm.getPreferredColumnWidth(i));
+        for (int i=0; i<Math.min(preferredColumnWidths.length, columnModel.getColumnCount()); i++) {
+            columnModel.getColumn(i).setPreferredWidth(preferredColumnWidths[i]);
         }
     }
     
@@ -173,9 +198,10 @@ public class SummaryPanel extends javax.swing.JPanel {
             public void valueChanged(ListSelectionEvent e) {
                 if (e.getValueIsAdjusting()) return;
                 int row = conversationTable.getSelectedRow();
+                TableModel tm = conversationTable.getModel();
                 Conversation c = null;
                 if (row >-1) {
-                    String id = (String) _ctm.getValueAt(row, 0);
+                    String id = tm.getValueAt(row, 0).toString(); // UGLY hack! FIXME!!!!
                     c = _siteModel.getConversation(id);
                 }
                 synchronized (_conversationActions) {
@@ -233,8 +259,9 @@ public class SummaryPanel extends javax.swing.JPanel {
     
     private void showSelectedConversation() {
         int row = conversationTable.getSelectedRow();
+        TableModel tm = conversationTable.getModel();
         if (row >= 0) {
-            String id = (String) _ctm.getValueAt(row, 0);
+            String id = (String) tm.getValueAt(row, 0);
             showConversationDetails(id);
         }
     }
@@ -356,9 +383,9 @@ public class SummaryPanel extends javax.swing.JPanel {
 
     private void treeCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_treeCheckBoxActionPerformed
         if (treeCheckBox.isSelected() && _treeURL != null) {
-            _listFilter.setURL(_treeURL);
+            _urlFilter.setURL(_treeURL);
         } else {
-            _listFilter.setURL(null);
+            _urlFilter.setURL(null);
         }
     }//GEN-LAST:event_treeCheckBoxActionPerformed
       
@@ -373,6 +400,69 @@ public class SummaryPanel extends javax.swing.JPanel {
     private javax.swing.JPanel urlPanel;
     private javax.swing.JPopupMenu urlPopupMenu;
     // End of variables declaration//GEN-END:variables
+    
+    private class ConversationRow implements TableRow {
+
+        private final String[] _columnNames = new String[] {
+            "ID", "Date", "Method", "Url", "Query",
+            "Cookie", "Body", "Status",
+            "Set-Cookie", "Checksum", "Size",
+            "Origin", "Comment"
+        };
+        
+        public Class getColumnClass(int column) {
+            if (_columnNames[column].equalsIgnoreCase("id") ||
+                _columnNames[column].equalsIgnoreCase("size")) {
+                return Integer.class;
+            }
+            return String.class;
+        }
+        
+        public int getColumnCount() {
+            return _columnNames.length;
+        }
+        
+        public String getColumnName(int column) {
+            if (column < _columnNames.length) {
+                return _columnNames[column];
+            }
+            return "";
+        }
+        
+        public Object getValueAt(Object object, int column) {
+            if (! (object instanceof Conversation)) {
+                return null; // throw ClassCastException?
+            }
+            Conversation c = (Conversation) object;
+            if (column <= _columnNames.length) {
+                String prop = _columnNames[column].toUpperCase();
+                String value = c.getProperty(prop);
+                if (prop.equals("ID") || prop.equals("SIZE")) {
+                    try {
+                        return new Integer(value);
+                    } catch (NumberFormatException nfe) {
+                        return value;
+                    }
+                }
+                return value;
+            } else {
+                System.err.println("Attempt to get column " + column + " : column does not exist!");
+                return null;
+            }
+        }
+        
+        public boolean isFieldEditable(Object object, int column) {
+            return _columnNames[column].equalsIgnoreCase("Comment");
+        }
+        
+        public void setValueAt(Object aValue, Object object, int column) {
+            if (_columnNames[column].equalsIgnoreCase("Comment")) {
+                Conversation c = (Conversation) object;
+                c.setProperty(_columnNames[column].toUpperCase(), aValue.toString());
+            }
+        }
+        
+    }
     
     private class ShowDetailAction extends AbstractAction {
         public ShowDetailAction() {

@@ -2,8 +2,6 @@ package org.owasp.webscarab.model;
 
 import org.owasp.util.URLUtil;
 
-import org.owasp.webscarab.util.SequencedTreeMap;
-
 import java.util.ArrayList;
 
 import java.util.TreeMap;

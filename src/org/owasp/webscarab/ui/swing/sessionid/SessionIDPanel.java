@@ -19,6 +19,10 @@ import org.owasp.webscarab.ui.Framework;
 import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysis;
 import org.owasp.webscarab.plugin.sessionid.SessionID;
 
+import org.owasp.webscarab.util.swing.ListTableModelAdaptor;
+import org.owasp.webscarab.util.swing.TableRow;
+import org.owasp.webscarab.util.swing.TableSorter;
+
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
 
@@ -27,10 +31,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.table.TableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 
 import java.util.TreeMap;
+import java.util.Date;
 
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartPanel;
@@ -53,8 +59,8 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
     JFreeChart _chart = null;
     
     SessionIDAnalysis _sa;
-    TreeMap _idTableCache = new TreeMap();
-    TreeMap _idDatasetCache = new TreeMap();
+    ListTableModelAdaptor _ltma = new ListTableModelAdaptor(null, new SessionIDRow());
+    SessionIDDataset _sidd = new SessionIDDataset(null);
     
     /** Creates new form SessionIDPanel */
     public SessionIDPanel(Framework framework) {
@@ -67,24 +73,23 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
             public void stateChanged(ChangeEvent e) {
                 int selected = mainTabbedPane.getSelectedIndex();
                 if(mainTabbedPane.getTitleAt(selected).equals("Visualisation")) {
-                    String name = (String) nameComboBox.getSelectedItem();
-                    if (_chart == null) {
-                        _chart = createChart(null);
-                        visualisationPanel.add(new ChartPanel(_chart));
-                    }
-                    if (name == null) {
-                        return;
-                    }
-                    SessionIDDataset sidd = (SessionIDDataset) _idDatasetCache.get(name);
-                    if (sidd == null) {
-                        ListModel lm = _sa.getSessionIDList(name);
-                        sidd = new SessionIDDataset(lm);
-                        _idDatasetCache.put(name, sidd);
-                    }
-                    _chart.getXYPlot().setDataset(sidd);
-                } else {
-                    if (_chart != null) {
-                        _chart.getXYPlot().setDataset(null);
+                    if (_chart == null) { // subject to race condition!
+                        new SwingWorker() {
+                            public Object construct() {
+                                return createChart(_sidd);
+                            }
+                            
+                            public void finished() {
+                                _chart = (JFreeChart) get();
+                                /* ineffective! WHY?! FIXME!!
+                                _chart.getXYPlot().getDomainAxis().setAutoRange(true);
+                                _chart.getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
+                                _chart.getXYPlot().getDomainAxis().setTickLabelsVisible(true);
+                                */
+                                visualisationPanel.add(new ChartPanel(_chart, 900, 500, 600, 400, 1280, 1024, true, true, true, false, true, true));
+                                visualisationPanel.doLayout();
+                            }
+                        }.start();
                     }
                 }
             }
@@ -101,8 +106,8 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         conversationSplitPane.setTopComponent(_requestTextPanel);
         conversationSplitPane.setBottomComponent(_responsePanel);
         nameComboBox.setModel(new ListComboBoxModel(_sa.getSessionIDNames()));
-        idTable.setModel(new IDTableModel(null));
-        
+        idTable.setModel(new TableSorter(_ltma, idTable.getTableHeader()));
+        idTable.setDefaultRenderer(Date.class, new DateRenderer());
     }
     
     private JFreeChart createChart(XYDataset data) {
@@ -113,7 +118,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         valueAxis.setAutoRangeIncludesZero(false);  // override default
         XYPlot plot = new XYPlot(data, timeAxis, valueAxis, null);
         plot.setRenderer(new StandardXYItemRenderer(StandardXYItemRenderer.SHAPES, null, null));
-        JFreeChart chart = new JFreeChart("Title", JFreeChart.DEFAULT_TITLE_FONT, plot, false);
+        JFreeChart chart = new JFreeChart("Cookie values over time", JFreeChart.DEFAULT_TITLE_FONT, plot, false);
         return chart;
     }
     
@@ -384,12 +389,9 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
     
     private void nameComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameComboBoxActionPerformed
         String name = (String)nameComboBox.getSelectedItem();
-        TableModel tm = (TableModel) _idTableCache.get(name);
-        if (tm == null) {
-            tm = new IDTableModel(_sa.getSessionIDList(name));
-            _idTableCache.put(name, tm);
-        }
-        idTable.setModel(tm);
+        ListModel lm = _sa.getSessionIDList(name);
+        _ltma.setListModel(lm);
+        _sidd.setListModel(lm);
     }//GEN-LAST:event_nameComboBoxActionPerformed
     
     private void calculateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_calculateButtonActionPerformed
@@ -527,37 +529,54 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JTextField regexTextField;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPanel actionPanel;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JTextField dateTextField;
-    private javax.swing.JPanel visualisationPanel;
-    private javax.swing.JTable idTable;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel analysisPanel;
-    private javax.swing.JButton fetchButton;
-    private javax.swing.JButton testButton;
     private javax.swing.JRadioButton bodyRadioButton;
-    private javax.swing.JComboBox nameComboBox;
-    private javax.swing.ButtonGroup locationButtonGroup;
+    private javax.swing.JButton calculateButton;
+    private javax.swing.JPanel collectionPanel;
     private javax.swing.JPanel conversationPanel;
+    private javax.swing.JSplitPane conversationSplitPane;
+    private javax.swing.JRadioButton cookieRadioButton;
+    private javax.swing.JTextField dateTextField;
+    private javax.swing.JButton fetchButton;
+    private javax.swing.JTable idTable;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.ButtonGroup locationButtonGroup;
+    private javax.swing.JTabbedPane mainTabbedPane;
+    private javax.swing.JComboBox nameComboBox;
+    private javax.swing.JTextField nameTextField;
+    private javax.swing.JTextField regexTextField;
     private javax.swing.JPanel resultPanel;
     private javax.swing.JSpinner sampleSpinner;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JRadioButton cookieRadioButton;
-    private javax.swing.JSplitPane conversationSplitPane;
-    private javax.swing.JButton calculateButton;
-    private javax.swing.JTextField valueTextField;
-    private javax.swing.JPanel collectionPanel;
-    private javax.swing.JTabbedPane mainTabbedPane;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JTextField nameTextField;
     private javax.swing.JPanel specPanel;
-    private javax.swing.JLabel jLabel5;
+    private javax.swing.JButton testButton;
+    private javax.swing.JTextField valueTextField;
+    private javax.swing.JPanel visualisationPanel;
     // End of variables declaration//GEN-END:variables
     
+    
+    private class DateRenderer extends DefaultTableCellRenderer {
+        
+        public DateRenderer() {
+            super();
+        }
+        
+        public void setValue(Object value) {
+            if ((value != null) && (value instanceof Date)) {
+                Date date = (Date) value;
+                value = value.toString();
+            }
+            super.setValue(value);
+        }
+        
+    }
+
 }

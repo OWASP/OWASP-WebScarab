@@ -11,9 +11,15 @@ import org.owasp.webscarab.ui.Framework;
 import org.owasp.webscarab.model.URLTreeModel;
 import org.owasp.webscarab.ui.swing.SwingPlugin;
 import org.owasp.webscarab.plugin.spider.Spider;
+import org.owasp.webscarab.plugin.spider.Link;
+
+import org.owasp.webscarab.util.swing.TableSorter;
+import org.owasp.webscarab.util.swing.ListTableModelAdaptor;
+import org.owasp.webscarab.util.swing.TableRow;
 
 import javax.swing.tree.TreePath;
 import java.net.URL;
+
 /**
  *
  * @author  rdawes
@@ -28,7 +34,9 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
         framework.addPlugin(_spider);
         
         initComponents();
-        unseenLinkTable.setModel(_spider.getUnseenLinkTableModel());
+        TableSorter ts = new TableSorter(new ListTableModelAdaptor(_spider.getUnseenLinkList(), new LinkRowModel()));
+        unseenLinkTable.setModel(ts);
+        ts.setTableHeader(unseenLinkTable.getTableHeader());
         unseenLinkTree.setModel(_spider.getUnseenLinkTreeModel());
         unseenLinkTree.setRootVisible(false);
         unseenLinkTree.setShowsRootHandles(true);
@@ -112,7 +120,6 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
                 pathRegexTextFieldActionPerformed(evt);
             }
         });
-
         pathRegexTextField.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
                 pathRegexTextFieldFocusLost(evt);
@@ -298,7 +305,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
         unseenLinkTable.clearSelection();
         String[] urls = new String[rows.length];
         for (int i=0; i<rows.length; i++) {
-            urls[i] = ((URL) unseenLinkTable.getModel().getValueAt(rows[i], 1)).toString();
+            urls[i] = (String) unseenLinkTable.getModel().getValueAt(rows[i], 0);
             System.out.println("Selected '" + urls[i] + "'");
         }
         _spider.requestLinks(urls);
@@ -317,23 +324,68 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPlugin {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel linkTablePanel;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JCheckBox recursiveCheckBox;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JCheckBox cookieSyncCheckBox;
-    private javax.swing.JButton linkTreeFetchTreeButton;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JButton stopButton;
-    private javax.swing.JButton linkTableFetchButton;
-    private javax.swing.JTextField pathRegexTextField;
-    private javax.swing.JTree unseenLinkTree;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextField domainRegexTextField;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JButton linkTableFetchButton;
+    private javax.swing.JPanel linkTablePanel;
     private javax.swing.JButton linkTreeFetchSelectionButton;
-    private javax.swing.JTable unseenLinkTable;
-    private javax.swing.JTabbedPane unseenTabbedPane;
+    private javax.swing.JButton linkTreeFetchTreeButton;
     private javax.swing.JPanel linkTreePanel;
+    private javax.swing.JTextField pathRegexTextField;
+    private javax.swing.JCheckBox recursiveCheckBox;
+    private javax.swing.JButton stopButton;
+    private javax.swing.JTable unseenLinkTable;
+    private javax.swing.JTree unseenLinkTree;
+    private javax.swing.JTabbedPane unseenTabbedPane;
     // End of variables declaration//GEN-END:variables
     
+    private class LinkRowModel implements TableRow {
+        
+        protected String [] columnNames = {
+            "URL", "Referer", "Link source"
+        };
+        
+        public String getColumnName(int column) {
+            if (column < columnNames.length) {
+                return columnNames[column];
+            }
+            return "";
+        }
+        
+        public Class getColumnClass(int column) {
+            return String.class;
+        }
+        
+        public synchronized int getColumnCount() {
+            return columnNames.length;
+        }
+        
+        public Object getValueAt(Object object, int column) {
+            if (object instanceof Link) {
+                Link link = (Link) object;
+                if (column <= columnNames.length) {
+                    switch (column) {
+                        case 0 : return link.getURL().toString();
+                        case 1 : return link.getReferer().toString();
+                        case 2 : return link.getType();
+                    }
+                }
+            }
+            System.err.println("Object is a " + object.getClass());
+            return null;
+        }
+        
+        public boolean isFieldEditable(Object object, int column) {
+            return false;
+        }
+        
+        public void setValueAt(Object aValue, Object object, int column) {
+        }
+        
+    }
+
 }

@@ -13,8 +13,8 @@ import org.owasp.webscarab.model.URLTreeModel;
 import org.owasp.webscarab.model.URLInfo;
 import org.owasp.webscarab.model.SiteModel;
 
-import org.owasp.webscarab.ui.swing.treetable.AbstractTreeTableModel;
-import org.owasp.webscarab.ui.swing.treetable.TreeTableModel;
+import org.owasp.webscarab.util.swing.treetable.AbstractTreeTableModel;
+import org.owasp.webscarab.util.swing.treetable.TreeTableModel;
 
 import java.util.Collections;
 import java.util.Map;
