@@ -138,11 +138,8 @@ public class Listener implements Runnable {
         return _base;
     }
     
-    public String getSimulator() {
-        if (_simulator == null) {
-            return "Unlimited";
-        }
-        return _simulator.getName();
+    public NetworkSimulator getSimulator() {
+        return _simulator;
     }
     
     public List getPlugins() {

@@ -1,7 +1,7 @@
 package org.owasp.webscarab.plugin.proxy;
 
 /*
- * $Id: Proxy.java,v 1.13 2004/06/01 08:56:02 rogan Exp $
+ * $Id: Proxy.java,v 1.14 2004/06/03 10:57:09 rogan Exp $
  */
 
 import java.net.ServerSocket;
@@ -36,7 +36,7 @@ public class Proxy extends AbstractWebScarabPlugin {
     public Proxy(Plug plug) {
         _plug = plug;
         
-        _simulators.put("Unlimited", new NetworkSimulator("Unlimited", 0, Integer.MAX_VALUE, Integer.MAX_VALUE));
+        _simulators.put("Unlimited", null);
         _simulators.put("T1", new NetworkSimulator("T1", 3, 1544000/10, 1544000/10));
         _simulators.put("DSL (384k down, 128k up)", new NetworkSimulator("DSL (384k down, 128k up)", 10, 128*1024/10, 384*1024/10));
         _simulators.put("Bonded ISDN", new NetworkSimulator("Bonded ISDN", 20, 128*1024/10, 128*1024/10));
@@ -146,9 +146,14 @@ public class Proxy extends AbstractWebScarabPlugin {
     public String getSimulator(String key) {
         Listener l = (Listener) _listeners.get(key);
         if (l != null) {
-            return l.getSimulator();
+            NetworkSimulator netsim = l.getSimulator();
+            if (netsim != null) {
+                return netsim.getName();
+            } else {
+                return "Unlimited";
+            }
         } else {
-            return "";
+            return "Unlimited";
         }
     }
     
