@@ -14,7 +14,7 @@ import java.io.ByteArrayOutputStream;
 /** Represents a HTTP response as sent by an HTTP server
  * @author rdawes
  */
-public class Response extends Message {
+public class Response extends Message implements Cloneable {
     
     private String version = null;
     private String status = null;
@@ -131,6 +131,11 @@ public class Response extends Message {
     /** returns the Request that created this Response */
     public Request getRequest() {
         return _request;
+    }
+    
+    public Object clone() throws CloneNotSupportedException {
+        Response copy = (Response) super.clone();
+        return copy;
     }
     
 }

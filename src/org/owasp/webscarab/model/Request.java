@@ -22,7 +22,7 @@ import org.owasp.webscarab.util.Util;
 /** This class represents a request that can be sent to an HTTP server.
  * @author rdawes
  */
-public class Request extends Message {
+public class Request extends Message implements Cloneable {
     
     private String method = null;
     private URL url = null;
@@ -325,6 +325,14 @@ public class Request extends Message {
             setContent(null);
             deleteHeader("Content-Length");
         }
+    }
+    
+    public Object clone() throws CloneNotSupportedException {
+        Request copy = (Request) super.clone();
+        if (copy.getURL() != null) {
+            url = new URL(copy.getURL().toString());
+        }
+        return copy;
     }
 
 }

@@ -22,7 +22,7 @@ import java.lang.NumberFormatException;
  * Response.
  * @author rdawes
  */
-public class Message extends Header {
+public class Message extends Header implements Cloneable {
     
     // we use a ByteArrayOutputStream to support bit-by-bit output in write()
     ByteArrayOutputStream content = null;
@@ -178,6 +178,12 @@ public class Message extends Header {
             write(baos, crlf);
         } catch (IOException ioe) {}
         return new String(baos.toByteArray());
+    }
+    
+    public Object clone() throws CloneNotSupportedException {
+        getContent(); // flush the contentStream so that we don't have to deal with copying it
+        Message copy = (Message) super.clone();
+        return copy;
     }
     
 }
