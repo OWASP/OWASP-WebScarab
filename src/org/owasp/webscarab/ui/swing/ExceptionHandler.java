@@ -9,6 +9,11 @@ package org.owasp.webscarab.ui.swing;
 import java.awt.Component;
 
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
+import java.io.PrintStream;
+import org.owasp.webscarab.util.swing.DocumentOutputStream;
 
 /**
  *
@@ -27,12 +32,16 @@ public class ExceptionHandler {
     }
     
     public void handle(Throwable t) {
-        StackTraceElement[] stackTrace = t.getStackTrace();
-        Object[] message = new Object[stackTrace.length+1];
-        System.arraycopy(stackTrace, 0, message, 1, stackTrace.length);
-        message[0] = t.toString();
-        JOptionPane.showMessageDialog(_parentComponent, message, "An unhandled exception occurred!", JOptionPane.ERROR_MESSAGE);
         t.printStackTrace();
+        DocumentOutputStream dos = new DocumentOutputStream();
+        t.printStackTrace(new PrintStream(dos));
+        JTextArea ta = new JTextArea(dos.getDocument());
+        ta.setEditable(false);
+        ta.setTabSize(8);
+        ta.setBackground(new java.awt.Color(204,204,204));
+        JScrollPane sp = new JScrollPane(ta);
+        sp.setPreferredSize(new java.awt.Dimension(600,300));
+        JOptionPane.showMessageDialog(_parentComponent, sp, "An unhandled exception occurred!", JOptionPane.ERROR_MESSAGE);
     }
     
 }
