@@ -15,6 +15,7 @@ import org.jfree.data.SeriesChangeEvent;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListDataEvent;
+import java.math.BigInteger;
 
 /**
  *
@@ -46,12 +47,17 @@ public class SessionIDDataset extends AbstractSeriesDataset implements XYDataset
     
     public Number getXValue(int series, int item) {
         SessionID sessid = (SessionID) _lm.getElementAt(item);
-        return new Long(sessid.getDate().getTime()/1000);
+        return new Long(sessid.getDate().getTime());
     }
     
     public Number getYValue(int series, int item) {
         SessionID sessid = (SessionID) _lm.getElementAt(item);
-        return new Float(sessid.getIntValue().floatValue());
+        BigInteger bi = sessid.getIntValue();
+        if (bi == null) {
+            return new Float(0);
+        } else {
+            return new Float(bi.floatValue());
+        }
     }
     
     /**
