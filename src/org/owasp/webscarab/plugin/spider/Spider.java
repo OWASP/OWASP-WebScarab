@@ -13,6 +13,7 @@ import org.owasp.webscarab.model.URLInfo;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.CookieJar;
 import org.owasp.webscarab.model.URLTreeModel;
+import org.owasp.webscarab.util.SequencedTreeMap;
 
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
