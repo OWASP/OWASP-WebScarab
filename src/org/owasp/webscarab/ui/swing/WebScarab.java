@@ -60,6 +60,9 @@ public class WebScarab extends javax.swing.JFrame {
     private File _defaultDir = null;
     private Properties _prop = null;
     
+    private TranscoderFrame _transcoder = null;
+    
+    
     /** Creates new form WebScarab */
     public WebScarab(String[] args) {
         initComponents();
@@ -167,6 +170,7 @@ public class WebScarab extends javax.swing.JFrame {
         optionsMenuItem = new javax.swing.JMenuItem();
         cookieJarMenuItem = new javax.swing.JMenuItem();
         saveConfigMenuItem = new javax.swing.JMenuItem();
+        transcoderMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         aboutMenuItem = new javax.swing.JMenuItem();
         debugMenu = new javax.swing.JMenu();
@@ -285,6 +289,15 @@ public class WebScarab extends javax.swing.JFrame {
 
         toolsMenu.add(saveConfigMenuItem);
 
+        transcoderMenuItem.setText("Transcoder");
+        transcoderMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                transcoderMenuItemActionPerformed(evt);
+            }
+        });
+
+        toolsMenu.add(transcoderMenuItem);
+
         mainMenuBar.add(toolsMenu);
 
         helpMenu.setMnemonic('H');
@@ -332,6 +345,13 @@ public class WebScarab extends javax.swing.JFrame {
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width-800)/2, (screenSize.height-600)/2, 800, 600);
     }//GEN-END:initComponents
+
+    private void transcoderMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_transcoderMenuItemActionPerformed
+        if (_transcoder == null) {
+            _transcoder = new TranscoderFrame();
+        }
+        _transcoder.show();
+    }//GEN-LAST:event_transcoderMenuItemActionPerformed
 
     private void proxyDebugResponseCheckBoxMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_proxyDebugResponseCheckBoxMenuItemActionPerformed
         ConnectionHandler._debugResponse = proxyDebugResponseCheckBoxMenuItem.isSelected();
@@ -498,6 +518,7 @@ public class WebScarab extends javax.swing.JFrame {
     private javax.swing.JTextArea stderrTextArea;
     private javax.swing.JTextArea stdoutTextArea;
     private javax.swing.JMenu toolsMenu;
+    private javax.swing.JMenuItem transcoderMenuItem;
     // End of variables declaration//GEN-END:variables
     
 }
