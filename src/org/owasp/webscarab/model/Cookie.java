@@ -76,7 +76,7 @@ public class Cookie {
         _name = av[0];
         _value = av[1];
         for (int i=1; i<parts.length; i++) {
-            if (parts[i].equals("Secure")) {
+            if (parts[i].equalsIgnoreCase("secure")) {
                 _secure = true;
             } else {
                 av = parts[i].split("=", 2);
