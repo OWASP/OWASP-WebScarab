@@ -11,6 +11,7 @@ import org.owasp.webscarab.plugin.spider.Spider;
 // import org.owasp.webscarab.*;
 import org.owasp.webscarab.ui.swing.*;
 import org.owasp.webscarab.ui.swing.proxy.ProxyPanel;
+import org.owasp.webscarab.ui.swing.spider.SpiderPanel;
 
 import java.util.ArrayList;
 
@@ -42,7 +43,7 @@ public class WebScarabUI extends javax.swing.JFrame {
         
         Spider spider = new Spider(webscarab);
         webscarab.addPlugin(spider);
-        // addPlugin(new SpiderPanel(spider));
+        addPlugin(new SpiderPanel(spider));
 
     }
 
