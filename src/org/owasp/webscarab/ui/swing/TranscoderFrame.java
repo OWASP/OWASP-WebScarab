@@ -117,7 +117,7 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("Exodus Transcoder");
+        setTitle("Transcoder");
         jScrollPane1.setViewportView(textPane);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
