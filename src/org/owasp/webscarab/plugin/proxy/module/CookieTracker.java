@@ -91,7 +91,7 @@ public class CookieTracker extends AbstractProxyPlugin {
                 _cookieJar.addRequestCookies(request);
             }
             Response response = _in.fetchResponse(request);
-            if (_readResponses) {
+            if (_readResponses && response != null) {
                 _cookieJar.updateCookies(response);
             }
             return response;
