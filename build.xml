@@ -2,14 +2,14 @@
 <project basedir="." default="all" name="webscarab">
         <target name="init">
                 <tstamp/>
+                <property name="version" value="${DSTAMP}-${TSTAMP}"/>
                 <property name="classes.dir" location="classes"/>
-                <property name="src.dir" location="./src"/>
-                <property name="javadoc.dir" location="doc/api"/>
+                <property name="src.dir" location="${basedir}/src"/>
+                <property name="javadoc.dir" location="${basedir}/doc/api"/>
                 <property name="project.name" value="${ant.project.name}"/>
-                <property name="jar" location="${project.name}.jar"/>
+                <property name="jar" location="${project.name}-${version}.jar"/>
                 
                 <property name="mainclass" value="org.owasp.webscarab.ui.swing.Main"/>
-                <property name="version" value="${DSTAMP}-${TSTAMP}"/>
                 
              	<property name="concurrentjar" value="lib/concurrent.jar"/>
              	<property name="htmlparserjar" value="lib/htmlparser.jar"/>
@@ -31,11 +31,15 @@
 		</path>
 	</target>
 	<target depends="init" description="clean up the build area" name="clean">
-		<delete>
-			<fileset dir="${classes.dir}" includes="**/*.class"/>
+		<delete dir="${classes.dir}"/>
+                <delete>
+                    <fileset dir="${src.dir}" includes="**/*.class"/>
                 </delete>
-                <delete file="${jar}"/>
-                <delete file="WebScarab-*.jar"/>
+                <mkdir dir="${classes.dir}"/>
+                <delete>
+                    <fileset dir="${basedir}" includes="webscarab*.jar"/>
+                    <fileset dir="${basedir}" includes="webscarab*.zip"/>
+                </delete>
 	</target>
 	<target depends="init" description="prepare the build area" name="prepare">
                 <copy file="server.p12" todir="${classes.dir}"/>
@@ -81,7 +85,8 @@
       -->
 	<target depends="clean,build" description="Build a self contained installer package" name="izpack">
                 <taskdef classname="com.izforge.izpack.ant.IzPackTask" classpath="${basedir}/izpack/lib/compiler.jar" name="izpack"/>
-		<izpack basedir="${basedir}" input="${basedir}/installer/izpack.xml" installerType="standard" izPackDir="${basedir}/izpack/" output="${basedir}/webScarab-installer-${version}.jar"/>
+                <copy file="${jar}" tofile="${basedir}/webscarab.jar"/>
+		<izpack basedir="${basedir}" input="${basedir}/installer/izpack.xml" installerType="standard" izPackDir="${basedir}/izpack/" output="${basedir}/webscarab-installer-${version}.jar"/>
 	</target>
     <!-- ${basedir}/proguard should contain the expanded proguard distribution
       == It could just be a link to the real directory, etc. 
@@ -103,7 +108,7 @@
 		<libraryjar name="${java.home}/lib/rt.jar"/>
 		<libraryjar name="${java.home}/lib/jsse.jar"/>
                 <libraryjar name="/opt/NetBeans3.6/modules/autoload/ext/servlet-2.3.jar"/>
-                <outjar name="${basedir}/webscarab-${version}.jar"/>
+                <outjar name="${basedir}/webscarab-selfcontained-${version}.jar"/>
                 <keep name="${mainclass}">
                     <method name="main"/>
                 </keep>
@@ -111,5 +116,15 @@
                 <keep implements="org.apache.bsf.BSFEngine"/>
             </proguard>
         </target>
-        <target depends="proguard,izpack" description="Build both distributables" name="dist"/>
+        <target name="source" depends="init,clean" description="packages up the source files">
+            <zip destfile="${basedir}/webscarab-src-${version}.zip">
+                <zipfileset dir="${basedir}" includes="ChangeLog" prefix="webscarab-${version}"/>
+                <zipfileset dir="${basedir}" includes="LICENSE" prefix="webscarab-${version}"/>
+                <zipfileset dir="${basedir}" includes="README" prefix="webscarab-${version}"/>
+                <zipfileset dir="${basedir}" includes="INSTALL" prefix="webscarab-${version}"/>
+                <zipfileset dir="${basedir}" includes="build.xml" prefix="webscarab-${version}"/>
+                <zipfileset dir="${src.dir}" excludes="**/.*" prefix="webscarab-${version}/src"/>
+            </zip>
+        </target>
+        <target depends="clean,source,proguard,izpack" description="Build both distributables" name="dist"/>
 </project>
