@@ -50,8 +50,7 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
             _request = request;
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    _requestPanel.setEditable(true);
-                    _requestPanel.setRequest(_request);
+                    _requestPanel.setRequest(_request, true);
                     setVisible(true);
                 }
             });
@@ -63,20 +62,15 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     setVisible(false);
-                    _requestPanel.setEditable(false);
                 }
             });
             return _request;
         }
     }
     
-    private void setRequest(Request request) {
-        _requestPanel.setRequest(request);
-    }
-    
     public Response editResponse(Request request, Response response) {
         synchronized (this) {
-            setRequest(request);
+            _requestPanel.setRequest(request, false);
             return editResponse(response);
         }
     }
@@ -86,8 +80,7 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
             _response = response;
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    _responsePanel.setEditable(true);
-                    _responsePanel.setResponse(_response);
+                    _responsePanel.setResponse(_response, true);
                     _responsePanel.setVisible(true);
                     show();
                 }
@@ -99,7 +92,6 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
             }
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    _responsePanel.setEditable(false);
                     setVisible(false);
                 }
             });

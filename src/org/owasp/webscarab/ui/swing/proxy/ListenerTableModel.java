@@ -18,11 +18,11 @@ public class ListenerTableModel extends AbstractTableModel {
     private Proxy _proxy;
     
     protected String [] columnNames = {
-        "Address", "Port", "Base URL", "Uses plugins"
+        "Address", "Port", "Base URL", "Simulated network", "Uses plugins"
     };
     
     protected Class[] columnClass = {
-        String.class, Integer.class, String.class, Boolean.class
+        String.class, Integer.class, String.class, String.class, Boolean.class
     };
     
     public ListenerTableModel(Proxy proxy) {
@@ -59,7 +59,8 @@ public class ListenerTableModel extends AbstractTableModel {
                 case 0: return _proxy.getAddress(keys[row]);
                 case 1: return new Integer(_proxy.getPort(keys[row]));
                 case 2: return _proxy.getBase(keys[row]);
-                case 3: return new Boolean(_proxy.getPlugins(keys[row]));
+                case 3: return _proxy.getSimulator(keys[row]);
+                case 4: return new Boolean(_proxy.getPlugins(keys[row]));
                 default: return null;
             }
         } else {

@@ -14,7 +14,11 @@ import org.owasp.webscarab.plugin.proxy.module.BeanShell;
 import org.owasp.webscarab.ui.Framework;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
+
 import javax.swing.ListSelectionModel;
+
+import javax.swing.DefaultComboBoxModel;
 
 /**
  *
@@ -28,6 +32,8 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
     private ArrayList _plugins;
     private SwingPlugin[] _pluginArray = new SwingPlugin[0];
     
+    private Logger _logger = Logger.getLogger(this.getClass().getName());
+    
     /** Creates new form ProxyPanel */
     public ProxyPanel(Framework framework) {
         _proxy = new Proxy(framework);
@@ -38,6 +44,8 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
         _ltm = new ListenerTableModel(_proxy);
         listenerTable.setModel(_ltm);
         listenerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        networkComboBox.setModel(new DefaultComboBoxModel(_proxy.getSimulators()));
         
         // load the GUI modules, which in turn reate their underlying proxy modules
         // and register them with the proxy
@@ -87,6 +95,8 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
         portTextField = new javax.swing.JTextField();
         baseTextField = new javax.swing.JTextField();
         pluginsCheckBox = new javax.swing.JCheckBox();
+        jLabel5 = new javax.swing.JLabel();
+        networkComboBox = new javax.swing.JComboBox();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -150,6 +160,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
         gridBagConstraints.weighty = 1.0;
         jPanel1.add(jPanel2, gridBagConstraints);
 
+        jLabel1.setFont(new java.awt.Font("Dialog", 0, 12));
         jLabel1.setText("Address");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -176,7 +187,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
         jLabel4.setFont(new java.awt.Font("Dialog", 0, 12));
         jLabel4.setText("Use Plugins?");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel1.add(jLabel4, gridBagConstraints);
@@ -209,10 +220,28 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
         jPanel1.add(baseTextField, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel1.add(pluginsCheckBox, gridBagConstraints);
+
+        jLabel5.setFont(new java.awt.Font("Dialog", 0, 12));
+        jLabel5.setText("Speed");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(jLabel5, gridBagConstraints);
+
+        networkComboBox.setFont(new java.awt.Font("Dialog", 0, 12));
+        networkComboBox.setMinimumSize(new java.awt.Dimension(32, 19));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        jPanel1.add(networkComboBox, gridBagConstraints);
 
         mainTabbedPane.addTab("Listeners", jPanel1);
 
@@ -229,13 +258,18 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
 
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
         try {
-            _proxy.startProxy(addressTextField.getText(), Integer.parseInt(portTextField.getText()), baseTextField.getText(), pluginsCheckBox.isSelected());
+            String address = addressTextField.getText();
+            int port = Integer.parseInt(portTextField.getText());
+            String base = baseTextField.getText();
+            String simulator = (String) networkComboBox.getSelectedItem();
+            boolean plugins = pluginsCheckBox.isSelected();
+            _proxy.startProxy(address, port, base, simulator, plugins);
             addressTextField.setText("");
             portTextField.setText("");
             baseTextField.setText("");
             _ltm.fireTableDataChanged();
         } catch (Exception e) {
-            System.err.println("Error starting the listener : " + e);
+            _logger.severe("Error starting the listener : " + e);
         }
     }//GEN-LAST:event_startButtonActionPerformed
 
@@ -244,7 +278,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
         int row = listenerTable.getSelectedRow();
         if (row > -1 && row < keys.length) {
             if (!_proxy.stopProxy(keys[row])) {
-                System.out.println("Failed to stop " + keys[row]);
+                _logger.severe("Failed to stop " + keys[row]);
             }
             _ltm.fireTableDataChanged();
         }
@@ -265,11 +299,13 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable listenerTable;
     private javax.swing.JTabbedPane mainTabbedPane;
+    private javax.swing.JComboBox networkComboBox;
     private javax.swing.JCheckBox pluginsCheckBox;
     private javax.swing.JTextField portTextField;
     private javax.swing.JButton startButton;

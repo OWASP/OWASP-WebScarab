@@ -70,7 +70,7 @@ public class ResponsePanel extends javax.swing.JPanel {
         _upToDate = new boolean[displayTabbedPane.getTabCount()];
         invalidatePanels();
         
-        setEditable(_editable);
+        updateComponents(_editable);
     }
     
     private void invalidatePanels() {
@@ -120,7 +120,7 @@ public class ResponsePanel extends javax.swing.JPanel {
     private void updatePanel(int panel) {
         if (!_upToDate[panel]) {
             if (panel == 0) {// parsed text
-                _messagePanel.setMessage(_response);
+                _messagePanel.setMessage(_response, _editable);
                 if (_response != null) {
                     statusTextField.setText(_response.getStatus());
                     messageTextField.setText(_response.getMessage());
@@ -147,12 +147,7 @@ public class ResponsePanel extends javax.swing.JPanel {
         }
     }
 
-    public void setEditable(boolean editable) {
-        _editable = editable;
-        _messagePanel.setEditable(editable);
-        // _beanShellPanel.setEditable(editable); // it is editable regardless ;-)
-        _textPanel.setEditable(editable);
-
+    public void updateComponents(boolean editable) {
         java.awt.Color color;
         if (editable) {
             color = new java.awt.Color(255, 255, 255);
@@ -167,7 +162,11 @@ public class ResponsePanel extends javax.swing.JPanel {
         versionTextField.setBackground(color);
     }
     
-    public void setResponse(Response response) {
+    public void setResponse(Response response, boolean editable) {
+        _editable = editable;
+        // _beanShellPanel.setEditable(editable); // it is editable regardless ;-)
+        _textPanel.setEditable(editable);
+        
         _modified = false;
         if (response!= null) {
             _response = new Response(response);
@@ -178,16 +177,11 @@ public class ResponsePanel extends javax.swing.JPanel {
         if (SwingUtilities.isEventDispatchThread()) {
             updatePanel(displayTabbedPane.getSelectedIndex());
         } else {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        updatePanel(displayTabbedPane.getSelectedIndex());
-                    }
-                });
-            } catch (Exception e) {
-                System.out.println("Exception in invoke and wait");
-                e.printStackTrace();
-            }
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    updatePanel(displayTabbedPane.getSelectedIndex());
+                }
+            });
         }
     }
     
@@ -328,7 +322,7 @@ public class ResponsePanel extends javax.swing.JPanel {
         top.setBounds(100,100,600,400);
         Response response = new Response();
         try {
-            String resp = "/home/rdawes/santam/webscarab/conversations/10-response";
+            String resp = "l2/conversations/1-response";
             if (args.length == 1) {
                 resp = args[0];
             }
@@ -337,8 +331,7 @@ public class ResponsePanel extends javax.swing.JPanel {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        rp.setEditable(false);
-        rp.setResponse(response);
+        rp.setResponse(response, false);
         top.show();
     }
     

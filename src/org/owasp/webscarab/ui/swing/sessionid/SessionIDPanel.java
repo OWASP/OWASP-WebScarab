@@ -6,6 +6,8 @@
 
 package org.owasp.webscarab.ui.swing.sessionid;
 
+import org.owasp.util.DateUtil;
+
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.Conversation;
@@ -110,7 +112,6 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         });
         _requestPanel = new RequestPanel();
         _requestPanel.selectPanel("Raw");
-        _requestPanel.setEditable(true);
         _requestPanel.setBorder(new javax.swing.border.TitledBorder("Request"));
         Request req = new Request();
         try {
@@ -118,11 +119,10 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
             req.setURL("http://localhost:8080/admin/");
             req.setMethod("HTTP/1.0");
         } catch (MalformedURLException mue) {}
-        _requestPanel.setRequest(req);
+        _requestPanel.setRequest(req, true);
         
         _responsePanel = new ResponsePanel();
         _responsePanel.setBorder(new javax.swing.border.TitledBorder("Response"));
-        _responsePanel.setEditable(false);
         
         conversationSplitPane.setTopComponent(_requestPanel);
         conversationSplitPane.setBottomComponent(_responsePanel);
@@ -141,8 +141,8 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
                     Conversation c = (Conversation) o;
                     String id = c.getProperty("ID");
                     Request r = _siteModel.getRequest(id);
-                    _requestPanel.setRequest(r);
-                    _responsePanel.setResponse(null);
+                    _requestPanel.setRequest(r, true);
+                    _responsePanel.setResponse(null, false);
                 }
             }
         });
@@ -185,7 +185,6 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         conversationPanel = new javax.swing.JPanel();
         conversationSplitPane = new javax.swing.JSplitPane();
         actionPanel = new javax.swing.JPanel();
-        testButton = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         sampleSpinner = new javax.swing.JSpinner();
         fetchButton = new javax.swing.JButton();
@@ -195,6 +194,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         jLabel5 = new javax.swing.JLabel();
         valueTextField = new javax.swing.JTextField();
         jLabel7 = new javax.swing.JLabel();
+        testButton = new javax.swing.JButton();
         analysisPanel = new javax.swing.JPanel();
         nameComboBox = new javax.swing.JComboBox();
         jLabel8 = new javax.swing.JLabel();
@@ -221,7 +221,6 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
 
         bodyRadioButton.setText("Body");
         locationButtonGroup.add(bodyRadioButton);
-        bodyRadioButton.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -247,7 +246,6 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         specPanel.add(nameTextField, gridBagConstraints);
 
         jLabel2.setText("Regex");
-        jLabel2.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
@@ -255,7 +253,6 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         specPanel.add(jLabel2, gridBagConstraints);
 
-        regexTextField.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
@@ -273,8 +270,8 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         specPanel.add(jLabel9, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -285,9 +282,10 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         specPanel.add(requestComboBox, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.8;
         collectionPanel.add(specPanel, gridBagConstraints);
 
         conversationPanel.setLayout(new java.awt.BorderLayout());
@@ -299,20 +297,11 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         collectionPanel.add(conversationPanel, gridBagConstraints);
-
-        testButton.setText("Test");
-        testButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                testButtonActionPerformed(evt);
-            }
-        });
-
-        actionPanel.add(testButton);
 
         jLabel3.setText("Samples");
         actionPanel.add(jLabel3);
@@ -333,6 +322,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.weightx = 0.5;
         collectionPanel.add(actionPanel, gridBagConstraints);
 
@@ -341,44 +331,67 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel4.setText("Date");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         resultPanel.add(jLabel4, gridBagConstraints);
 
         dateTextField.setEditable(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.weightx = 1.0;
         resultPanel.add(dateTextField, gridBagConstraints);
 
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel5.setText("Value");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         resultPanel.add(jLabel5, gridBagConstraints);
 
         valueTextField.setEditable(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.weightx = 1.0;
         resultPanel.add(valueTextField, gridBagConstraints);
 
         jLabel7.setText("Test Results");
-        resultPanel.add(jLabel7, new java.awt.GridBagConstraints());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        resultPanel.add(jLabel7, gridBagConstraints);
+
+        testButton.setText("Test");
+        testButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                testButtonActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        resultPanel.add(testButton, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
         gridBagConstraints.weightx = 1.0;
         collectionPanel.add(resultPanel, gridBagConstraints);
 
@@ -463,21 +476,26 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
     private void fetchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fetchButtonActionPerformed
         Request request = _requestPanel.getRequest();
         if (request == null) {
-            System.err.println("Request was null");
+            _logger.warning("Request was null in fetch request");
             return;
         }
+        String name = nameTextField.getText();
+        String regex = regexTextField.getText();
         int location = -1;
         if (cookieRadioButton.isSelected()) {
             location = _sa.LOCATION_COOKIE;
         } else if (bodyRadioButton.isSelected()) {
             location = _sa.LOCATION_BODY;
+            if (name.equals("") || regex.equals("")) {
+                _logger.severe("Name or regex cannot be empty!");
+                return;
+            }
         } else {
-            System.err.println("invalid location");
+            _logger.severe("invalid location = " + location);
             return;
         }
         int count = ((Integer)sampleSpinner.getValue()).intValue();
-        System.out.println("Count = " + count);
-        ListModel listModel = _sa.getSessionIDs(request, location, nameTextField.getText(), regexTextField.getText(), count);
+        ListModel listModel = _sa.getSessionIDs(request, location, name, regex, count);
         listModel.addListDataListener(this);
     }//GEN-LAST:event_fetchButtonActionPerformed
     
@@ -510,10 +528,10 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
                 if (obj instanceof Response) {
                     Response response = (Response) getValue();
                     if (response != null) {
-                        _responsePanel.setResponse(response);
+                        _responsePanel.setResponse(response, false);
                         SessionID sessid = _sa.getIDfromResponse(response, location, nameTextField.getText(), regexTextField.getText());
                         if (sessid != null) {
-                            dateTextField.setText(sessid.getDate().toString());
+                            dateTextField.setText(DateUtil.rfc822Format(sessid.getDate()));
                             valueTextField.setText(sessid.getValue());
                         } else {
                             dateTextField.setText("");
@@ -560,7 +578,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         final SessionID id = (SessionID) lm.getElementAt(lm.getSize()-1);
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                dateTextField.setText(id.getDate().toString());
+                dateTextField.setText(DateUtil.rfc822Format(id.getDate()));
                 valueTextField.setText(id.getValue());
             }
         });
@@ -631,7 +649,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         public void setValue(Object value) {
             if ((value != null) && (value instanceof Date)) {
                 Date date = (Date) value;
-                value = value.toString();
+                value = DateUtil.rfc822Format(date);
             }
             super.setValue(value);
         }

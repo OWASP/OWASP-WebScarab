@@ -36,8 +36,7 @@ public class ConversationPanel extends javax.swing.JPanel {
     }
     
     public void setRequest(Request request, boolean editable) {
-        _requestPanel.setEditable(editable);
-        _requestPanel.setRequest(request);
+        _requestPanel.setRequest(request, editable);
     }
     
     public Request getRequest() {
@@ -45,8 +44,7 @@ public class ConversationPanel extends javax.swing.JPanel {
     }
     
     public void setResponse(Response response, boolean editable) {
-        _responsePanel.setEditable(editable);
-        _responsePanel.setResponse(response);
+        _responsePanel.setResponse(response, editable);
     }
     
     public Response getResponse() {

@@ -70,7 +70,7 @@ public class RequestPanel extends javax.swing.JPanel {
         _upToDate = new boolean[displayTabbedPane.getTabCount()];
         invalidatePanels();
         
-        setEditable(_editable);
+        updateComponents(_editable);
     }
     
     private void invalidatePanels() {
@@ -129,7 +129,7 @@ public class RequestPanel extends javax.swing.JPanel {
     private void updatePanel(int panel) {
         if (!_upToDate[panel]) {
             if (panel == 0) {// parsed text
-                _messagePanel.setMessage(_request);
+                _messagePanel.setMessage(_request, _editable);
                 if (_request != null) {
                     methodTextField.setText(_request.getMethod());
                     if (_request.getURL() != null) {
@@ -160,12 +160,7 @@ public class RequestPanel extends javax.swing.JPanel {
         }
     }
 
-    public void setEditable(boolean editable) {
-        _editable = editable;
-        _messagePanel.setEditable(editable);
-        // _beanShellPanel.setEditable(editable); // it is editable regardless ;-)
-        _textPanel.setEditable(editable);
-        
+    private void updateComponents(boolean editable) {
         java.awt.Color color;
         if (editable) {
             color = new java.awt.Color(255, 255, 255);
@@ -180,7 +175,12 @@ public class RequestPanel extends javax.swing.JPanel {
         versionTextField.setBackground(color);
     }
     
-    public void setRequest(Request request) {
+    public void setRequest(Request request, boolean editable) {
+        _editable = editable;
+        // _beanShellPanel.setEditable(editable); // it is editable regardless ;-)
+        _textPanel.setEditable(editable);
+        updateComponents(editable);
+        
         _modified = false;
         if (request != null) {
             _request = new Request(request);
@@ -191,15 +191,11 @@ public class RequestPanel extends javax.swing.JPanel {
         if (SwingUtilities.isEventDispatchThread()) {
             updatePanel(displayTabbedPane.getSelectedIndex());
         } else {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        updatePanel(displayTabbedPane.getSelectedIndex());
-                    }
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    updatePanel(displayTabbedPane.getSelectedIndex());
+                }
+            });
         }
     }
     
@@ -342,14 +338,12 @@ public class RequestPanel extends javax.swing.JPanel {
         
         Request request = new Request();
         try {
-            java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/santam/webscarab/conversations/147-request");
+            java.io.FileInputStream fis = new java.io.FileInputStream("l2/conversations/1-request");
             request.read(fis);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        panel.setEditable(true);
-        panel.setRequest(request);
-        
+        panel.setRequest(request, true);
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

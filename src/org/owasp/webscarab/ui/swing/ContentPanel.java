@@ -11,6 +11,7 @@ import java.util.Iterator;
 
 import java.awt.Component;
 
+import org.owasp.webscarab.ui.swing.editors.EditorWrapper;
 import org.owasp.webscarab.ui.swing.editors.ByteArrayEditor;
 import org.owasp.webscarab.ui.swing.editors.HexPanel;
 
@@ -30,7 +31,7 @@ import java.io.ByteArrayInputStream;
  */
 public class ContentPanel extends javax.swing.JPanel {
     
-    private String _contentType = null;
+    private String _contentType = "";
     private boolean _editable = false;
     private boolean _modified = false;
     
@@ -42,12 +43,25 @@ public class ContentPanel extends javax.swing.JPanel {
     private int _selected = -1;
     private boolean[] _upToDate = new boolean[] {false};
     
-    private String[] _editorClasses = new String[] {
+    private Object[] _editorClasses = new Object[] {
         "org.owasp.webscarab.ui.swing.editors.SerializedObjectPanel",
+        new String[] {"application/x-serialized-object"},
+        
         "org.owasp.webscarab.ui.swing.editors.ImagePanel",
+        new String[] {"image/.*"},
+        
         "org.owasp.webscarab.ui.swing.editors.UrlEncodedPanel",
+        new String[] {"application/x-www-form-urlencoded"},
+        
         "org.owasp.webscarab.ui.swing.editors.HTMLPanel",
+        new String[] {"text/html.*"},
+        
         "org.owasp.webscarab.ui.swing.editors.TextPanel",
+        new String[] {
+            "text/.*", 
+            "application/x-javascript", 
+            "application/x-www-form-urlencoded"
+        },
     };
     
     /** Creates new form ContentPanel */
@@ -59,33 +73,20 @@ public class ContentPanel extends javax.swing.JPanel {
                 updatePanel(viewTabbedPane.getSelectedIndex());
             }
         });
-        for (int i=0; i<_editorClasses.length; i++) {
+        for (int i=0; i<_editorClasses.length; i+=2) {
             try {
-                Object editor = Class.forName(_editorClasses[i]).newInstance();
-                if (editor instanceof ByteArrayEditor && editor instanceof Component) {
-                    _editors.add(editor);
-                } else {
-                    System.err.println(_editorClasses[i] + " must implement ByteArrayEditor as well as java.awt.Component");
-                }
+                String name = (String) _editorClasses[i];
+                String[] types = (String[]) _editorClasses[i+1];
+                EditorWrapper wrapper = new EditorWrapper(name, types);
+                _editors.add(wrapper);
             } catch (Exception e) {
                 System.err.println("Error instantiating " + _editorClasses[i] + " : " + e);
             }
         }
-        setEditable(false);
-        // FIXME : Strange - this is required to prevent exceptions when setting a 
-        // non-null content for the first time :-(
-        setContent(null); 
     }
     
-    public void setContentType(String type) {
-        _contentType = type;
-    }
-    
-    public void setEditable(boolean editable) {
+    public void setContent(final String type, final byte[] content, final boolean editable) {
         _editable = editable;
-    }
-    
-    public void setContent(byte[] content) {
         _modified = false;
         if (content == null) {
             _data = null;
@@ -94,20 +95,23 @@ public class ContentPanel extends javax.swing.JPanel {
             System.arraycopy(content, 0, _data, 0, content.length);
         }
         if (SwingUtilities.isEventDispatchThread()) {
-            addEditors();        
-            updatePanel(viewTabbedPane.getSelectedIndex());
+            initPanels(type, content, editable);
         } else {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        addEditors();        
-                        updatePanel(viewTabbedPane.getSelectedIndex());
-                    }
-                });
-            } catch (Exception e) {
-                System.err.println("Exception in runnable");
-                e.printStackTrace();
-            }
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    initPanels(type, content, editable);
+                }
+            });
+        }
+    }
+    
+    private void initPanels(String type, byte[] content, boolean editable) {
+        if (type == null || !type.equals(_contentType)) {
+            _contentType = type;
+            addEditors();
+            updatePanel(0);
+        } else {
+            updatePanel(viewTabbedPane.getSelectedIndex());
         }
     }
     
@@ -117,13 +121,9 @@ public class ContentPanel extends javax.swing.JPanel {
             if (_contentType != null) {
                 Iterator it = _editors.iterator();
                 while (it.hasNext()) {
-                    ByteArrayEditor editor = (ByteArrayEditor) it.next();
-                    String[] types = editor.getContentTypes();
-                    for (int i=0; i<types.length; i++) {
-                        if (_contentType.matches(types[i])) {
-                            viewTabbedPane.add((Component) editor);
-                            continue;
-                        }
+                    EditorWrapper wrapper = (EditorWrapper) it.next();
+                    if (wrapper.canEdit(_contentType)) {
+                        viewTabbedPane.add(wrapper.getEditorComponent());
                     }
                 }
             }
@@ -131,6 +131,7 @@ public class ContentPanel extends javax.swing.JPanel {
         }
         _upToDate = new boolean[viewTabbedPane.getTabCount()];
         invalidatePanels();
+        invalidate();
     }
 
     public boolean isModified() {
@@ -204,7 +205,7 @@ public class ContentPanel extends javax.swing.JPanel {
     
     
     public static void main(String[] args) {
-        org.owasp.webscarab.model.Request request = new org.owasp.webscarab.model.Request();
+        org.owasp.webscarab.model.Response response = new org.owasp.webscarab.model.Response();
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             /*
@@ -216,12 +217,12 @@ public class ContentPanel extends javax.swing.JPanel {
             }
             content = baos.toByteArray();
              */
-            String filename = "/home/rdawes/santam/webscarab/conversations/147-request";
+            String filename = "l1/conversations/1-response";
             if (args.length == 1) {
                 filename = args[0];
             }
             java.io.FileInputStream fis = new java.io.FileInputStream(filename);
-            request.read(fis);
+            response.read(fis);
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(0);
@@ -247,12 +248,7 @@ public class ContentPanel extends javax.swing.JPanel {
         top.setBounds(100,100,600,400);
         top.show();
         try {
-            // Thread.currentThread().sleep(5000);
-            cp.setContentType(request.getHeader("Content-Type"));
-            cp.setEditable(true);
-            // cp.setContent(null);
-            // Thread.currentThread().sleep(5000);
-            cp.setContent(request.getContent());
+            cp.setContent(response.getHeader("Content-Type"), response.getContent(), false);
         } catch (Exception e) {
             e.printStackTrace();
         }

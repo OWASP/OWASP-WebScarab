@@ -66,17 +66,18 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
                     Conversation c = (Conversation) o;
                     String id = c.getProperty("ID");
                     Request r = _siteModel.getRequest(id);
-                    _requestPanel.setRequest(r);
-                    _responsePanel.setResponse(null);
+                    _requestPanel.setRequest(r, true);
+                    _responsePanel.setResponse(null, false);
                 }
             }
         });
         _requestPanel = new RequestPanel();
-        _requestPanel.setEditable(true);
+        _requestPanel.setRequest(null, true);
         _requestPanel.setBorder(new TitledBorder("Request"));
         conversationSplitPane.setLeftComponent(_requestPanel);
         
         _responsePanel = new ResponsePanel();
+        _responsePanel.setResponse(null, false);
         _responsePanel.setBorder(new TitledBorder("Response"));
         conversationSplitPane.setRightComponent(_responsePanel);
     }
@@ -173,7 +174,7 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         Request request = _requestPanel.getRequest();
         if (request != null) {
             _manualRequest.addRequestCookies(request);
-            _requestPanel.setRequest(request);
+            _requestPanel.setRequest(request, true);
         }
     }//GEN-LAST:event_getCookieButtonActionPerformed
     
@@ -181,7 +182,7 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         final Request request = _requestPanel.getRequest();
         if (request != null) {
             fetchResponseButton.setEnabled(false);
-            _responsePanel.setResponse(null);
+            _responsePanel.setResponse(null, false);
             new SwingWorker() {
                 public Object construct() {
                     try {
@@ -197,7 +198,7 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
                     if (obj instanceof Response) {
                         Response response = (Response) getValue();
                         if (response != null) {
-                            _responsePanel.setResponse(response);
+                            _responsePanel.setResponse(response, false);
                         }
                     } else if (obj instanceof String) {
                         JOptionPane.showMessageDialog(null, new String[] {"Error fetching response: ", obj.toString()}, "Error", JOptionPane.ERROR_MESSAGE);

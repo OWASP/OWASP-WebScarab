@@ -43,22 +43,38 @@ public class MessagePanel extends javax.swing.JPanel {
         headerTable.getColumnModel().getColumn(1).setPreferredWidth(500);
         
         _cp = new ContentPanel();
-        _cp.setMinimumSize(new Dimension(400, 100));
         messageSplitPane.setRightComponent(_cp);
-        setEditable(_editable);
+        setMessage(null, false);
     }
     
-    public void setMessage(Message message) {
+    public void setMessage(Message message, boolean editable) {
         _message = message;
+        _editable = editable;
+        buttonPanel.setVisible(_editable);
+        java.awt.Color color;
+        if (_editable) {
+            color = new java.awt.Color(255, 255, 255);
+        } else {
+            color = new java.awt.Color(204, 204, 204);
+        }
+        headerTable.setBackground(color);
+        _tableModel.setEditable(editable);
+        
         if (message != null) {
             _tableModel.setHeaders(_message.getHeaders());
-            _cp.setContentType(message.getHeader("Content-Type"));
-            _cp.setContent(message.getContent());
+            byte[] content = message.getContent();
+            if (_editable || (content.length > 0)) {
+                _cp.setVisible(true);
+                _cp.setContent(message.getHeader("Content-Type"), content, _editable);
+            } else {
+                _cp.setVisible(false);
+            }
         } else {
             _tableModel.setHeaders(new String[0][2]);
-            _cp.setContentType(null);
-            _cp.setContent(null);
+            _cp.setContent("", null, false);
+            _cp.setVisible(false);
         }
+        invalidate();
         _modified = false;
     }
     
@@ -75,20 +91,6 @@ public class MessagePanel extends javax.swing.JPanel {
             }
         }
         return _message;
-    }
-    
-    public void setEditable(boolean editable) {
-        _editable = editable;
-        buttonPanel.setVisible(_editable);
-        _cp.setEditable(editable);
-        java.awt.Color color;
-        if (_editable) {
-            color = new java.awt.Color(255, 255, 255);
-        } else {
-            color = new java.awt.Color(204, 204, 204);
-        }
-        headerTable.setBackground(color);
-        _tableModel.setEditable(editable);
     }
     
     public boolean isModified() {
@@ -222,7 +224,7 @@ public class MessagePanel extends javax.swing.JPanel {
         byte[] content = new byte[0];
         org.owasp.webscarab.model.Response response = new org.owasp.webscarab.model.Response();
         try {
-            String resp = "/home/knoppix/egulfbank/conversations/1-response";
+            String resp = "l3/conversations/1-response";
             if (args.length == 1) {
                 resp = args[0];
             }
@@ -253,8 +255,7 @@ public class MessagePanel extends javax.swing.JPanel {
         top.setBounds(100,100,600,400);
         top.show();
         try {
-            mp.setEditable(false);
-            mp.setMessage(response);
+            mp.setMessage(response, false);
         } catch (Exception e) {
             e.printStackTrace();
         }
