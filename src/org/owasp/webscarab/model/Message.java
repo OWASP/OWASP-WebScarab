@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.lang.StringBuffer;
 import java.lang.NumberFormatException;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -35,12 +36,15 @@ import java.text.ParseException;
 public class Message {
     
     private ArrayList _headers = null;
+    private final static byte[] NO_CONTENT = new byte[0];
     
     InputStream _contentStream = null;
-    byte[] _content = null;
+    ByteArrayOutputStream _content = null;
     boolean _chunked = false;
     boolean _gzipped = false;
     int _length = -1;
+    
+    private Logger _logger = Logger.getLogger("org.owasp.webscarab");
     
     /** Message is a class that is used to represent the bulk of an HTTP message, namely
      * the headers, and (possibly null) body. Messages should not be instantiated
@@ -50,10 +54,12 @@ public class Message {
     protected Message() {
     }
     
-    /** Instructs the class to read the headers from the InputStream, and assign the
+    /**
+     * Instructs the class to read the headers from the InputStream, and assign the
      * InputStream as the contentStream, from which the body of the message can be
      * read.
      * @throws IOException Propagates any IOExceptions thrown by the InputStream read methods
+     * @param is the InputStream to read the Message headers and body from
      */    
     protected void read(InputStream is) throws IOException {
         _headers = null;
@@ -73,14 +79,21 @@ public class Message {
         }
     }
     
-    /** Writes the Message (headers and content) to the supplied OutputStream */    
+    /**
+     * Writes the Message headers and content to the supplied OutputStream
+     * @param os The OutputStream to write the Message headers and content to
+     * @throws IOException any IOException thrown by the supplied OutputStream, or any IOException thrown by the InputStream from which this Message was originally read (if any)
+     */    
     protected void write(OutputStream os) throws IOException {
         write(os, "\r\n");
     }
     
-    /** Writes the Message (headers and content) to the supplied OutputStream, using the
-     * user supplied string to separate lines.
-     */    
+    /**
+     * Writes the Message headers and content to the supplied OutputStream
+     * @param os The OutputStream to write the Message headers and content to
+     * @throws IOException any IOException thrown by the supplied OutputStream, or any IOException thrown by the InputStream from which this Message was originally read (if any)
+     * @param crlf the line ending to use for the headers
+     */
     protected void write(OutputStream os, String crlf) throws IOException {
         if (_headers != null) {
             for (int i=0; i<_headers.size(); i++) {
@@ -89,20 +102,31 @@ public class Message {
             }
         }
         os.write(crlf.getBytes());
+        _logger.finest("wrote headers");
         if (_chunked) {
             os = new ChunkedOutputStream(os);
         }
-        if (_content != null) {
-            os.write(_content);
-        } else if (_contentStream != null) {
-            _content = flushInputStream(_contentStream, os);
-            _contentStream = null;
+        if (_contentStream != null) {
+            _logger.finest("Flushing contentStream");
+            flushContentStream(os);
+            _logger.finest("Done flushing contentStream");
+        } else if (_content != null ) {
+            _logger.finest("Writing content bytes");
+            os.write(_content.toByteArray());
+            _logger.finest("Done writing content bytes");
         }
         if (_chunked) {
             ((ChunkedOutputStream) os).writeTrailer();
         }
     }
     
+    /**
+     * Instructs the class to read the headers and content from the supplied StringBuffer
+     * N.B. The "Content-length" header is updated automatically to reflect the true size
+     * of the content
+     * @param buffer The StringBuffer to parse the headers and content from. This buffer is "consumed" i.e. characters are removed from the buffer as the Message is parsed.
+     * @throws ParseException if there is an error parsing the Message structure
+     */    
     protected void parse(StringBuffer buffer) throws ParseException {
         _headers = null;
         String line = getLine(buffer);
@@ -113,10 +137,13 @@ public class Message {
             }
             line = getLine(buffer);
         }
-        _content = buffer.toString().getBytes();
-        String cl = getHeader("Content-Length");
+        _content = new ByteArrayOutputStream();
+        try {
+            _content.write(buffer.toString().getBytes());
+        } catch (IOException ioe) {} // can't fail
+        String cl = getHeader("Content-length");
         if (cl != null) {
-            setHeader("Content-Length", Integer.toString(_content.length));
+            setHeader("Content-length", Integer.toString(_content.size()));
         }
     }
     
@@ -148,7 +175,7 @@ public class Message {
         }
         byte[] content = getContent();
         if (_chunked && content != null) {
-            buff.append("Content-Length: " + Integer.toString(content.length) + crlf);
+            buff.append("Content-length: " + Integer.toString(content.length) + crlf);
         }
         buff.append(crlf);
         if (content != null) {
@@ -160,28 +187,32 @@ public class Message {
     }
     
     private void updateFlagsForHeader(String name, String value) {
-        if (name.equals("Transfer-Encoding")) {
+        if (name.equalsIgnoreCase("Transfer-Encoding")) {
             if (value.indexOf("chunked")>-1) {
                 _chunked = true;
             } else {
                 _chunked = false;
             }
-        } else if (name.equals("Content-Encoding")) {
+        } else if (name.equalsIgnoreCase("Content-Encoding")) {
             if (value.indexOf("gzip")>-1) {
                 _gzipped = true;
             } else {
                 _gzipped = false;
             }
-        } else if (name.equals("Content-Length")) {
+        } else if (name.equalsIgnoreCase("Content-length")) {
             try {
                 _length = Integer.parseInt(value);
             } catch (NumberFormatException nfe) {
-                System.err.println("Error parsing the content-length '" + value + "' : " + nfe);
+                _logger.warning("Error parsing the content-length '" + value + "' : " + nfe);
             }
         }
     }
     
-    /** sets the value of a header. This overwrites any previous values. */    
+    /**
+     * sets the value of a header. This overwrites any previous values of headers with the same name.
+     * @param name the name of the header (without a colon)
+     * @param value the value of the header
+     */    
     public void setHeader(String name, String value) {
         updateFlagsForHeader(name, value);
         if (_headers == null) {
@@ -200,8 +231,11 @@ public class Message {
         _headers.add(row);
     }
     
-    /** Adds a header with the specified name and value. This preserves any previous 
-     * headers with the same name. 
+    /**
+     * Adds a header with the specified name and value. This preserves any previous
+     * headers with the same name, and adds another header with the same name.
+     * @param name the name of the header (without a colon)
+     * @param value the value of the header
      */
     public void addHeader(String name, String value) {
         updateFlagsForHeader(name, value);
@@ -212,7 +246,11 @@ public class Message {
         _headers.add(row);
     }
     
-    /** Removes a header */    
+    /**
+     * Removes a header
+     * @param name the name of the header (without a colon)
+     * @return the value of the header that was deleted
+     */    
     public String deleteHeader(String name) {
         if (_headers == null) {
             return null;
@@ -228,7 +266,10 @@ public class Message {
         return null;
     }
     
-    /** Returns an array of header names */    
+    /**
+     * Returns an array of header names
+     * @return an array of the header names
+     */    
     public String[] getHeaderNames() {
         if (_headers == null || _headers.size() == 0) {
             return new String[0];
@@ -241,7 +282,11 @@ public class Message {
         return names;
     }
     
-    /** Returns the value of the requested header */    
+    /**
+     * Returns the value of the requested header
+     * @param name the name of the header (without a colon)
+     * @return the value of the header in question (null if the header did not exist)
+     */    
     public String getHeader(String name) {
         if (_headers == null) {
             return null;
@@ -255,7 +300,11 @@ public class Message {
         return null;
     }
     
-    /** returns the header names and their values */    
+    /**
+     * returns the header names and their values
+     * @return a two dimensional array of Strings, where array[i][0] is the header name and
+     * array[i][1] is the header value and array.length is the number of headers
+     */    
     public String[][] getHeaders() {
         if (_headers == null || _headers.size() == 0) {
             return new String[0][2];
@@ -269,7 +318,11 @@ public class Message {
         return table;
     }
     
-    /** sets the headers */    
+    /**
+     * sets the headers
+     * @param table a two dimensional array of Strings, where table[i][0] is the header name and
+     * table[i][1] is the header value
+     */    
     public void setHeaders(String[][] table) {
         if (_headers == null) {
             _headers = new ArrayList();
@@ -280,17 +333,26 @@ public class Message {
             if (table[i].length == 2) {
                 addHeader(table[i][0],table[i][1]);
             } else {
-                System.out.println("Malformed header table in setHeaders! row " + i);
+                _logger.severe("Malformed header table in setHeaders! row " + i);
             }
         }
     }
     
-    /** a private method to read a line up to and including the CR or CRLF. Returns the
-     * line without the CR or CRLF.
+    /**
+     * a protected method to read a line up to and including the CR or CRLF.
+     *
      * We don't use a BufferedInputStream so that we don't read further than we should
      * i.e. into the message body, or next message!
+     * @param is The InputStream to read the line from
+     * @throws IOException if an IOException occurs while reading from the supplied InputStream
+     * @return the line that was read, WITHOUT the CR or CRLF
      */    
     protected String readLine(InputStream is) throws IOException {
+        if (is == null) {
+            NullPointerException npe = new NullPointerException("InputStream may not be null!");
+            npe.printStackTrace();
+            throw npe;
+        }
         StringBuffer line = new StringBuffer();
         int i;
         char c=0x00;
@@ -305,11 +367,15 @@ public class Message {
         if (i == 13) { // 10 is unix LF, but DOS does 13+10, so read the 10 if we got 13
             i = is.read();
         }
+        _logger.finest(line.toString());
         return line.toString();
     }
     
-    /** a private method to read a line up to and including the CR or CRLF. Returns the
-     * line without the CR or CRLF. Deletes the line from the supplied StringBuffer.
+    /**
+     * a protected method to read a line up to and including the CR or CRLF.
+     * Removes the line from the supplied StringBuffer.
+     * @param buffer the StringBuffer to read the line from
+     * @return the line that was read, WITHOUT the CR or CRLF
      */    
     protected String getLine(StringBuffer buffer) {
         int lf = buffer.indexOf("\n");
@@ -320,105 +386,132 @@ public class Message {
             }
             String line = buffer.substring(0,cr);
             buffer.delete(0, lf+1);
-            System.err.println("line is '" + line + "'");
+            _logger.finest("line is '" + line + "'");
             return line;
         } else if (buffer.length() > 0) {
             String line = buffer.toString();
             buffer.setLength(0);
-            System.err.println("line is '" + line + "'");
+            _logger.finest("line is '" + line + "'");
             return line;
         } else {
             return null;
         }
     }
     
-    public int getContentLength() {
-        if (_contentStream != null) {
-            _content = flushInputStream(_contentStream, null);
-            _contentStream = null;
-        }
-        if (_content != null) {
-            return _content.length;
-        } else {
-            return -1;
-        }
-    }
-            
-    /** getContent returns the message body that accompanied the request. If
-     * the class was read from an InputStream, this method will return null.
-     * That is, unless readContentStream() or write() has been called, in which
-     * case, the contentStream will have been read, and the content updated.
-     * If the class was instantiated with no InputStream, it simply
-     * returns the content that was set in the message, or an empty array if no 
-     * content was ever set.
-     * Message Body from the InputStream
+    /** getContent returns the message body that accompanied the request.
+     * if the message was read from an InputStream, it reads the content from 
+     * the InputStream and returns a copy of it.
+     * If the message body was chunked, or gzipped (according to the headers)
+     * it returns the unchunked and unzipped content.
+     *
      * @return Returns a byte array containing the message body
      */    
     public byte[] getContent() {
-        if (_contentStream != null) {
-            _content = flushInputStream(_contentStream, null);
-            _contentStream = null;
+        try {
+            flushContentStream(null);
+        } catch (IOException ioe) {
+            _logger.info("IOException flushing the contentStream: " + ioe);
         }
         if (_content != null && _gzipped) {
             try {
-                GZIPInputStream gzis = new GZIPInputStream(new ByteArrayInputStream(_content));
-                return flushInputStream(gzis, null);
-            } catch (IOException ioe) {
-                System.err.println("IOException unzipping content : " + ioe);
-                return null;
-            }
-        }
-        return _content;
-    }
-    
-    /** reads all the remaining bytes into the "content" byte array, optionally
-     *  writing them to the provided output stream as well
-     */    
-    private byte[] flushInputStream(InputStream is, OutputStream os) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {
-            byte[] buf = new byte[1024];
-            int got = is.read(buf);
-            while (got > 0) {
-                baos.write(buf,0, got);
-                if (os != null) {
-                    os.write(buf,0,got);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                GZIPInputStream gzis = new GZIPInputStream(new ByteArrayInputStream(_content.toByteArray()));
+                byte[] buff = new byte[1024];
+                int got;
+                while ((got = gzis.read(buff))>-1) {
+                    baos.write(buff, 0, got);
                 }
-                got = is.read(buf);
+                return baos.toByteArray();
+            } catch (IOException ioe) {
+                _logger.info("IOException unzipping content : " + ioe);
+                return NO_CONTENT;
             }
-        } catch (IOException ioe) {
-            System.out.println("IOException flushing inputStream " + ioe);
         }
-        return baos.toByteArray();
+        if (_content != null) {
+            return _content.toByteArray();
+        } else {
+            return NO_CONTENT;
+        }
     }
     
+    public void flushContentStream() {
+        try {
+            flushContentStream(null);
+        } catch (IOException ioe) {
+            _logger.info("Exception flushing the contentStream " + ioe);
+        }
+    }
+    
+    /** reads all the bytes in the contentStream into a local ByteArrayOutputStream
+     * where they can be retrieved by the getContent() methods.
+     * Optionally writes the bytes read to the supplied outputstream
+     * This method immediately throws any IOExceptions that occur while reading
+     * the contentStream, but defers any exceptions that occur writing to the
+     * supplied outputStream until the entire contentStream has been read and
+     * saved.
+     */    
+    private void flushContentStream(OutputStream os) throws IOException {
+        IOException ioe = null;
+        if (_contentStream == null) return;
+        if (_content == null) _content = new ByteArrayOutputStream();
+        byte[] buf = new byte[1024];
+        _logger.finest("Reading initial bytes from contentStream " + _contentStream);
+        int got = _contentStream.read(buf);
+        _logger.finest("Got " + got + " bytes");
+        while (got > 0) {
+            _content.write(buf,0, got);
+            if (os != null) {
+                try {
+                    os.write(buf,0,got);
+                } catch (IOException e) {
+                    _logger.info("IOException ioe writing to output stream " + ioe);
+                    ioe = e;
+                    os = null;
+                }
+            }
+            got = _contentStream.read(buf);
+            _logger.finest("Got " + got + " bytes");
+        }
+        _contentStream = null;
+        if (ioe != null) throw ioe;
+    }
+    
+    /**
+     * sets the message to not have a body. This is typical for a CONNECT request or
+     * response, which should not read any body.
+     */    
     public void setNoBody() {
         _content = null;
         _contentStream = null;
     }
     
-    /** Sets the content of the message body
-     * @param content a byte array containing the message body
+    /**
+     * Sets the content of the message body. If the message headers indicate that the
+     * content is gzipped, the content is automatically compressed
+     * @param bytes a byte array containing the message body
      */    
     public void setContent(byte[] bytes) {
         // discard whatever is pending in the content stream
-        if (_contentStream != null) {
-            flushInputStream(_contentStream, null);
-            _contentStream = null;
+        try {
+            flushContentStream(null);
+        } catch (IOException ioe) {
+            _logger.info("IOException flushing the contentStream " + ioe);
         }
-        if (_gzipped && bytes != null) {
+        if (_gzipped) {
             try {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                GZIPOutputStream gzos = new GZIPOutputStream(baos);
+                _content = new ByteArrayOutputStream();
+                GZIPOutputStream gzos = new GZIPOutputStream(_content);
                 gzos.write(bytes);
                 gzos.close();
-                _content = baos.toByteArray();
             } catch (IOException ioe) {
-                System.err.println("IOException gzipping content : " + ioe);
+                _logger.info("IOException gzipping content : " + ioe);
             }
         } else {
-            _content = bytes;
+            _content = new ByteArrayOutputStream();
+            try {
+                _content.write(bytes);
+            } catch (IOException ioe) {} // can't fail
         }
     }
-        
+    
 }
