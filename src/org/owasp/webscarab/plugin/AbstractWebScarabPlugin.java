@@ -9,6 +9,7 @@ package org.owasp.webscarab.plugin;
 import java.util.Iterator;
 import java.util.Properties;
 
+import org.owasp.webscarab.plugin.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.Conversation;
@@ -23,26 +24,19 @@ public abstract class AbstractWebScarabPlugin implements WebScarabPlugin {
     /** This variable is intended to hold any plugin specific properties that could be
      * written to a config file, or read from a config file.
      */    
-    protected Properties _prop = new Properties();
+    protected Properties _prop = Preferences.getPreferences();
     
-    /** Configures the plugin, based on any properties read from a configuration file.
-     * If any plugin specific properties were not set in the configuration file, copies
-     * the default values into the supplied Prop instance.
-     * @param prop The properties read from a configuration file, or similar
-     */    
-    public void mergeProperties(Properties prop) {
-        // This just allows us to copy our defaults over into
-        // the main properties class, if they are not set already
-        Iterator it = _prop.keySet().iterator();
-        while (it.hasNext()) {
-            String key = (String) it.next();
-            String value = prop.getProperty(key);
-            if (null == value) {
-                prop.put(key,_prop.getProperty(key));
-            }
+    protected void setDefaultProperty(String key, String value) {
+        if (_prop.getProperty(key) == null) {
+            _prop.setProperty(key, value);
         }
-        // any future changes are made directly into the system wide props
-        _prop = prop;
+    }
+    
+    protected void setProperty(String prop, String value) {
+        String previous = _prop.getProperty(prop);
+        if (previous == null || !previous.equals(value)) {
+            _prop.put(prop,value);
+        }
     }
     
     /** Called by the WebScarab data model once the {@link Response} has been parsed. It
