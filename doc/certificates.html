@@ -28,8 +28,13 @@
   </pre>
   <p>Place the resulting &quot;server.p12&quot; file in the root of the webscarab 
   installation directory, in place of the existing server.p12 file</p>
-  <p>When WebScarab properly supports client certificates, you will be able to 
-  follow a similar procedure for the client certificate, calling it &quot;client.p12&quot;</p>
+  <p>Initial support for client certificates exists now, so you should be
+  able to do similar operations for the client certificate and keys, 
+  calling the file &quot;client.p12&quot;</p>
+  <p><b>
+  NOTE that WebScarab looks for the certificate and key files IN the 
+  webscarab.jar, so you will have to rebuild the jar file with your 
+  updated certificate files, otherwise they will not be used!</b></p>
   </body>
   
 </html>
