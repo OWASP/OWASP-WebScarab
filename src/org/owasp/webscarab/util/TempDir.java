@@ -157,4 +157,21 @@ public class TempDir {
 	}
     }
     
+    /**
+     * Recursive delete files.
+     */
+    public static boolean recursiveDelete(File dir) {
+        String[] ls = dir.list();
+        
+        for (int i = 0; i < ls.length; i++) {
+            File file = new File(dir, ls[i]);
+            if (file.isDirectory()) {
+                if (!recursiveDelete(file)) return false;
+            } else {
+                if (!file.delete()) return false;
+            }
+        }
+        return dir.delete();
+    }
+    
 }
