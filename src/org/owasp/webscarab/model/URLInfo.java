@@ -39,4 +39,8 @@ public class URLInfo {
         return _props.keySet();
     }
     
+    public String toString() {
+        return _url;
+    }
+    
 }
