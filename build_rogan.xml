@@ -29,7 +29,7 @@
 		<mkdir dir="${classes}"/>
 	</target>
 	<target depends="prepare" name="compile">
-		<javac classpathref="cpath" compiler="extJavac" deprecation="off" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}"/>
+		<javac classpathref="cpath" compiler="extJavac" deprecation="off" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}" listfiles="yes"/>
 	</target>
 	<target depends="compile" name="build">
 		<jar basedir="${classes}" jarfile="${jarname}">
@@ -44,12 +44,13 @@
 		</java>
 	</target>
 	<target depends="build" name="installer">
-                <taskdef name="izpack" classpath="${basedir}/lib/izpack.jar"
+                <taskdef name="izpack" classpath="${basedir}/installer/compiler.jar"
                      classname="com.izforge.izpack.ant.IzPackTask"/>
-		<izpack input="izpack.xml"
+		<izpack input="installer/izpack.xml"
 			output="WebScarab-${DSTAMP}-${TSTAMP}.jar"
-			installerType="standard-kunststoff"
+			installerType="standard"
 			basedir="${basedir}"
-			izPackDir="/home/rdawes/IzPack/"/>
+			izPackDir="/home/rdawes/IzPack/"
+                />
 	</target>
 </project>
