@@ -67,7 +67,7 @@ public class Listener implements Runnable {
         _plugins = plugins;
         _serversocket = new ServerSocket(port, 5, addr);
         
-        System.out.println("Listening on " + address + ":" + port);
+        System.err.println("Proxy listening on " + address + ":" + port);
         
         try {
             _serversocket.setSoTimeout(100);

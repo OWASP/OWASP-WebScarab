@@ -240,10 +240,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPlugin {
         String[] keys = _proxy.getProxies();
         int row = listenerTable.getSelectedRow();
         if (row > -1 && row < keys.length) {
-            System.out.println("Key is '" + keys[row] + "'");
-            if (_proxy.stopProxy(keys[row])) {
-                System.out.println("Stopped " + keys[row]);
-            } else {
+            if (!_proxy.stopProxy(keys[row])) {
                 System.out.println("Failed to stop " + keys[row]);
             }
             _ltm.fireTableDataChanged();
