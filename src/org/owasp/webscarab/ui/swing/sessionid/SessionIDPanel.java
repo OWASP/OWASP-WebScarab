@@ -237,7 +237,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         specPanel.add(jLabel1, gridBagConstraints);
 
         nameTextField.setText("localhost/ JSESSIONID");
-        nameTextField.setToolTipText("use 'host.domain/path name' for cookies");
+        nameTextField.setToolTipText("use 'host.domain/path cookiename' for cookies.");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
@@ -253,6 +253,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         specPanel.add(jLabel2, gridBagConstraints);
 
+        regexTextField.setToolTipText("You can specify a regex to only save a portion of the cookie, if there is a lot of boilerplate");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
@@ -285,7 +286,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 0.8;
+        gridBagConstraints.weightx = 1.0;
         collectionPanel.add(specPanel, gridBagConstraints);
 
         conversationPanel.setLayout(new java.awt.BorderLayout());
@@ -334,8 +335,8 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         resultPanel.add(jLabel4, gridBagConstraints);
 
         dateTextField.setEditable(false);
@@ -343,8 +344,8 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         resultPanel.add(dateTextField, gridBagConstraints);
 
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -353,8 +354,8 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         resultPanel.add(jLabel5, gridBagConstraints);
 
         valueTextField.setEditable(false);
@@ -362,8 +363,8 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPlugin, L
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         resultPanel.add(valueTextField, gridBagConstraints);
 
         jLabel7.setText("Test Results");
