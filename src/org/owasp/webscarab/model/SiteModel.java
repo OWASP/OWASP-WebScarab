@@ -40,12 +40,18 @@ public class SiteModel {
     
     private SiteModelStore _store = null;
     
+    private URLTreeModel _urltree;
     /**
      *  Constructor
      */
     public SiteModel() {
         _conversationList = new SequencedTreeMap();
         _urlinfo = Collections.synchronizedMap(new TreeMap());
+        _urltree = new URLTreeModel() {
+            protected Object createNewUserObject(String url) {
+                return createURLInfo(url);
+            }
+        };
     } // constructor SiteModel
     
     // returns the conversation ID
@@ -107,14 +113,35 @@ public class SiteModel {
             return null;
         }
     }
-    
-    public URLInfo getURLInfo(String url) {
+
+    private URLInfo createURLInfo(String url) {
         URLInfo ui;
         synchronized (_urlinfo) {
             ui = (URLInfo) _urlinfo.get(url);
             if (ui == null) {
                 ui = new URLInfo(url);
                 _urlinfo.put(url, ui);
+            }
+        }
+        return ui;
+    }
+    
+    public URLInfo getURLInfo(String url) {
+        URLInfo ui;
+        synchronized (_urlinfo) {
+            ui = (URLInfo) _urlinfo.get(url);
+            if (ui == null) {
+                try {
+                    _urltree.add(url);
+                } catch (Exception e) {
+                    System.err.println("Error adding " + url + " to the tree");
+                }
+                // try {
+                    ui = new URLInfo(url);
+                    _urlinfo.put(url, ui);
+                // } catch (MalformedURLException mue) {
+                //     System.out.println("Malformed url " + mue);
+                // }
             }
         }
         return ui;
@@ -168,6 +195,10 @@ public class SiteModel {
     
     public TableModel getConversationTableModel() {
         return _ctm;
+    }
+    
+    public TreeModel getURLTreeModel() {
+        return _urltree;
     }
     
     public class ConversationTableModel extends AbstractTableModel {
