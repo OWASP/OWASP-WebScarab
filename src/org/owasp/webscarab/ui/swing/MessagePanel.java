@@ -39,6 +39,7 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Message;
 import org.owasp.webscarab.model.NamedValue;
 
@@ -50,6 +51,9 @@ import java.util.Vector;
 
 import java.awt.Component;
 import javax.swing.table.TableCellEditor;
+
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 /**
  *
@@ -83,6 +87,19 @@ public class MessagePanel extends javax.swing.JPanel {
         
         _cp = new ContentPanel();
         messageSplitPane.setRightComponent(_cp);
+        String dividerLocation = Preferences.getPreference("MessagePanel.dividerLocation");
+        if (dividerLocation != null) {
+            try {
+                messageSplitPane.setDividerLocation(Integer.parseInt(dividerLocation));
+            } catch (NumberFormatException nfe) {}
+        }
+        messageSplitPane.addPropertyChangeListener(new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent e) {
+                if (e.getPropertyName().equals("dividerLocation")) {
+                    Preferences.setPreference("MessagePanel.dividerLocation", e.getNewValue().toString());
+                }
+            }
+        });
         setEditable(false);
         setMessage(null);
     }
@@ -160,7 +177,7 @@ public class MessagePanel extends javax.swing.JPanel {
         java.awt.GridBagConstraints gridBagConstraints;
 
         messageSplitPane = new javax.swing.JSplitPane();
-        jPanel1 = new javax.swing.JPanel();
+        headerPanel = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         headerTable = new javax.swing.JTable();
         buttonPanel = new javax.swing.JPanel();
@@ -171,14 +188,15 @@ public class MessagePanel extends javax.swing.JPanel {
 
         setPreferredSize(new java.awt.Dimension(400, 200));
         messageSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        messageSplitPane.setResizeWeight(0.2);
+        messageSplitPane.setResizeWeight(0.3);
         messageSplitPane.setContinuousLayout(true);
         messageSplitPane.setDoubleBuffered(true);
         messageSplitPane.setOneTouchExpandable(true);
-        jPanel1.setLayout(new java.awt.GridBagLayout());
+        headerPanel.setLayout(new java.awt.GridBagLayout());
 
-        jPanel1.setMinimumSize(new java.awt.Dimension(200, 65));
-        jPanel1.setPreferredSize(new java.awt.Dimension(200, 100));
+        headerPanel.setMaximumSize(new java.awt.Dimension(2147483647, 200));
+        headerPanel.setMinimumSize(new java.awt.Dimension(200, 50));
+        headerPanel.setPreferredSize(new java.awt.Dimension(200, 200));
         jScrollPane1.setMinimumSize(new java.awt.Dimension(200, 50));
         headerTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -207,7 +225,7 @@ public class MessagePanel extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        jPanel1.add(jScrollPane1, gridBagConstraints);
+        headerPanel.add(jScrollPane1, gridBagConstraints);
 
         buttonPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -243,9 +261,9 @@ public class MessagePanel extends javax.swing.JPanel {
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
-        jPanel1.add(buttonPanel, gridBagConstraints);
+        headerPanel.add(buttonPanel, gridBagConstraints);
 
-        messageSplitPane.setLeftComponent(jPanel1);
+        messageSplitPane.setLeftComponent(headerPanel);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -317,9 +335,9 @@ public class MessagePanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel buttonPanel;
     private javax.swing.JButton deleteButton;
+    private javax.swing.JPanel headerPanel;
     private javax.swing.JTable headerTable;
     private javax.swing.JButton insertButton;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSplitPane messageSplitPane;
     // End of variables declaration//GEN-END:variables
