@@ -1,8 +1,8 @@
-package org.owasp.webscarab.plugin.proxy;
-
 /*
- * $Id: Proxy.java,v 1.16 2004/10/31 21:10:22 rogan Exp $
+ * $Id: Proxy.java,v 1.17 2004/12/15 10:05:24 rogan Exp $
  */
+
+package org.owasp.webscarab.plugin.proxy;
 
 import java.io.IOException;
 
@@ -11,13 +11,13 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.Iterator;
 import java.util.logging.Logger;
-import java.util.Properties;
 
 import org.owasp.webscarab.model.StoreException;
 
 import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
@@ -50,9 +50,7 @@ public class Proxy extends Plugin {
      * start) the configured Listeners.
      * @param model The Model to submit requests and responses to
      */
-    public Proxy(Properties props) {
-        super(props);
-        
+    public Proxy() {
         createSimulators();
         createListeners();
     }
@@ -196,9 +194,9 @@ public class Proxy extends Plugin {
         startListener(l);
         
         String key = l.getKey();
-        _props.setProperty("Proxy.listener." + key + ".base", base == null ? "" : base.toString());
-        _props.setProperty("Proxy.listener." + key + ".useplugins", usePlugins == true ? "yes" : "no");
-        _props.setProperty("Proxy.listener." + key + ".simulator", simulator);
+        Preferences.setPreference("Proxy.listener." + key + ".base", base == null ? "" : base.toString());
+        Preferences.setPreference("Proxy.listener." + key + ".useplugins", usePlugins == true ? "yes" : "no");
+        Preferences.setPreference("Proxy.listener." + key + ".simulator", simulator);
         
         String value = null;
         Iterator i = _listeners.keySet().iterator();
@@ -210,7 +208,7 @@ public class Proxy extends Plugin {
                 value = value + ", " + key;
             }
         }
-        _props.setProperty("Proxy.listeners", value);
+        Preferences.setPreference("Proxy.listeners", value);
     }
     
     private void startListener(Listener l) {
@@ -237,9 +235,9 @@ public class Proxy extends Plugin {
         if (stopListener(l)) {
             _listeners.remove(key);
             if (_ui != null) _ui.proxyRemoved(key);
-            _props.remove("Proxy.listener." + key + ".base");
-            _props.remove("Proxy.listener." + key + ".useplugins");
-            _props.remove("Proxy.listener." + key + ".simulator");
+            Preferences.remove("Proxy.listener." + key + ".base");
+            Preferences.remove("Proxy.listener." + key + ".useplugins");
+            Preferences.remove("Proxy.listener." + key + ".simulator");
             String value = null;
             Iterator i = _listeners.keySet().iterator();
             while (i.hasNext()) {
@@ -253,7 +251,7 @@ public class Proxy extends Plugin {
             if (value == null) {
                 value = "";
             }
-            _props.setProperty("Proxy.listeners", value);
+            Preferences.setPreference("Proxy.listeners", value);
             return true;
         } else {
             return false;
@@ -314,12 +312,11 @@ public class Proxy extends Plugin {
      * handled a particular request and response, and that it should be logged and
      * analysed
      * @param id the Conversation ID
-     * @param request the request
      * @param response the Response
      */
-    protected void gotResponse(ConversationID id, Request request, Response response) {
+    protected void gotResponse(ConversationID id, Response response) {
         if (_ui != null) _ui.received(id, response.getStatusLine());
-        _model.addConversation(id, request, response, getPluginName());
+        _model.addConversation(id, response.getRequest(), response, getPluginName());
         _pending--;
         _status = "Started, " + (_pending>0? (_pending + " in progress") : "Idle");
     }
@@ -347,7 +344,7 @@ public class Proxy extends Plugin {
     
     private void createListeners() {
         String prop = "Proxy.listeners";
-        String value = _props.getProperty(prop);
+        String value = Preferences.getPreference(prop);
         if (value == null || value.trim().equals("")) {
             _logger.warning("No proxies configured!?");
             value = "127.0.0.1:8008";
@@ -363,13 +360,13 @@ public class Proxy extends Plugin {
         for (int i=0; i<listeners.length; i++) {
             addr = listeners[i].substring(0, listeners[i].indexOf(":"));
             try {
-                port = Integer.parseInt(listeners[i].substring(listeners[i].indexOf(":")+1));
+                port = Integer.parseInt(listeners[i].substring(listeners[i].indexOf(":")+1).trim());
             } catch (NumberFormatException nfe) {
                 System.err.println("Error parsing port for " + listeners[i] + ", skipping it!");
                 continue;
             }
             prop = "Proxy.listener." + listeners[i] + ".base";
-            value = _props.getProperty(prop, "");
+            value = Preferences.getPreference(prop, "");
             if (value.equals("")) {
                 base = null;
             } else {
@@ -382,7 +379,7 @@ public class Proxy extends Plugin {
             }
             
             prop = "Proxy.listener." + listeners[i] + ".useplugins";
-            value = _props.getProperty(prop, "true");
+            value = Preferences.getPreference(prop, "true");
             
             if (value == null || value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes")) {
                 usePlugins = true;
@@ -391,7 +388,7 @@ public class Proxy extends Plugin {
             }
             
             prop = "Proxy.listener." + listeners[i] + ".simulator";
-            value = _props.getProperty(prop, "Unlimited");
+            value = Preferences.getPreference(prop, "Unlimited");
             
             if (!value.trim().equals("") && _simulators.containsKey(value)) {
                 simulator = value;
