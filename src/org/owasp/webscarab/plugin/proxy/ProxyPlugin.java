@@ -21,6 +21,6 @@ public interface ProxyPlugin
 	extends WebScarabPlugin
 {
     
-    public HTTPClient getProxyPlugin(HTTPClient in);
+    HTTPClient getProxyPlugin(HTTPClient in);
     
 }

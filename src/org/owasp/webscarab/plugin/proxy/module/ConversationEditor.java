@@ -15,8 +15,8 @@ import org.owasp.webscarab.model.Response;
  */
 public interface ConversationEditor {
     
-    public Request editRequest(Request request);
+    Request editRequest(Request request);
     
-    public Response editResponse(Request request, Response response);
+    Response editResponse(Request request, Response response);
     
 }

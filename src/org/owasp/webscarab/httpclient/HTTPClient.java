@@ -15,6 +15,6 @@ import org.owasp.webscarab.model.Response;
  */
 public interface HTTPClient {
     
-    public Response fetchResponse(Request request);
+    Response fetchResponse(Request request);
     
 }
