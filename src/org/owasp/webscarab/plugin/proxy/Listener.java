@@ -54,6 +54,8 @@ import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
+import org.owasp.webscarab.util.W32WinInet;
+
 /**
  *
  * @author  rdawes
@@ -66,6 +68,7 @@ public class Listener implements Runnable {
     private HttpUrl _base = null;
     private NetworkSimulator _simulator = null;
     private boolean _usePlugins = false;
+    private boolean _primaryProxy = false;
     
     private ServerSocket _serversocket = null;
 
@@ -114,6 +117,8 @@ public class Listener implements Runnable {
                 return;
             }
         }
+        if (W32WinInet.isAvailable() && _primaryProxy) 
+            W32WinInet.interceptProxy("localhost", _port);
         while (! _stop) {
             try {
                 sock = _serversocket.accept();
@@ -134,6 +139,8 @@ public class Listener implements Runnable {
         } catch (IOException ioe) {
             System.err.println("Error closing socket : " + ioe);
         }
+        if (W32WinInet.isAvailable() && _primaryProxy) 
+            W32WinInet.revertProxy();
         _logger.info("Not listening on " + getKey());
     }
     
@@ -197,6 +204,14 @@ public class Listener implements Runnable {
     
     public boolean usesPlugins() {
         return _usePlugins;
+    }
+    
+    public void setPrimaryProxy(boolean primary) {
+        _primaryProxy = primary;
+    }
+    
+    public boolean isPrimaryProxy() {
+        return _primaryProxy;
     }
     
     public String getKey() {

@@ -48,6 +48,7 @@ import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.proxy.ProxyUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
+import org.owasp.webscarab.util.W32WinInet;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -111,6 +112,11 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         for (int i=0; i<keys.length; i++) _ltm.proxyAdded(keys[i]);
         
         proxy.setUI(this);
+        
+        if (!W32WinInet.isAvailable()) {
+            primaryLabel.setEnabled(false);
+            primaryCheckBox.setEnabled(false);
+        }
     }
     
     public javax.swing.JPanel getPanel() {
@@ -156,6 +162,8 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         pluginsCheckBox = new javax.swing.JCheckBox();
         jLabel5 = new javax.swing.JLabel();
         networkComboBox = new javax.swing.JComboBox();
+        primaryLabel = new javax.swing.JLabel();
+        primaryCheckBox = new javax.swing.JCheckBox();
         jPanel3 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         messageTable = new javax.swing.JTable();
@@ -178,6 +186,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTH;
         gridBagConstraints.weighty = 1.0;
         jPanel2.add(stopButton, gridBagConstraints);
@@ -192,6 +201,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.weighty = 1.0;
         jPanel2.add(startButton, gridBagConstraints);
@@ -209,7 +219,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.gridheight = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
@@ -234,6 +244,8 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
 
         jLabel2.setFont(new java.awt.Font("Dialog", 0, 12));
         jLabel2.setText("Port");
+        jLabel2.setMinimumSize(new java.awt.Dimension(23, 15));
+        jLabel2.setPreferredSize(new java.awt.Dimension(23, 15));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -271,7 +283,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weightx = 0.5;
         jPanel1.add(portTextField, gridBagConstraints);
 
         baseTextField.setToolTipText("Blank for a conventional proxy, or http://host:port for a reverse proxy.");
@@ -287,6 +299,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.2;
         jPanel1.add(pluginsCheckBox, gridBagConstraints);
 
         jLabel5.setFont(new java.awt.Font("Dialog", 0, 12));
@@ -306,6 +319,23 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         jPanel1.add(networkComboBox, gridBagConstraints);
+
+        primaryLabel.setFont(new java.awt.Font("Dialog", 0, 12));
+        primaryLabel.setText("Primary?");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(primaryLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.2;
+        jPanel1.add(primaryCheckBox, gridBagConstraints);
 
         jSplitPane1.setLeftComponent(jPanel1);
 
@@ -352,7 +382,8 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
             }
             String simulator = (String) networkComboBox.getSelectedItem();
             boolean plugins = pluginsCheckBox.isSelected();
-            _proxy.addListener(address, port, base, simulator, plugins);
+            boolean primary = primaryCheckBox.isSelected();
+            _proxy.addListener(address, port, base, simulator, plugins, primary);
             addressTextField.setText("");
             portTextField.setText("");
             baseTextField.setText("");
@@ -372,6 +403,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         HttpUrl base = _proxy.getBase(key);
         String simulator = _proxy.getSimulator(key);
         boolean usePlugins = _proxy.usesPlugins(key);
+        boolean primary = _proxy.isPrimaryProxy(key);
         if (!_proxy.removeListener(key)) {
             _logger.severe("Failed to stop " + key);
         } else {
@@ -384,6 +416,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
                 networkComboBox.setSelectedItem("Unlimited");
             }
             pluginsCheckBox.setSelected(usePlugins);
+            primaryCheckBox.setSelected(primary);
         }
     }//GEN-LAST:event_stopButtonActionPerformed
     
@@ -502,6 +535,8 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
     private javax.swing.JComboBox networkComboBox;
     private javax.swing.JCheckBox pluginsCheckBox;
     private javax.swing.JTextField portTextField;
+    private javax.swing.JCheckBox primaryCheckBox;
+    private javax.swing.JLabel primaryLabel;
     private javax.swing.JButton startButton;
     private javax.swing.JButton stopButton;
     // End of variables declaration//GEN-END:variables

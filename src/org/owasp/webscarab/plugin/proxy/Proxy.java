@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: Proxy.java,v 1.22 2005/02/04 15:50:44 rogan Exp $
+ * $Id: Proxy.java,v 1.23 2005/02/22 18:40:43 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.proxy;
@@ -127,7 +127,7 @@ public class Proxy implements Plugin {
     /**
      * called by Listener to determine whether to allow a connection or not
      */
-    public void allowClientConnection(ScriptableConnection connection) {
+    void allowClientConnection(ScriptableConnection connection) {
         _allowConnection.runScripts(connection);
     }
     
@@ -135,7 +135,7 @@ public class Proxy implements Plugin {
      * called by Connectionhandler via Listener to perform any required
      * modifications to the Request
      */
-    public void interceptRequest(ScriptableConnection connection) {
+    void interceptRequest(ScriptableConnection connection) {
         _interceptRequest.runScripts(connection);
     }
     
@@ -143,7 +143,7 @@ public class Proxy implements Plugin {
      * called by Connectionhandler via Listener to perform any required
      * modifications to the Response
      */
-    public void interceptResponse(ScriptableConnection connection) {
+    void interceptResponse(ScriptableConnection connection) {
         _interceptResponse.runScripts(connection);
     }
     
@@ -244,6 +244,15 @@ public class Proxy implements Plugin {
         }
     }
     
+    public boolean isPrimaryProxy(String key) {
+        Listener l = (Listener) _listeners.get(key);
+        if (l != null) {
+            return l.isPrimaryProxy();
+        } else {
+            return false;
+        }
+    }
+    
     /**
      * called by ConnectionHandler to see which plugins have been configured.
      * @return an array of ProxyPlugin's
@@ -270,14 +279,15 @@ public class Proxy implements Plugin {
      * @throws IOException if there are any problems starting the Listener
      */
     
-    public void addListener(String address, int port, HttpUrl base, String simulator, boolean usePlugins) throws IOException {
-        Listener l = createListener(address, port, base, simulator, usePlugins);
+    public void addListener(String address, int port, HttpUrl base, String simulator, boolean usePlugins, boolean primary) throws IOException {
+        Listener l = createListener(address, port, base, simulator, usePlugins, primary);
         startListener(l);
         
         String key = l.getKey();
         Preferences.setPreference("Proxy.listener." + key + ".base", base == null ? "" : base.toString());
         Preferences.setPreference("Proxy.listener." + key + ".useplugins", usePlugins == true ? "yes" : "no");
         Preferences.setPreference("Proxy.listener." + key + ".simulator", simulator);
+        Preferences.setPreference("Proxy.listener." + key + ".primary", primary == true ? "yes" : "no");
         
         String value = null;
         Iterator i = _listeners.keySet().iterator();
@@ -319,6 +329,7 @@ public class Proxy implements Plugin {
             Preferences.remove("Proxy.listener." + key + ".base");
             Preferences.remove("Proxy.listener." + key + ".useplugins");
             Preferences.remove("Proxy.listener." + key + ".simulator");
+            Preferences.remove("Proxy.listener." + key + ".primary");
             String value = null;
             Iterator i = _listeners.keySet().iterator();
             while (i.hasNext()) {
@@ -437,6 +448,7 @@ public class Proxy implements Plugin {
         HttpUrl base;
         boolean usePlugins = false;
         String simulator = null;
+        boolean primary = false;
         
         for (int i=0; i<listeners.length; i++) {
             addr = listeners[i].substring(0, listeners[i].indexOf(":"));
@@ -477,15 +489,19 @@ public class Proxy implements Plugin {
                 _logger.warning("Unknown network simulator '" + value + "'");
             }
             
+            prop = "Proxy.listener." + listeners[i] + ".primary";
+            value = Preferences.getPreference(prop, "false");
+            primary = value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes");
+            
             try {
-                Listener l = createListener(addr, port, base, simulator, usePlugins);
+                Listener l = createListener(addr, port, base, simulator, usePlugins, primary);
             } catch (IOException ioe) {
                 _logger.severe("Error starting proxy (" + addr + ":" + port + " " + base + " " + ioe);
             }
         }
     }
     
-    private Listener createListener(String address, int port, HttpUrl base, String simulator, boolean usePlugins) throws IOException {
+    private Listener createListener(String address, int port, HttpUrl base, String simulator, boolean usePlugins, boolean primaryProxy) throws IOException {
         if (base != null && base.equals("")) {
             base = null;
         }
@@ -498,6 +514,7 @@ public class Proxy implements Plugin {
         l.setBase(base);
         l.setSimulator(netsim);
         l.usePlugins(usePlugins);
+        l.setPrimaryProxy(primaryProxy);
         
         String key = l.getKey();
         _listeners.put(key, l);
