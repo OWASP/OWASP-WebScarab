@@ -9,6 +9,7 @@ package org.owasp.webscarab.httpclient;
 import java.io.IOException;
 
 import java.net.Socket;
+import java.net.InetSocketAddress;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,8 +24,6 @@ import java.util.logging.Logger;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.util.LogInputStream;
-import org.owasp.webscarab.util.LogOutputStream;
 
 /** Creates a new instance of URLFetcher
  * @author rdawes
@@ -32,7 +31,7 @@ import org.owasp.webscarab.util.LogOutputStream;
 public class URLFetcher implements HTTPClient {
     
     // These represent the SSL classes required to connect to the server.
-    private static SSLSocketFactory _factory = null;
+    private SSLSocketFactory _factory = null;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -53,45 +52,12 @@ public class URLFetcher implements HTTPClient {
     private int _port = 0;
     private long _lastRequestTime = 0;
     
-    private boolean _debug = false;
-    private boolean _quiet = false;
-    
-    // used to make a copy of the communication with the server
-    // primarily used by the proxy, to divert a copy of what is
-    // sent between client and server, without impacting streaming performance (much?)
-    private OutputStream _serverOutput = null;
-    private OutputStream _serverInput = null;
+    private int _timeout = 0;
+    private int _connectTimeout = 10000;
     
     /** Creates a new instance of URLFetcher
      */
     public URLFetcher() {
-    }
-    
-    /** Creates a new instance of URLFetcher, that reads its response from the
-     * supplied inputstream. This must obviously be carefully arranged, but is
-     * typically done in conjunction with a second URLFetcher that is copying
-     * whatever it reads from the server to a PipedOutputStream, or previously
-     * saved it to a FileOutputStream, which is now being read from.
-     * This is used for the Proxy plugin, to separate the response
-     * read from the server from the (possibly modified) response that is
-     * sent to the browser.
-     */
-    public URLFetcher(InputStream fromServer) {
-        _debug = true;
-        _quiet = true;
-        _in = fromServer;
-    }
-    
-    
-    /** Creates a new instance of URLFetcher, that copies all data written to
-     * the server to "toServer", and copies all data read from the server to
-     * "fromServer". This is used for the Proxy plugin, to separate the response
-     * read from the server from the (possibly modified) response that is
-     * sent to the browser.
-     */
-    public URLFetcher(OutputStream toServer, OutputStream fromServer) {
-        _serverOutput = toServer;
-        _serverInput = fromServer;
     }
     
     /** Tells URLFetcher which HTTP proxy to use, if any
@@ -135,6 +101,10 @@ public class URLFetcher implements HTTPClient {
         _factory = (SSLSocketFactory) sslContext.getSocketFactory();
     }
     
+    public void setTimeout(int timeout) {
+        _timeout = timeout;
+    }
+    
     /** Can be used by a calling class to fetch a request without spawning an additional
      * thread. This is appropriate when the calling class is already running in an
      * independant thread, and must wait for the response before continuing.
@@ -159,19 +129,11 @@ public class URLFetcher implements HTTPClient {
         if (invalidSocket(url)) {
             String proxyAuth = request.getHeader("Proxy-Authorization");
             _socket = opensocket(url, proxyAuth);
-            if (_response != null) {
+            if (_response != null) { // there was an error opening the socket
                 return _response;
             } else {
-                if (!_debug) {
-                    _in = _socket.getInputStream();
-                    _out = _socket.getOutputStream();
-                    if (_serverInput != null) {
-                        _in = new LogInputStream(_in, new PrintStream(_serverInput, true));
-                    }
-                    if (_serverOutput != null) {
-                        _out = new LogOutputStream(_out, new PrintStream(_serverOutput, true));
-                    }
-                }
+                _in = _socket.getInputStream();
+                _out = _socket.getOutputStream();
             }
         }
         // Still send the real request
@@ -224,8 +186,8 @@ public class URLFetcher implements HTTPClient {
     }
     
     private Socket opensocket(HttpUrl url, String proxyAuth) throws IOException {
-        // We initialise to null;
-        Socket socket = null;
+        Socket socket = new Socket();
+        socket.setSoTimeout(_timeout);
         _direct = true;
         
         // We record where we are connected to, in case we might reuse this socket later
@@ -236,34 +198,20 @@ public class URLFetcher implements HTTPClient {
         if (useProxy(url)) {
             if (!ssl) {
                 _logger.fine("Connect to " + _httpProxy + ":" + _httpProxyPort);
-                if (!_debug) {
-                    socket = new Socket(_httpProxy, _httpProxyPort);
-                    socket.setTcpNoDelay(true);
-                    socket.setSoTimeout(60 * 1000);
-                }
+                socket.connect(new InetSocketAddress(_httpProxy, _httpProxyPort), _connectTimeout);
                 _direct = false;
                 return socket;
             } else {
-                if (!_debug) {
-                    socket = new Socket(_httpsProxy, _httpsProxyPort);
-                    _in = socket.getInputStream();
-                    _out = socket.getOutputStream();
-                    if (_serverInput != null) {
-                        _in = new LogInputStream(_in, new PrintStream(_serverInput, true));
-                    }
-                    if (_serverOutput != null) {
-                        _out = new LogOutputStream(_out, new PrintStream(_serverOutput, true));
-                    }
+                socket.connect(new InetSocketAddress(_httpsProxy, _httpsProxyPort), _connectTimeout);
+                _in = socket.getInputStream();
+                _out = socket.getOutputStream();
+                _out.write(("CONNECT " + _host + ":" + _port + " HTTP/1.0\r\n").getBytes());
+                if (proxyAuth != null && !proxyAuth.equals("")) {
+                    _out.write(("Proxy-Authorization: " + proxyAuth + "\r\n").getBytes());
                 }
-                if (_out != null) {
-                    _out.write(("CONNECT " + _host + ":" + _port + " HTTP/1.0\r\n").getBytes());
-                    if (proxyAuth != null && !proxyAuth.equals("")) {
-                        _out.write(("Proxy-Authorization: " + proxyAuth + "\r\n").getBytes());
-                    }
-                    _out.write("\r\n".getBytes());
-                    _out.flush();
-                    _logger.fine("Sent CONNECT, reading Proxy response");
-                }
+                _out.write("\r\n".getBytes());
+                _out.flush();
+                _logger.fine("Sent CONNECT, reading Proxy response");
                 Response response = new Response();
                 response.read(_in);
                 _logger.fine("Got proxy response " + response.getStatusLine());
@@ -274,15 +222,11 @@ public class URLFetcher implements HTTPClient {
                 _logger.fine("HTTPS CONNECT successful");
             }
         } else {
-            if (!_debug) {
-                _logger.fine("Connect to " + _host + ":" + _port );
-                socket = new Socket(_host, _port);
-                socket.setTcpNoDelay(true);
-                socket.setSoTimeout(60 * 1000);
-            }
+            _logger.fine("Connect to " + _host + ":" + _port );
+            socket.connect(new InetSocketAddress(_host, _port), _connectTimeout);
         }
         
-        if (!_debug && ssl && socket != null) {
+        if (ssl) {
             if (_factory == null) {
                 throw new IOException("Cannot connect to SSL server. SSLContext did not provide a factory!");
             }
@@ -292,6 +236,7 @@ public class URLFetcher implements HTTPClient {
                 SSLSocket sslsocket=(SSLSocket)_factory.createSocket(socket,socket.getInetAddress().getHostName(),socket.getPort(),true);
                 sslsocket.setUseClientMode(true);
                 socket = sslsocket;
+                socket.setSoTimeout(_timeout);
             } catch (IOException ioe) {
                 _logger.severe("Error layering SSL over the existing socket: " + ioe);
                 throw ioe;
@@ -330,10 +275,10 @@ public class URLFetcher implements HTTPClient {
             if (urlport == _port) {
                 // in the last 1 second, it could still be valid
                 long now = System.currentTimeMillis();
-                if (!_debug && (now - _lastRequestTime > 1000)) {
+                if (now - _lastRequestTime > 1000) {
                     _logger.fine("Socket has expired (" + (now - _lastRequestTime) + "), open a new one!");
                     return true;
-                } else if (!_debug && (_socket.isOutputShutdown() || _socket.isClosed())) {
+                } else if (_socket.isOutputShutdown() || _socket.isClosed()) {
                     _logger.fine("Existing socket is closed");
                     return true;
                 } else {

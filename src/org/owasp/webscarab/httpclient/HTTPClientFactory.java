@@ -40,6 +40,8 @@ public class HTTPClientFactory {
     private int _httpsProxyPort = 80;
     private String[] _noProxy = new String[0];
     
+    private int _timeout = 30000;
+    
     private SSLContext _sslContext = null;
     
     private String _certFile = "";
@@ -161,6 +163,7 @@ public class HTTPClientFactory {
         uf.setHttpsProxy(_httpsProxy, _httpsProxyPort);
         uf.setNoProxy(_noProxy);
         uf.setSSLContext(_sslContext);
+        uf.setTimeout(_timeout);
         return uf;
     }
     
