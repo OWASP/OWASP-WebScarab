@@ -11,11 +11,13 @@
  */
 package org.owasp.webscarab.util.test;
 
+import org.owasp.webscarab.util.Timer;
+
 /**
  * <TODO description>
  *
  * @since <RELEASE>
- * @version <RELEASE><br />$Revision: 1.1 $ $Author: istr $
+ * @version <RELEASE><br />$Revision: 1.2 $ $Author: rogan $
  * @author <AUTHOR>
  */
 class TestTimer 
