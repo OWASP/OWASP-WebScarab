@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -67,6 +67,8 @@ import org.owasp.webscarab.httpclient.FixedLengthInputStream;
 public class Message {
     
     private ArrayList _headers = null;
+    private NamedValue[] NO_HEADERS = new NamedValue[0];
+    
     private static final byte[] NO_CONTENT = new byte[0];
     
     InputStream _contentStream = null;
@@ -82,7 +84,7 @@ public class Message {
      * directly, but should rather be created by a derived class, namely Request or
      * Response.
      */
-    protected Message() {
+    public Message() {
     }
     
     /**
@@ -91,23 +93,32 @@ public class Message {
      * read.
      * @throws IOException Propagates any IOExceptions thrown by the InputStream read methods
      * @param is the InputStream to read the Message headers and body from
-     */    
-    protected void read(InputStream is) throws IOException {
+     */
+    public void read(InputStream is) throws IOException {
         _headers = null;
-        String line;
-        for (;;) {
-            line = readLine(is);
-            if (line.equals("")) break;
-            // FIXME TODO : Handle headers that are split over multiple lines
+        String previous = null;
+        String line = null;
+        do {
+            line=readLine(is);
             if (line.startsWith(" ")) {
-                _logger.severe("Got a multi-line header that I don't handle properly yet!");
-                continue;
+                if (previous == null) {
+                    _logger.severe("Got a continuation header but had no previous header line");
+                } else {
+                    previous = previous.trim() + " " + line.trim();
+                }
+            } else {
+                if (previous != null) {
+                    String[] pair = previous.split(":", 2);
+                    if (pair.length == 2) {
+                        addHeader(new NamedValue(pair[0], pair[1].trim()));
+                    } else {
+                        _logger.warning("Error parsing header: '" + previous + "'");
+                    }
+                }
+                previous = line;
             }
-            String[] pair = line.split(": ",2);
-            if (pair.length == 2) {
-                addHeader(pair[0],pair[1]);
-            }
-        }
+        } while (!line.equals(""));
+        
         _contentStream = is;
         if (_chunked) {
             _contentStream = new ChunkedInputStream(_contentStream);
@@ -120,8 +131,8 @@ public class Message {
      * Writes the Message headers and content to the supplied OutputStream
      * @param os The OutputStream to write the Message headers and content to
      * @throws IOException any IOException thrown by the supplied OutputStream, or any IOException thrown by the InputStream from which this Message was originally read (if any)
-     */    
-    protected void write(OutputStream os) throws IOException {
+     */
+    public void write(OutputStream os) throws IOException {
         write(os, "\r\n");
     }
     
@@ -131,11 +142,11 @@ public class Message {
      * @throws IOException any IOException thrown by the supplied OutputStream, or any IOException thrown by the InputStream from which this Message was originally read (if any)
      * @param crlf the line ending to use for the headers
      */
-    protected void write(OutputStream os, String crlf) throws IOException {
+    public void write(OutputStream os, String crlf) throws IOException {
         if (_headers != null) {
             for (int i=0; i<_headers.size(); i++) {
-                String[] row = (String[]) _headers.get(i);
-                os.write(new String(row[0] + ": " + row[1] + crlf).getBytes());
+                NamedValue nv = (NamedValue) _headers.get(i);
+                os.write(new String(nv.getName() + ": " + nv.getValue() + crlf).getBytes());
             }
         }
         os.write(crlf.getBytes());
@@ -163,30 +174,45 @@ public class Message {
      * of the content, if one exists
      * @param buffer The StringBuffer to parse the headers and content from. This buffer is "consumed" i.e. characters are removed from the buffer as the Message is parsed.
      * @throws ParseException if there is an error parsing the Message structure
-     */    
-    protected void parse(StringBuffer buffer) throws ParseException {
+     */
+    public void parse(StringBuffer buffer) throws ParseException {
         _headers = null;
-        String line = getLine(buffer);
-        while (line != null && !line.equals("")) {
-            String[] pair = line.split(": ",2);
-            if (pair.length == 2) {
-                addHeader(pair[0],pair[1]);
+        String previous = null;
+        String line = null;
+        do {
+            line=getLine(buffer);
+            if (line.startsWith(" ")) {
+                if (previous == null) {
+                    _logger.severe("Got a continuation header but had no previous header line");
+                } else {
+                    previous = previous.trim() + " " + line.trim();
+                }
+            } else {
+                if (previous != null) {
+                    String[] pair = previous.split(":", 2);
+                    if (pair.length == 2) {
+                        addHeader(new NamedValue(pair[0], pair[1].trim()));
+                    } else {
+                        _logger.warning("Error parsing header: '" + previous + "'");
+                    }
+                }
+                previous = line;
             }
-            line = getLine(buffer);
-        }
+        } while (!line.equals(""));
+        
         _content = new ByteArrayOutputStream();
         try {
             _content.write(buffer.toString().getBytes());
         } catch (IOException ioe) {} // can't fail
         String cl = getHeader("Content-length");
         if (cl != null) {
-            setHeader("Content-length", Integer.toString(_content.size()));
+            setHeader(new NamedValue("Content-length", Integer.toString(_content.size())));
         }
     }
     
     /** Returns a String representation of the message, *including* the message body.
      * @return The string representation of the message
-     */    
+     */
     public String toString() {
         return toString("\r\n");
     }
@@ -195,18 +221,18 @@ public class Message {
      * Lines of the header are separated by the supplied "CarriageReturnLineFeed" string.
      * @return a String representation of the Message.
      * @param crlf The required line separator string
-     */    
+     */
     public String toString(String crlf) {
         StringBuffer buff = new StringBuffer();
         if (_headers != null) {
             for (int i=0; i<_headers.size(); i++) {
-                String[] row = (String[]) _headers.get(i);
-                if (row[0].equals("Transfer-Encoding") && row[1].indexOf("chunked")>-1) {
-                    buff.append("X-" + row[0] + ": " + row[1] + crlf);
-                } else if (row[0].equals("Content-Encoding") && row[1].indexOf("gzip")>-1) {
-                    buff.append("X-" + row[0] + ": " + row[1] + crlf);
+                NamedValue nv = (NamedValue) _headers.get(i);
+                if (nv.getName().equalsIgnoreCase("Transfer-Encoding") && nv.getValue().indexOf("chunked")>-1) {
+                    buff.append("X-" + nv.getName() + ": " + nv.getValue() + crlf);
+                } else if (nv.getName().equalsIgnoreCase("Content-Encoding") && nv.getValue().indexOf("gzip")>-1) {
+                    buff.append("X-" + nv.getName() + ": " + nv.getValue() + crlf);
                 } else {
-                    buff.append(row[0] + ": " + row[1] + crlf);
+                    buff.append(nv.getName() + ": " + nv.getValue() + crlf);
                 }
             }
         }
@@ -223,24 +249,24 @@ public class Message {
         return buff.toString();
     }
     
-    private void updateFlagsForHeader(String name, String value) {
-        if (name.equalsIgnoreCase("Transfer-Encoding")) {
-            if (value.indexOf("chunked")>-1) {
+    private void updateFlagsForHeader(NamedValue header) {
+        if (header.getName().equalsIgnoreCase("Transfer-Encoding")) {
+            if (header.getValue().indexOf("chunked")>-1) {
                 _chunked = true;
             } else {
                 _chunked = false;
             }
-        } else if (name.equalsIgnoreCase("Content-Encoding")) {
-            if (value.indexOf("gzip")>-1) {
+        } else if (header.getName().equalsIgnoreCase("Content-Encoding")) {
+            if (header.getValue().indexOf("gzip")>-1) {
                 _gzipped = true;
             } else {
                 _gzipped = false;
             }
-        } else if (name.equalsIgnoreCase("Content-length")) {
+        } else if (header.getName().equalsIgnoreCase("Content-length")) {
             try {
-                _length = Integer.parseInt(value.trim());
+                _length = Integer.parseInt(header.getValue().trim());
             } catch (NumberFormatException nfe) {
-                _logger.warning("Error parsing the content-length '" + value + "' : " + nfe);
+                _logger.warning("Error parsing the content-length '" + header.getValue() + "' : " + nfe);
             }
         }
     }
@@ -249,23 +275,25 @@ public class Message {
      * sets the value of a header. This overwrites any previous values of headers with the same name.
      * @param name the name of the header (without a colon)
      * @param value the value of the header
-     */    
+     */
     public void setHeader(String name, String value) {
-        updateFlagsForHeader(name, value);
+        setHeader(new NamedValue(name, value.trim()));
+    }
+    
+    public void setHeader(NamedValue header) {
+        updateFlagsForHeader(header);
         if (_headers == null) {
             _headers = new ArrayList(1);
         } else {
             for (int i=0; i<_headers.size(); i++) {
-                String[] row = (String[]) _headers.get(i);
-                if (row[0].equalsIgnoreCase(name)) {
-                    row[1]=value.trim();
-                    _headers.set(i,row);
+                NamedValue nv = (NamedValue) _headers.get(i);
+                if (nv.getName().equalsIgnoreCase(header.getName())) {
+                    _headers.set(i,header);
                     return;
                 }
             }
         }
-        String[] row = new String[] {name, value.trim()};
-        _headers.add(row);
+        _headers.add(header);
     }
     
     /**
@@ -275,29 +303,32 @@ public class Message {
      * @param value the value of the header
      */
     public void addHeader(String name, String value) {
-        updateFlagsForHeader(name, value);
+        addHeader(new NamedValue(name, value.trim()));
+    }
+    
+    public void addHeader(NamedValue header) {
+        updateFlagsForHeader(header);
         if (_headers == null) {
             _headers = new ArrayList(1);
         }
-        String[] row = new String[] {name, value.trim()};
-        _headers.add(row);
+        _headers.add(header);
     }
     
     /**
      * Removes a header
      * @param name the name of the header (without a colon)
      * @return the value of the header that was deleted
-     */    
+     */
     public String deleteHeader(String name) {
         if (_headers == null) {
             return null;
         }
         for (int i=0; i<_headers.size(); i++) {
-            String[] row = (String[]) _headers.get(i);
-            if (row[0].equalsIgnoreCase(name)) {
+            NamedValue nv = (NamedValue) _headers.get(i);
+            if (nv.getName().equalsIgnoreCase(name)) {
                 _headers.remove(i);
-                updateFlagsForHeader(name, "");
-                return row[1];
+                updateFlagsForHeader(new NamedValue(name, ""));
+                return nv.getValue();
             }
         }
         return null;
@@ -306,15 +337,15 @@ public class Message {
     /**
      * Returns an array of header names
      * @return an array of the header names
-     */    
+     */
     public String[] getHeaderNames() {
         if (_headers == null || _headers.size() == 0) {
             return new String[0];
         }
         String[] names = new String[_headers.size()];
         for (int i=0; i<_headers.size(); i++) {
-            String[] row = (String[]) _headers.get(i);
-            names[i] = row[0];
+            NamedValue nv = (NamedValue) _headers.get(i);
+            names[i] = nv.getName();
         }
         return names;
     }
@@ -323,15 +354,15 @@ public class Message {
      * Returns the value of the requested header
      * @param name the name of the header (without a colon)
      * @return the value of the header in question (null if the header did not exist)
-     */    
+     */
     public String getHeader(String name) {
         if (_headers == null) {
             return null;
         }
         for (int i=0; i<_headers.size(); i++) {
-            String[] row = (String[]) _headers.get(i);
-            if (row[0].equalsIgnoreCase(name)) {
-                return row[1];
+            NamedValue nv = (NamedValue) _headers.get(i);
+            if (nv.getName().equalsIgnoreCase(name)) {
+                return nv.getValue();
             }
         }
         return null;
@@ -339,39 +370,29 @@ public class Message {
     
     /**
      * returns the header names and their values
-     * @return a two dimensional array of Strings, where array[i][0] is the header name and
-     * array[i][1] is the header value and array.length is the number of headers
-     */    
-    public String[][] getHeaders() {
+     * @return an array of NamedValue's representing the names and values 
+     * of the headers
+     */
+    public NamedValue[] getHeaders() {
         if (_headers == null || _headers.size() == 0) {
-            return new String[0][2];
+            return new NamedValue[0];
         }
-        String[][] table = new String[_headers.size()][2];
-        for (int i=0; i<_headers.size(); i++) {
-            String[] row = (String[]) _headers.get(i);
-            table[i][0] = row[0];
-            table[i][1] = row[1];
-        }
-        return table;
+        return (NamedValue[]) _headers.toArray(NO_HEADERS);
     }
     
     /**
      * sets the headers
      * @param table a two dimensional array of Strings, where table[i][0] is the header name and
      * table[i][1] is the header value
-     */    
-    public void setHeaders(String[][] table) {
+     */
+    public void setHeaders(NamedValue[] headers) {
         if (_headers == null) {
             _headers = new ArrayList();
         } else {
             _headers.clear();
         }
-        for (int i=0; i<table.length; i++) {
-            if (table[i].length == 2) {
-                addHeader(table[i][0],table[i][1]);
-            } else {
-                _logger.severe("Malformed header table in setHeaders! row " + i);
-            }
+        for (int i=0; i<headers.length; i++) {
+            addHeader(headers[i]);
         }
     }
     
@@ -383,7 +404,7 @@ public class Message {
      * @param is The InputStream to read the line from
      * @throws IOException if an IOException occurs while reading from the supplied InputStream
      * @return the line that was read, WITHOUT the CR or CRLF
-     */    
+     */
     protected String readLine(InputStream is) throws IOException {
         if (is == null) {
             NullPointerException npe = new NullPointerException("InputStream may not be null!");
@@ -413,7 +434,7 @@ public class Message {
      * Removes the line from the supplied StringBuffer.
      * @param buffer the StringBuffer to read the line from
      * @return the line that was read, WITHOUT the CR or CRLF
-     */    
+     */
     protected String getLine(StringBuffer buffer) {
         int lf = buffer.indexOf("\n");
         if (lf > -1) {
@@ -436,13 +457,13 @@ public class Message {
     }
     
     /** getContent returns the message body that accompanied the request.
-     * if the message was read from an InputStream, it reads the content from 
+     * if the message was read from an InputStream, it reads the content from
      * the InputStream and returns a copy of it.
      * If the message body was chunked, or gzipped (according to the headers)
      * it returns the unchunked and unzipped content.
      *
      * @return Returns a byte array containing the message body
-     */    
+     */
     public byte[] getContent() {
         try {
             flushContentStream(null);
@@ -473,7 +494,7 @@ public class Message {
     
     /**
      * reads all content from the content stream if one exists. Bytes read are stored internally, and returned via getContent()
-     */    
+     */
     public void flushContentStream() {
         try {
             flushContentStream(null);
@@ -489,12 +510,12 @@ public class Message {
      * the contentStream, but defers any exceptions that occur writing to the
      * supplied outputStream until the entire contentStream has been read and
      * saved.
-     */    
+     */
     private void flushContentStream(OutputStream os) throws IOException {
         IOException ioe = null;
         if (_contentStream == null) return;
         if (_content == null) _content = new ByteArrayOutputStream();
-        byte[] buf = new byte[1024];
+        byte[] buf = new byte[4096];
         _logger.finest("Reading initial bytes from contentStream " + _contentStream);
         int got = _contentStream.read(buf);
         _logger.finest("Got " + got + " bytes");
@@ -504,7 +525,8 @@ public class Message {
                 try {
                     os.write(buf,0,got);
                 } catch (IOException e) {
-                    _logger.info("IOException ioe writing to output stream " + ioe);
+                    _logger.info("IOException ioe writing to output stream : " + e);
+                    _logger.info("Had seen " + (_content.size()-got) + " bytes, was writing " + got);
                     ioe = e;
                     os = null;
                 }
@@ -519,7 +541,7 @@ public class Message {
     /**
      * sets the message to not have a body. This is typical for a CONNECT request or
      * response, which should not read any body.
-     */    
+     */
     public void setNoBody() {
         _content = null;
         _contentStream = null;
@@ -529,7 +551,7 @@ public class Message {
      * Sets the content of the message body. If the message headers indicate that the
      * content is gzipped, the content is automatically compressed
      * @param bytes a byte array containing the message body
-     */    
+     */
     public void setContent(byte[] bytes) {
         // discard whatever is pending in the content stream
         try {
@@ -557,16 +579,16 @@ public class Message {
     public boolean equals(Object obj) {
         if (! (obj instanceof Message)) return false;
         Message mess = (Message) obj;
-        String[][] myHeaders = getHeaders();
-        String[][] thoseHeaders = mess.getHeaders();
+        NamedValue[] myHeaders = getHeaders();
+        NamedValue[] thoseHeaders = mess.getHeaders();
         if (myHeaders.length != thoseHeaders.length) return false;
         for (int i=0; i<myHeaders.length; i++) {
-            if (!myHeaders[i][0].equals(thoseHeaders[i][0])) return false;
-            if (!myHeaders[i][1].equals(thoseHeaders[i][1])) return false;
+            if (!myHeaders[i].getName().equalsIgnoreCase(thoseHeaders[i].getName())) return false;
+            if (!myHeaders[i].getValue().equals(thoseHeaders[i].getValue())) return false;
         }
         byte[] myContent = getContent();
         byte[] thatContent = mess.getContent();
         return Arrays.equals(myContent, thatContent);
     }
-
+    
 }
