@@ -8,6 +8,7 @@ package org.owasp.webscarab.model;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -131,12 +132,14 @@ public class Request extends Message {
             System.err.println("Unitialised Request!");
             return;
         }
+        os = new BufferedOutputStream(os);
         os.write(new String(method+" "+(url==null?"null":url.getProtocol()) + "://" + (url==null?"null":url.getHost())).getBytes());
         os.write(new String(":"+(url==null?"null":String.valueOf(url.getPort()==-1?url.getDefaultPort():url.getPort()))).getBytes());
         os.write(new String((url==null?"null":(url.getPath()==null?"/":url.getPath()))).getBytes());
         os.write(new String((url==null?"null":url.getQuery()==null?"":"?"+url.getQuery())).getBytes());
         os.write(new String(" " + version + crlf).getBytes());
         super.write(os, crlf);
+        os.flush();
     }
     
     /** Writes the Request to the supplied OutputStream, in a format appropriate for

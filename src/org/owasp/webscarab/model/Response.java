@@ -8,6 +8,7 @@ package org.owasp.webscarab.model;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 
@@ -98,8 +99,10 @@ public class Response extends Message {
     
     /** Writes the Response to the supplied OutputStream, using the provided CRLF value. */    
     public void write(OutputStream os, String crlf) throws IOException {
+        os = new BufferedOutputStream(os);
         os.write(new String(version + " " + getStatusLine() + crlf).getBytes());
         super.write(os,crlf);
+        os.flush();
     }
     
     /** Sets the HTTP version supported by the server. */    
