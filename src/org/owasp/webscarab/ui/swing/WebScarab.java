@@ -10,45 +10,30 @@ import org.owasp.webscarab.backend.FileSystemStore;
 
 import org.owasp.webscarab.model.StoreException;
 
-import org.owasp.webscarab.plugin.Preferences;
-
-import org.owasp.webscarab.plugin.proxy.Proxy;
-import org.owasp.webscarab.plugin.proxy.ConnectionHandler;
-
-import org.owasp.webscarab.plugin.spider.Spider;
-import org.owasp.webscarab.plugin.manualrequest.ManualRequest;
+import org.owasp.webscarab.model.Preferences;
 
 import org.owasp.webscarab.ui.Framework;
 import org.owasp.webscarab.ui.swing.SwingPlugin;
 
 import org.owasp.webscarab.ui.swing.proxy.ProxyPanel;
-import org.owasp.webscarab.ui.swing.proxy.ManualEditPanel;
-import org.owasp.webscarab.ui.swing.proxy.MiscPanel;
-import org.owasp.webscarab.ui.swing.proxy.BeanShellPanel;
-
 import org.owasp.webscarab.ui.swing.spider.SpiderPanel;
 import org.owasp.webscarab.ui.swing.manualrequest.ManualRequestPanel;
-
 import org.owasp.webscarab.ui.swing.sessionid.SessionIDPanel;
-import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysis;
 
 import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.DocumentHandler;
 
-import java.util.Properties;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 
-import java.lang.Runnable;
-
 import java.io.File;
-import java.io.PrintStream;
-import java.io.OutputStream;
+import java.io.IOException;
 
 import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.JTextArea;
 import javax.swing.text.Document;
 import javax.swing.event.DocumentEvent;
@@ -71,7 +56,6 @@ public class WebScarab extends javax.swing.JFrame {
     private SummaryPanel _summaryPanel;
     
     private File _defaultDir = null;
-    private Properties _prop = null;
     
     private TranscoderFrame _transcoder = null;
     
@@ -85,9 +69,6 @@ public class WebScarab extends javax.swing.JFrame {
         
         _framework = framework;
         
-        // load the properties
-        _prop = Preferences.getPreferences();
-        
         _summaryPanel = new SummaryPanel(_framework);
         mainTabbedPane.add(_summaryPanel, "Summary");
         
@@ -96,7 +77,6 @@ public class WebScarab extends javax.swing.JFrame {
     private void initLogging() {
         _logger = Logger.getLogger("org.owasp.webscarab");
         _logger.setUseParentHandlers(false);
-        _logger.setLevel(Level.FINEST);
         Handler ch = new ConsoleHandler();
         ch.setFormatter(new TextFormatter());
         _logger.addHandler(ch);
@@ -115,6 +95,17 @@ public class WebScarab extends javax.swing.JFrame {
                 logTextArea.setCaretPosition(e.getOffset() + e.getLength());
             }
         });
+        String loglevel = Preferences.getPreferences().getProperty("WebScarab.LogLevel");
+        if (loglevel == null) {
+            loglevel = "INFO";
+            Preferences.getPreferences().setProperty("WebScarab.LogLevel", loglevel);
+        }
+        if (loglevel.equalsIgnoreCase("SEVERE")) { severeLogRadioButtonMenuItem.doClick(); }
+        else if (loglevel.equalsIgnoreCase("INFO")) { infoLogRadioButtonMenuItem.doClick(); }
+        else if (loglevel.equalsIgnoreCase("FINE")) { fineLogRadioButtonMenuItem.doClick(); }
+        else if (loglevel.equalsIgnoreCase("FINER")) { finerLogRadioButtonMenuItem.doClick(); }
+        else if (loglevel.equalsIgnoreCase("FINEST")) { finestLogRadioButtonMenuItem.doClick(); }
+        else System.err.println("Unknown log level: '" + loglevel + "'");
     }
     
     public void addPlugin(final SwingPlugin plugin) {
@@ -143,6 +134,7 @@ public class WebScarab extends javax.swing.JFrame {
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
+        logLevelButtonGroup = new javax.swing.ButtonGroup();
         mainSplitPane = new javax.swing.JSplitPane();
         mainTabbedPane = new javax.swing.JTabbedPane();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -154,11 +146,17 @@ public class WebScarab extends javax.swing.JFrame {
         exitMenuItem = new javax.swing.JMenuItem();
         toolsMenu = new javax.swing.JMenu();
         proxyMenuItem = new javax.swing.JMenuItem();
+        certsMenuItem = new javax.swing.JMenuItem();
         cookieJarMenuItem = new javax.swing.JMenuItem();
         transcoderMenuItem = new javax.swing.JMenuItem();
-        saveConfigMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         aboutMenuItem = new javax.swing.JMenuItem();
+        logMenu = new javax.swing.JMenu();
+        severeLogRadioButtonMenuItem = new javax.swing.JRadioButtonMenuItem();
+        infoLogRadioButtonMenuItem = new javax.swing.JRadioButtonMenuItem();
+        fineLogRadioButtonMenuItem = new javax.swing.JRadioButtonMenuItem();
+        finerLogRadioButtonMenuItem = new javax.swing.JRadioButtonMenuItem();
+        finestLogRadioButtonMenuItem = new javax.swing.JRadioButtonMenuItem();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -241,6 +239,16 @@ public class WebScarab extends javax.swing.JFrame {
 
         toolsMenu.add(proxyMenuItem);
 
+        certsMenuItem.setText("Certificates");
+        certsMenuItem.setToolTipText("Allows configuration of client certificates");
+        certsMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                certsMenuItemActionPerformed(evt);
+            }
+        });
+
+        toolsMenu.add(certsMenuItem);
+
         cookieJarMenuItem.setText("Shared Cookies");
         cookieJarMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -259,15 +267,6 @@ public class WebScarab extends javax.swing.JFrame {
 
         toolsMenu.add(transcoderMenuItem);
 
-        saveConfigMenuItem.setText("Save Configuration");
-        saveConfigMenuItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                saveConfigMenuItemActionPerformed(evt);
-            }
-        });
-
-        toolsMenu.add(saveConfigMenuItem);
-
         mainMenuBar.add(toolsMenu);
 
         helpMenu.setMnemonic('H');
@@ -282,12 +281,80 @@ public class WebScarab extends javax.swing.JFrame {
 
         helpMenu.add(aboutMenuItem);
 
+        logMenu.setText("Log level");
+        logMenu.setToolTipText("Configures the level of logging output displayed");
+        severeLogRadioButtonMenuItem.setText("SEVERE");
+        logLevelButtonGroup.add(severeLogRadioButtonMenuItem);
+        severeLogRadioButtonMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                logLevelActionPerformed(evt);
+            }
+        });
+
+        logMenu.add(severeLogRadioButtonMenuItem);
+
+        infoLogRadioButtonMenuItem.setText("INFO");
+        logLevelButtonGroup.add(infoLogRadioButtonMenuItem);
+        infoLogRadioButtonMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                logLevelActionPerformed(evt);
+            }
+        });
+
+        logMenu.add(infoLogRadioButtonMenuItem);
+
+        fineLogRadioButtonMenuItem.setText("FINE");
+        logLevelButtonGroup.add(fineLogRadioButtonMenuItem);
+        fineLogRadioButtonMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                logLevelActionPerformed(evt);
+            }
+        });
+
+        logMenu.add(fineLogRadioButtonMenuItem);
+
+        finerLogRadioButtonMenuItem.setText("FINER");
+        logLevelButtonGroup.add(finerLogRadioButtonMenuItem);
+        finerLogRadioButtonMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                logLevelActionPerformed(evt);
+            }
+        });
+
+        logMenu.add(finerLogRadioButtonMenuItem);
+
+        finestLogRadioButtonMenuItem.setText("FINEST");
+        logLevelButtonGroup.add(finestLogRadioButtonMenuItem);
+        finestLogRadioButtonMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                logLevelActionPerformed(evt);
+            }
+        });
+
+        logMenu.add(finestLogRadioButtonMenuItem);
+
+        helpMenu.add(logMenu);
+
         mainMenuBar.add(helpMenu);
 
         setJMenuBar(mainMenuBar);
 
         pack();
     }//GEN-END:initComponents
+
+    private void logLevelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logLevelActionPerformed
+        String cmd = evt.getActionCommand();
+        if (cmd.equalsIgnoreCase("SEVERE")) { _logger.setLevel(Level.SEVERE); }
+        else if (cmd.equalsIgnoreCase("INFO")) { _logger.setLevel(Level.INFO); }
+        else if (cmd.equalsIgnoreCase("FINE")) { _logger.setLevel(Level.FINE); }
+        else if (cmd.equalsIgnoreCase("FINER")) { _logger.setLevel(Level.FINER); }
+        else if (cmd.equalsIgnoreCase("FINEST")) { _logger.setLevel(Level.FINEST); }
+        else System.err.println("Unknown command: '" + cmd + "'");
+    }//GEN-LAST:event_logLevelActionPerformed
+
+    private void certsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_certsMenuItemActionPerformed
+        new CertificateDialog(this, true).show();
+    }//GEN-LAST:event_certsMenuItemActionPerformed
 
     private void transcoderMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_transcoderMenuItemActionPerformed
         if (_transcoder == null) {
@@ -302,22 +369,13 @@ public class WebScarab extends javax.swing.JFrame {
         }
         _cookieJarViewer.show();
     }//GEN-LAST:event_cookieJarMenuItemActionPerformed
-    
-    private void saveConfigMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveConfigMenuItemActionPerformed
-        try {
-            Preferences.savePreferences();
-        } catch (Exception e) {
-            System.out.println("Error writing preferences : " + e);
-        }
-    }//GEN-LAST:event_saveConfigMenuItemActionPerformed
-    
+        
     private void proxyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_proxyMenuItemActionPerformed
-        new ProxyConfig(this, true, _prop).show();
-        System.out.println("ProxyConfig has returned");
-        _framework.setProxies(_prop);
+        new ProxyConfig(this, true).show();
     }//GEN-LAST:event_proxyMenuItemActionPerformed
     
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
+        savePreferences();
         saveSessionData();
         System.exit(0);
     }//GEN-LAST:event_exitMenuItemActionPerformed
@@ -403,6 +461,7 @@ public class WebScarab extends javax.swing.JFrame {
     
     /** Exit the Application */
     private void exitForm(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_exitForm
+        savePreferences();
         saveSessionData();
         System.exit(0);
     }//GEN-LAST:event_exitForm
@@ -428,6 +487,12 @@ public class WebScarab extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
+        try {
+            Preferences.loadPreferences();
+        } catch (IOException ioe) {
+            JOptionPane.showMessageDialog(new javax.swing.JFrame(), new String[] {"Unable to load WebScarab properties!", ioe.toString()}, "Error!", JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+        }
         Framework framework = new Framework();
         
         WebScarab ws = new WebScarab(framework);
@@ -463,11 +528,18 @@ public class WebScarab extends javax.swing.JFrame {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
+    private javax.swing.JMenuItem certsMenuItem;
     private javax.swing.JMenuItem cookieJarMenuItem;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu fileMenu;
+    private javax.swing.JRadioButtonMenuItem fineLogRadioButtonMenuItem;
+    private javax.swing.JRadioButtonMenuItem finerLogRadioButtonMenuItem;
+    private javax.swing.JRadioButtonMenuItem finestLogRadioButtonMenuItem;
     private javax.swing.JMenu helpMenu;
+    private javax.swing.JRadioButtonMenuItem infoLogRadioButtonMenuItem;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.ButtonGroup logLevelButtonGroup;
+    private javax.swing.JMenu logMenu;
     private javax.swing.JTextArea logTextArea;
     private javax.swing.JMenuBar mainMenuBar;
     private javax.swing.JSplitPane mainSplitPane;
@@ -475,7 +547,7 @@ public class WebScarab extends javax.swing.JFrame {
     private javax.swing.JMenuItem newMenuItem;
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem proxyMenuItem;
-    private javax.swing.JMenuItem saveConfigMenuItem;
+    private javax.swing.JRadioButtonMenuItem severeLogRadioButtonMenuItem;
     private javax.swing.JMenu toolsMenu;
     private javax.swing.JMenuItem transcoderMenuItem;
     // End of variables declaration//GEN-END:variables
