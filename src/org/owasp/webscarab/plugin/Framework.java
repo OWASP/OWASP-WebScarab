@@ -268,18 +268,6 @@ public class Framework {
     }
     
     /**
-     * saves the properties in the user directory, and calls System.exit(0);
-     */
-    public void exit() {
-        try {
-            Preferences.savePreferences();
-        } catch (IOException ioe) {
-            _logger.severe("Could not save preferences: " + ioe);
-        }
-        System.exit(0);
-    }
-    
-    /**
      * returns the build version of WebScarab. This is extracted from the webscarab.jar
      * Manifest, if webscarab is running from a jar.
      * @return the version string
