@@ -44,9 +44,10 @@ public class ConnectionHandler implements Runnable {
 /*-----------------------------------------------------------------------+
 |  PUBLIC INTERFACE                                                      |
 +-----------------------------------------------------------------------*/
-    public ConnectionHandler(Socket sock, Plug plug, ProxyPlugin[] plugins) {
+    public ConnectionHandler(Socket sock, Plug plug, URL base, ProxyPlugin[] plugins) {
         _sock = sock;
         _plug = plug;
+        _base = base;
         _plugins = plugins;
         
         try {

@@ -1,7 +1,7 @@
 package org.owasp.webscarab.plugin.proxy;
 
 /*
- * $Id: Proxy.java,v 1.1 2003/07/30 09:48:50 istr Exp $
+ * $Id: Proxy.java,v 1.2 2003/08/04 19:35:01 rogan Exp $
  */
 import java.net.*;
 import java.io.*;
@@ -113,7 +113,7 @@ public class Proxy
                 try {
                     sock = serversocket.accept();
                     logger.info("Connect from " + sock.getInetAddress().getHostAddress() + ":" + sock.getPort());
-                    new ConnectionHandler(sock, _plug, _pluginArray);
+                    new ConnectionHandler(sock, _plug, null, _pluginArray);
                 } catch (IOException e) {
                     if (!e.getMessage().equals("Accept timed out")) {
                         logger.severe("I/O error while waiting for a connection : " + e.getMessage());
