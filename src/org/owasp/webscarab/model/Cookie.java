@@ -51,7 +51,17 @@ public class Cookie {
         } else {
             _path = "/";
         }
-        
+        parseHeader(setHeader);
+    }
+    
+    /** This variant of the constuctor should only be called when we are sure that the
+     * setHeader already contains the domain and path.
+     */    
+    public Cookie(String setHeader) {
+        parseHeader(setHeader);
+    }
+    
+    private void parseHeader(String setHeader) {
         if (setHeader == null) {
             throw new NullPointerException("You may not pass a null value for setHeader");
         }

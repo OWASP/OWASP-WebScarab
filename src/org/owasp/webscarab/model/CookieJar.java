@@ -167,4 +167,31 @@ public class CookieJar {
         return all;
     }
     
+    public Cookie[] getAllCookies() {
+        ArrayList all = new ArrayList();
+        Iterator hosts = _cookies.keySet().iterator();
+        while (hosts.hasNext()) {
+            String host = (String) hosts.next();
+            TreeMap pathmap = (TreeMap) _cookies.get(host);
+            Iterator paths = pathmap.keySet().iterator();
+            while (paths.hasNext()) {
+                String path = (String) paths.next();
+                TreeMap namemap = (TreeMap) pathmap.get(path);
+                Iterator names = namemap.keySet().iterator();
+                while (names.hasNext()) {
+                    String name = (String) names.next();
+                    ArrayList cookies = (ArrayList) namemap.get(name);
+                    Iterator cookie = cookies.iterator();
+                    while (cookie.hasNext()) {
+                        all.add(cookie.next());
+                    }
+                }
+            }
+        }
+        return (Cookie[]) all.toArray(new Cookie[0]);
+    }
+    
+    public void addCookies(Cookie[] cookie) {
+        System.err.println("Reading from a cookie jar is not yet implemented, sorry!");
+    }
 }

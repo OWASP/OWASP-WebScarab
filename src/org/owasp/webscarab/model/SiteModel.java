@@ -203,6 +203,9 @@ public class SiteModel {
                 }
                 _store.writeURLInfo(urlinfo);
             }
+            synchronized (_cookieJar) {
+                _store.writeCookies(_cookieJar.getAllCookies());
+            }
         }
     }
     

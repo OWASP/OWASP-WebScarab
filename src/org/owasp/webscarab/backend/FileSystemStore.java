@@ -8,6 +8,7 @@ package org.owasp.webscarab.backend;
 
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.SiteModelStore;
+import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.Conversation;
@@ -321,6 +322,54 @@ public class FileSystemStore implements SiteModelStore, SpiderStore {
         }
         return list;
     }
+    
+    public Cookie[] readCookies() throws StoreException {
+        BufferedReader br;
+        try {
+            br = new BufferedReader(new FileReader(_dir + "cookiejar"));
+        } catch (FileNotFoundException fnfe) {
+            return new Cookie[0];
+        }
+        ArrayList cookies = new ArrayList();
+        String line;
+        try {
+            while ((line=br.readLine()) != null) {
+                cookies.add(new Cookie(line.substring(line.indexOf(":")+1)));
+            }
+            br.close();
+        } catch (IOException ioe) {
+            throw new StoreException("Error reading cookiejar : " + ioe);
+        }
+        Cookie[] list = new Cookie[cookies.size()];
+        for (int i=0; i<cookies.size(); i++) {
+            list[i] = (Cookie) cookies.get(i);
+        }
+        return list;
+    }
+    
+    public void writeCookies(Cookie[] cookie) throws StoreException {
+        if (cookie == null || cookie.length == 0) {
+            return;
+        }
+        String jar = _dir + "cookiejar";
+        FileWriter fw;
+        try {
+            fw = new FileWriter(jar);
+        } catch (IOException ioe) {
+            throw new StoreException("Error creating the cookiejar : " + ioe);
+        }
+        try {
+            for (int i=0; i<cookie.length; i++) {
+                fw.write(cookie[i].getDomain() + cookie[i].getPath() + ":" + cookie.toString() + "\r\n");
+            }
+            fw.flush();
+            fw.close();
+        } catch (IOException ioe) {
+            throw new StoreException("Error writing to cookiejar : " + ioe);
+        }
+        
+    }
+    
     
     public void writeSeenLinks(String[] links) throws StoreException {
         if (links == null || links.length == 0) {
