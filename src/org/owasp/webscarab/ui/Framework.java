@@ -73,7 +73,7 @@ public class Framework implements Plug {
     
     public String addConversation(Request request, Response response) {
         // get a summary of the URL so far.
-        URLInfo urlinfo = _sitemodel.getURLInfo(request.getURL().toString());
+        URLInfo urlinfo = _sitemodel.getURLInfo(request.getURL());
         // create a new conversation for the Request and Response
         Conversation conversation = new Conversation(request, response);
         // update the summary
