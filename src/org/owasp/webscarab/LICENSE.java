@@ -1,4 +1,4 @@
-package org.owasp;
+package org.owasp.webscarab;
 
 /**
  * Retrieves the license information for any OWASP source file.
@@ -6,7 +6,7 @@ package org.owasp;
  * String that contains the GPL, version 2.
  *
  * @since beta 1
- * @version beta 1<br />CVS $Release$ $Author: istr $
+ * @version beta 1<br />CVS $Release$ $Author: rogan $
  * @author <a href="http://www.gnu.org">GNU</a>
  * @author <a href="mailto:ingo@ingostruck.de">ingo@ingostruck.de</a>
  */
