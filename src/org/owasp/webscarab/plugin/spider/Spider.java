@@ -29,6 +29,7 @@ import java.util.Vector;
 import java.lang.ArrayIndexOutOfBoundsException;
 import java.util.TreeMap;
 
+import java.net.URL;
 import java.net.MalformedURLException;
 
 import java.lang.Thread;
@@ -36,6 +37,8 @@ import java.lang.Runnable;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
+
+import org.owasp.util.URLUtil;
 
 /**
  *
@@ -56,6 +59,9 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     private AsyncFetcher[] _fetchers;
     private int _threads = 4;
     private boolean _recursive = false;
+    
+    private String _allowedDomains = ".*localhost.*";
+    private String _forbiddenPaths = "";
     
     private UnseenLinkTableModel _unseenLinkTableModel = new Spider.UnseenLinkTableModel();
     
@@ -107,14 +113,17 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     /** removes all pending reuqests from the queue - effectively stops the spider */
     public void resetRequestQueue() {
+        _logger.info("Clearing request queue");
         _requestQueue.clear();
     }
     
     public void requestURLs(String[] urls) {
         Request req;
+        Link link;
         for (int i=0; i<urls.length; i++) {
-            req = (Request) _unseenLinks.get(urls[i]);
-            if (req != null) {
+            link = (Link) _unseenLinks.get(urls[i]);
+            if (link != null) {
+                req = newGetRequest(link);
                 queueRequest(req);
             }
         }
@@ -146,7 +155,6 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 _unseenLinkTableModel.fireTableRowsDeleted(index, index);
             }
             _seenLinks.put(referer,""); // actual value is irrelevant, could be a sequence no, for amusement
-            _logger.info("adding " + referer + " to the seen list");
         }
         NodeList nodelist = conversation.getNodeList();
         Response response = conversation.getResponse();
@@ -181,21 +189,29 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     }        
     
     private void addUnseenLink(String url, String referer) {
+        int anchor = url.indexOf("#");
+        if (anchor>-1) {
+            url = url.substring(0,anchor);
+        }
         synchronized (_unseenLinks) {
             if (!_seenLinks.containsKey(url) && !_unseenLinks.containsKey(url)) {
-                Request request = newGetRequest(url, referer);
-                _unseenLinks.put(url, request);
+                Link link = new Link(url, referer);
+                _unseenLinks.put(url, link);
                 int index = _unseenLinks.size()-1;
                 _unseenLinkTableModel.fireTableRowsInserted(index, index);
                 // _logger.info("Adding " + url + " to the unseen list");
                 if (_recursive && allowedURL(url)) {
-                    queueRequest(request);
+                    queueRequest(newGetRequest(link));
                 }
             }
         }
     }
 
-    private synchronized Request newGetRequest(String url, String referer) {
+    private Request newGetRequest(Link link) {
+        return newGetRequest(link.getURL(), link.getReferer());
+    }
+    
+    private Request newGetRequest(String url, String referer) {
         Request req = new Request();
         req.setMethod("GET");
         try {
@@ -208,6 +224,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         if (referer != null) {
             req.setHeader("Referer", referer);
         }
+        req.setHeader("Connection", "Keep-Alive");
         return req;
     }
     
@@ -217,7 +234,32 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         // This only applies to the automated recursive spidering. If the operator
         // really wants to fetch something offsite, more power to them
         // Yes, this is effectively the classifier from websphinx, we can use that if it fits nicely
+
+        // OK if the URL matches the domain
+        if (_allowedDomains!= null && !_allowedDomains.equals("") && url.matches(_allowedDomains)) {
+            // NOT OK if it matches the path 
+            if (_forbiddenPaths != null && !_forbiddenPaths.equals("") && url.matches(_forbiddenPaths)) {
+                return false;
+            }
+            return true;
+        }
         return false;
+    }
+    
+    public void setAllowedDomains(String regex) {
+        _allowedDomains = regex;
+    }
+    
+    public String getAllowedDomains() {
+        return _allowedDomains;
+    }
+    
+    public void setForbiddenPaths(String regex) {
+        _forbiddenPaths = regex;
+    }
+    
+    public String getForbiddenPaths() {
+        return _forbiddenPaths;
     }
     
     public TableModel getUnseenLinkTableModel() {
@@ -249,12 +291,13 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
             if (rowIndex <0 || rowIndex >= getRowCount()) {
                 throw new ArrayIndexOutOfBoundsException("Attempt to get row " + rowIndex + ", column " + columnIndex + " : row does not exist!");
             }
-            Request req = (Request) _unseenLinks.get(rowIndex);
+            Link link = (Link) _unseenLinks.get(rowIndex);
             if (columnIndex <= columnNames.length) {
                 switch (columnIndex) {
                     case 0 : return new Integer(rowIndex+1).toString();
-                    case 1 : return req.getURL().toString();
-                    case 2 : return req.getHeader("Referer");
+                    case 1 : return link.getURL();
+                    case 2 : return link.getReferer();
+                    case 3 : return link.getType();
                 }
                 return "";
             } else {
