@@ -12,11 +12,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.Event;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.event.DocumentEvent;
+import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.Keymap;
 import java.awt.Container;
 import javax.swing.JFrame;
-
+import javax.swing.JEditorPane;
+import java.net.URL;
 
 /**
  *
@@ -43,7 +46,7 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
         htmlEditorPane.setEditorKit(new MyHTMLEditorKit());
         
         Keymap keymap = htmlEditorPane.addKeymap("MySearchBindings",
-                                           htmlEditorPane.getKeymap());
+        htmlEditorPane.getKeymap());
         //Ctrl-f to open the search dialog
         keymap.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F, Event.CTRL_MASK), new AbstractAction() {
             public void actionPerformed(ActionEvent event) {
@@ -63,20 +66,16 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
                 _searchDialog.show();
             }
         });
-        
-        htmlEditorPane.setKeymap(keymap);
-        
-        htmlEditorPane.getDocument().addDocumentListener(new DocumentListener() {
-            public void changedUpdate(DocumentEvent evt) {
-		_modified = true;
-            }
-            public void removeUpdate(DocumentEvent evt) {
-		_modified = true;
-            }
-            public void insertUpdate(DocumentEvent evt) {
-		_modified = true;
+        keymap.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_G, Event.CTRL_MASK), new AbstractAction() {
+            public void actionPerformed(ActionEvent event) {
+                if (_searchDialog != null) {
+                    _searchDialog.doSearch();
+                }
             }
         });
+                
+        htmlEditorPane.setKeymap(keymap);
+        htmlEditorPane.addHyperlinkListener(new HTMLPanel.LinkToolTipListener());
     }
     
     public String getName() {
@@ -86,7 +85,7 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
     public String[] getContentTypes() {
         return new String[] { "text/html.*" };
     }
-
+    
     public void setEditable(boolean editable) {
         htmlEditorPane.setEditable(false);
         // We can't edit HTML directly. This panel is just a renderer
@@ -121,7 +120,7 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
     public boolean isModified() {
         return _editable && _modified;
     }
-
+    
     public byte[] getBytes() {
         return htmlEditorPane.getText().getBytes();
     }
@@ -152,8 +151,8 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JEditorPane htmlEditorPane;
     private javax.swing.JScrollPane htmlScrollPane;
+    private javax.swing.JEditorPane htmlEditorPane;
     // End of variables declaration//GEN-END:variables
     
     
@@ -171,7 +170,11 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
             }
             content = baos.toByteArray();
              */
-            java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/santam/webscarab/conversations/44-response");
+            String filename = "c:/temp/reverse/conversations/1-response";
+            if (args.length == 1) {
+                filename = args[0];
+            }
+            java.io.FileInputStream fis = new java.io.FileInputStream(filename);
             org.owasp.webscarab.model.Response response = new org.owasp.webscarab.model.Response();
             response.read(fis);
             content = response.getContent();
@@ -202,12 +205,30 @@ public class HTMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
         top.show();
         try {
             hp.setEditable(false);
-            hp.setBytes(null);
             hp.setBytes(content);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
     
+    public class LinkToolTipListener implements HyperlinkListener {
+        public LinkToolTipListener() {
+        }
+        public void hyperlinkUpdate(HyperlinkEvent he) {
+            HyperlinkEvent.EventType type = he.getEventType();
+            if (type == HyperlinkEvent.EventType.ENTERED) {
+                JEditorPane jep = (JEditorPane) he.getSource();
+                URL url = he.getURL();
+                if (url != null) {
+                    jep.setToolTipText(url.toString());
+                } else {
+                    jep.setToolTipText(he.getDescription());
+                }
+            } else if (type == HyperlinkEvent.EventType.EXITED) {
+                JEditorPane jep = (JEditorPane) he.getSource();
+                jep.setToolTipText("");
+            }
+        }
+    }
 }
 
