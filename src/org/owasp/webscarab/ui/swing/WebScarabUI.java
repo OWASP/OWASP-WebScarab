@@ -19,12 +19,12 @@ import java.util.ArrayList;
  */
 public class WebScarabUI extends javax.swing.JFrame {
     
-    private WebScarab _webscarab;
+    private org.owasp.webscarab.WebScarab _webscarab;
     private ArrayList _plugins;
     private SwingPlugin[] _pluginArray = new SwingPlugin[0];
     
     /** Creates new form WebScarab */
-    public WebScarabUI(WebScarab webscarab) {
+    public WebScarabUI(org.owasp.webscarab.WebScarab webscarab) {
         _webscarab = webscarab;
         initComponents();
         
