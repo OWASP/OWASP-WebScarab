@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.Collections;
 import java.util.Iterator;
 
+import java.util.logging.Logger;
+
 import java.net.URL;
 import java.net.MalformedURLException;
 
@@ -85,6 +87,8 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
     
     private CookieJar _cookieJar;
     
+    private Logger _logger = Logger.getLogger(this.getClass().getName());
+    
     /** Creates a new instance of Spider */
     public Spider(Plug plug) {
         _plug = plug;
@@ -101,7 +105,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         me.setPriority(Thread.MIN_PRIORITY);
         me.setName("Spider");
         me.start();
-        System.err.println("Spider initialised");
+        _logger.info("Spider initialised");
     }
     
     public void parseProperties() {
@@ -144,7 +148,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 if (_linkQueue.size() > 0 && _requestQueue.size() == 0) {
                     Link link = (Link) _linkQueue.remove(0);
                     if (link != null) {
-                        System.out.println(_linkQueue.size() + " remaining, queueing " + link.getURL());
+                        _logger.fine(_linkQueue.size() + " remaining, queueing " + link.getURL());
                         request = newGetRequest(link);
                         if (request != null) {
                             if (_cookieSync) {
@@ -191,7 +195,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                         Link link = (Link) _unseenLinks.get(url);
                         queueLink(link);
                     } else {
-                        System.out.println(url + " is a forbidden path!");
+                        _logger.warning(url + " is a forbidden path!");
                     }
                 }
             }
@@ -221,7 +225,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
             if (link != null) {
                 queueLink(link);
             } else {
-                System.err.println("'" + urls[i] + "' not found");
+                _logger.warning("'" + urls[i] + "' not found");
             }
         }
     }
@@ -273,10 +277,10 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                     URL url = new URL(location);
                     addUnseenLink(url, referer);
                 } catch (MalformedURLException mue) {
-                    System.err.println("Badly formed Location header : " + location);
+                    _logger.warning("Badly formed Location header : " + location);
                 }
             } else {
-                System.err.println("302 received, but no Location header!");
+                _logger.warning("302 received, but no Location header!");
             }
             return;
         }
@@ -301,7 +305,9 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                         URL url = new URL(link);
                         addUnseenLink(url, referer);
                     } catch (MalformedURLException mue) {
-                        System.err.println("Malformed link : " + link);
+                        // FIXME: We should also do SOMETHING with javascript links, maybe just show them
+                        // and provide a link to where they came from?
+                        _logger.warning("Malformed link : " + link);
                     }
                 } else if (node instanceof CompositeTag) {
                     CompositeTag ctag = (CompositeTag) node;
@@ -315,22 +321,22 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                                 URL url = new URL(src);
                                 addUnseenLink(url, referer);
                             } catch (MalformedURLException mue) {
-                                System.err.println("Malformed Frame src : " + src);
+                                _logger.warning("Malformed Frame src : " + src);
                             }
                         } else if (!src.startsWith("about:")) {
-                            System.err.println("Creating a new relative URL with " + referer.toString() + " and " + src + " '");
+                            _logger.fine("Creating a new relative URL with " + referer.toString() + " and " + src + " '");
                             try {
                                 URL url = new URL(referer, src);
                                 addUnseenLink(url, referer);
                             } catch (MalformedURLException mue) {
-                                System.out.println("Bad relative URL (" + referer.toString() + ") : " + src);
+                                _logger.warning("Bad relative URL (" + referer.toString() + ") : " + src);
                             }
                         }
                     }
                 }
             }
         } catch (ParserException pe) {
-            System.err.println("ParserException : " + pe);
+            _logger.warning("ParserException : " + pe);
         }
     }
     
@@ -386,7 +392,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         try {
             return allowedDomain(new URL(url));
         } catch (MalformedURLException mue) {
-            System.err.println("Malformed URL : " + url);
+            _logger.warning("Malformed URL : " + url);
             return false;
         }
     }
@@ -402,7 +408,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
         try {
             return forbiddenPath(new URL(url));
         } catch (MalformedURLException mue) {
-            System.err.println("Malformed URL : " + url);
+            _logger.warning("Malformed URL : " + url);
             return true;
         }
     }
@@ -495,7 +501,7 @@ public class Spider extends AbstractWebScarabPlugin implements Runnable {
                 url=url+"/";
             }
         } catch (MalformedURLException mue) {
-            System.err.println("Malformed url '" + url + "' : " + mue);
+            _logger.warning("Malformed url '" + url + "' : " + mue);
             return null;
         }
         return url;
