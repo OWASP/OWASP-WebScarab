@@ -79,13 +79,30 @@
       == Unfortunately, at this time, the configuration file is heavily
       == tied to a specific desktop, and installation directories
       -->
-        <target depends="clean,build" name="proguard" description="Build a standalone self-contained jar">
+        <target depends="build" name="proguard" description="Build a standalone self-contained jar">
             <taskdef resource="proguard/ant/task.properties"
          classpath="${basedir}/proguard/lib/proguard.jar" />
-            <proguard configuration="${basedir}/webscarab.pro">
-		 <libraryjar name="${java.home}/lib/rt.jar"/>
-		 <libraryjar name="${java.home}/lib/jsse.jar"/>
-                 <outjar name="${basedir}/webscarab-${version}.jar"/>
+            <echo message="${user.dir}"/>
+            <proguard ignorewarnings="true" 
+                      verbose="true"
+                      obfuscate="false"
+                      optimize="true"
+                      >
+                <injar name="${basedir}/${jarname}"/>
+                <injar name="${basedir}/${concurrentjar}"/>
+                <injar name="${basedir}/${htmlparserjar}"/>
+                <injar name="${basedir}/${beanshelljar}"/>
+                <injar name="${basedir}/${jfreechartjar}"/>
+                <injar name="${basedir}/${jcommonjar}"/>
+		<libraryjar name="${java.home}/lib/rt.jar"/>
+		<libraryjar name="${java.home}/lib/jsse.jar"/>
+                <libraryjar name="${basedir}/lib/bsf-2.3.0.jar"/>
+                <libraryjar name="/opt/eclipse/plugins/org.eclipse.tomcat_4.1.30/servlet.jar"/>
+                <outjar name="${basedir}/webscarab-${version}.jar"/>
+                <keep name="org.owasp.webscarab.ui.swing.Main">
+                    <method name="main"/>
+                </keep>
+                <keep implements="org.owasp.webscarab.ui.swing.editors.ByteArrayEditor"/>
             </proguard>
         </target>
 </project>
