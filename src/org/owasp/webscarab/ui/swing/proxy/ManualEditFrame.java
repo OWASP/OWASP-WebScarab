@@ -16,6 +16,9 @@ import org.owasp.webscarab.ui.swing.ResponsePanel;
 import javax.swing.SwingUtilities;
 import java.lang.Runnable;
 
+import java.awt.Dimension;
+import java.awt.Point;
+
 /**
  *
  * @author  rdawes
@@ -25,6 +28,9 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
     private RequestPanel _requestPanel = null;
     private Response _response = null;
     private ResponsePanel _responsePanel = null;
+    
+    private static Dimension _size = null;
+    private static Point _location = null;
     
     /** Creates new form ConversationEditorFrame */
     public ManualEditFrame() {
@@ -43,6 +49,28 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
         gridBagConstraints.weighty = 1;
         _responsePanel.setVisible(false);
         getContentPane().add(_responsePanel, gridBagConstraints);
+        if (_size != null) {
+            setSize(_size);
+        }
+        if (_location != null) setLocation(_location);
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                formComponentMoved(evt);
+            }
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                formComponentResized(evt);
+            }
+        });
+    }
+
+    private void formComponentResized(java.awt.event.ComponentEvent evt) {
+        if (! isShowing()) return;
+        _size = getSize();
+    }
+
+    private void formComponentMoved(java.awt.event.ComponentEvent evt) {
+        if (! isShowing()) return;
+        _location = getLocation();
     }
 
     public synchronized Request editRequest(Request request) {
@@ -212,6 +240,22 @@ public class ManualEditFrame extends javax.swing.JFrame implements ConversationE
             response.setMessage("Moved");
             response.setHeader("Location","http://localhost:8080/index.html");
             Response r3 = mef.editResponse(response);
+            System.out.println("Got response " + r3.toString());
+            
+            mef = new ManualEditFrame();
+            request = new Request();
+            request.setMethod("GET");
+            request.setURL("http://localhost:8080/");
+            request.setVersion("HTTP/1.0");
+            request.setHeader("Accept","iamge/gif");
+            r2 = mef.editRequest(request);
+            System.out.println("Got " + r2.toString());
+            response = new Response();
+            response.setVersion("HTTP/1.0");
+            response.setStatus("302");
+            response.setMessage("Moved");
+            response.setHeader("Location","http://localhost:8080/index.html");
+            r3 = mef.editResponse(response);
             System.out.println("Got response " + r3.toString());
         } catch (Exception e) {
             e.printStackTrace();

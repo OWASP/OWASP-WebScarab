@@ -12,6 +12,7 @@ import org.owasp.webscarab.model.Response;
 
 import javax.swing.border.TitledBorder;
 import java.awt.Dimension;
+import java.awt.Point;
 
 /**
  *
@@ -22,6 +23,9 @@ public class ConversationPanel extends javax.swing.JPanel {
     private RequestPanel _requestPanel;
     private ResponsePanel _responsePanel;
     private JFrame _frame = null;
+    
+    private static Dimension _size = null;
+    private static Point _location = null;
     
     /** Creates new form ConversationPanel */
     public ConversationPanel() {
@@ -61,11 +65,34 @@ public class ConversationPanel extends javax.swing.JPanel {
         }
         _frame = new JFrame(title);
         _frame.getContentPane().setLayout(new java.awt.BorderLayout());
-        _frame.setSize(800, 600);
+        if (_size != null) {
+            _frame.setSize(_size);
+        } else {
+            _frame.setSize(800, 600);
+        }
+        if (_location != null) _frame.setLocation(_location);
         _frame.getContentPane().add(this);
+        _frame.addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                formComponentMoved(evt);
+            }
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                formComponentResized(evt);
+            }
+        });
         return _frame;
     }
     
+    private void formComponentResized(java.awt.event.ComponentEvent evt) {
+        if (! isShowing()) return;
+        _size = getSize();
+    }
+
+    private void formComponentMoved(java.awt.event.ComponentEvent evt) {
+        if (! isShowing()) return;
+        _location = getLocation();
+    }
+
     public JFrame getFrame() {
         return _frame;
     }
