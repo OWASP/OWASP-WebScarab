@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 
 import bsh.Interpreter;
+import bsh.EvalError;
 
 /**
  *
@@ -29,7 +30,7 @@ import bsh.Interpreter;
 public class BeanShell extends AbstractProxyPlugin {
 
     private String _scriptFile = "";
-    private String _beanScript = "";
+    private String _beanScript = "response = fetchResponse(request);";
     private boolean _enabled = false;
     
     /** Creates a new instance of ManualEdit */
@@ -104,6 +105,11 @@ public class BeanShell extends AbstractProxyPlugin {
         
     private class ProxyPlugin implements HTTPClient {
     
+        private String _imports = "import org.owasp.webscarab.model.Request;\n" + 
+                                  "import org.owasp.webscarab.model.Response;";
+        private String _fetchResponse = "Response fetchResponse(Request request) { \n" +
+                                        "  return _in.fetchResponse(request); \n" +
+                                        "}";
         private HTTPClient _in;
         private final String _script;
         
@@ -116,33 +122,19 @@ public class BeanShell extends AbstractProxyPlugin {
             if (_enabled) {
                 try {
                     Interpreter interpreter = new Interpreter();
+                    interpreter.set("_in", _in);
+                    interpreter.eval(_imports);
+                    interpreter.eval(_fetchResponse);
                     interpreter.set("request", request);
-                    interpreter.set("response", null);
                     interpreter.eval(_script);
-                    Request req = (Request) interpreter.get("request");
-                    if (req != null) {
-                        request = req;
-                    }
-                } catch (Exception e) {
+                    return (Response) interpreter.get("response");
+                } catch (EvalError e) {
                     System.out.println("Error evaluating bean script : " + e);
+                    return null;
                 }
+            } else {
+                return _in.fetchResponse(request);
             }
-            Response response = _in.fetchResponse(request);
-            if (_enabled) {
-                try {
-                    Interpreter interpreter = new Interpreter();
-                    interpreter.set("request", request);
-                    interpreter.set("response", response);
-                    interpreter.eval(_script);
-                    Response resp = (Response) interpreter.get("response");
-                    if (resp != null) {
-                        response = resp;
-                    }
-                } catch (Exception e) {
-                    System.out.println("Error evaluating bean script : " + e);
-                }
-            }
-            return response;
         }
     }
 
