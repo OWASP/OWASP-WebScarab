@@ -32,8 +32,16 @@ import org.owasp.webscarab.ui.swing.manualrequest.ManualRequestPanel;
 import org.owasp.webscarab.ui.swing.sessionid.SessionIDPanel;
 import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysis;
 
+import org.owasp.webscarab.util.TextFormatter;
+import org.owasp.webscarab.util.DocumentHandler;
+
 import java.util.Properties;
 import java.util.ArrayList;
+import java.util.logging.Logger;
+import java.util.logging.Level;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+
 import java.lang.Runnable;
 
 import java.io.File;
@@ -67,14 +75,13 @@ public class WebScarab extends javax.swing.JFrame {
     
     private TranscoderFrame _transcoder = null;
     
+    private Logger _logger;
     
     /** Creates new form WebScarab */
     public WebScarab(Framework framework) {
         initComponents();
         
-        // capture STDOUT and STDERR to a TextArea
-        System.setOut(redirectOutput(stdoutTextArea, System.out));
-        System.setErr(redirectOutput(stderrTextArea, System.err));
+        initLogging();
         
         _framework = framework;
         
@@ -84,6 +91,30 @@ public class WebScarab extends javax.swing.JFrame {
         _summaryPanel = new SummaryPanel(_framework);
         mainTabbedPane.add(_summaryPanel, "Summary");
         
+    }
+    
+    private void initLogging() {
+        _logger = Logger.getLogger("org.owasp.webscarab");
+        _logger.setUseParentHandlers(false);
+        _logger.setLevel(Level.FINEST);
+        Handler ch = new ConsoleHandler();
+        ch.setFormatter(new TextFormatter());
+        _logger.addHandler(ch);
+        
+        Document doc = logTextArea.getDocument();
+        Handler dh = new DocumentHandler(doc);
+        dh.setFormatter(new TextFormatter());
+        _logger.addHandler(dh);
+        
+        doc.addDocumentListener(new DocumentListener() {
+            public void removeUpdate(DocumentEvent e) {}
+            public void changedUpdate(DocumentEvent e) {
+                logTextArea.setCaretPosition(e.getOffset());
+            }
+            public void insertUpdate(DocumentEvent e) {
+                logTextArea.setCaretPosition(e.getOffset() + e.getLength());
+            }
+        });
     }
     
     public void addPlugin(final SwingPlugin plugin) {
@@ -114,11 +145,8 @@ public class WebScarab extends javax.swing.JFrame {
 
         mainSplitPane = new javax.swing.JSplitPane();
         mainTabbedPane = new javax.swing.JTabbedPane();
-        jSplitPane1 = new javax.swing.JSplitPane();
-        stdoutScrollPane = new javax.swing.JScrollPane();
-        stdoutTextArea = new javax.swing.JTextArea();
-        stderrScrollPane = new javax.swing.JScrollPane();
-        stderrTextArea = new javax.swing.JTextArea();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        logTextArea = new javax.swing.JTextArea();
         mainMenuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         newMenuItem = new javax.swing.JMenuItem();
@@ -150,31 +178,17 @@ public class WebScarab extends javax.swing.JFrame {
         mainTabbedPane.setPreferredSize(new java.awt.Dimension(1280, 1024));
         mainSplitPane.setLeftComponent(mainTabbedPane);
 
-        jSplitPane1.setResizeWeight(0.5);
-        jSplitPane1.setMinimumSize(new java.awt.Dimension(56, 40));
-        jSplitPane1.setOneTouchExpandable(true);
-        jSplitPane1.setPreferredSize(new java.awt.Dimension(18, 80));
-        stdoutScrollPane.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        stdoutScrollPane.setViewportBorder(new javax.swing.border.TitledBorder(null, "stdout", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Dialog", 0, 12)));
-        stdoutScrollPane.setMinimumSize(new java.awt.Dimension(22, 40));
-        stdoutScrollPane.setPreferredSize(new java.awt.Dimension(3, 40));
-        stdoutTextArea.setBackground(new java.awt.Color(204, 204, 204));
-        stdoutTextArea.setEditable(false);
-        stdoutScrollPane.setViewportView(stdoutTextArea);
+        jScrollPane1.setToolTipText("Shows messages logged by various WebScarab plugins");
+        jScrollPane1.setMinimumSize(new java.awt.Dimension(22, 40));
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(3, 64));
+        jScrollPane1.setAutoscrolls(true);
+        jScrollPane1.setOpaque(false);
+        logTextArea.setBackground(new java.awt.Color(204, 204, 204));
+        logTextArea.setEditable(false);
+        logTextArea.setToolTipText("Shows messages logged by WebScarab and the plugins");
+        jScrollPane1.setViewportView(logTextArea);
 
-        jSplitPane1.setLeftComponent(stdoutScrollPane);
-
-        stderrScrollPane.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        stderrScrollPane.setViewportBorder(new javax.swing.border.TitledBorder(null, "stderr", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Dialog", 0, 12)));
-        stderrScrollPane.setMinimumSize(new java.awt.Dimension(22, 40));
-        stderrScrollPane.setPreferredSize(new java.awt.Dimension(3, 40));
-        stderrTextArea.setBackground(new java.awt.Color(204, 204, 204));
-        stderrTextArea.setEditable(false);
-        stderrScrollPane.setViewportView(stderrTextArea);
-
-        jSplitPane1.setRightComponent(stderrScrollPane);
-
-        mainSplitPane.setRightComponent(jSplitPane1);
+        mainSplitPane.setRightComponent(jScrollPane1);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -410,24 +424,6 @@ public class WebScarab extends javax.swing.JFrame {
         }
     }
     
-    private PrintStream redirectOutput(final JTextArea textarea, final OutputStream old) {
-        Document doc = textarea.getDocument();
-        // make the text area scroll automatically
-        doc.addDocumentListener(new DocumentListener() {
-            public void changedUpdate(DocumentEvent e) {
-                textarea.setCaretPosition(e.getOffset() + e.getLength());
-            }
-            public void insertUpdate(DocumentEvent e) {
-                textarea.setCaretPosition(e.getOffset() + e.getLength());
-            }
-            public void removeUpdate(DocumentEvent e) {
-                textarea.setCaretPosition(e.getOffset() + e.getLength());
-            }
-        });
-        OutputStream[] streams = new OutputStream[] { old, new DocumentOutputStream(doc)};
-        return new PrintStream(new TeeOutputStream(streams));
-    }
-    
     /**
      * @param args the command line arguments
      */
@@ -471,7 +467,8 @@ public class WebScarab extends javax.swing.JFrame {
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JMenu helpMenu;
-    private javax.swing.JSplitPane jSplitPane1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea logTextArea;
     private javax.swing.JMenuBar mainMenuBar;
     private javax.swing.JSplitPane mainSplitPane;
     private javax.swing.JTabbedPane mainTabbedPane;
@@ -479,10 +476,6 @@ public class WebScarab extends javax.swing.JFrame {
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem proxyMenuItem;
     private javax.swing.JMenuItem saveConfigMenuItem;
-    private javax.swing.JScrollPane stderrScrollPane;
-    private javax.swing.JTextArea stderrTextArea;
-    private javax.swing.JScrollPane stdoutScrollPane;
-    private javax.swing.JTextArea stdoutTextArea;
     private javax.swing.JMenu toolsMenu;
     private javax.swing.JMenuItem transcoderMenuItem;
     // End of variables declaration//GEN-END:variables
