@@ -33,4 +33,15 @@ public class NamedValue {
         return _name + "='" + _value + "'";
     }
     
+    public static NamedValue[] splitNamedValues(String source, String pairSeparator, String nvSeparator) {
+        if (source == null) return new NamedValue[0];
+        String[] pairs = source.split(pairSeparator);
+        NamedValue[] values = new NamedValue[pairs.length];
+        for (int i=0; i<pairs.length; i++) {
+            String[] nv = pairs[i].split(nvSeparator,2);
+            values[i] = new NamedValue(nv[0], nv[1]);
+        }
+        return values;
+    }
+    
 }
