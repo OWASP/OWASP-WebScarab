@@ -1,5 +1,7 @@
 package org.owasp.webscarab.model;
 
+import org.owasp.util.URLUtil;
+
 import org.owasp.webscarab.plugin.spider.SequencedTreeMap;
 
 import java.util.ArrayList;
@@ -126,6 +128,18 @@ public class SiteModel {
         return ui;
     }
     
+    public URLInfo getURLInfo(URL url) {
+        return getURLInfo(canonicalURL(url));
+    }
+
+    private String canonicalURL(URL url) {
+        String u = URLUtil.schemeAuthPathQry(url);
+        if (url.getPath().equals("")) {
+            u=u+"/";
+        }
+        return u;
+    }
+
     public URLInfo getURLInfo(String url) {
         URLInfo ui;
         synchronized (_urlinfo) {
@@ -147,6 +161,7 @@ public class SiteModel {
     public void setSessionStore(Object store) throws StoreException {
         if (store != null && store instanceof SiteModelStore) {
             _store = (SiteModelStore) store;
+			_cookieJar.clear();
             synchronized (_conversationList) {
                 _conversationList.clear();
                 Conversation[] conversation = _store.readConversations();
