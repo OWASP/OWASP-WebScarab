@@ -26,9 +26,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
-import bsh.EvalError;
-import bsh.TargetError;
-
 /**
  *
  * @author  rogan
@@ -49,7 +46,7 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
     public ScriptedPanel(Scripted scripted) {
         initComponents();
         _scripted = scripted;
-        _scripted.setUI(this);
+        scriptLanguageTextField.setText(_scripted.getScriptLanguage());
         scriptTextPane.setText(_scripted.getScript());
         
         scriptTextPane.getDocument().addDocumentListener(new DocumentListener() {
@@ -70,6 +67,8 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
         DocumentOutputStream dos = new DocumentOutputStream(10240);
         _printStream = new PrintStream(dos);
         outputTextArea.setDocument(dos.getDocument());
+        
+        _scripted.setUI(this);
     }
     
     /** This method is called from within the constructor to
@@ -86,14 +85,12 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
         jScrollPane2 = new javax.swing.JScrollPane();
         outputTextArea = new javax.swing.JTextArea();
         jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        threadTextField = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        delayTextField = new javax.swing.JTextField();
         startButton = new javax.swing.JButton();
         stopButton = new javax.swing.JButton();
-        pauseButton = new javax.swing.JButton();
         commitButton = new javax.swing.JButton();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        scriptLanguageTextField = new javax.swing.JTextField();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -120,46 +117,6 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
-        jLabel1.setText("Threads");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.weightx = 1.0;
-        jPanel1.add(jLabel1, gridBagConstraints);
-
-        threadTextField.setText("4");
-        threadTextField.setMinimumSize(new java.awt.Dimension(50, 19));
-        threadTextField.setPreferredSize(new java.awt.Dimension(50, 19));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(threadTextField, gridBagConstraints);
-
-        jLabel2.setText("Delay (ms)");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel1.add(jLabel2, gridBagConstraints);
-
-        delayTextField.setText("250");
-        delayTextField.setMinimumSize(new java.awt.Dimension(50, 19));
-        delayTextField.setPreferredSize(new java.awt.Dimension(50, 19));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        jPanel1.add(delayTextField, gridBagConstraints);
-
         startButton.setText("Start");
         startButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -169,11 +126,10 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 2);
         jPanel1.add(startButton, gridBagConstraints);
 
         stopButton.setText("Stop");
@@ -184,29 +140,12 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 4, 4);
         jPanel1.add(stopButton, gridBagConstraints);
-
-        pauseButton.setText("Pause");
-        pauseButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                pauseButtonActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.weightx = 1.0;
-        jPanel1.add(pauseButton, gridBagConstraints);
 
         commitButton.setText("Commit");
         commitButton.addActionListener(new java.awt.event.ActionListener() {
@@ -219,29 +158,33 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel1.add(commitButton, gridBagConstraints);
 
         add(jPanel1, java.awt.BorderLayout.SOUTH);
 
+        jPanel2.setLayout(new java.awt.GridBagLayout());
+
+        jLabel1.setText("Language : ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel2.add(jLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel2.add(scriptLanguageTextField, gridBagConstraints);
+
+        add(jPanel2, java.awt.BorderLayout.NORTH);
+
     }//GEN-END:initComponents
     
-    private void pauseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pauseButtonActionPerformed
-        String action = evt.getActionCommand();
-        if (action.equals("Pause")) {
-            _scripted.pause();
-        } else {
-            _scripted.resume();
-        }
-    }//GEN-LAST:event_pauseButtonActionPerformed
-    
     private void commitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_commitButtonActionPerformed
-        try {
-            _scripted.setScript(scriptTextPane.getText());
-            _modified = false;
-            scriptTextPane.setBackground(_unmodifiedColor);
-        } catch (EvalError ee) {
-            scriptError(ee);
-        }
+        _scripted.setScript(scriptTextPane.getText());
+        _modified = false;
+        scriptTextPane.setBackground(_unmodifiedColor);
     }//GEN-LAST:event_commitButtonActionPerformed
     
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
@@ -250,24 +193,9 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
     
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
         if (_modified) {
-            try {
-                _scripted.setScript(scriptTextPane.getText());
-                _modified = false;
-                scriptTextPane.setBackground(_unmodifiedColor);
-            } catch (EvalError ee) {
-                scriptError(ee);
-                return;
-            }
+            commitButtonActionPerformed(null);
         }
-        int delay = 0;
-        int threads = 4;
-        try {
-            delay = Integer.parseInt(delayTextField.getText());
-        } catch (NumberFormatException nfe) {}
-        try {
-            threads = Integer.parseInt(threadTextField.getText());
-        } catch (NumberFormatException nfe) {}
-        _scripted.execute(threads, delay);
+        _scripted.runScript();
     }//GEN-LAST:event_startButtonActionPerformed
     
     public Action[] getConversationActions() {
@@ -306,20 +234,14 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
         _logger.info("Script iteration: " + i);
     }
     
-    public void scriptError(final EvalError ee) {
+    public void scriptError(final String reason, final Throwable error) {
         if (SwingUtilities.isEventDispatchThread()) {
-            String[] messages = new String[2];
-            messages[0] = "Script execution error at line " + ee.getErrorLineNumber() + ": " + ee.getErrorText();
-            if (ee instanceof TargetError) {
-                messages[1] = ((TargetError)ee).getTarget().toString();
-            } else {
-                messages[1] = "";
-            }
-            JOptionPane.showMessageDialog(ScriptedPanel.this, messages, "Script execution error", JOptionPane.ERROR_MESSAGE);
+            // String message = "Script execution error : " + error.getMessage();
+            JOptionPane.showMessageDialog(ScriptedPanel.this, error, "Script execution error", JOptionPane.ERROR_MESSAGE);
         } else {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    scriptError(ee);
+                    scriptError(reason, error);
                 }
             });
         }
@@ -329,30 +251,6 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 startButton.setEnabled(false);
-                pauseButton.setText("Pause");
-                pauseButton.setEnabled(true);
-                stopButton.setEnabled(true);
-                scriptTextPane.setEnabled(false);
-            }
-        });
-    }
-    
-    public void scriptPaused() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                startButton.setEnabled(false);
-                pauseButton.setText("Resume");
-                stopButton.setEnabled(true);
-                scriptTextPane.setEnabled(false);
-            }
-        });
-    }
-    
-    public void scriptResumed() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                startButton.setEnabled(false);
-                pauseButton.setText("Pause");
                 stopButton.setEnabled(true);
                 scriptTextPane.setEnabled(false);
             }
@@ -363,8 +261,6 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 startButton.setEnabled(true);
-                pauseButton.setText("Pause");
-                pauseButton.setEnabled(false);
                 stopButton.setEnabled(false);
                 scriptTextPane.setEnabled(true);
             }
@@ -373,19 +269,17 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton commitButton;
-    private javax.swing.JTextField delayTextField;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTextArea outputTextArea;
-    private javax.swing.JButton pauseButton;
+    private javax.swing.JTextField scriptLanguageTextField;
     private javax.swing.JTextPane scriptTextPane;
     private javax.swing.JButton startButton;
     private javax.swing.JButton stopButton;
-    private javax.swing.JTextField threadTextField;
     // End of variables declaration//GEN-END:variables
     
 }

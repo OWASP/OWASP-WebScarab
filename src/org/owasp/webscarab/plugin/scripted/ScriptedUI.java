@@ -23,13 +23,7 @@ public interface ScriptedUI {
     
     void scriptStopped();
     
-    void scriptPaused();
-    
-    void scriptResumed();
-    
-    void scriptError(EvalError ee);
-    
-    void iteration(int i);
+    void scriptError(String reason, Throwable error);
     
     void setEnabled(boolean enabled);
     

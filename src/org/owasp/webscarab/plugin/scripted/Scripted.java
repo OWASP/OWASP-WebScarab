@@ -17,10 +17,8 @@ import org.owasp.webscarab.httpclient.AsyncFetcher;
 import org.owasp.webscarab.plugin.Plugin;
 import org.owasp.webscarab.plugin.Framework;
 
-import bsh.Interpreter;
-import bsh.EvalError;
-import bsh.ParseException;
-import bsh.TargetError;
+import org.apache.bsf.BSFManager;
+import org.apache.bsf.BSFException;
 
 import java.util.logging.Logger;
 
@@ -38,22 +36,41 @@ public class Scripted extends Plugin {
     
     private Framework _framework;
     private ScriptedUI _ui = null;
-    private Interpreter _interpreter = null;
-    private String _script = "";
-    private Executor _executor = null;
+    
+    private String _script = null;
+    private String _scriptLanguage = null;
+    
+    private BSFManager _bsfManager = new BSFManager();
+    private Thread _pluginThread = null;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
+    
+    private boolean _stopping = false;
+    
+    private boolean _runScript = false;
+    
+    private String _status = "Stopped";
+    
+    private Object _lock = new Object();
+    
+    private ScriptedObjectModel _som;
+    private PrintStream _out = System.out;
+    private PrintStream _err = System.err;
     
     /** Creates a new instance of Scripted */
     public Scripted(Framework framework) {
         _framework = framework;
+        _som = new ScriptedObjectModel(_framework);
         try {
             InputStream is = null;
             String defaultScript = Preferences.getPreference("Scripted.script");
+            String language;
             if (defaultScript != null && !defaultScript.equals("")) {
                 is = new FileInputStream(defaultScript);
+                language = _bsfManager.getLangFromFilename(defaultScript);
             } else {
                 is = getClass().getResourceAsStream("script.bsh");
+                language = "beanshell";
             }
             if (is == null) return;
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -62,6 +79,7 @@ public class Scripted extends Plugin {
             while ((line = br.readLine()) != null) {
                 script.append(line).append("\n");
             }
+            setScriptLanguage(language);
             setScript(script.toString());
         } catch (Exception e) {
             _logger.warning("Error loading default script" + e);
@@ -72,34 +90,35 @@ public class Scripted extends Plugin {
         _ui = ui;
         if (_ui != null) {
             _ui.setEnabled(isRunning());
-            if (_interpreter != null) {
-                PrintStream ps = _ui.getOutputStream();
-                if (ps != null) _interpreter.setOut(ps);
-                ps = _ui.getErrorStream();
-                if (ps != null) _interpreter.setErr(ps);
-            }
+            PrintStream ps = _ui.getOutputStream();
+            if (ps != null) _out = ps;
+            ps = _ui.getErrorStream();
+            if (ps != null) _err = ps;
+        } else {
+            _out = System.out;
+            _err = System.err;
         }
         
     }
     
+    public void setScriptLanguage(String language) {
+        _scriptLanguage = language;
+    }
+    
+    public String getScriptLanguage() {
+        return _scriptLanguage;
+    }
+    
+    public void setScript(String script) {
+        _script = script;
+    }
+    
+    public String getScript() {
+        return _script;
+    }
+    
     public void analyse(ConversationID id, Request request, Response response, String origin) {
-        if (_interpreter != null) {
-            synchronized(_interpreter) {
-                try {
-                    _interpreter.set("id", id);
-                    _interpreter.set("request", request);
-                    _interpreter.set("response", response);
-                    _interpreter.set("origin", origin);
-                    _interpreter.eval("analyse(id, request, response, origin)");
-                } catch (EvalError ee) {
-                    if (_ui != null) {
-                        _ui.scriptError(ee);
-                    } else {
-                        _logger.warning(ee.toString());
-                    }
-                }
-            }
-        }
+        // we do no analysis in this plugin
     }
     
     public void flush() throws StoreException {
@@ -110,7 +129,7 @@ public class Scripted extends Plugin {
     }
     
     public String getStatus() {
-        return "Idle";
+        return _status;
     }
     
     public boolean isBusy() {
@@ -122,133 +141,60 @@ public class Scripted extends Plugin {
     }
     
     public void run() {
+        _pluginThread = Thread.currentThread();
         _running = true;
+        _stopping = false;
+        while (! _stopping) {
+            synchronized(_lock) {
+                try {
+                    _status = "Idle";
+                    _lock.wait();
+                } catch (InterruptedException ie) {
+                    // interrupted by shutting down the plugin
+                }
+            }
+            if (_runScript) {
+                _runScript = false;
+                if (_ui != null) _ui.scriptStarted();
+                _status = "Running";
+                try {
+                    _bsfManager.declareBean("scripted", _som, _som.getClass());
+                    _bsfManager.declareBean("out", _out, _out.getClass());
+                    _bsfManager.declareBean("err", _err, _err.getClass());
+                    _bsfManager.exec(_scriptLanguage, "Scripted", 0, 0, _script);
+                } catch (BSFException bsfe) {
+                    if (_ui != null) _ui.scriptError("Unknown reason", bsfe);
+                // } catch (InterruptedException ie) {
+                    // interrupted by the user
+                }
+                if (_ui != null) _ui.scriptStopped();
+            }
+        }
+        _running = false;
     }
     
     public void setSession(String type, Object session, String id) throws StoreException {
+        // we handle no persistent storage in this plugin
     }
     
     public boolean stop() {
         _running = false;
+        stopScript();
         return ! _running;
     }
     
     public void stopScript() {
-        if (_executor != null) _executor.stopScript();
+        if (_pluginThread != null && _pluginThread.isAlive()) 
+            _pluginThread.interrupt();
     }
     
-    public String getScript() {
-        return _script;
-    }
-    
-    public void setScript(String script) throws EvalError {
-        _script = script;
-        _interpreter = new Interpreter();
-        if (_ui != null) {
-            PrintStream ps = _ui.getOutputStream();
-            if (ps != null) _interpreter.setOut(ps);
-            ps = _ui.getErrorStream();
-            if (ps != null) _interpreter.setErr(ps);
-        }
-        try {
-            _interpreter.eval(script);
-        } catch (EvalError ee) {
-            _interpreter = null;
-            throw ee;
-        }
-    }
-    
-    public void execute(int threads, long delay) {
-        if (_interpreter == null) return;
-        _executor = new Executor(_interpreter, threads, delay);
-        _executor.start();
-    }
-    
-    public void pause() {
-        if (_executor != null) _executor.pause();
-    }
-    
-    public void resume() {
-        if (_executor != null) _executor.restart();
-    }
-    
-    private class Executor extends Thread {
-        
-        private Interpreter _int;
-        private long _delay;
-        private AsyncFetcher _fetcher;
-        private boolean _stopped = false;
-        private boolean _paused = false;
-        
-        public Executor(Interpreter interpreter, int threads, long delay) {
-            _int = interpreter;
-            _fetcher = new AsyncFetcher("Script", threads);
-            _delay = delay;
-        }
-        
-        public synchronized void pause() {
-            _paused = true;
-        }
-        
-        public synchronized void restart() {
-            _paused = false;
-            this.notify();
-        }
-        
-        public void run() {
-            _stopped = false;
-            int i = 1;
-            if (_ui != null) _ui.scriptStarted();
-            try {
-                while (!_stopped) {
-                    boolean hasNext = ((Boolean) _int.eval("hasNext()")).booleanValue();
-                    if (_delay <= 0) {
-                        Thread.yield();
-                    } else {
-                        try {
-                            Thread.sleep(_delay);
-                        } catch (InterruptedException ie) {}
-                    }
-                    if (hasNext && _fetcher.hasCapacity()) {
-                        Request request = (Request) _int.eval("next()");
-                        _fetcher.submit(request);
-                        if (_ui != null) _ui.iteration(i++);
-                    }
-                    if (_fetcher.hasResponse()) {
-                        Response response = _fetcher.receive();
-                        Request request = response.getRequest();
-                        boolean add;
-                        synchronized (_int) {
-                            _int.set("request", request);
-                            _int.set("response", response);
-                            add = ((Boolean) _int.eval("addConversation(request, response)")).booleanValue();
-                        }
-                        if (add) _framework.addConversation(request, response, "Scripted");
-                    }
-                    synchronized(this) {
-                        if (_paused) {
-                            if (_ui != null) _ui.scriptPaused();
-                            try {
-                                wait();
-                            } catch (InterruptedException ie) {}
-                            if (_ui != null) _ui.scriptResumed();
-                        }
-                    }
-                    if (!hasNext && !_fetcher.isBusy()) _stopped = true;
-                }
-            } catch (EvalError ee) {
-                if (_ui != null) _ui.scriptError(ee);
-            } catch (Exception e) {
-                _logger.severe("Error processing the script: " + e);
+    public void runScript() {
+        if (_scriptLanguage != null && _script != null) {
+            _runScript = true;
+            synchronized (_lock) {
+                _lock.notifyAll();
             }
-            if (_ui != null) _ui.scriptStopped();
         }
-        
-        public synchronized void stopScript() {
-            _paused = false;
-            _stopped = true;
-            _executor.notify();
-        }
-        
     }
+    
 }
