@@ -9,7 +9,7 @@ package org.owasp.webscarab.ui.swing;
 import org.owasp.webscarab.model.Message;
 import javax.swing.table.AbstractTableModel;
 import java.awt.Dimension;
-
+import java.util.ArrayList;
 /**
  *
  * @author  rdawes
@@ -37,7 +37,6 @@ public class MessagePanel extends javax.swing.JPanel {
     public void setMessage(Message message) {
         _message = message;
         if (message != null) {
-            // set the headers
             _headerModel.setHeaders(_message.getHeaders());
             _cp.setContentType(message.getHeader("Content-Type"));
             _cp.setContent(message.getContent());
@@ -46,16 +45,19 @@ public class MessagePanel extends javax.swing.JPanel {
             _cp.setContentType(null);
             _cp.setContent(null);
         }
+        _modified = false;
     }
     
     public Message getMessage() {
         if (_editable) {
             if (_modified) {
-                // _message = get the most up to date contents from the selected panels
-                // _message.setHeaders(headerTableModel.getHeaders());
+                _message.setHeaders(_headerModel.getHeaders());
             }
             if (_cp.isModified()) {
                 _message.setContent(_cp.getContent());
+                if (_message.getHeader("Content-Length") != null) {
+                    _message.setHeader("Content-Length", Integer.toString(_message.getContent().length));
+                }
             }
         }
         return _message;
@@ -186,18 +188,30 @@ public class MessagePanel extends javax.swing.JPanel {
     }//GEN-END:initComponents
 
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
-        // Add your handling code here:
+        int rowIndex = headerTable.getSelectedRow();
+        if (rowIndex > -1) {
+            _headerModel.deleteRow(rowIndex);
+        }
     }//GEN-LAST:event_deleteButtonActionPerformed
 
     private void insertButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertButtonActionPerformed
-        // Add your handling code here:
+        int rowIndex = headerTable.getSelectedRow();
+        if (rowIndex > -1) {
+            _headerModel.insertRow(rowIndex);
+        } else {
+            _headerModel.insertRow(_headerModel.getRowCount());
+        }
     }//GEN-LAST:event_insertButtonActionPerformed
     
     public static void main(String[] args) {
         byte[] content = new byte[0];
         org.owasp.webscarab.model.Response response = new org.owasp.webscarab.model.Response();
         try {
-            java.io.FileInputStream fis = new java.io.FileInputStream("/home/rdawes/santam/webscarab/conversations/1-response");
+            String resp = "c:/temp/reverse/conversations/1-response";
+            if (args.length == 1) {
+                resp = args[0];
+            }
+            java.io.FileInputStream fis = new java.io.FileInputStream(resp);
             response.read(fis);
         } catch (Exception e) {
             e.printStackTrace();
@@ -243,7 +257,7 @@ public class MessagePanel extends javax.swing.JPanel {
     
     private class HeaderTableModel extends AbstractTableModel {
         
-        private String[][] _headers = null;
+        private ArrayList _headers = new ArrayList();
         private String[] _columnNames = new String[] { "Header", "Value" };
         
         public HeaderTableModel() {
@@ -254,8 +268,34 @@ public class MessagePanel extends javax.swing.JPanel {
         }
         
         public void setHeaders(String[][] headers) {
-            _headers = headers;
+            _headers.clear();
+            if (headers != null) {
+                for (int i=0; i<headers.length; i++) {
+                    _headers.add(headers[i]);
+                }
+            }
             fireTableDataChanged();
+        }
+        
+        public String[][] getHeaders() {
+            int valid = 0;
+            for (int i=0; i<_headers.size(); i++) {
+                String[] header = (String[]) _headers.get(i);
+                if (header.length == 2 && !header[0].equals("") && !header[1].equals("")) {
+                    valid++;
+                }
+            }
+            String[][] headers = new String[valid][2];
+            valid = 0;
+            for (int i=0; i<_headers.size(); i++) {
+                String[] header = (String[]) _headers.get(i);
+                if (header.length == 2 && !header[0].equals("") && !header[1].equals("")) {
+                    headers[valid][0] = header[0];
+                    headers[valid][1] = header[1];
+                    valid++;
+                }
+            }
+            return headers;
         }
         
         public int getColumnCount() {
@@ -263,17 +303,33 @@ public class MessagePanel extends javax.swing.JPanel {
         }
         
         public int getRowCount() {
-            if (_headers == null || _headers.length == 0) {
-                return 0;
-            } else {
-                return _headers.length;
-            }
+            return _headers.size();
         }
         
         public Object getValueAt(int rowIndex, int columnIndex) {
-            return _headers[rowIndex][columnIndex];
+            return ((String[])_headers.get(rowIndex))[columnIndex];
         }
         
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            return _editable;
+        }
+        
+        public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+            ((String[])_headers.get(rowIndex))[columnIndex] = (String) aValue;
+            _modified = true;
+        }
+        
+        public void insertRow(int rowIndex) {
+            _headers.add(rowIndex, new String[] { "", "" });
+            fireTableRowsInserted(rowIndex, rowIndex);
+            _modified = true;
+        }
+        
+        public void deleteRow(int rowIndex) {
+            _headers.remove(rowIndex);
+            fireTableRowsDeleted(rowIndex, rowIndex);
+            _modified = true;
+        }
     }
     
 }
