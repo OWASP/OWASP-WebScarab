@@ -90,6 +90,13 @@ public class FileSystemStore implements SiteModelStore, SpiderStore {
         } catch (IOException ioe) {
             throw new StoreException("Error creating the conversation log : " + ioe);
         }
+        String fragments = _dir + "fragments";
+        f = new File(fragments);
+        if (!f.exists() && !f.mkdirs()) {
+            throw new StoreException("Couldn't create directory " + _dir + "conversations");
+        } else if (!f.isDirectory()) {
+            throw new StoreException(_dir + "conversations exists, and is not a directory!");
+        }
     }
 
     private void initSpider() throws StoreException {
@@ -510,4 +517,47 @@ public class FileSystemStore implements SiteModelStore, SpiderStore {
         }
     }
 
+    /** retrieves a saved text fragment
+     * @param key The key used previously to save the fragment
+     * @return A String containing the fragment
+     * @throws StoreException if there are any problems reading from the Store
+     *
+     */
+    public String readFragment(String key) throws StoreException {
+        File f = new File(_dir + "fragments/" + key);
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(f));
+        } catch (FileNotFoundException fnfe) {
+            return null;
+        }
+        StringBuffer buff = new StringBuffer();
+        String line = null;
+        try {
+            while ((line = br.readLine()) != null) {
+                buff.append(line);
+            }
+        } catch (IOException ioe) {
+            throw new StoreException("Error reading fragment " + key + " : " + ioe);
+        }
+        return buff.toString();
+    }
+    
+    /** Stores a text fragment for future retrieval
+     * @param key a string which can be used to request the fragment in the future
+     * @param fragment The fragment string that should be stored.
+     * @throws StoreException if there are any problems writing to the Store
+     *
+     */
+    public void writeFragment(String key, String fragment) throws StoreException {
+        File f = new File(_dir + "fragments/" + key);
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter(f);
+            fw.write(fragment);
+        } catch (IOException ioe) {
+            throw new StoreException("Error writing fragment " + key + " : " + ioe);
+        }
+    }
+    
 }

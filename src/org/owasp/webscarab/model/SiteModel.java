@@ -77,6 +77,30 @@ public class SiteModel {
         return id;
     }
     
+    public String addFragment(String fragment) {
+        String key = null;
+        if (_store != null) {
+            try {
+                _store.writeFragment(key, fragment);
+                return key;
+            } catch (StoreException se) {
+                System.err.println("Error writing fragment to the store : " + se);
+            }
+        }
+        return null;
+    }
+    
+    public String getFragment(String key) {
+        if (_store != null) {
+            try {
+                return _store.readFragment(key);
+            } catch (StoreException se) {
+                System.err.println("Error reading fragment from the store : " + se);
+            }
+        }
+        return null;
+    }
+    
     /** Given a conversation id, returns the corresponding Conversation
      * @return the requested Conversation, or null if it does not exist
      * @param id the requested "opaque" conversation id

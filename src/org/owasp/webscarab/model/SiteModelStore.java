@@ -75,4 +75,18 @@ public interface SiteModelStore {
      * @throws StoreException if there are any problems reading from the Store
      */    
     Cookie[] readCookies() throws StoreException;
+    
+    /** Stores a text fragment for future retrieval
+     * @param key a string which can be used to request the fragment in the future
+     * @param fragment The fragment string that should be stored.
+     * @throws StoreException if there are any problems writing to the Store
+     */    
+    void writeFragment(String key, String fragment) throws StoreException;
+    
+    /** retrieves a saved text fragment
+     * @param key The key used previously to save the fragment
+     * @return A String containing the fragment
+     * @throws StoreException if there are any problems reading from the Store
+     */    
+    String readFragment(String key) throws StoreException;
 }

@@ -25,6 +25,8 @@ import java.util.Properties;
 import org.htmlparser.Parser;
 import org.htmlparser.NodeReader;
 import org.htmlparser.Node;
+import org.htmlparser.RemarkNode;
+import org.htmlparser.tags.ScriptTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
@@ -89,11 +91,23 @@ public class Framework implements Plug {
             if (content != null && content.length > 0) {
                 NodeReader reader = new NodeReader(new InputStreamReader(new ByteArrayInputStream(content)), url);
                 NodeList nodelist = new NodeList();
+                NodeList comments = new NodeList();
+                NodeList scripts = new NodeList();
                 synchronized (_parser) {
                     _parser.setReader(reader);
                     try {
+                        Node n;
                         for (NodeIterator ni = _parser.elements(); ni.hasMoreNodes();) {
-                            nodelist.add(ni.nextNode());
+                            n = ni.nextNode();
+                            n.collectInto(comments, RemarkNode.class);
+                            n.collectInto(scripts, ScriptTag.class);
+                            nodelist.add(n);
+                        }
+                        for (NodeIterator ni = comments.elements(); ni.hasMoreNodes();) {
+                            System.out.println("Comment : '" + ni.nextNode().toPlainTextString() + "'");
+                        }
+                        for (NodeIterator ni = scripts.elements(); ni.hasMoreNodes();) {
+                            System.out.println("script : '" + ni.nextNode().toPlainTextString() + "'");
                         }
                     } catch (ParserException pe) {
                         System.err.println("ParserException : " + pe);
