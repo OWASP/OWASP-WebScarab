@@ -360,7 +360,7 @@ public class URLFetcher implements HTTPClient {
         }
         
         if (invalidSocket(url)) {
-            String proxyAuth = request.getHeader("Proxy-Authentication");
+            String proxyAuth = request.getHeader("Proxy-Authorization");
             _socket = opensocket(url, proxyAuth);
             if (_response != null) {
                 return _response;
