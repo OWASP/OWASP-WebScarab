@@ -14,7 +14,7 @@ import java.util.Properties;
  */
 public class URLInfo {
 
-    private Properties _props = null;
+    private Properties _props = new Properties();
     private String _url;
     
     /** Creates a new instance of URLModel */
