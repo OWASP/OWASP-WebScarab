@@ -55,6 +55,10 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import javax.swing.AbstractAction;
+import java.awt.event.ActionEvent;
+
 import javax.swing.plaf.TextUI;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
@@ -69,6 +73,12 @@ import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.FrameworkUI;
 import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.swing.DocumentHandler;
+
+import javax.help.HelpSet;
+import javax.help.HelpBroker;
+import javax.help.CSH;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 /**
  *
@@ -95,6 +105,8 @@ public class UIFramework extends JFrame implements FrameworkUI {
     
     /** Creates new form WebScarab */
     public UIFramework(Framework framework) {
+        System.setProperty("sun.awt.exception.handler", ExceptionHandler.class.getName());
+        
         _framework = framework;
         _model = framework.getModel();
         
@@ -110,7 +122,34 @@ public class UIFramework extends JFrame implements FrameworkUI {
         
         initLogging();
         initEditorViews();
+        initHelp();
         
+        ExceptionHandler.setParentComponent(this);
+    }
+    
+    private void initHelp() {
+        try {
+            URL url = getClass().getResource("help/help.hs"); // replace this with the actual location of your help set
+            if (url == null) throw new NullPointerException("The help set could not be found");
+            HelpSet helpSet = new HelpSet(null, url);
+            HelpBroker helpBroker = helpSet.createHelpBroker();
+            contentsMenuItem.addActionListener(new CSH.DisplayHelpFromSource(helpBroker));
+            helpBroker.enableHelpKey(getRootPane(), "overview", helpSet);        // for F1
+        } catch (Throwable e) {
+            final String[] message;
+            if (e instanceof NullPointerException) {
+                message = new String[] { "Help set not found" };
+            } else if (e instanceof NoClassDefFoundError) {
+                message = new String[] {"The JavaHelp libraries could not be found", "Please add jhbasic.jar to the extension directory of your Java Runtime environment"};
+            } else {
+                message = new String[] { "Unknown error: ",e.getClass().getName(), e.getMessage()};
+            }
+            contentsMenuItem.addActionListener(new AbstractAction() {
+                public void actionPerformed(ActionEvent evt) {
+                    JOptionPane.showMessageDialog(UIFramework.this, message, "Help is not available", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+        }
     }
     
     public void run() {
@@ -202,13 +241,14 @@ public class UIFramework extends JFrame implements FrameworkUI {
         transcoderMenuItem = new javax.swing.JMenuItem();
         scriptMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
-        aboutMenuItem = new javax.swing.JMenuItem();
+        contentsMenuItem = new javax.swing.JMenuItem();
         logMenu = new javax.swing.JMenu();
         severeLogRadioButtonMenuItem = new javax.swing.JRadioButtonMenuItem();
         infoLogRadioButtonMenuItem = new javax.swing.JRadioButtonMenuItem();
         fineLogRadioButtonMenuItem = new javax.swing.JRadioButtonMenuItem();
         finerLogRadioButtonMenuItem = new javax.swing.JRadioButtonMenuItem();
         finestLogRadioButtonMenuItem = new javax.swing.JRadioButtonMenuItem();
+        aboutMenuItem = new javax.swing.JMenuItem();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -363,15 +403,8 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         helpMenu.setMnemonic('H');
         helpMenu.setText("Help");
-        aboutMenuItem.setMnemonic('A');
-        aboutMenuItem.setText("About");
-        aboutMenuItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                aboutMenuItemActionPerformed(evt);
-            }
-        });
-
-        helpMenu.add(aboutMenuItem);
+        contentsMenuItem.setText("Contents");
+        helpMenu.add(contentsMenuItem);
 
         logMenu.setMnemonic('L');
         logMenu.setText("Log level");
@@ -428,17 +461,27 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         helpMenu.add(logMenu);
 
+        aboutMenuItem.setMnemonic('A');
+        aboutMenuItem.setText("About");
+        aboutMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                aboutMenuItemActionPerformed(evt);
+            }
+        });
+
+        helpMenu.add(aboutMenuItem);
+
         mainMenuBar.add(helpMenu);
 
         setJMenuBar(mainMenuBar);
 
     }//GEN-END:initComponents
-
+    
     private void scriptMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_scriptMenuItemActionPerformed
         if (_scriptManagerFrame == null) _scriptManagerFrame = new ScriptManagerFrame(_framework.getScriptManager());
         _scriptManagerFrame.show();
     }//GEN-LAST:event_scriptMenuItemActionPerformed
-
+    
     private void wrapTextCheckBoxMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_wrapTextCheckBoxMenuItemActionPerformed
         Preferences.setPreference("TextPanel.wrap", Boolean.toString(wrapTextCheckBoxMenuItem.isSelected()));
     }//GEN-LAST:event_wrapTextCheckBoxMenuItemActionPerformed
@@ -502,7 +545,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
         Preferences.getPreferences().setProperty("WebScarab.position.x",Integer.toString(getX()));
         Preferences.getPreferences().setProperty("WebScarab.position.y",Integer.toString(getY()));
     }//GEN-LAST:event_formComponentMoved
-        
+    
     private void logLevelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logLevelActionPerformed
         String cmd = evt.getActionCommand().toUpperCase();
         if (cmd.equals("SEVERE")) { _dh.setLevel(Level.SEVERE); }
@@ -586,6 +629,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JMenuItem certsMenuItem;
+    private javax.swing.JMenuItem contentsMenuItem;
     private javax.swing.JMenuItem cookieJarMenuItem;
     private javax.swing.JMenu editorMenu;
     private javax.swing.JMenuItem exitMenuItem;
