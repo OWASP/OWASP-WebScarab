@@ -15,9 +15,6 @@ import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
 import org.owasp.webscarab.plugin.proxy.AbstractProxyPlugin;
 
-// this is not right. I guess we should define a callback interface for this, rather
-import org.owasp.webscarab.ui.swing.proxy.ManualEditFrame;
-
 import java.io.IOException;
 
 /**
@@ -31,6 +28,7 @@ public class ManualEdit extends AbstractProxyPlugin {
     private String[] interceptMethods = null;
     private boolean interceptRequest = false;
     private boolean interceptResponse = false;
+    private ConversationEditor _ce = null;
     
     /** Creates a new instance of ManualEdit */
     public ManualEdit() {
@@ -141,6 +139,10 @@ public class ManualEdit extends AbstractProxyPlugin {
         return new ProxyPlugin(in);
     }
     
+    public void setConversationEditor(ConversationEditor ce) {
+        _ce = ce;
+    }
+    
     private class ProxyPlugin implements HTTPClient {
     
         private HTTPClient _in;
@@ -156,12 +158,9 @@ public class ManualEdit extends AbstractProxyPlugin {
                     String method = request.getMethod();
                     for (int i=0; i<interceptMethods.length; i++) {
                         if (method.equals(interceptMethods[i])) {
-                            // FIXME : this should be done through an interface rather, and not
-                            // instantiate new classes here.
-                            ManualEditFrame mef = new ManualEditFrame();
-                            mef.show();
-                            request = mef.editRequest(request);
-                            mef.dispose();
+                            if (_ce != null) {
+                                request = _ce.editRequest(request);
+                            }
                         }
                     }
                 }
@@ -172,11 +171,9 @@ public class ManualEdit extends AbstractProxyPlugin {
                 if (!contentType.matches("text/.*")) {
                     return response;
                 }
-                ManualEditFrame mef = new ManualEditFrame();
-                mef.setRequest(request);
-                mef.show();
-                response = mef.editResponse(response);
-                mef.dispose();
+                if (_ce != null) {
+                    response = _ce.editResponse(request, response);
+                }
             }
             return response;
         }

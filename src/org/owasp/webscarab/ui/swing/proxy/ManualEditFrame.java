@@ -6,7 +6,10 @@
 
 package org.owasp.webscarab.ui.swing.proxy;
 
-import org.owasp.webscarab.model.*;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.plugin.proxy.module.ConversationEditor;
+
 import org.owasp.webscarab.ui.swing.RequestPanel;
 import org.owasp.webscarab.ui.swing.ResponsePanel;
 
@@ -14,7 +17,7 @@ import org.owasp.webscarab.ui.swing.ResponsePanel;
  *
  * @author  rdawes
  */
-public class ManualEditFrame extends javax.swing.JFrame {
+public class ManualEditFrame extends javax.swing.JFrame implements ConversationEditor {
     private Request _request = null;
     private RequestPanel _requestPanel;
     private Response _response = null;
@@ -39,10 +42,11 @@ public class ManualEditFrame extends javax.swing.JFrame {
         getContentPane().add(_responsePanel, gridBagConstraints);
     }
 
-    public Request editRequest(Request request) {
+    public synchronized Request editRequest(Request request) {
         _request = request;
         _requestPanel.setEditable(true);
         _requestPanel.setRequest(request);
+        show();
         synchronized (this) {
             try {
                 this.wait();
@@ -51,18 +55,25 @@ public class ManualEditFrame extends javax.swing.JFrame {
             }
         }
         _requestPanel.setEditable(false);
+        setVisible(false);
         return _request;
     }
     
-    public void setRequest(Request request) {
+    public synchronized void setRequest(Request request) {
         _requestPanel.setRequest(request);
     }
     
-    public Response editResponse(Response response) {
+    public synchronized Response editResponse(Request request, Response response) {
+        setRequest(request);
+        return editResponse(response);
+    }
+    
+    public synchronized Response editResponse(Response response) {
         _response = response;
         _responsePanel.setEditable(true);
         _responsePanel.setResponse(response);
         _responsePanel.setVisible(true);
+        show();
         synchronized (this) {
             try {
                 this.wait();
@@ -71,6 +82,7 @@ public class ManualEditFrame extends javax.swing.JFrame {
             }
         }
         _responsePanel.setEditable(false);
+        setVisible(false);
         return _response;
     }
 
@@ -176,7 +188,6 @@ public class ManualEditFrame extends javax.swing.JFrame {
     public static void main(String args[]) {
         try {
             ManualEditFrame mef = new ManualEditFrame();
-            mef.show();
             Request request = new Request();
             request.setMethod("GET");
             request.setURL("http://localhost:8080/");
@@ -191,12 +202,10 @@ public class ManualEditFrame extends javax.swing.JFrame {
             response.setHeader("Location","http://localhost:8080/index.html");
             Response r3 = mef.editResponse(response);
             System.out.println("Got response " + r3.toString());
-            mef.dispose();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton acceptButton;
