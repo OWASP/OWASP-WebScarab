@@ -182,6 +182,7 @@ public class ConnectionHandler implements Runnable {
                 Response response = null;
                 try {
                     response = hc.fetchResponse(request);
+                    if (response.getRequest() != null) request = response.getRequest();
                 } catch (IOException ioe) {
                     _logger.severe("IOException retrieving the response for " + request.getURL() + " : " + ioe);
                     response = errorResponse(request, "IOException retrieving the response: " + ioe);
