@@ -101,7 +101,6 @@ public class FileSystemStore implements FragmentsStore {
             List list = null;
             BufferedReader br = new BufferedReader(new FileReader(index));
             while ((line = br.readLine()) != null) {
-                System.out.println(">" + line);
                 if (line.equals("")) {
                     type = null;
                 } else if (type == null) {
