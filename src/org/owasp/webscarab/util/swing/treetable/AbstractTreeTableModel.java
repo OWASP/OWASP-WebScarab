@@ -5,7 +5,7 @@ import org.owasp.webscarab.util.swing.AbstractTreeModel;
 public abstract class AbstractTreeTableModel extends AbstractTreeModel implements TreeTableModel {
     
     //
-    // Default impelmentations for methods in the TreeTableModel interface. 
+    // Default implementations for methods in the TreeTableModel interface. 
     //
 
     public Class getColumnClass(int column) { 
