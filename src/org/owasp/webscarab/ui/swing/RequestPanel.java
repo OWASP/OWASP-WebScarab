@@ -36,6 +36,8 @@ public class RequestPanel extends javax.swing.JPanel {
     private BeanShellPanel _beanShellPanel;
     private TextPanel _textPanel;
     
+    private static int _preferred = -1;
+    
     /** Creates new form RequestPanel */
     public RequestPanel() {
         initComponents();
@@ -44,6 +46,7 @@ public class RequestPanel extends javax.swing.JPanel {
             public void stateChanged(ChangeEvent e) {
                 updateRequest(_selected);
                 _selected = displayTabbedPane.getSelectedIndex();
+                _preferred = _selected;
                 if (_selected >= 0) {
                     updatePanel(_selected);
                 }
@@ -71,6 +74,8 @@ public class RequestPanel extends javax.swing.JPanel {
         invalidatePanels();
         
         updateComponents(_editable);
+        
+        if (_preferred > -1 && _preferred < displayTabbedPane.getTabCount()) displayTabbedPane.setSelectedIndex(_preferred);
     }
     
     private void invalidatePanels() {

@@ -43,6 +43,8 @@ public class ContentPanel extends javax.swing.JPanel {
     private int _selected = -1;
     private boolean[] _upToDate = new boolean[] {false};
     
+    private static int _preferred = -1;
+    
     private Object[] _editorClasses = new Object[] {
         "org.owasp.webscarab.ui.swing.editors.SerializedObjectPanel",
         new String[] {"application/x-serialized-object"},
@@ -70,6 +72,7 @@ public class ContentPanel extends javax.swing.JPanel {
         viewTabbedPane.getModel().addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 updateData(_selected);
+                _preferred = viewTabbedPane.getSelectedIndex();
                 updatePanel(viewTabbedPane.getSelectedIndex());
             }
         });
@@ -83,6 +86,8 @@ public class ContentPanel extends javax.swing.JPanel {
                 System.err.println("Error instantiating " + _editorClasses[i] + " : " + e);
             }
         }
+        
+        if (_preferred > -1 && _preferred < viewTabbedPane.getTabCount()) viewTabbedPane.setSelectedIndex(_preferred);
     }
     
     public void setContent(final String type, final byte[] content, final boolean editable) {
