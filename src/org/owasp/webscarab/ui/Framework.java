@@ -19,9 +19,9 @@ import org.owasp.webscarab.plugin.WebScarabPlugin;
 import org.owasp.webscarab.plugin.Plug;
 import org.owasp.webscarab.httpclient.URLFetcher;
 
-
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.htmlparser.Parser;
 import org.htmlparser.NodeReader;
@@ -52,8 +52,10 @@ public class Framework implements Plug {
     
     private Properties _props = null;
     
+    private Logger _logger = Logger.getLogger(this.getClass().getName());
+    
     /** Creates a new instance of Framework */
-    public Framework() {
+    public Framework() {        
         _sitemodel = new SiteModel();
         
         _props = Preferences.getPreferences();
@@ -117,7 +119,7 @@ public class Framework implements Plug {
                             urlinfo.addProperty("SCRIPTS", key);
                         }
                     } catch (ParserException pe) {
-                        System.err.println("ParserException : " + pe);
+                        _logger.severe("ParserException : " + pe);
                     }
                 }
                 parsed = nodelist;
@@ -138,11 +140,11 @@ public class Framework implements Plug {
     
     private void updateURLInfo(Conversation conversation, URLInfo urlinfo) {
         if (conversation == null) {
-            System.err.println("Conversation may not be null!");
+            _logger.severe("Conversation may not be null!");
             return;
         }
         if (urlinfo == null) {
-            System.err.println("urlinfo may not be null!");
+            _logger.severe("urlinfo may not be null!");
             return;
         }
         synchronized (urlinfo) {
@@ -170,7 +172,7 @@ public class Framework implements Plug {
                     conversationbytes = Integer.parseInt(size);
                 }
             } catch (NumberFormatException nfe) {
-                System.out.println("NumberFormat Exception : " + nfe);
+                _logger.severe("NumberFormat Exception : " + nfe);
             }
             urlinfo.setProperty("TOTALBYTES", Integer.toString(urlbytes+conversationbytes));
             
@@ -189,7 +191,7 @@ public class Framework implements Plug {
                 try {
                     URLFetcher.setHttpProxy(proxy[0], Integer.parseInt(proxy[1]));
                 } catch (NumberFormatException nfe) {
-                    System.out.println("Error parsing " + prop + " from properties");
+                    _logger.severe("Error parsing " + prop + " from properties");
                 }
             } else {
                 URLFetcher.setHttpProxy(null,0);
@@ -205,7 +207,7 @@ public class Framework implements Plug {
                 try {
                     URLFetcher.setHttpsProxy(proxy[0], Integer.parseInt(proxy[1]));
                 } catch (NumberFormatException nfe) {
-                    System.out.println("Error parsing " + prop + " from properties");
+                    _logger.severe("Error parsing " + prop + " from properties");
                 }
             } else {
                 URLFetcher.setHttpsProxy(null,0);
