@@ -64,6 +64,24 @@ public abstract class AbstractTreeTableModel implements TreeTableModel {
         listenerList.remove(TreeModelListener.class, l);
     }
 
+    /**
+     * Returns an array of all the tree model listeners
+     * registered on this model.
+     *
+     * @return all of this model's <code>TreeModelListener</code>s
+     *         or an empty
+     *         array if no tree model listeners are currently registered
+     *
+     * @see #addTreeModelListener
+     * @see #removeTreeModelListener
+     *
+     * @since 1.4
+     */
+    public TreeModelListener[] getTreeModelListeners() {
+        return (TreeModelListener[])listenerList.getListeners(
+                TreeModelListener.class);
+    }
+
     /*
      * Notify all listeners that have registered interest for
      * notification on this event type.  The event instance 
@@ -172,7 +190,9 @@ public abstract class AbstractTreeTableModel implements TreeTableModel {
     // Default impelmentations for methods in the TreeTableModel interface. 
     //
 
-    public Class getColumnClass(int column) { return Object.class; }
+    public Class getColumnClass(int column) { 
+        return column == 0 ? TreeTableModel.class : Object.class;
+    }
 
    /** By default, make the column with the Tree in it the only editable one. 
     *  Making this column editable causes the JTable to forward mouse 
