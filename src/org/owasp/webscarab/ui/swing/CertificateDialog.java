@@ -81,7 +81,6 @@ public class CertificateDialog extends javax.swing.JDialog {
         getContentPane().add(jLabel4, gridBagConstraints);
 
         useCertCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        useCertCheckBox.setNextFocusableComponent(keystoreTextField);
         useCertCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 useCertCheckBoxActionPerformed(evt);

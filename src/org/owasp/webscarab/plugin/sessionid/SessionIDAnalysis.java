@@ -63,7 +63,7 @@ public class SessionIDAnalysis implements WebScarabPlugin, Runnable {
     
     private Thread _calcThread = null;
     
-    private final static int MAXLENGTH=1000; // the longest cookie we will analyse
+    private static final int MAXLENGTH=1000; // the longest cookie we will analyse
     
     /** Creates a new instance of SessionidAnalysis */
     public SessionIDAnalysis(Plug plug) {

@@ -15,3 +15,4 @@ public interface TableRow {
     void setValueAt(Object aValue, Object object, int column);
     
 }
+

@@ -28,7 +28,7 @@ public class DocumentHandler extends Handler {
         _doc = doc;
     }
     
-    public void close() throws SecurityException {
+    public void close() {
     }
     
     public void flush() {

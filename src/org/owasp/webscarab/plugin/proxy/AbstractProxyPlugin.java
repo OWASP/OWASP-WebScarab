@@ -15,7 +15,7 @@ import org.owasp.webscarab.plugin.AbstractWebScarabPlugin;
  *
  * @author  rdawes
  */
-abstract public class AbstractProxyPlugin 
+public abstract class AbstractProxyPlugin 
 	extends AbstractWebScarabPlugin
 	implements ProxyPlugin
 {

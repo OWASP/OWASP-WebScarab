@@ -57,7 +57,7 @@ public class Preferences {
         }
     }
     
-    public static void savePreferences() throws FileNotFoundException, IOException {
+    public static void savePreferences() throws IOException {
         String sep = System.getProperty("file.separator");
         String home = System.getProperty("user.home");
         String file = home + sep + "WebScarab.properties";

@@ -36,7 +36,7 @@ import java.text.ParseException;
 public class Message {
     
     private ArrayList _headers = null;
-    private final static byte[] NO_CONTENT = new byte[0];
+    private static final byte[] NO_CONTENT = new byte[0];
     
     InputStream _contentStream = null;
     ByteArrayOutputStream _content = null;

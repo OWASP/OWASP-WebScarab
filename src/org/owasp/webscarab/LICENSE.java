@@ -17,7 +17,7 @@ public final class LICENSE {
 	
 	/** A copy of the GNU GENERAL PUBLIC LICENSE (GPL), cf.
 		<a href="http://www.gnu.org">http://www.gnu.org</a> */
-	public final static String GPL =
+	public static final String GPL =
 		  "		    GNU GENERAL PUBLIC LICENSE\n"
 		+ "		       Version 2, June 1991\n"
   	+ "\n"

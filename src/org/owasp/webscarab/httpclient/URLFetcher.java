@@ -19,7 +19,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 
 import java.net.UnknownHostException;
 import java.net.SocketException;
@@ -55,15 +54,15 @@ import org.owasp.webscarab.util.LogOutputStream;
  */
 public class URLFetcher implements HTTPClient {
     
-    static private Logger _logger = Logger.getLogger("org.owasp.webscarab.httpclient.URLFetcher");
+    private static Logger _logger = Logger.getLogger("org.owasp.webscarab.httpclient.URLFetcher");
     
-    static private Properties _props = Preferences.getPreferences();
+    private static Properties _props = Preferences.getPreferences();
     
     // These represent the SSL classes required to connect to the server.
-    static private SSLSocketFactory _factory = null;
+    private static SSLSocketFactory _factory = null;
     
     // Create a trust manager that does not validate certificate chains
-    static private TrustManager[] _trustAllCerts = new TrustManager[]{
+    private static TrustManager[] _trustAllCerts = new TrustManager[]{
         new X509TrustManager() {
             public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                 return null;
@@ -127,7 +126,7 @@ public class URLFetcher implements HTTPClient {
         _serverInput = fromServer;
     }
     
-    static private void initSSLSocketFactory(KeyManager[] managers) {
+    private static void initSSLSocketFactory(KeyManager[] managers) {
         try {
             SSLContext sc = SSLContext.getInstance("SSL");
             sc.init(managers, _trustAllCerts, new java.security.SecureRandom());
@@ -141,7 +140,7 @@ public class URLFetcher implements HTTPClient {
         }
     }
     
-    static private void initSSL() {
+    private static void initSSL() {
         String certFile = getClientCertificateFile();
         if (certFile != null && !certFile.equals("")) {
             String keyStorePassword = getKeystorePassword();
@@ -163,7 +162,7 @@ public class URLFetcher implements HTTPClient {
      * @param proxy The address or name of the proxy server to use for HTTP requests
      * @param proxyport The port on the proxy server to connect to
      */
-    static public void setHttpProxy(String proxy, int proxyport) {
+    public static void setHttpProxy(String proxy, int proxyport) {
         String prop = "WebScarab.httpProxy";
         String value = proxy + ":" + Integer.toString(proxyport);
         _props.setProperty(prop, value);
@@ -173,7 +172,7 @@ public class URLFetcher implements HTTPClient {
      * will use
      * @return The address of the HTTP proxy configured, or null if none is configured
      */
-    static public String getHttpProxyServer() {
+    public static String getHttpProxyServer() {
         String prop = "WebScarab.httpProxy";
         String value = _props.getProperty(prop);
         if (value != null) {
@@ -194,7 +193,7 @@ public class URLFetcher implements HTTPClient {
      * will use
      * @return The port of the currently configured HTTP proxy, or 0 if none is configured
      */
-    static public int getHttpProxyPort() {
+    public static int getHttpProxyPort() {
         String prop = "WebScarab.httpProxy";
         String value = _props.getProperty(prop);
         if (value != null) {
@@ -215,7 +214,7 @@ public class URLFetcher implements HTTPClient {
      * @param proxy The address or name of the proxy server to use for HTTPS requests
      * @param proxyport The port on the proxy server to connect to
      */
-    static public void setHttpsProxy(String proxy, int proxyport) {
+    public static void setHttpsProxy(String proxy, int proxyport) {
         String prop = "WebScarab.httpsProxy";
         String value = proxy + ":" + Integer.toString(proxyport);
         _props.setProperty(prop, value);
@@ -225,7 +224,7 @@ public class URLFetcher implements HTTPClient {
      * will use
      * @return The address of the HTTPs proxy configured, or null if none is configured
      */
-    static public String getHttpsProxyServer() {
+    public static String getHttpsProxyServer() {
         String prop = "WebScarab.httpsProxy";
         String value = _props.getProperty(prop);
         if (value != null) {
@@ -246,7 +245,7 @@ public class URLFetcher implements HTTPClient {
      * will use
      * @return The port of the currently configured HTTP proxy, or 0 if none is configured
      */
-    static public int getHttpsProxyPort() {
+    public static int getHttpsProxyPort() {
         String prop = "WebScarab.httpsProxy";
         String value = _props.getProperty(prop);
         if (value != null) {
@@ -269,7 +268,7 @@ public class URLFetcher implements HTTPClient {
      * @param noproxy An array of hosts or domains for which no proxy should be used.
      * Domains must start with a period (".")
      */
-    static public void setNoProxy(String[] noproxy) {
+    public static void setNoProxy(String[] noproxy) {
         String prop = "WebScarab.noProxy";
         if (noproxy.length>0) {
             StringBuffer buff = new StringBuffer();
@@ -287,7 +286,7 @@ public class URLFetcher implements HTTPClient {
      * @return Returns an array of hosts and domains for which no proxy should be
      * used (i.e. direct connection should be made)
      */
-    static public String[] getNoProxy() {
+    public static String[] getNoProxy() {
         String prop = "WebScarab.noProxy";
         String value = _props.getProperty(prop);
         if (value == null || value.equals("")) {
@@ -299,7 +298,7 @@ public class URLFetcher implements HTTPClient {
     }
     
     private static KeyManager[] getKeyManagersForCertificateFile(String certFile, String keystorePassword, String keyPassword)
-    throws FileNotFoundException, IOException, KeyStoreException, CertificateException, UnrecoverableKeyException {
+    throws IOException, KeyStoreException, CertificateException, UnrecoverableKeyException {
         try {
             KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
             KeyStore ks = KeyStore.getInstance("PKCS12");
@@ -313,7 +312,7 @@ public class URLFetcher implements HTTPClient {
     }
     
     public static void setClientCertificateFile(String certFile, String keystorePassword, String keyPassword)
-    throws FileNotFoundException, IOException, KeyStoreException, CertificateException, UnrecoverableKeyException {
+    throws IOException, KeyStoreException, CertificateException, UnrecoverableKeyException {
         KeyManager[] managers = getKeyManagersForCertificateFile(certFile, keystorePassword, keyPassword);
         initSSLSocketFactory(managers);
         _props.setProperty("WebScarab.clientCertificateFile", certFile);

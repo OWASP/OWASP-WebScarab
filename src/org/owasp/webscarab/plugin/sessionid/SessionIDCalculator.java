@@ -19,7 +19,7 @@ import javax.swing.event.ListDataListener;
 public class SessionIDCalculator implements ListDataListener {
     
     private NotifiableListModel _lm;
-    private final static int MAXLENGTH = 1000; // the longest cookie we can calculate
+    private static final int MAXLENGTH = 1000; // the longest cookie we can calculate
     private int[][] _charset = new int[MAXLENGTH][128];
     private int[] _charcount = new int[MAXLENGTH];
     private String[] _chars = new String[MAXLENGTH];

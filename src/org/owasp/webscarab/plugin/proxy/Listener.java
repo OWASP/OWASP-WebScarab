@@ -13,7 +13,6 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.io.IOException;
 import java.lang.Thread;
 
@@ -42,7 +41,7 @@ public class Listener implements Runnable {
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     /** Creates a new instance of Listener */
-    public Listener(Plug plug, String address, int port, String base, ArrayList plugins) throws UnknownHostException, IOException {
+    public Listener(Plug plug, String address, int port, String base, ArrayList plugins) throws IOException {
         _plug = plug;
         
         if (address == null) {

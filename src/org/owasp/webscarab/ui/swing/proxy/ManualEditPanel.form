@@ -139,8 +139,8 @@
       <SubComponents>
         <Component class="javax.swing.JCheckBox" name="interceptResponseCheckBox">
           <Properties>
+            <Property name="text" type="java.lang.String" value="Intercept Responses :"/>
             <Property name="horizontalTextPosition" type="int" value="10"/>
-            <Property name="label" type="java.lang.String" value="Intercept responses : "/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="interceptResponseCheckBoxActionPerformed"/>

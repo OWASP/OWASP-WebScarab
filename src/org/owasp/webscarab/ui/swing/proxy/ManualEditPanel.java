@@ -1,5 +1,5 @@
 /*
- * $Id: ManualEditPanel.java,v 1.7 2004/04/19 07:45:30 rogan Exp $
+ * $Id: ManualEditPanel.java,v 1.8 2004/05/12 09:33:40 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -229,8 +229,8 @@ public class ManualEditPanel extends javax.swing.JPanel implements SwingPlugin {
 
         interceptResponsePanel.setLayout(new java.awt.GridBagLayout());
 
+        interceptResponseCheckBox.setText("Intercept Responses :");
         interceptResponseCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        interceptResponseCheckBox.setLabel("Intercept responses : ");
         interceptResponseCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 interceptResponseCheckBoxActionPerformed(evt);

@@ -29,10 +29,10 @@ public class SiteInfoModel extends AbstractTreeTableModel {
     private SiteModel _siteModel;
     
     // Names of the columns.
-    static protected String[]  cNames = {"URL", "Method", "Status", "TotalBytes", "Set-Cookie", "Comments", "Scripts"};
+    protected static String[]  cNames = {"URL", "Method", "Status", "TotalBytes", "Set-Cookie", "Comments", "Scripts"};
     
     // Types of the columns.
-    static protected Class[]  cTypes = { TreeTableModel.class,
+    protected static Class[]  cTypes = { TreeTableModel.class,
     String.class, String.class, String.class, 
     Boolean.class, Boolean.class, Boolean.class};
     
