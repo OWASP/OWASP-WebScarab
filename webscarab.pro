@@ -6,8 +6,6 @@
 -injars lib/jfreechart-0.9.12.jar
 
 -libraryjars lib/bsf-2.3.0.jar
--libraryjars /opt/j2sdk1.4.2_05/jre/lib/rt.jar
--libraryjars /opt/j2sdk1.4.2_05/jre/lib/jsse.jar
 -libraryjars /opt/eclipse/plugins/org.eclipse.tomcat_4.1.30/servlet.jar
 
 -verbose

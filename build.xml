@@ -23,7 +23,7 @@
 			<pathelement location="${jcommonjar}"/>
 		</path>
 	</target>
-	<target depends="init" name="clean">
+	<target depends="init" name="clean" description="clean up the build area">
 		<delete dir="${classes}"/>
                 <delete file="${jarname}"/>
                 <delete file="WebScarab-*.jar"/>
@@ -32,15 +32,15 @@
 			<fileset dir="${source}" includes="**/*.class"/>
 		</delete>
 	</target>
-	<target depends="init" name="prepare">
+	<target depends="init" name="prepare" description="prepare the build area">
 		<mkdir dir="${classes}"/>
 	</target>
-	<target depends="prepare" name="compile">
-                <copy file="server.p12" todir="${classes}"/>
+	<target depends="prepare" name="compile" description="Compile the sources">
 		<javac classpathref="cpath" destdir="${classes}" excludes="**/test/**" optimize="on" srcdir="${source}" listfiles="yes">
                 </javac>
 	</target>
-	<target depends="compile" name="build">
+	<target depends="compile" name="build" description="Build a jar file">
+                <copy file="server.p12" todir="${classes}"/>
 		<jar basedir="${classes}" jarfile="${jarname}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
@@ -54,7 +54,7 @@
                     </manifest>
                 </jar>
 	</target>
-	<target depends="compile" name="run">
+	<target depends="compile" name="run" description="run the program">
 		<java classname="${mainclass}" classpathref="cpath" fork="on">
 		</java>
 	</target>
@@ -63,7 +63,7 @@
       == directory, etc. 
       == IzPack is available from http://www.izforge.com/izpack/
       -->
-	<target depends="clean,build" name="installer">
+	<target depends="clean,build" name="installer" description="Build a self contained installer package">
                 <taskdef name="izpack" classpath="${basedir}/izpack/lib/compiler.jar"
                      classname="com.izforge.izpack.ant.IzPackTask"/>
 		<izpack input="${basedir}/installer/izpack.xml"
@@ -79,10 +79,12 @@
       == Unfortunately, at this time, the configuration file is heavily
       == tied to a specific desktop, and installation directories
       -->
-        <target depends="clean,build" name="proguard">
+        <target depends="clean,build" name="proguard" description="Build a standalone self-contained jar">
             <taskdef resource="proguard/ant/task.properties"
          classpath="${basedir}/proguard/lib/proguard.jar" />
             <proguard configuration="${basedir}/webscarab.pro">
+		 <libraryjar name="${java.home}/lib/rt.jar"/>
+		 <libraryjar name="${java.home}/lib/jsse.jar"/>
                  <outjar name="${basedir}/webscarab-${version}.jar"/>
             </proguard>
         </target>
