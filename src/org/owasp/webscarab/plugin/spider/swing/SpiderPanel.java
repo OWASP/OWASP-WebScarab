@@ -16,11 +16,13 @@ import org.owasp.webscarab.plugin.spider.Link;
 import org.owasp.webscarab.ui.swing.UrlTreeRenderer;
 import org.owasp.webscarab.ui.swing.SiteTreeModelAdapter;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
+import org.owasp.webscarab.util.swing.ColumnDataModel;
 
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeModel;
 import javax.swing.Action;
 import javax.swing.AbstractAction;
+import javax.swing.SwingUtilities;
 
 import java.util.logging.Logger;
 
@@ -29,7 +31,7 @@ import java.util.logging.Logger;
  * @author  rdawes
  */
 public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, SpiderUI {
-
+    
     private SiteModel _model;
     private Spider _spider;
     
@@ -53,7 +55,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
     
     public String getPluginName() {
         return new String("Spider");
-    }    
+    }
     
     private void configure() {
         recursiveCheckBox.setSelected(_spider.getRecursive());
@@ -223,11 +225,11 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
         add(linkTreePanel, gridBagConstraints);
 
     }//GEN-END:initComponents
-
+    
     private void cookieSyncCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cookieSyncCheckBoxActionPerformed
         _spider.setCookieSync(cookieSyncCheckBox.isSelected());
     }//GEN-LAST:event_cookieSyncCheckBoxActionPerformed
-
+    
     private void linkTreeFetchTreeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_linkTreeFetchTreeButtonActionPerformed
         _logger.info("called!");
         TreePath[] selection = unseenLinkTree.getSelectionPaths();
@@ -244,7 +246,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
             _logger.info("Cannot fetch a tree if there are 0 or many paths selected!");
         }
     }//GEN-LAST:event_linkTreeFetchTreeButtonActionPerformed
-
+    
     private void linkTreeFetchSelectionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_linkTreeFetchSelectionButtonActionPerformed
         TreePath[] selection = unseenLinkTree.getSelectionPaths();
         if (selection == null || selection.length == 0) return;
@@ -260,69 +262,113 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
         }
         _spider.requestLinks(urls);
     }//GEN-LAST:event_linkTreeFetchSelectionButtonActionPerformed
-
+    
     private void pathRegexTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pathRegexTextFieldFocusLost
         _spider.setForbiddenPaths(pathRegexTextField.getText());
     }//GEN-LAST:event_pathRegexTextFieldFocusLost
-
+    
     private void pathRegexTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pathRegexTextFieldActionPerformed
         _spider.setForbiddenPaths(pathRegexTextField.getText());
     }//GEN-LAST:event_pathRegexTextFieldActionPerformed
-
+    
     private void domainRegexTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_domainRegexTextFieldActionPerformed
         _spider.setAllowedDomains(domainRegexTextField.getText());
     }//GEN-LAST:event_domainRegexTextFieldActionPerformed
-
+    
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
         _spider.resetRequestQueue();
     }//GEN-LAST:event_stopButtonActionPerformed
-
+    
     private void recursiveCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recursiveCheckBoxActionPerformed
         _spider.setRecursive(recursiveCheckBox.isSelected());
     }//GEN-LAST:event_recursiveCheckBoxActionPerformed
-
+    
     public Action[] getConversationActions() {
         return null;
-    }    
-        
-    public Action[] getURLActions() {
+    }
+    
+    public Action[] getUrlActions() {
         return new Action[] {new SpiderAction()};
     }
     
-    public void linkDequeued(Link link) {
-        _logger.fine("Link will be fetched: " + link.getURL());
-    }
-    
-    public void linkQueued(Link link) {
-        _logger.fine("Link was queued: " + link.getURL());
-    }
-    
-    public void setModel(SiteModel model) {
-        _model = model;
-        if (model != null) {
-            TreeModel treeModel = new SiteTreeModelAdapter(_model) {
-                public boolean isFiltered(HttpUrl url) {
-                    return _model.getConversationCount(url) > 0;
-                }
-            };
-            unseenLinkTree.setModel(treeModel);
-            unseenLinkTree.setRootVisible(false);
-            unseenLinkTree.setShowsRootHandles(true);
-            unseenLinkTree.setCellRenderer(new UrlTreeRenderer());
+    public void linkDequeued(final Link link, final int queueSize) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            if (link != null) {
+                // _logger.info(queueSize + " in queue, fetching " + link.getURL());
+            } else {
+                // _logger.info("Cleared queue");
+            }
         } else {
-            unseenLinkTree.setModel(null);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    linkDequeued(link, queueSize);
+                }
+            });
         }
     }
     
-    public void setEnabled(boolean enabled) {
-        super.setEnabled(enabled);
-        cookieSyncCheckBox.setEnabled(enabled);
-        domainRegexTextField.setEnabled(enabled);
-        linkTreeFetchSelectionButton.setEnabled(enabled);
-        linkTreeFetchTreeButton.setEnabled(enabled);
-        pathRegexTextField.setEnabled(enabled);
-        recursiveCheckBox.setEnabled(enabled);
-        stopButton.setEnabled(enabled);
+    public void linkQueued(final Link link, final int queueSize) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            _logger.fine(queueSize + " in queue, adding: " + link.getURL());
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    linkQueued(link, queueSize);
+                }
+            });
+        }
+    }
+    
+    public void setModel(final SiteModel model) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            _model = model;
+            if (model != null) {
+                TreeModel treeModel = new SiteTreeModelAdapter(_model) {
+                    public boolean isFiltered(HttpUrl url) {
+                        return _model.getConversationCount(url) > 0;
+                    }
+                };
+                unseenLinkTree.setModel(treeModel);
+                unseenLinkTree.setRootVisible(false);
+                unseenLinkTree.setShowsRootHandles(true);
+                unseenLinkTree.setCellRenderer(new UrlTreeRenderer());
+            } else {
+                unseenLinkTree.setModel(null);
+            }
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    setModel(model);
+                }
+            });
+        }
+        
+    }
+    
+    public void setEnabled(final boolean enabled) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            cookieSyncCheckBox.setEnabled(enabled);
+            domainRegexTextField.setEnabled(enabled);
+            linkTreeFetchSelectionButton.setEnabled(enabled);
+            linkTreeFetchTreeButton.setEnabled(enabled);
+            pathRegexTextField.setEnabled(enabled);
+            recursiveCheckBox.setEnabled(enabled);
+            stopButton.setEnabled(enabled);
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    setEnabled(enabled);
+                }
+            });
+        }
+    }
+    
+    public ColumnDataModel[] getConversationColumns() {
+        return null;
+    }
+    
+    public ColumnDataModel[] getUrlColumns() {
+        return null;
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -347,7 +393,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
             putValue(SHORT_DESCRIPTION, "Fetches any unseen links below this point");
             putValue("URL", null);
         }
-
+        
         public void actionPerformed(java.awt.event.ActionEvent e) {
             Object o = getValue("URL");
             if (o == null || !(o instanceof HttpUrl)) return;
