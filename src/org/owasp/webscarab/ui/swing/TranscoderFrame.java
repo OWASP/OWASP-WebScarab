@@ -105,7 +105,6 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
          
         Document d = textPane.getDocument();
         d.addUndoableEditListener(new MyUndoableEditListener());
-        
     }
     
     //The following two methods allow us to find an
@@ -255,33 +254,43 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
     }//GEN-END:initComponents
     
     private void sha1hashButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sha1hashButtonActionPerformed
-        textPane.select(0,textPane.getText().length());
-        textPane.replaceSelection(Encoding.hashSHA(textPane.getText()));
+        if (textPane.getSelectionEnd() == textPane.getSelectionStart())
+            textPane.select(0,textPane.getText().length());
+        textPane.replaceSelection(Encoding.hashSHA(textPane.getSelectedText()));
     }//GEN-LAST:event_sha1hashButtonActionPerformed
     
     private void md5hashButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_md5hashButtonActionPerformed
-        textPane.select(0,textPane.getText().length());
-        textPane.replaceSelection(Encoding.hashMD5(textPane.getText()));
+        if (textPane.getSelectionEnd() == textPane.getSelectionStart())
+            textPane.select(0,textPane.getText().length());
+        textPane.replaceSelection(Encoding.hashMD5(textPane.getSelectedText()));
     }//GEN-LAST:event_md5hashButtonActionPerformed
     
     private void base64DecodeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_base64DecodeButtonActionPerformed
-        textPane.select(0,textPane.getText().length());
-        textPane.replaceSelection(new String(Encoding.base64decode(textPane.getText())));
+        try { 
+            if (textPane.getSelectionEnd() == textPane.getSelectionStart())
+                textPane.select(0,textPane.getText().length());
+            textPane.replaceSelection(new String(Encoding.base64decode(textPane.getSelectedText())));
+        } catch (Exception e) {
+            textPane.setText("Exception! " + e.toString());
+        }
     }//GEN-LAST:event_base64DecodeButtonActionPerformed
     
     private void urlDecodeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_urlDecodeButtonActionPerformed
-        textPane.select(0,textPane.getText().length());
-        textPane.replaceSelection(urlDecode(textPane.getText()));
+        if (textPane.getSelectionEnd() == textPane.getSelectionStart())
+            textPane.select(0,textPane.getText().length());
+        textPane.replaceSelection(urlDecode(textPane.getSelectedText()));
     }//GEN-LAST:event_urlDecodeButtonActionPerformed
             
     private void urlEncodeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_urlEncodeButtonActionPerformed
-        textPane.select(0,textPane.getText().length());
-        textPane.replaceSelection(urlEncode(textPane.getText()));
+        if (textPane.getSelectionEnd() == textPane.getSelectionStart())
+            textPane.select(0,textPane.getText().length());
+        textPane.replaceSelection(urlEncode(textPane.getSelectedText()));
     }//GEN-LAST:event_urlEncodeButtonActionPerformed
     
     private void base64EncodeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_base64EncodeButtonActionPerformed
-        textPane.select(0,textPane.getText().length());
-        textPane.replaceSelection(Encoding.base64encode(textPane.getText().getBytes()));
+        if (textPane.getSelectionEnd() == textPane.getSelectionStart())
+            textPane.select(0,textPane.getText().length());
+        textPane.replaceSelection(Encoding.base64encode(textPane.getSelectedText().getBytes()));
     }//GEN-LAST:event_base64EncodeButtonActionPerformed
     
     /** Notifies this object that it is no longer the owner of
