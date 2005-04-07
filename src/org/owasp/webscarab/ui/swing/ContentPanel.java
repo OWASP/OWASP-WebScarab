@@ -65,7 +65,7 @@ import java.util.logging.Logger;
  */
 public class ContentPanel extends javax.swing.JPanel {
     
-    private String _contentType = "";
+    private String _contentType = null;
     private boolean _editable = false;
     private boolean _modified = false;
     
@@ -120,11 +120,15 @@ public class ContentPanel extends javax.swing.JPanel {
     
     private void createPanels(final String contentType) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    createPanels(contentType);
-                }
-            });
+            try { 
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        createPanels(contentType);
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else {
             _creatingPanels = true;
             viewTabbedPane.removeAll();
@@ -143,7 +147,6 @@ public class ContentPanel extends javax.swing.JPanel {
                 }
             }
             invalidateEditors();
-            invalidate();
             revalidate();
             if (preferred > -1) {
                 viewTabbedPane.setSelectedIndex(preferred);
