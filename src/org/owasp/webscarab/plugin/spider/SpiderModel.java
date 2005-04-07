@@ -7,6 +7,7 @@
 package org.owasp.webscarab.plugin.spider;
 
 import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.SiteModelEvent;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Preferences;
@@ -28,6 +29,8 @@ public class SpiderModel extends FilteredSiteModel {
     private String _forbiddenPaths = null;
     private boolean _recursive = false;
     private boolean _cookieSync = false;
+    
+    private NamedValue[] _extraHeaders = null;
     
     /** Creates a new instance of SpiderModel */
     public SpiderModel(SiteModel model) {
@@ -124,6 +127,14 @@ public class SpiderModel extends FilteredSiteModel {
     
     public String getReferer(HttpUrl url) {
         return _model.getUrlProperty(url, "REFERER");
+    }
+    
+    public void setExtraHeaders(NamedValue[] headers) {
+        _extraHeaders = headers;
+    }
+    
+    public NamedValue[] getExtraHeaders() {
+        return _extraHeaders;
     }
     
     public void setRecursive(boolean bool) {

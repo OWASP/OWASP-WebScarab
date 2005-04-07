@@ -47,6 +47,7 @@ import org.owasp.webscarab.plugin.spider.SpiderModel;
 import org.owasp.webscarab.plugin.spider.SpiderUI;
 import org.owasp.webscarab.plugin.spider.Link;
 
+import org.owasp.webscarab.ui.swing.HeaderPanel;
 import org.owasp.webscarab.ui.swing.UrlTreeRenderer;
 import org.owasp.webscarab.ui.swing.SiteTreeModelAdapter;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
@@ -57,6 +58,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.Action;
 import javax.swing.AbstractAction;
 import javax.swing.SwingUtilities;
+import javax.swing.JOptionPane;
 
 import java.util.logging.Logger;
 
@@ -71,9 +73,13 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
     
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
+    private HeaderPanel _hp;
+    
     /** Creates new form SpiderPanel */
     public SpiderPanel(Spider spider) {
         initComponents();
+        _hp  = new HeaderPanel();
+        _hp.setEditable(true);
         
         _spider = spider;
         _model = _spider.getModel();
@@ -124,6 +130,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
         unseenLinkTree = new javax.swing.JTree();
         linkTreeFetchSelectionButton = new javax.swing.JButton();
         linkTreeFetchTreeButton = new javax.swing.JButton();
+        headerButton = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -198,9 +205,8 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         add(stopButton, gridBagConstraints);
 
         cookieSyncCheckBox.setText("Synchronise cookies");
@@ -264,7 +270,25 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
         gridBagConstraints.weighty = 1.0;
         add(linkTreePanel, gridBagConstraints);
 
+        headerButton.setText("Headers");
+        headerButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                headerButtonActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        add(headerButton, gridBagConstraints);
+
     }//GEN-END:initComponents
+
+    private void headerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_headerButtonActionPerformed
+        _hp.setHeaders(_model.getExtraHeaders());
+        JOptionPane.showMessageDialog(this, _hp, "Spider Extra Headers", JOptionPane.PLAIN_MESSAGE);
+        _model.setExtraHeaders(_hp.getHeaders());
+    }//GEN-LAST:event_headerButtonActionPerformed
     
     private void cookieSyncCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cookieSyncCheckBoxActionPerformed
         _model.setCookieSync(cookieSyncCheckBox.isSelected());
@@ -386,6 +410,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox cookieSyncCheckBox;
     private javax.swing.JTextField domainRegexTextField;
+    private javax.swing.JButton headerButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane2;

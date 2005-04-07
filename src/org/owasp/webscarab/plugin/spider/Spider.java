@@ -314,7 +314,22 @@ public class Spider implements Plugin {
         }
         req.setHeader("Host", url.getHost() + ":" + url.getPort());
         req.setHeader("Connection", "Keep-Alive");
+        NamedValue[] headers = _model.getExtraHeaders();
+        if (headers != null && headers.length > 0) {
+            for (int i=0; i< headers.length; i++) {
+                if (headers[i] != null)
+                    req.addHeader(headers[i]);
+            }
+        }
         return req;
+    }
+    
+    public void setExtraHeaders(NamedValue[] headers) {
+        _model.setExtraHeaders(headers);
+    }
+    
+    public NamedValue[] getExtraHeaders() {
+        return _model.getExtraHeaders();
     }
     
     public void flush() throws StoreException {
