@@ -121,10 +121,9 @@ public class UIFramework extends JFrame implements FrameworkUI {
         addInternalFrame(logInternalFrame);
         taskToolBar.addSeparator();
         
-        logInternalFrame.setBounds(0,0,800,600);
+        logInternalFrame.setBounds(0,400,800,200);
         summaryInternalFrame.setBounds(0,0,800,600);
         try {
-            logInternalFrame.setMaximum(true);
             summaryInternalFrame.setMaximum(true);
         } catch (Exception e) {}
         
@@ -142,8 +141,10 @@ public class UIFramework extends JFrame implements FrameworkUI {
         button.addActionListener(new AbstractAction() {
             public void actionPerformed(ActionEvent evt) {
                 try {
-                    iFrame.setMaximum(true);
+                    if (iFrame.isIcon())
+                        iFrame.setIcon(false);
                     iFrame.toFront();
+                    iFrame.setSelected(true);
                 } catch (Exception e) {
                     iFrame.toFront();
                 }
@@ -325,7 +326,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         getContentPane().add(taskToolBar, java.awt.BorderLayout.NORTH);
 
-        desktopPane.setPreferredSize(new java.awt.Dimension(800, 600));
+        desktopPane.setPreferredSize(null);
         desktopPane.setSelectedFrame(summaryInternalFrame);
         desktopPane.setAutoscrolls(true);
         getContentPane().add(desktopPane, java.awt.BorderLayout.CENTER);
