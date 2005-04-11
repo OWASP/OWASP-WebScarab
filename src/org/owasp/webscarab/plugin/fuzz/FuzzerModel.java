@@ -34,6 +34,9 @@ public class FuzzerModel extends FilteredSiteModel {
     
     private List _queuedUrls = new LinkedList();
     
+    private HttpUrl _url = null;
+    private Signature _signature = null;
+    
     /** Creates a new instance of FuzzerModel */
     public FuzzerModel(SiteModel model) {
         super(model, true, false);
@@ -41,30 +44,6 @@ public class FuzzerModel extends FilteredSiteModel {
     
     protected boolean shouldFilter(HttpUrl url) {
         return url.getParameters() != null || _model.getConversationCount(url) == 0;
-    }
-    
-    public void addSignature(HttpUrl url, Signature signature, ConversationID id) {
-        List signatures = (List) _signatures.get(url);
-        if (signatures == null) {
-            signatures = new ArrayList();
-            _signatures.put(url, signatures);
-        }
-        if (signatures.indexOf(signature)<0) {
-            signatures.add(signature);
-            fireSignatureAdded(url, signatures.size()-1);
-        }
-    }
-    
-    public int getSignatureCount(HttpUrl url) {
-        List signatures = (List) _signatures.get(url);
-        if (signatures == null) return 0;
-        return signatures.size();
-    }
-    
-    public Signature getSignature(HttpUrl url, int i) {
-        List signatures = (List) _signatures.get(url);
-        if (signatures == null) return null;
-        return (Signature) signatures.get(i);
     }
     
     public boolean isAppCandidate(HttpUrl url) {
@@ -98,12 +77,6 @@ public class FuzzerModel extends FilteredSiteModel {
         return (Boolean.valueOf(auth).equals(Boolean.TRUE));
     }
     
-    public void setConversationError(ConversationID id) {
-        _model.setConversationProperty(id, "ERRORS", "true");
-        _model.setUrlProperty(_model.getUrlOf(id), "ERRORS", "true");
-        
-    }
-    
     public boolean hasErrors(HttpUrl url) {
         String error = _model.getUrlProperty(url, "ERRORS");
         if (error == null) return false;
@@ -116,6 +89,43 @@ public class FuzzerModel extends FilteredSiteModel {
     
     public void addCheckSum(HttpUrl url, String checksum) {
         _model.addUrlProperty(url, "CHECKSUM", checksum);
+    }
+    
+    public void setUrl(HttpUrl url) {
+        setSignature(null);
+        _url = url;
+        //fireSignaturesChanged();
+    }
+    
+    public void addSignature(HttpUrl url, Signature signature, ConversationID id) {
+        List signatures = (List) _signatures.get(url);
+        if (signatures == null) {
+            signatures = new ArrayList();
+            _signatures.put(url, signatures);
+        }
+        if (signatures.indexOf(signature)<0) {
+            signatures.add(signature);
+            fireSignatureAdded(url, signatures.size()-1);
+        }
+    }
+    
+    public int getSignatureCount(HttpUrl url) {
+        if (url == null) return 0;
+        List signatures = (List) _signatures.get(url);
+        if (signatures == null) return 0;
+        return signatures.size();
+    }
+    
+    public Signature getSignature(HttpUrl url, int i) {
+        List signatures = (List) _signatures.get(url);
+        if (signatures == null) return null;
+        return (Signature) signatures.get(i);
+    }
+    
+    public void setConversationError(ConversationID id) {
+        _model.setConversationProperty(id, "ERRORS", "true");
+        _model.setUrlProperty(_model.getUrlOf(id), "ERRORS", "true");
+        
     }
     
     public void queueUrl(HttpUrl url) {
@@ -136,11 +146,16 @@ public class FuzzerModel extends FilteredSiteModel {
         _queuedUrls.clear();
     }
     
-    public int getConversationCount(HttpUrl url, Signature signature) {
+    public void setSignature(Signature signature) {
+        _signature = null;
+        // fireConversationsChanged();
+    }
+    
+    public int getConversationCount() {
         return 0;
     }
     
-    public ConversationID getConversationAt(HttpUrl url, Signature signature, int index) {
+    public ConversationID getConversationAt() {
         return null;
     }
     
