@@ -1,3 +1,44 @@
+2005-04-11 15:29  rogan
+
+	* build.xml: Update building for Javahelp
+
+2005-04-11 15:29  rogan
+
+	* src/org/owasp/webscarab/ui/swing/UIFramework.java: Fix the
+	  helpset loading
+
+2005-04-11 14:59  rogan
+
+	* installer/izpack.xml: Change to using the full javahelp jar
+
+2005-04-11 14:56  rogan
+
+	* lib/jhbasic-2.0_02.jar: [no log message]
+
+2005-04-11 14:55  rogan
+
+	* lib/jhall-2.0_02.jar: Needed for search functionality
+
+2005-04-11 14:31  rogan
+
+	* doc/userguide/swing.xml: Significant updates to the userguide.
+	  Now even includes (an) image
+
+2005-04-11 14:27  rogan
+
+	* doc/userguide/: toc.html, installing.html, requirements.html,
+	  session.html, starting.html: [no log message]
+
+2005-04-11 14:24  rogan
+
+	* doc/userguide/: proxies.png, about.html, file.html, index.html:
+	  [no log message]
+
+2005-04-11 12:27  rogan
+
+	* doc/userguide/swing.xml: Initial documentation of the WebScarab
+	  Swing interface
+
 2005-04-11 10:12  rogan
 
 	* src/org/owasp/webscarab/plugin/fuzz/FuzzerModel.java: Incoherent
