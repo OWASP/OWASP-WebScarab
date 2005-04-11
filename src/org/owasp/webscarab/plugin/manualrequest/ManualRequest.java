@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: ManualRequest.java,v 1.14 2005/04/05 11:23:40 rogan Exp $
+ * $Id: ManualRequest.java,v 1.15 2005/04/11 08:08:19 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.manualrequest;
@@ -106,19 +106,22 @@ public class ManualRequest implements Plugin {
         }
     }
     
-    public void fetchResponse() throws IOException {
-        _busy = true;
-        _status = "Started, Fetching response";
+    public synchronized void fetchResponse() throws IOException {
         if (_request != null) {
-            _response = _hc.fetchResponse(_request);
-            if (_response != null) {
-                _responseDate = new Date();
-                _framework.addConversation(_request, _response, "Manual Request");
-                if (_ui != null) _ui.responseChanged(_response);
+            try {
+                _busy = true;
+                _status = "Started, Fetching response";
+                _response = _hc.fetchResponse(_request);
+                if (_response != null) {
+                    _responseDate = new Date();
+                    _framework.addConversation(_request, _response, "Manual Request");
+                    if (_ui != null) _ui.responseChanged(_response);
+                }
+            } finally {
+                _status = "Started, Idle";
+                _busy = false;
             }
         }
-        _status = "Started, Idle";
-        _busy = false;
     }
     
     public void addRequestCookies() {
