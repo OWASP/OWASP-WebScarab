@@ -155,18 +155,19 @@ public class UIFramework extends JFrame implements FrameworkUI {
     
     private void initHelp() {
         try {
-            URL url = getClass().getResource("help/help.hs"); // replace this with the actual location of your help set
+            URL url = getClass().getResource("/help/jhelpset.hs");
             if (url == null) throw new NullPointerException("The help set could not be found");
             HelpSet helpSet = new HelpSet(null, url);
             HelpBroker helpBroker = helpSet.createHelpBroker();
             contentsMenuItem.addActionListener(new CSH.DisplayHelpFromSource(helpBroker));
-            helpBroker.enableHelpKey(getRootPane(), "overview", helpSet);        // for F1
+            helpBroker.enableHelpKey(getRootPane(), "about", helpSet);        // for F1
         } catch (Throwable e) {
+            e.printStackTrace();
             final String[] message;
             if (e instanceof NullPointerException) {
                 message = new String[] { "Help set not found" };
             } else if (e instanceof NoClassDefFoundError) {
-                message = new String[] {"The JavaHelp libraries could not be found", "Please add jhbasic.jar to the extension directory of your Java Runtime environment"};
+                message = new String[] {"The JavaHelp libraries could not be found", "Please add jhbasic.jar to the extension directory of your Java Runtime environment", e.getMessage()};
             } else {
                 message = new String[] { "Unknown error: ",e.getClass().getName(), e.getMessage()};
             }
