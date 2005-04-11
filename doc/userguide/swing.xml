@@ -109,6 +109,12 @@
       application directory is configured to be the directory in
       which the W32WinInet.dll and WebScarab JAR file is
       located.</para>
+      <figure><title>Upstream proxy dialog</title>
+          <mediaobject>
+            <imageobject><imagedata fileref="proxies.png" format="PNG"/></imageobject>
+            <textobject><phrase>Configuring upstream proxies</phrase></textobject>
+          </mediaobject>
+        </figure>
     </section>
     <section>
       <title>Client-side Certificates</title>
