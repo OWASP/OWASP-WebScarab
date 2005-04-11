@@ -241,8 +241,9 @@ public class Spider implements Plugin {
     private boolean isForbiddenPath(HttpUrl url) {
         String forbiddenPaths = _model.getForbiddenPaths();
         try {
-            return forbiddenPaths != null && !forbiddenPaths.equals("") && url.getPath().matches(forbiddenPaths);
+            return forbiddenPaths != null && !forbiddenPaths.equals("") && url.toString().matches(forbiddenPaths);
         } catch (Exception e) {
+            _logger.warning(e.getMessage());
             return true;
         }
     }
