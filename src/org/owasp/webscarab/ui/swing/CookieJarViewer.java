@@ -51,6 +51,8 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 
+import java.awt.Color;
+
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -66,6 +68,8 @@ public class CookieJarViewer extends javax.swing.JFrame {
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
+    private String _key = null;
+    
     /** Creates new form CookieJarViewer */
     public CookieJarViewer(SiteModel model) {
         _model = model;
@@ -79,14 +83,14 @@ public class CookieJarViewer extends javax.swing.JFrame {
                 if (evt.getValueIsAdjusting()) return;
                 int row = cookieTable.getSelectedRow();
                 if (row>-1) {
-                    String key = _cookieTableModel.getKeyAt(row);
-                    _logger.info("Key at row " + row + " is " + key);
-                    _detailTableModel.setKey(key);
+                    _key = _cookieTableModel.getKeyAt(row);
                 } else {
-                    _detailTableModel.setKey(null);
+                    _key = null;
                 }
+                _detailTableModel.setKey(_key);
             }
         });
+        addDialog.pack();
     }
     
     /** This method is called from within the constructor to
@@ -97,6 +101,18 @@ public class CookieJarViewer extends javax.swing.JFrame {
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
+        addDialog = new javax.swing.JDialog();
+        jLabel6 = new javax.swing.JLabel();
+        domainTextField = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        pathTextField = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        nameTextField = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        valueTextField = new javax.swing.JTextField();
+        jPanel2 = new javax.swing.JPanel();
+        okButton = new javax.swing.JButton();
+        cancelButton = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         cookieTable = new javax.swing.JTable();
@@ -107,6 +123,93 @@ public class CookieJarViewer extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         addButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
+
+        addDialog.getContentPane().setLayout(new java.awt.GridBagLayout());
+
+        addDialog.setTitle("Add Cookie");
+        addDialog.setLocationRelativeTo(null);
+        addDialog.setModal(true);
+        addDialog.setName("Add Cookie");
+        addDialog.setResizable(false);
+        jLabel6.setText("Domain : ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        addDialog.getContentPane().add(jLabel6, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        addDialog.getContentPane().add(domainTextField, gridBagConstraints);
+
+        jLabel4.setText("Path : ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        addDialog.getContentPane().add(jLabel4, gridBagConstraints);
+
+        pathTextField.setMinimumSize(new java.awt.Dimension(200, 19));
+        pathTextField.setPreferredSize(new java.awt.Dimension(400, 19));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        addDialog.getContentPane().add(pathTextField, gridBagConstraints);
+
+        jLabel5.setText("Name : ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        addDialog.getContentPane().add(jLabel5, gridBagConstraints);
+
+        nameTextField.setMinimumSize(new java.awt.Dimension(200, 19));
+        nameTextField.setPreferredSize(new java.awt.Dimension(400, 19));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        addDialog.getContentPane().add(nameTextField, gridBagConstraints);
+
+        jLabel3.setText("Value : ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        addDialog.getContentPane().add(jLabel3, gridBagConstraints);
+
+        valueTextField.setMinimumSize(new java.awt.Dimension(200, 19));
+        valueTextField.setPreferredSize(new java.awt.Dimension(400, 19));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        addDialog.getContentPane().add(valueTextField, gridBagConstraints);
+
+        okButton.setText("OK");
+        okButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                okButtonActionPerformed(evt);
+            }
+        });
+
+        jPanel2.add(okButton);
+
+        cancelButton.setText("Cancel");
+        jPanel2.add(cancelButton);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        addDialog.getContentPane().add(jPanel2, gridBagConstraints);
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -189,7 +292,6 @@ public class CookieJarViewer extends javax.swing.JFrame {
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
         addButton.setText("Add");
-        addButton.setEnabled(false);
         addButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addButtonActionPerformed(evt);
@@ -228,13 +330,32 @@ public class CookieJarViewer extends javax.swing.JFrame {
 
         pack();
     }//GEN-END:initComponents
+
+    private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
+        String domain = domainTextField.getText();
+        domainTextField.setBackground("".equals(domain)?Color.RED:Color.WHITE);
+        String path = pathTextField.getText();
+        if ("".equals(path)) path = "/";
+        String name = nameTextField.getText();
+        nameTextField.setBackground("".equals(name)?Color.RED:Color.WHITE);
+        String value = valueTextField.getText();
+        if ("".equals(domain) || "".equals(name)) return;
+        Cookie cookie = new Cookie(new Date(), name + "=" + value + "; domain=" + domain + "; path="+path);
+        _logger.info("Cookie is " + cookie);
+        _model.addCookie(cookie);
+        addDialog.hide();
+    }//GEN-LAST:event_okButtonActionPerformed
     
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
-        _detailTableModel.deleteCookieAt(cookieDetailTable.getSelectedRow());
+        int row = cookieDetailTable.getSelectedRow();
+        if (row < cookieDetailTable.getRowCount() && row > -1) {
+            Cookie cookie = _model.getCookieAt(_key, row);
+            _model.removeCookie(cookie);
+        }
     }//GEN-LAST:event_deleteButtonActionPerformed
     
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        // TODO add your handling code here:
+        addDialog.show();
     }//GEN-LAST:event_addButtonActionPerformed
     
     private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed
@@ -248,15 +369,27 @@ public class CookieJarViewer extends javax.swing.JFrame {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
+    private javax.swing.JDialog addDialog;
+    private javax.swing.JButton cancelButton;
     private javax.swing.JButton closeButton;
     private javax.swing.JTable cookieDetailTable;
     private javax.swing.JTable cookieTable;
     private javax.swing.JButton deleteButton;
+    private javax.swing.JTextField domainTextField;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTextField nameTextField;
+    private javax.swing.JButton okButton;
+    private javax.swing.JTextField pathTextField;
+    private javax.swing.JTextField valueTextField;
     // End of variables declaration//GEN-END:variables
     
     private class CookieTableModel extends AbstractTableModel {
