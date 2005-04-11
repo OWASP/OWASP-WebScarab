@@ -1,3 +1,7 @@
+2005-04-11 16:32  rogan
+
+	* build.xml: Build changes for javahelp and others
+
 2005-04-11 15:29  rogan
 
 	* build.xml: Update building for Javahelp
