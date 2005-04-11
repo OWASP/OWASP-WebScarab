@@ -1,3 +1,215 @@
+2005-04-11 10:12  rogan
+
+	* src/org/owasp/webscarab/plugin/fuzz/FuzzerModel.java: Incoherent
+	  ramblings on how the fuzzer should work
+
+2005-04-11 10:12  rogan
+
+	* src/org/owasp/webscarab/ui/swing/UIFramework.java: Make sure that
+	  the plugins are stopped, regardless of whether the model has been
+	  modified
+
+2005-04-11 10:11  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: HeaderPanel.form,
+	  HeaderPanel.java: Minor layout changes
+
+2005-04-11 10:10  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: CookieJarViewer.form,
+	  CookieJarViewer.java: Add support for adding a new cookie
+
+2005-04-11 10:09  rogan
+
+	* src/org/owasp/webscarab/plugin/spider/Spider.java: Compare the
+	  entire URL, including parameters when evaluating the forbiden
+	  paths
+
+2005-04-11 10:09  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/swing/ManualEditFrame.java:
+	  Make the accept button the default button
+
+2005-04-11 10:08  rogan
+
+	* src/org/owasp/webscarab/plugin/manualrequest/ManualRequest.java:
+	  Make sure that the busy status is updated if we get an exception
+	  when making the request
+
+2005-04-08 15:34  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: UIFramework.form,
+	  UIFramework.java: Make the internal frame selected when the
+	  button is pushed
+
+2005-04-07 10:18  rogan
+
+	* src/org/owasp/webscarab/plugin/spider/: Spider.java,
+	  SpiderModel.java, swing/SpiderPanel.form, swing/SpiderPanel.java:
+	  Adds support for setting additional headers when spidering a site
+
+2005-04-07 10:00  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ContentPanel.java: Make editor
+	  panel creation ThreadSafe/Swing safe
+
+2005-04-07 09:58  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: MessagePanel.form,
+	  MessagePanel.java: Use the new HeaderPanel class
+
+2005-04-07 09:58  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: HeaderPanel.form,
+	  HeaderPanel.java: Break Header table out into a new Panel
+
+2005-04-05 14:37  rogan
+
+	*
+	  src/org/owasp/webscarab/util/swing/MultiLineTreeCellRenderer.java:
+	  removed deprecated method
+
+2005-04-05 13:41  rogan
+
+	* installer/izpack.xml: Install additonal library jars
+
+2005-04-05 13:40  rogan
+
+	* build.xml: update to include extra library jars
+
+2005-04-05 13:37  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: UIFramework.form,
+	  UIFramework.java: Change tabbed pane to an Internal Desktop, with
+	  resizable internal frames
+
+2005-04-05 13:37  rogan
+
+	* src/org/owasp/webscarab/ui/swing/Main.java: Re-arrange plugin
+	  load order
+
+2005-04-05 13:30  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ExceptionHandler.java: Remove
+	  this handler in case we get a chained exception coming over and
+	  over again
+
+2005-04-05 13:29  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ConversationListModel.java: Some
+	  enhancements to support overriding in the future
+
+2005-04-05 13:25  rogan
+
+	* src/org/owasp/webscarab/plugin/sessionid/:
+	  SessionIDAnalysis.java, swing/SessionIDPanel.java: Improve
+	  SessionID sampling. Now we can sample from the Message body as
+	  well as from Cookies Additionally, we can use a regex to limit
+	  the sample
+
+2005-04-05 13:24  rogan
+
+	*
+	  src/org/owasp/webscarab/plugin/manualrequest/swing/ManualRequestPanel.java:
+	  Perform some additional "null" checking
+
+2005-04-05 13:23  rogan
+
+	* src/org/owasp/webscarab/plugin/manualrequest/ManualRequest.java:
+	  Fix null pointer exception when getting or setting shared cookies
+
+2005-04-05 13:21  rogan
+
+	* src/org/owasp/webscarab/plugin/fragments/: Fragments.java,
+	  swing/FragmentsPanel.form, swing/FragmentsPanel.java: Added a
+	  conversation table to show where the fragments were seen
+
+2005-04-05 13:20  rogan
+
+	* src/org/owasp/webscarab/model/: SiteModelAdapter.java,
+	  SiteModelEvent.java, SiteModelListener.java: Groundwork for
+	  improved event handling
+
+2005-04-05 13:19  rogan
+
+	* src/org/owasp/webscarab/model/: DefaultSiteModel.java,
+	  FileSystemStore.java, FilteredSiteModel.java, SiteModel.java,
+	  SiteModelStore.java: Updated to return a boolean based on whether
+	  anything changed
+
+2005-04-05 13:18  rogan
+
+	* src/org/owasp/webscarab/model/Cookie.java: fixed trimming of the
+	  cookie path name
+
+2005-04-05 13:17  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ConversationListTableModel.java:
+	  Presents a simple Conversation Table Model, based on a ListModel
+	  containing ConversationID's
+
+2005-04-05 13:14  rogan
+
+	* src/org/owasp/webscarab/ui/swing/editors/EditorFactory.java: Add
+	  references to the XMLPanel
+
+2005-04-05 13:13  rogan
+
+	* src/org/owasp/webscarab/ui/swing/editors/: XMLPanel.form,
+	  XMLPanel.java: A viewer for XML data
+
+2005-04-05 13:11  rogan
+
+	* src/org/owasp/webscarab/util/swing/DOMTreeModel.java: Maps an XML
+	  DOM to a Swing TreeModel
+
+2005-04-05 13:07  rogan
+
+	* src/org/owasp/webscarab/util/DOMHandler.java: Accepts SAX events,
+	  and creates a DOM based on them
+
+2005-04-05 13:05  rogan
+
+	* lib/tagsoup-1.0rc2.jar: An HTML SAX parser
+
+2005-04-05 13:05  rogan
+
+	*
+	  src/org/owasp/webscarab/util/swing/MultiLineTreeCellRenderer.java:
+	  A MultiLine TreeCell Renderer
+
+2005-04-01 15:27  rogan
+
+	* src/org/owasp/webscarab/ui/swing/editors/HTMLPanel.java: Initial
+	  attempt to support alternate language encodings
+
+2005-04-01 13:03  rogan
+
+	* lib/chardet.jar: support for automatic character set detection
+
+2005-04-01 12:22  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: TranscoderFrame.form,
+	  TranscoderFrame.java: Tried to improve the "Out of memory"
+	  situation that occurred if there were too many undo items. Now we
+	  limit the history to 10 edits. It is still possible to get out of
+	  memory but it should be less likely. Unfortunately, due to the
+	  nature of the error, I haven't been able to track down the exact
+	  location of the error. I can't event print a stack trace of the
+	  exception when it occurs.
+
+2005-04-01 11:00  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ExceptionHandler.java: Changed
+	  error reporting so that the error messages can be selected and
+	  copied, and long stack traces remain on screen.
+
+2005-04-01 10:59  rogan
+
+	* src/org/owasp/webscarab/plugin/scripted/swing/ScriptedPanel.java:
+	  Changed erroreporting mechanism so that wide exceptions fit onto
+	  the screen
+
 2005-03-24 23:15  rogan
 
 	* src/org/owasp/webscarab/plugin/proxy/NetworkSimulator.java:
