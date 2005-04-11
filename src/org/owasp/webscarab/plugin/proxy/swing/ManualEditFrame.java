@@ -85,6 +85,7 @@ public class ManualEditFrame extends javax.swing.JFrame {
         gridBagConstraints.weighty = 1;
         _responsePanel.setVisible(false);
         getContentPane().add(_responsePanel, gridBagConstraints);
+        getRootPane().setDefaultButton(acceptButton);
     }
     
     public Request editRequest(Request request) {
