@@ -533,6 +533,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
             try {
                 if (FileSystemStore.isExistingSession(dir)) {
                     _framework.stopPlugins();
+                    _framework.saveSessionData();
                     _framework.setSession("FileSystem", dir, "");
                     _framework.startPlugins();
                 } else {
@@ -557,6 +558,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
             try {
                 if (! FileSystemStore.isExistingSession(dir)) {
                     _framework.stopPlugins();
+                    _framework.saveSessionData();
                     _framework.setSession("FileSystem", dir, "");
                     _framework.startPlugins();
                 } else {
@@ -639,8 +641,8 @@ public class UIFramework extends JFrame implements FrameworkUI {
     }//GEN-LAST:event_windowClosing
     
     private void exit() {
-        if (_framework.isModified()) {
-            if (_framework.isRunning() && !_framework.stopPlugins()) {
+        if (_framework.isRunning() && !_framework.stopPlugins()) {
+            if (_framework.isModified()) {
                 String[] status = _framework.getStatus();
                 int count = status.length;
                 String[] message = new String[count+2];
