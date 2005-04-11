@@ -130,6 +130,7 @@ public class HeaderPanel extends javax.swing.JPanel {
         setLayout(new java.awt.BorderLayout());
 
         jScrollPane1.setMinimumSize(new java.awt.Dimension(200, 50));
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(453, 103));
         headerTable.setModel(_htm);
         jScrollPane1.setViewportView(headerTable);
 
