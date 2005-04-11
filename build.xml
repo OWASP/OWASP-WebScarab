@@ -2,12 +2,12 @@
 <project basedir="." default="all" name="webscarab">
         <target name="init">
                 <tstamp/>
-                <property name="version" value="${DSTAMP}-${TSTAMP}"/>
-                <property name="classes.dir" location="classes"/>
-                <property name="src.dir" location="${basedir}/src"/>
-                <property name="javadoc.dir" location="${basedir}/doc/api"/>
+                <property name="project.version" value="${DSTAMP}-${TSTAMP}"/>
+                <property location="${basedir}/build" name="build.dir"/>
+                <property location="${basedir}/src" name="src.dir"/>
+                <property location="${basedir}/doc/api" name="javadoc.dir"/>
                 <property name="project.name" value="${ant.project.name}"/>
-                <property name="jar" location="${project.name}-${version}.jar"/>
+                <property location="${project.name}-${project.version}.jar" name="jar"/>
                 
                 <property name="mainclass" value="org.owasp.webscarab.ui.swing.Main"/>
                 
@@ -17,12 +17,13 @@
              	<property name="beanshelljar" value="lib/bsh-2.0b1.jar"/>
              	<property name="jfreechartjar" value="lib/jfreechart-0.9.12.jar"/>
              	<property name="jcommonjar" value="lib/jcommon-0.8.7.jar"/>
-             	<property name="jhelpjar" value="lib/jhbasic-2.0_02.jar"/>
+             	<property name="jhelpjar" value="lib/jhall-2.0_02.jar"/>
              	<property name="chardetjar" value="lib/chardet.jar"/>
              	<property name="tagsoupjar" value="lib/tagsoup-1.0rc2.jar"/>
+             	<property name="javahelpstyle" value="/usr/local/share/docbook-xsl-1.68.1/javahelp/javahelp.xsl"/>
        		
                 <path id="cpath">
-			<pathelement location="${classes.dir}"/>
+			<pathelement location="${build.dir}"/>
 			<pathelement path="${concurrentjar}"/>
                         <pathelement path="${htmlparserjar}"/>
 			<pathelement location="${bsfjar}"/>
@@ -35,48 +36,51 @@
 		</path>
 	</target>
 	<target depends="init" description="clean up the build area" name="clean">
-		<delete dir="${classes.dir}"/>
+		<delete dir="${build.dir}"/>
                 <delete>
                     <fileset dir="${src.dir}" includes="**/*.class"/>
                 </delete>
-                <mkdir dir="${classes.dir}"/>
+                <mkdir dir="${build.dir}"/>
                 <delete>
                     <fileset dir="${basedir}" includes="webscarab*.jar"/>
                     <fileset dir="${basedir}" includes="webscarab*.zip"/>
                 </delete>
 	</target>
 	<target depends="init" description="prepare the build area" name="prepare">
-                <copy file="server.p12" todir="${classes.dir}"/>
-                <copy file="src/org/owasp/webscarab/plugin/scripted/script.bsh" todir="${classes.dir}/org/owasp/webscarab/plugin/scripted/"/>
-                <copy todir="${classes.dir}/org/owasp/webscarab/ui/swing/help/">
-                    <fileset dir="doc/help"/>
-                </copy>
+                <copy file="server.p12" todir="${build.dir}"/>
+                <copy file="src/org/owasp/webscarab/plugin/scripted/script.bsh" todir="${build.dir}/org/owasp/webscarab/plugin/scripted/"/>
 	</target>
 	<target depends="prepare" description="Compile the sources" name="compile">
-		<javac classpathref="cpath" deprecation="yes" destdir="${classes.dir}" excludes="**/test/**" listfiles="yes" optimize="on" srcdir="${src.dir}">
+		<javac classpathref="cpath" deprecation="yes" destdir="${build.dir}" excludes="**/test/**" listfiles="yes" optimize="on" srcdir="${src.dir}">
                 </javac>
 	</target>
-	<target depends="compile" description="Build a jar file" name="build">
-		<jar basedir="${classes.dir}" jarfile="${jar}">
+        <target depends="init" description="JavaHelp" name="javahelp">
+            <xslt basedir="doc/userguide/" destdir="${build.dir}/help" includes="swing.xml" style="${javahelpstyle}"/>
+            <copy todir="${build.dir}/help/">
+                <fileset dir="doc/userguide/" includes="*.png,*.jpg,*.gif"/>
+            </copy>
+        </target>
+	<target depends="compile,javahelp" description="run the program" name="run">
+		<java classname="${mainclass}" classpathref="cpath" fork="on">
+		</java>
+	</target>
+	<target depends="compile, javahelp" description="Build a jar file" name="build">
+		<jar basedir="${build.dir}" jarfile="${jar}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
                         <attribute name="Class-Path" value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar}"/>
                         <!-- <attribute name="Built-By" value="${user.name}"/> -->
                         <section name="common">
                             <attribute name="Implementation-Title" value="common"/>
-                            <attribute name="Implementation-Version" value="${version}"/>
+                            <attribute name="Implementation-Version" value="${project.version}"/>
                             <attribute name="Implementation-Vendor" value="OWASP Foundation."/>
                         </section>
                     </manifest>
                 </jar>
 	</target>
-	<target depends="compile" description="run the program" name="run">
-		<java classname="${mainclass}" classpathref="cpath" fork="on">
-		</java>
-	</target>
         <target depends="init" description="JavaDoc" name="javadoc">
-        <mkdir dir="${javadoc.dir}"/>
-            <javadoc destdir="${javadoc.dir}" packagenames="*" classpathref="cpath">
+            <mkdir dir="${javadoc.dir}"/>
+            <javadoc classpathref="cpath" destdir="${javadoc.dir}" packagenames="*">
                 <sourcepath>
                     <pathelement location="${src.dir}"/>
                 </sourcepath>
@@ -114,7 +118,7 @@
 		<libraryjar name="${java.home}/lib/rt.jar"/>
 		<libraryjar name="${java.home}/lib/jsse.jar"/>
                 <libraryjar name="/opt/NetBeans3.6/modules/autoload/ext/servlet-2.3.jar"/>
-                <outjar name="${basedir}/webscarab-selfcontained-${version}.jar"/>
+                <outjar name="${basedir}/webscarab-selfcontained-${project.version}.jar"/>
                 <keep name="${mainclass}">
                     <method name="main"/>
                 </keep>
@@ -123,14 +127,14 @@
                 <keep name="org.owasp.webscarab.*"/>
             </proguard>
         </target>
-        <target name="source" depends="init,clean" description="packages up the source files">
-            <zip destfile="${basedir}/webscarab-src-${version}.zip">
-                <zipfileset dir="${basedir}" includes="ChangeLog" prefix="webscarab-${version}"/>
-                <zipfileset dir="${basedir}" includes="LICENSE" prefix="webscarab-${version}"/>
-                <zipfileset dir="${basedir}" includes="README" prefix="webscarab-${version}"/>
-                <zipfileset dir="${basedir}" includes="INSTALL" prefix="webscarab-${version}"/>
-                <zipfileset dir="${basedir}" includes="build.xml" prefix="webscarab-${version}"/>
-                <zipfileset dir="${src.dir}" excludes="**/.*" prefix="webscarab-${version}/src"/>
+        <target depends="init,clean" description="packages up the source files" name="source">
+            <zip destfile="${basedir}/webscarab-src-${project.version}.zip">
+                <zipfileset dir="${basedir}" includes="ChangeLog" prefix="webscarab-${project.version}"/>
+                <zipfileset dir="${basedir}" includes="LICENSE" prefix="webscarab-${project.version}"/>
+                <zipfileset dir="${basedir}" includes="README" prefix="webscarab-${project.version}"/>
+                <zipfileset dir="${basedir}" includes="INSTALL" prefix="webscarab-${project.version}"/>
+                <zipfileset dir="${basedir}" includes="build.xml" prefix="webscarab-${project.version}"/>
+                <zipfileset dir="${src.dir}" excludes="**/.*" prefix="webscarab-${project.version}/src"/>
             </zip>
         </target>
         <target depends="clean,source,proguard,izpack" description="Build all distributables" name="dist"/>
