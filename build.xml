@@ -3,11 +3,12 @@
         <target name="init">
                 <tstamp/>
                 <property name="project.version" value="${DSTAMP}-${TSTAMP}"/>
-                <property location="${basedir}/build" name="build.dir"/>
-                <property location="${basedir}/src" name="src.dir"/>
-                <property location="${basedir}/doc/api" name="javadoc.dir"/>
+                <property name="build.dir" location="${basedir}/build"/>
+                <property name="src.dir" location="${basedir}/src"/>
+                <property name="dist.dir" location="${basedir}/dist"/>
+                <property name="javadoc.dir" location="${basedir}/doc/api"/>
                 <property name="project.name" value="${ant.project.name}"/>
-                <property location="${project.name}-${project.version}.jar" name="jar"/>
+                <property name="jar" location="${dist.dir}/${project.name}-${project.version}.jar"/>
                 
                 <property name="mainclass" value="org.owasp.webscarab.ui.swing.Main"/>
                 
@@ -37,10 +38,12 @@
 	</target>
 	<target depends="init" description="clean up the build area" name="clean">
 		<delete dir="${build.dir}"/>
+		<delete dir="${dist.dir}"/>
                 <delete>
                     <fileset dir="${src.dir}" includes="**/*.class"/>
                 </delete>
                 <mkdir dir="${build.dir}"/>
+                <mkdir dir="${dist.dir}"/>
                 <delete>
                     <fileset dir="${basedir}" includes="webscarab*.jar"/>
                     <fileset dir="${basedir}" includes="webscarab*.zip"/>
@@ -55,7 +58,7 @@
                 </javac>
 	</target>
         <target depends="init" description="JavaHelp" name="javahelp">
-            <xslt basedir="doc/userguide/" destdir="${build.dir}/help" includes="swing.xml" style="${javahelpstyle}"/>
+            <xslt basedir="doc/userguide/" destdir="${build.dir}/help" scanincludeddirectories="false" includes="swing.xml" style="${javahelpstyle}"/>
             <copy todir="${build.dir}/help/">
                 <fileset dir="doc/userguide/" includes="*.png,*.jpg,*.gif"/>
             </copy>
@@ -80,7 +83,7 @@
 	</target>
         <target depends="init" description="JavaDoc" name="javadoc">
             <mkdir dir="${javadoc.dir}"/>
-            <javadoc classpathref="cpath" destdir="${javadoc.dir}" packagenames="*">
+            <javadoc classpathref="cpath" destdir="${dist.dir}/doc/" packagenames="*">
                 <sourcepath>
                     <pathelement location="${src.dir}"/>
                 </sourcepath>
@@ -94,7 +97,7 @@
 	<target depends="clean,build" description="Build a self contained installer package" name="izpack">
                 <taskdef classname="com.izforge.izpack.ant.IzPackTask" classpath="${basedir}/izpack/lib/compiler.jar" name="izpack"/>
                 <copy file="${jar}" tofile="${basedir}/webscarab.jar"/>
-		<izpack basedir="${basedir}" input="${basedir}/installer/izpack.xml" installerType="standard" izPackDir="${basedir}/izpack/" output="${basedir}/webscarab-installer-${version}.jar"/>
+		<izpack basedir="${basedir}" input="${basedir}/installer/izpack.xml" installerType="standard" izPackDir="${basedir}/izpack/" output="${dist.dir}/webscarab-installer-${project.version}.jar"/>
 	</target>
     <!-- ${basedir}/proguard should contain the expanded proguard distribution
       == It could just be a link to the real directory, etc. 
@@ -118,7 +121,7 @@
 		<libraryjar name="${java.home}/lib/rt.jar"/>
 		<libraryjar name="${java.home}/lib/jsse.jar"/>
                 <libraryjar name="/opt/NetBeans3.6/modules/autoload/ext/servlet-2.3.jar"/>
-                <outjar name="${basedir}/webscarab-selfcontained-${project.version}.jar"/>
+                <outjar name="${dist.dir}/webscarab-selfcontained-${project.version}.jar"/>
                 <keep name="${mainclass}">
                     <method name="main"/>
                 </keep>
@@ -128,7 +131,7 @@
             </proguard>
         </target>
         <target depends="init,clean" description="packages up the source files" name="source">
-            <zip destfile="${basedir}/webscarab-src-${project.version}.zip">
+            <zip destfile="${dist.dir}/webscarab-src-${project.version}.zip">
                 <zipfileset dir="${basedir}" includes="ChangeLog" prefix="webscarab-${project.version}"/>
                 <zipfileset dir="${basedir}" includes="LICENSE" prefix="webscarab-${project.version}"/>
                 <zipfileset dir="${basedir}" includes="README" prefix="webscarab-${project.version}"/>
