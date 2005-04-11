@@ -1,0 +1,453 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+ "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<book>
+  <bookinfo>
+    <title>WebScarab</title>
+  </bookinfo>
+  <chapter id="about">
+    <title>About WebScarab</title>
+    <para>WebScarab is a development project, run under the
+    auspices of the Open Web Application Security Project (OWASP).
+    The aim of WebScarab is to provide a free (beer as well as
+    speech) tool for web application developers and reviewers to
+    use to understand the functioning of web applications, and to
+    identify possible problems that could cause those web
+    applications to mal-function.</para>
+    <para>WebScarab is licensed under the GNU General Public
+    License v2.</para>
+    <para>WebScarab is based on a plugin architecture. Currently,
+    the plugins are mostly security focused, but I'm sure that
+    "normal" web developers would also be able to benefit from some
+    of the plugins, such as the Proxy and Manual Request
+    plugins.</para>
+    <para>WebScarab is a powerful tool, and as with many tools, can
+    be used for good as well as for bad. In the hands of the
+    white-hats, WebScarab can help them to find vulnerabilities,
+    and make sure that those vulnerabilities are fixed as soon as
+    possible. In the hands of the black-hats, WebScarab allows them
+    to find and possibly exploit vulnerabilities.</para>
+    <para>
+      <emphasis>Disclaimer</emphasis>
+    </para>
+    <para>WebScarab is a tool, nothing more. It was created with
+    the best intentions. The authors cannot be held responsible for
+    what other people choose to use it for.</para>
+  </chapter>
+  <chapter id="introduction">
+    <title>Introduction</title>
+    <para>WebScarab is basically a framework for running plugins.
+    It provides a foundation for the plugins to generate requests
+    and responses (aka conversations), keep an audit record of
+    these conversations, and review what those conversations were,
+    as well as a tree view of the URL's that have been
+    "seen".</para>
+    <para>It also passes all of the conversations that the
+    framework sees to all of the plugins that are installed. This
+    allows each plugin to perform some analysis of each
+    conversation</para>
+    <para>Other services that the framework itself provides are
+    handling of upstream proxy servers, client side certificates, a
+    pool of cookies that have been seen or set by various plugins,
+    and a convenient way to perform various encodings and decoding
+    of strings.</para>
+  </chapter>
+  <chapter id="sessions">
+    <title>WebScarab session management</title>
+    <para>WebScarab uses the concept of a session to relate various
+    conversations. It is compulsory to have a session when using
+    WebScarab, because each conversation is written to the session
+    as it is seen.</para>
+    <para>At the moment, sessions can only be saved to a directory
+    on the filesystem. When creating a new session, you should
+    select an empty directory, or provide the name of a directory
+    that should be created.</para>
+    <para>By default, WebScarab creates a temporary session when it
+    is started without any parameters. This temporary session is a
+    directory created in the ${java.io.tmpdir} directory, using a
+    pattern of webscarabnnnnn.tmp.</para>
+    <para>
+    <emphasis>Note:</emphasis>This temporary directory is deleted
+    when WebScarab exits. If you wish to preserve the audit record
+    for later review, you should start a new session before
+    creating or intercepting any conversations. Alternatively, if
+    you need to save a temporary session that already contains
+    conversations, you should NOT exit WebScarab. First change to a
+    new session, or open an existing session. This causes WebScarab
+    to flush some memory-based data structures to disk. Then copy
+    or move the temporary session directory to a new
+    location.</para>
+    <para>
+    <emphasis>Note:</emphasis>It could be really useful for
+    WebScarab to store its sessions in a SQL database. Each of the
+    plugins have been implemented with an interface to its
+    "datastore". As mentioned, there is currently a FileSystemStore
+    implementation of these interfaces, which could be used as a
+    template for implementing a SQLStore. For standalone use,
+    WebScarab could use HSQLDB, or could be configured to use an
+    external database such as Oracle or PostgreSQL. This would be a
+    great feature for an interested person to contribute to
+    WebScarab.</para>
+  </chapter>
+  <chapter id="environment">
+    <title>WebScarab environmental settings</title>
+    <section>
+      <title>Upstream Proxy</title>
+      <para>If you need to use an upstream proxy setting, you can
+      configure it under the Tools -&gt; Proxies menu.</para>
+      <para>For Windows users, WebScarab has support for querying
+      Internet Explorer's proxy settings, and automatically loading
+      them into the appropriate dialog boxes. This feature requires
+      a JNI plugin/DLL, which has to be on the PATH. If the DLL was
+      successfully located, you will see a button entitled "Get IE
+      Settings". If the DLL is not found, this button is not shown.
+      If you used the WebScarab installer to install WebScarab,
+      this should all be configured. In most cases, simply
+      including the W32WinInet.dll file in the same directory as
+      the WebScarab JAR file should be sufficient. If you are
+      running WebScarab via a shortcut, make sure that the
+      application directory is configured to be the directory in
+      which the W32WinInet.dll and WebScarab JAR file is
+      located.</para>
+    </section>
+    <section>
+      <title>Client-side Certificates</title>
+      <para>WebScarab has support for client side SSL certificates.
+      At the moment, it can only access keys and certificates
+      stored in PKCS#12 format files. Simply provide the location
+      of the PKCS#12 file and the relevant passwords, and any
+      requests for SSL URLs that pass through WebScarab will be
+      made using that client certificate.</para>
+      <para>
+      <emphasis>Note:</emphasis>WebScarab can't use client-side
+      certificates on smart cards yet. There should be nothing
+      fundamental preventing WebScarab from using client
+      certificates. In fact, Sun's JRE 1.5 has basic support for
+      PKCS#11-accessible devices. It would probably be easy for
+      anyone who actually has access to a smart-card reader, and
+      the desire to implement this feature to do this. For some
+      ideas, see
+      http://java.sun.com/j2se/1.5.0/docs/guide/security/p11guide.html</para>
+    </section>
+  </chapter>
+  <chapter id="plugins">
+    <title>WebScarab Plugins</title>
+    <section>
+      <title>WebScarab plugins</title>
+      <para>WebScarab uses the concept of plugins, which can do one
+      or both of the following: 
+      <itemizedlist>
+        <listitem>Create conversations</listitem>
+        <listitem>Analyse conversations</listitem>
+      </itemizedlist></para>
+      <para>Plugins that create conversations use a plugin-specific
+      method to decide which resources to request from the server,
+      how to parameterise the request headers, etc, then submits
+      the request to the server. It then receives the response from
+      the server, can perform some computation on the response, and
+      can then decide whether or not to submit that conversation to
+      the framework.</para>
+      <para>All conversations that are submitted to the framework
+      are distributed to all of the plugins that are installed in
+      the framework. Each plugin then gets the opportunity to
+      perform some analysis on that conversation.</para>
+      <para>Current plugins include:</para>
+      <para>
+        <itemizedlist>
+          <listitem>
+            <link linkend="proxy">Proxy</link>
+          </listitem>
+          <listitem>
+            <link linkend="manualrequest">Manual Request</link>
+          </listitem>
+          <listitem>
+            <link linkend="spider">Spider</link>
+          </listitem>
+          <listitem>
+            <link>SessionID Analysis</link>
+          </listitem>
+          <listitem>
+            <link>Scripted</link>
+          </listitem>
+          <listitem>
+            <link>Fragments</link>
+          </listitem>
+        </itemizedlist>
+      </para>
+    </section>
+    <section id="proxy">
+      <title>The Proxy plugin</title>
+      <para>The proxy plugin sets up a HTTP proxy, listening by
+      default on localhost port 8008. In order to use this
+      listener, you should configure your browser to use WebScarab
+      as an upstream proxy. Once this is done, any requests that
+      your browser makes will be routed through webScarab, and will
+      be recorded and analysed.</para>
+      <para>WebScarab also has support for intercepting
+      SSL-encrypted HTTPS requests. If your browser is configured
+      to use WebScarab for SSL requests, WebScarab will use its
+      own, untrusted SSL server certificate to negotiate an
+      encrypted session with the browser, in order to read the
+      request that the browser is making to the "secure" server.
+      Naturally, since the certificate that WebScarab uses is not
+      trusted by your browser, your browser SHOULD warn you that
+      the certificate is untrusted, and give you the option to
+      continue.</para>
+      <para>
+      <emphasis>Note:</emphasis>This ability to observe what your
+      browser is sending over an SSL connection does not mean that
+      "SSL has been broken". Your browser should have given you the
+      necessary warnings. If you choose to ignore the warnings, it
+      is not a failure of SSL.</para>
+      <section id="listeners">
+        <title>Proxy listeners</title>
+        <para>WebScarab supports multiple HTTP listeners. The
+        Listener allows you to specify the IP address and port that
+        the Listener listens on. 
+        <emphasis>Note :</emphasis>By default, WebScarab listens
+        only on localhost, so as to eliminate the possibility of
+        unauthorized anonymous proxying.</para>
+        <para>WebScarab allows you to specify a "base address" for
+        a Listener. The base address instructs the Listener to
+        operate as a reverse proxy, and should be formatted as a
+        HTTP or HTTPS URL. In this mode, it will act as a web
+        server, rather than as a proxy server, and will construct
+        the URL by concatenating the base URL and the path that
+        appears in the request line. If the base URL is an HTTPS
+        URL, it will immediately negotiate an SSL tunnel prior to
+        trying to read the request from the browser.</para>
+        <para>The network simulator allows the user to limit the
+        bandwidth available to the client, and introduces
+        artificial latencies.</para>
+        <para>On the Windows platform, if the W32WinInet DLL is
+        loaded by WebScarab, the Listener that is marked as primary
+        will automatically "hijack" the Internet Explorer when it
+        starts, and configure Internet Explorer (and all other
+        WinInet based applications) to use WebScarab as a proxy.
+        When the Listener stops (for example, if it is manually
+        stopped, or if WebScarab exits), the original settings will
+        be restored. Obviously, it makes no sense to configure
+        multiple Primary listeners, as they will conflict with each
+        other, and probably result in the wrong proxy settings
+        being restored when WebScarab is closed.</para>
+      </section>
+      <section>
+        <title>Active conversations</title>
+        <para>Below the Listener configuration is a table which
+        shows recent and current requests which have been handled
+        by the various Listeners. This can be useful when
+        troubleshooting connectivity errors, since the proxy will
+        not save failed requests to the general Summary.</para>
+        <para>A useful option might be to have a specific option
+        for increasing the debugging output in the Proxy plugin,
+        for detailed debugging</para>
+      </section>
+      <section id="proxyplugins">
+        <title>Proxy plugins</title>
+        <para>It is possible to write proxy plugins that perform
+        various modifications to the requests and responses in
+        transit through the proxy. Current plugins are: 
+        <itemizedlist>
+          <listitem>
+            <link linkend="proxyintercept">Manual Intercept</link>
+          </listitem>
+          <listitem>
+            <link linkend="proxybeanshell">Bean Shell</link>
+          </listitem>
+          <listitem>
+            <link linkend="proxymisc">Reveal hidden form
+            fields</link>
+          </listitem>
+          <listitem>
+            <link linkend="proxymisc">Prevent browser caching
+            content</link>
+          </listitem>
+          <listitem>
+            <link linkend="proxymisc">Inject known cookies into
+            requests</link>
+          </listitem>
+          <listitem>
+            <link linkend="proxymisc">Extract cookies from
+            responses</link>
+          </listitem>
+          <listitem>
+            <link linkend="proxymisc">Remove NTLM authentication
+            headers</link>
+          </listitem>
+        </itemizedlist></para>
+        <section id="proxyintercept">
+          <title>Manual Intercept</title>
+          <para>The Manual Intercept proxy plugin allows the user
+          to intercept requests from the browser and responses from
+          the server, inspect them, and optionally modify them
+          before transmission. This is particularly useful when one
+          wants to sumbmit a form to a webserver, but JavaScript
+          validation rejects the values that you would like to
+          submit.The request can be altered after the validation
+          has been performed.</para>
+          <para>The user has the option to intercept requests with
+          specific methods, by selecting from the "Methods" list.
+          If one wants to select more than a single method, use
+          Ctrl when clicking to select additional items.</para>
+          <para>The user also has the ability to specify a Java
+          Regular Expression that the URL must match in order to be
+          intercepted. You also have the option to specify a
+          regular expression that matches URLs that should not be
+          intercepted. Once can also specify whether the Regular
+          Expression should be evaluated in a Case Sensitive
+          fashion, for instance where the image file extension is
+          .GIF</para>
+          <para>WebScarab can also intercept responses coming from
+          the server, and modify those before they are relayed to
+          the browser. You can specify a Regular Expression that
+          the response Content-Type header should match in order to
+          be intercepted.</para>
+        </section>
+        <section id="proxybeanshell">
+          <title>Bean Shell</title>
+          <para>The Bean Shell proxy plugin enables scripted
+          modifications of the request and response. This is
+          particularly useful when one wants to perform the same
+          modification to a number of conversations, or if the
+          modification is particularly complex. The script has
+          complete access to the request before it is sent to the
+          server, and the response before it is sent to the
+          browser. The request and response objects are currently
+          only fully documented in the JavaDoc for the relevant
+          classes (org.owasp.webscarab.model.Request and
+          org.owasp.webscarab.model.Response).</para>
+          <para>
+          <emphasis>Note :</emphasis>Changes made to the script in
+          the editor window only take effect when the "Commit"
+          button is pressed.</para>
+        </section>
+        <section id="proxymisc">
+          <title>Miscellaneous plugins</title>
+          <para>There are a number of miscellaneous plugins that
+          can operate on proxied conversations. 
+          <itemizedlist>
+            <listitem>The "Reveal hidden fields" plugin changes any
+            forms fields with the type of "hidden" to have a type
+            of "text". This causes the browser to display these
+            fields, and makes it easy for the user to modify the
+            fields, as well as observing when such hidden fields
+            are being used.</listitem>
+            <listitem>The "prevent caching" plugin removes any
+            "if-modified-since" or similar headers from requests to
+            ensure that WebScarab always has a copy of the response
+            body, rather than allowing the browser to use a locally
+            cached copy.</listitem>
+            <listitem>The "Inject cookies" plugin allows WebScarab
+            to override any cookies in the browser, or to supply
+            cookies that the browser does not know about. The
+            cookies are retrieved from the "Shared cookies" list,
+            and are filtered for applicability according to the
+            domain and path attributes.</listitem>
+            <listitem>The "Collect cookies" plugin extracts any
+            "Set-Cookie" headers from responses passing through the
+            proxy, and adds those to the "Shared cookies" list.
+            these can later be used by other plugins to maintain
+            state, if desired.</listitem>
+            <listitem>NTLM authentication cannot be used through a
+            proxy. However, since browsers should use the strongest
+            authentication method available, Internet Explorer will
+            usually try to use NTLM authentication in favour of
+            Basic, and will fail. However, IE will not then fall
+            back to using Basic authentication. WebScarab works
+            around this problem by removing or modifying any
+            Authenticate headers that offer the NTLM protocol. If
+            your upstream proxy or target web server require NTLM
+            authentication you may want to try using APS (the
+            authenticating proxy server) which DOES support NTLM
+            authentication. It may be possible to run both
+            WebScarab and APS in a chained configuration (with APS
+            closer to the target). This has not been tested,
+            however. 
+            <emphasis>Note :</emphasis>Interestingly enough, it IS
+            possible to perform SPNEGO authentication through a
+            proxy. In particular, since WebScarab supports
+            persistent connections, it is possible to monitor
+            proxied conversations to a server that uses SPNEGO,
+            although each portion of the protocol negotiation
+            between the browser and server will be recorded, and
+            will result in a number of 401 responses ending up in
+            the logs. This should even work for intercepted SSL
+            connections!</listitem>
+          </itemizedlist></para>
+        </section>
+      </section>
+    </section>
+    <section id="manualrequest">
+      <title>The Manual Request plugin</title>
+      <para>The Manual Request plugin allows the user to handcraft
+      a reuest to be sent to the server. It is also possible to
+      replay a previous request by selecting it from the drop down
+      selection box. Previous requests which are loaded into the
+      editor can also be edited before being sent to the server, of
+      course. When the "Fetch Response" button is selected,
+      WebScarab sends the request to the appropriate server, and
+      saves the conversation for analysis by the other WebScarab
+      plugins.</para>
+      <para>Selecting "Get cookies" button gets cookies relevant to
+      the requested URL from the "Shared Cookies" list, and adds
+      them to the request.</para>
+      <para>The "Update CookieJar" button looks for any
+      "Set-Cookie" headers in the response that was retrieved, and
+      adds them to the "Shared Cookies" list.</para>
+    </section>
+    <section id="spider">
+      <title>The Spider plugin</title>
+      <para>The Spider plugin analyses responses to identify any
+      links in the response body, or the "Location" header. If the
+      URL represented has not been seen, the URL is added to a
+      tree, and can be automatically downloaded when desired.
+      WebScarab has two modes of fetching unseen links. "Fetch
+      Tree" enumerates all currently unknown links below the
+      selected node, and queues them for retrieval. "Fetch
+      Selection" queues only the selected nodes for
+      retrieval.</para>
+    </section>
+  </chapter>
+  <chapter id="appendix">
+    <title>Appendix</title>
+    <section id="javadocs">
+      <title>Request and Response methods</title>
+      <para>Request methods that you may use are: 
+      <itemizedlist>
+        <listitem>String getMethod()</listitem>
+        <listitem>void setMethod(String method)</listitem>
+        <listitem>HttpUrl getURL()</listitem>
+        <listitem>void setURL(HttpUrl url)</listitem>
+        <listitem>void setURL(String url) throws
+        MalformedURLException</listitem>
+        <listitem>String getVersion()</listitem>
+        <listitem>void setVersion(String version)</listitem>
+      </itemizedlist></para>
+      <para>Response methods that you may use are: 
+      <itemizedlist>
+        <listitem>String getVersion()</listitem>
+        <listitem>void setVersion(String version)</listitem>
+        <listitem>String getStatus()</listitem>
+        <listitem>void getStatus(String status)</listitem>
+        <listitem>String getMessage()</listitem>
+        <listitem>void setMessage(String message)</listitem>
+        <listitem>String getStatusLine()</listitem>
+      </itemizedlist></para>
+      <para>The following methods are common to both the Request
+      and Response objects: 
+      <itemizedlist>
+        <listitem>String[] getHeaderNames()</listitem>
+        <listitem>String getHeader(String name)</listitem>
+        <listitem>void setHeader(String name, String
+        value)</listitem>
+        <listitem>void addHeader(String name, String
+        value)</listitem>
+        <listitem>void deleteHeader(String name)</listitem>
+        <listitem>NamedValue[] getHeaders()</listitem>
+        <listitem>void setheaders(NamedValue[] headers)</listitem>
+        <listitem>byte[] getContent()</listitem>
+        <listitem>void setContent(byte[] content)</listitem>
+      </itemizedlist></para>
+    </section>
+  </chapter>
+</book>
