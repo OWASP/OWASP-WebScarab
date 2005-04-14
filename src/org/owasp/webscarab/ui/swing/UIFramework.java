@@ -167,7 +167,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
             if (e instanceof NullPointerException) {
                 message = new String[] { "Help set not found" };
             } else if (e instanceof NoClassDefFoundError) {
-                message = new String[] {"The JavaHelp libraries could not be found", "Please add jhbasic.jar to the extension directory of your Java Runtime environment", e.getMessage()};
+                message = new String[] {"The JavaHelp libraries could not be found", "Please add jhall.jar to the extension directory of your Java Runtime environment", e.getMessage()};
             } else {
                 message = new String[] { "Unknown error: ",e.getClass().getName(), e.getMessage()};
             }
@@ -653,6 +653,8 @@ public class UIFramework extends JFrame implements FrameworkUI {
                 int choice = JOptionPane.showOptionDialog(this, message, "Error - Plugins are busy", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, null, null);
                 if (choice != JOptionPane.YES_OPTION) return;
             }
+        }
+        if (_framework.isModified()) {
             try {
                 _framework.saveSessionData();
             } catch (Exception e) {
