@@ -63,11 +63,11 @@
                 <fileset dir="doc/userguide/" includes="*.png,*.jpg,*.gif"/>
             </copy>
         </target>
-	<target depends="compile,javahelp" description="run the program" name="run">
+	<target depends="javahelp,compile" description="run the program" name="run">
 		<java classname="${mainclass}" classpathref="cpath" fork="on">
 		</java>
 	</target>
-	<target depends="compile, javahelp" description="Build a jar file" name="build">
+	<target depends="javahelp,compile" description="Build a jar file" name="build">
 		<jar basedir="${build.dir}" jarfile="${jar}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
