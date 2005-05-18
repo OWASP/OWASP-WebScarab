@@ -203,9 +203,6 @@ public class MiscPanel extends javax.swing.JPanel implements ProxyPluginUI {
         _revealHidden.setEnabled(interceptHiddenFieldCheckBox.isSelected());
     }//GEN-LAST:event_interceptHiddenFieldCheckBoxActionPerformed
 
-    public void setModel(org.owasp.webscarab.model.SiteModel model) {
-    }
-    
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
         browserCacheCheckBox.setEnabled(enabled);

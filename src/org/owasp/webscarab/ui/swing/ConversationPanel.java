@@ -45,7 +45,6 @@ import javax.swing.JSplitPane;
 import javax.swing.border.TitledBorder;
 
 import org.owasp.webscarab.model.ConversationID;
-import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;

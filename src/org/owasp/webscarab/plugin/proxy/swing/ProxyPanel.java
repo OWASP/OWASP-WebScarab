@@ -41,7 +41,6 @@ package org.owasp.webscarab.plugin.proxy.swing;
 
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.model.SiteModel;
 
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 

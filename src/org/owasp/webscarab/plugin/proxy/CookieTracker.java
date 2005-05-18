@@ -42,12 +42,12 @@ package org.owasp.webscarab.plugin.proxy;
 import java.io.IOException;
 import java.util.Date;
 import org.owasp.webscarab.httpclient.HTTPClient;
+import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.model.SiteModel;
 
 import org.owasp.webscarab.plugin.Framework;
 
@@ -57,7 +57,7 @@ import org.owasp.webscarab.plugin.Framework;
  */
 public class CookieTracker extends ProxyPlugin {
     
-    private SiteModel _model = null;
+    private FrameworkModel _model = null;
     
     private boolean _injectRequests = false;
     private boolean _readResponses = false;

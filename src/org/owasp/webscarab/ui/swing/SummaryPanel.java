@@ -39,8 +39,8 @@
 
 package org.owasp.webscarab.ui.swing;
 
-import org.owasp.webscarab.model.SiteModel;
-import org.owasp.webscarab.model.FilteredSiteModel;
+import org.owasp.webscarab.model.FrameworkModel;
+import org.owasp.webscarab.model.FilteredUrlModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.ConversationID;
 
@@ -81,12 +81,13 @@ import java.util.logging.Logger;
  */
 public class SummaryPanel extends javax.swing.JPanel {
     
-    private SiteModel _model;
+    private FrameworkModel _model;
+    private FilteredUrlModel _urlModel;
     private JTreeTable _urlTreeTable;
     private ArrayList _urlActions = new ArrayList();
     private HttpUrl _treeURL = null;
     private ConversationTableModel _conversationTableModel;
-    private SiteTreeTableModelAdapter _urlTreeTableModel;
+    private UrlTreeTableModelAdapter _urlTreeTableModel;
     private ArrayList _conversationActions = new ArrayList();
     
     private Map _urlColumns = new HashMap();
@@ -94,11 +95,12 @@ public class SummaryPanel extends javax.swing.JPanel {
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates new form SummaryPanel */
-    public SummaryPanel(SiteModel model) {
+    public SummaryPanel(FrameworkModel model) {
         // FIXME this is the wrong place for this, I think?
-        _model = new FilteredSiteModel(model, true, false) {
+        _model = model;
+        _urlModel = new FilteredUrlModel(model.getUrlModel()) {
             protected boolean shouldFilter(HttpUrl url) {
-                return this._model.getConversationCount(url) == 0;
+                return _model.getUrlProperty(url, "METHODS") == null;
             }
         };
         initComponents();
@@ -112,11 +114,7 @@ public class SummaryPanel extends javax.swing.JPanel {
     }
     
     private void initTree() {
-        _urlTreeTableModel = new SiteTreeTableModelAdapter(_model) {
-            public boolean isFiltered(HttpUrl url) {
-                return ((SiteTreeTableModelAdapter)this)._model.getConversationCount(url) == 0;
-            }
-        };
+        _urlTreeTableModel = new UrlTreeTableModelAdapter(_urlModel);
         _urlTreeTable = new JTreeTable(_urlTreeTableModel);
         
         ColumnDataModel cdm = new ColumnDataModel() {
@@ -218,7 +216,7 @@ public class SummaryPanel extends javax.swing.JPanel {
     }
     
     private void initTable() {
-        _conversationTableModel = new ConversationTableModel(_model);
+        _conversationTableModel = new ConversationTableModel(_model, _model.getConversationModel());
         
         ColumnDataModel cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
@@ -233,7 +231,7 @@ public class SummaryPanel extends javax.swing.JPanel {
         cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
                 if (_model == null) return null;
-                HttpUrl url = _model.getUrlOf((ConversationID) key);
+                HttpUrl url = _model.getRequestUrl((ConversationID) key);
                 return url.getScheme() + "://" + url.getHost() + ":" + url.getPort();
             }
             public String getColumnName() { return "Host"; }
@@ -244,7 +242,7 @@ public class SummaryPanel extends javax.swing.JPanel {
         cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
                 if (_model == null) return null;
-                HttpUrl url = _model.getUrlOf((ConversationID) key);
+                HttpUrl url = _model.getRequestUrl((ConversationID) key);
                 return url.getPath();
             }
             public String getColumnName() { return "Path"; }
@@ -255,7 +253,7 @@ public class SummaryPanel extends javax.swing.JPanel {
         cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
                 if (_model == null) return null;
-                HttpUrl url = _model.getUrlOf((ConversationID) key);
+                HttpUrl url = _model.getRequestUrl((ConversationID) key);
                 return url.getParameters();
             }
             public String getColumnName() { return "Parameters"; }

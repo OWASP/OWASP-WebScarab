@@ -6,13 +6,16 @@
 
 package org.owasp.webscarab.plugin.fuzz;
 
-import org.owasp.webscarab.model.SiteModel;
-import org.owasp.webscarab.model.SiteModelAdapter;
-import org.owasp.webscarab.model.SiteModelEvent;
-import org.owasp.webscarab.model.FilteredSiteModel;
+import org.owasp.webscarab.model.FrameworkModel;
+import org.owasp.webscarab.model.FrameworkEvent;
+import org.owasp.webscarab.model.FrameworkListener;
+import org.owasp.webscarab.model.FilteredUrlModel;
+import org.owasp.webscarab.model.UrlModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.ConversationID;
+
+import org.owasp.webscarab.plugin.AbstractPluginModel;
 
 import java.util.logging.Logger;
 
@@ -26,7 +29,9 @@ import java.util.LinkedList;
  *
  * @author  rogan
  */
-public class FuzzerModel extends FilteredSiteModel {
+public class FuzzerModel extends AbstractPluginModel {
+    
+    private FrameworkModel _model = null;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -38,12 +43,9 @@ public class FuzzerModel extends FilteredSiteModel {
     private Signature _signature = null;
     
     /** Creates a new instance of FuzzerModel */
-    public FuzzerModel(SiteModel model) {
-        super(model, true, false);
-    }
-    
-    protected boolean shouldFilter(HttpUrl url) {
-        return url.getParameters() != null || _model.getConversationCount(url) == 0;
+    public FuzzerModel(FrameworkModel model) {
+        super(model);
+        _model = model;
     }
     
     public boolean isAppCandidate(HttpUrl url) {
@@ -55,6 +57,10 @@ public class FuzzerModel extends FilteredSiteModel {
             return true;
         }
         return false;
+    }
+    
+    public UrlModel getUrlModel() {
+        return null;
     }
     
     public void setBlankRequest(HttpUrl url) {
@@ -124,8 +130,7 @@ public class FuzzerModel extends FilteredSiteModel {
     
     public void setConversationError(ConversationID id) {
         _model.setConversationProperty(id, "ERRORS", "true");
-        _model.setUrlProperty(_model.getUrlOf(id), "ERRORS", "true");
-        
+        _model.setUrlProperty(_model.getRequestUrl(id), "ERRORS", "true");
     }
     
     public void queueUrl(HttpUrl url) {
@@ -248,12 +253,21 @@ public class FuzzerModel extends FilteredSiteModel {
         }
     }
     
-    private class Listener extends SiteModelAdapter {
+    private class Listener implements FrameworkListener {
         
-        public Listener() {
+        public void conversationPropertyChanged(FrameworkEvent evt) {
         }
         
-        public void urlChanged(SiteModelEvent evt) {
+        public void cookieAdded(FrameworkEvent evt) {
+        }
+        
+        public void cookieRemoved(FrameworkEvent evt) {
+        }
+        
+        public void cookiesChanged() {
+        }
+        
+        public void urlPropertyChanged(FrameworkEvent evt) {
             HttpUrl url = evt.getUrl();
             String property = evt.getPropertyName();
             if (property == null) return;
@@ -264,8 +278,6 @@ public class FuzzerModel extends FilteredSiteModel {
             if (property.equals("AUTHREQUIRED")) fireAuthenticationRequired(url);
         }
         
-        public void dataChanged(SiteModelEvent evt) {
-        }
-        
     }
+
 }

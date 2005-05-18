@@ -42,7 +42,6 @@ package org.owasp.webscarab.plugin.sessionid.swing;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.model.SiteModel;
 
 import org.owasp.webscarab.ui.swing.ConversationListModel;
 import org.owasp.webscarab.ui.swing.ConversationRenderer;
@@ -52,7 +51,8 @@ import org.owasp.webscarab.ui.swing.SwingPluginUI;
 
 import org.owasp.webscarab.plugin.sessionid.SessionID;
 import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysis;
-import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysisUI;
+import org.owasp.webscarab.plugin.sessionid.SessionIDModel;
+import org.owasp.webscarab.plugin.sessionid.SessionIDListener;
 
 import org.owasp.webscarab.util.swing.ListComboBoxModel;
 import org.owasp.webscarab.util.swing.SwingWorker;
@@ -104,7 +104,7 @@ import java.util.regex.PatternSyntaxException;
  *
  * @author  rdawes
  */
-public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI, SessionIDAnalysisUI {
+public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI, SessionIDListener {
     
     private final RequestPanel _requestPanel;
     private final ResponsePanel _responsePanel;
@@ -118,7 +118,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
     
     private DefaultListModel _sessionIDNames = new DefaultListModel();
     
-    private SiteModel _model;
+    private SessionIDModel _model;
     
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
@@ -147,8 +147,8 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         conversationSplitPane.setBottomComponent(_responsePanel);
         
         _sessionIDNames.clear();
-        for (int i=0; i<_sa.getSessionIDNameCount(); i++) {
-            _sessionIDNames.addElement(_sa.getSessionIDName(i));
+        for (int i=0; i<_model.getSessionIDNameCount(); i++) {
+            _sessionIDNames.addElement(_model.getSessionIDName(i));
         }
         
         requestComboBox.addActionListener(new ActionListener() {
@@ -172,14 +172,14 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         _tableModel.fireTableDataChanged();
         
         nameComboBox.setModel(new ListComboBoxModel(_sessionIDNames));
-        _sa.setUI(this);
+        _model.addModelListener(this);
         
         idTable.setModel(new TableSorter(_tableModel, idTable.getTableHeader()));
         idTable.setDefaultRenderer(Date.class, new DateRenderer());
         
-        _conversationList = new ConversationListModel(_model);
+        _conversationList = new ConversationListModel(_model.getConversationModel());
         requestComboBox.setModel(new ListComboBoxModel(_conversationList));
-        requestComboBox.setRenderer(new ConversationRenderer(_model));
+        requestComboBox.setRenderer(new ConversationRenderer(_model.getConversationModel()));
     }
     
     /** This method is called from within the constructor to
@@ -536,9 +536,9 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
     public void sessionIDsChanged() {
         if (SwingUtilities.isEventDispatchThread()) {
             _key = null;
-            int count = _sa.getSessionIDNameCount();
+            int count = _model.getSessionIDNameCount();
             for (int i=0; i<count; i++) {
-                _sessionIDNames.addElement(_sa.getSessionIDName(i));
+                _sessionIDNames.addElement(_model.getSessionIDName(i));
             }
             _sidd.fireDatasetChanged();
             _tableModel.fireTableDataChanged();
@@ -605,6 +605,12 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         return null;
     }
     
+    public void pluginRunStatusChanged(boolean running, boolean stopping) {
+    }
+    
+    public void pluginStatusChanged(String status) {
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel actionPanel;
     private javax.swing.JPanel analysisPanel;
@@ -664,17 +670,17 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         
         public int getItemCount(int series) {
             if (_key == null) return 0;
-            return _sa.getSessionIDCount(_key);
+            return _model.getSessionIDCount(_key);
         }
         
         public Number getXValue(int series, int item) {
-            SessionID id = _sa.getSessionIDAt(_key, item);
+            SessionID id = _model.getSessionIDAt(_key, item);
             return new Long(id.getDate().getTime());
         }
         
         public Number getYValue(int series, int item) {
-            SessionID id = _sa.getSessionIDAt(_key, item);
-            BigInteger bi = _sa.getSessionIDValue(_key, id);
+            SessionID id = _model.getSessionIDAt(_key, item);
+            BigInteger bi = _model.getSessionIDValue(_key, id);
             if (bi == null) {
                 return new Double(0);
             } else {
@@ -707,23 +713,23 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         
         public int getRowCount() {
             if (_key == null) return 0;
-            return _sa.getSessionIDCount(_key);
+            return _model.getSessionIDCount(_key);
         }
         
         public Object getValueAt(int rowIndex, int columnIndex) {
             if (_key == null) return null;
-            SessionID id = _sa.getSessionIDAt(_key, rowIndex);
+            SessionID id = _model.getSessionIDAt(_key, rowIndex);
             switch(columnIndex) {
                 case 0: return id.getDate();
                 case 1: return id.getValue();
-                case 2: return _sa.getSessionIDValue(_key, id);
+                case 2: return _model.getSessionIDValue(_key, id);
                 case 3: 
                     if (rowIndex == 0) {
                         return null;
                     } else {
-                        SessionID prev = _sa.getSessionIDAt(_key, rowIndex - 1);
-                        BigInteger prevValue = _sa.getSessionIDValue(_key, prev);
-                        BigInteger now = _sa.getSessionIDValue(_key,  id);
+                        SessionID prev = _model.getSessionIDAt(_key, rowIndex - 1);
+                        BigInteger prevValue = _model.getSessionIDValue(_key, prev);
+                        BigInteger now = _model.getSessionIDValue(_key,  id);
                         if (now != null && prevValue != null) return now.subtract(prevValue);
                     };
                 default: return null;

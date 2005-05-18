@@ -7,13 +7,13 @@
 package org.owasp.webscarab.plugin.fuzz;
 
 import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.model.SiteModelAdapter;
+import org.owasp.webscarab.plugin.PluginListener;
 
 /**
  *
  * @author  rogan
  */
-public abstract class FuzzerListener extends SiteModelAdapter {
+public interface FuzzerListener extends PluginListener {
     
     public abstract void appStatusChanged(FuzzerEvent evt);
     

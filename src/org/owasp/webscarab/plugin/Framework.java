@@ -46,6 +46,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.LinkedList;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.jar.Attributes.Name;
@@ -57,8 +58,7 @@ import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.Preferences;
-import org.owasp.webscarab.model.DefaultSiteModel;
-import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.StoreException;
 
 /**
@@ -68,8 +68,9 @@ import org.owasp.webscarab.model.StoreException;
 public class Framework {
     
     private List _plugins = new ArrayList();
+    private List _analysisQueue = new LinkedList();
     
-    private DefaultSiteModel _model;
+    private FrameworkModel _model;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -83,14 +84,22 @@ public class Framework {
     
     private Hook _analyseConversation;
     
+    private Thread _queueThread = null;
+    private QueueProcessor _qp = null;
+    
     /**
      * Creates a new instance of Framework
      */
     public Framework() {
-        _model = new DefaultSiteModel();
+        _model = new FrameworkModel();
         _scriptManager = new ScriptManager(this);
         extractVersionFromManifest();
         configureHTTPClient();
+        _qp = new Framework.QueueProcessor();
+        _queueThread = new Thread(_qp, "QueueProcessor");
+        _queueThread.setDaemon(true);
+        _queueThread.setPriority(Thread.MIN_PRIORITY);
+        _queueThread.start();
     }
     
     public ScriptManager getScriptManager() {
@@ -115,6 +124,7 @@ public class Framework {
         while (it.hasNext()) {
             Plugin plugin = (Plugin) it.next();
             if (!plugin.isRunning()) {
+                _logger.info("Setting session for " + plugin.getPluginName());
                 plugin.setSession(type, store, session);
             } else {
                 _logger.warning(plugin.getPluginName() + " is running while we are setting the session");
@@ -126,7 +136,7 @@ public class Framework {
      * provided to allow plugins to gain access to the model.
      * @return the SiteModel
      */
-    public SiteModel getModel() {
+    public FrameworkModel getModel() {
         return _model;
     }
     
@@ -253,7 +263,7 @@ public class Framework {
      */
     public void saveSessionData() throws StoreException {
         StoreException storeException = null;
-        if (_model.isModified()) { 
+        if (_model.isModified()) {
             _logger.info("Flushing model");
             _model.flush();
             _logger.info("Done");
@@ -291,17 +301,9 @@ public class Framework {
     
     public void addConversation(ConversationID id, Request request, Response response, String origin) {
         _model.addConversation(id, request, response, origin);
-        Iterator it = _plugins.iterator();
-        while (it.hasNext()) {
-            Plugin plugin = (Plugin) it.next();
-            if (plugin.isRunning()) {
-                try {
-                    plugin.analyse(id, request, response, origin);
-                } catch (Exception e) {
-                    _logger.warning(plugin.getPluginName() + " failed to process " + id + ": " + e);
-                    e.printStackTrace();
-                }
-            }
+        synchronized(_analysisQueue) {
+            _analysisQueue.add(id);
+            _logger.info("Analysis queue has " + _analysisQueue.size() + " entries");
         }
     }
     
@@ -352,4 +354,38 @@ public class Framework {
         }
     }
     
+    private class QueueProcessor implements Runnable {
+        
+        public void run() {
+            while (true) {
+                ConversationID id = null;
+                synchronized (_analysisQueue) {
+                    if (_analysisQueue.size()>0)
+                        id = (ConversationID) _analysisQueue.remove(0);
+                }
+                if (id != null) {
+                    Request request = _model.getRequest(id);
+                    Response response = _model.getResponse(id);
+                    String origin = _model.getConversationOrigin(id);
+                    Iterator it = _plugins.iterator();
+                    while (it.hasNext()) {
+                        Plugin plugin = (Plugin) it.next();
+                        if (plugin.isRunning()) {
+                            try {
+                                plugin.analyse(id, request, response, origin);
+                            } catch (Exception e) {
+                                _logger.warning(plugin.getPluginName() + " failed to process " + id + ": " + e);
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                } else {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ie) {}
+                }
+            }
+        }
+        
+    }
 }

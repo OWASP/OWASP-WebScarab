@@ -6,14 +6,13 @@
 
 package org.owasp.webscarab.plugin.fuzz;
 
-import org.owasp.webscarab.model.SiteModelEvent;
 import org.owasp.webscarab.model.HttpUrl;
 
 /**
  *
  * @author  rogan
  */
-public class FuzzerEvent extends SiteModelEvent {
+public class FuzzerEvent {
     
     public static int URL_APPSTATUS_CHANGED = 101;
     public static int URL_POTENTIAL_APPSTATUS_CHANGED = 102;
@@ -24,7 +23,7 @@ public class FuzzerEvent extends SiteModelEvent {
     
     /** Creates a new instance of FuzzerEvent */
     public FuzzerEvent(Object source, int eventType, HttpUrl url) {
-        super(source, eventType, url, null);
+        // super(source, eventType, url, null);
     }
     
 }

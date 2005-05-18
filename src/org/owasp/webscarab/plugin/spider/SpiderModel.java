@@ -6,23 +6,27 @@
 
 package org.owasp.webscarab.plugin.spider;
 
-import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.UrlModel;
+import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.NamedValue;
-import org.owasp.webscarab.model.SiteModelEvent;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Preferences;
-import org.owasp.webscarab.model.FilteredSiteModel;
+import org.owasp.webscarab.model.FrameworkModel;
+import org.owasp.webscarab.model.FilteredUrlModel;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.logging.Logger;
 
 /**
  *
  * @author  rogan
  */
-public class SpiderModel extends FilteredSiteModel {
+public class SpiderModel {
     
-    private SiteModel _model;
+    private FrameworkModel _model;
+    private SpiderUrlModel _urlModel;
+    
     private List _linkQueue = new LinkedList();
     
     private String _allowedDomains = null;
@@ -32,19 +36,21 @@ public class SpiderModel extends FilteredSiteModel {
     
     private NamedValue[] _extraHeaders = null;
     
+    private Logger _logger = Logger.getLogger(getClass().getName());
+    
     /** Creates a new instance of SpiderModel */
-    public SpiderModel(SiteModel model) {
-        super(model, true, false);
+    public SpiderModel(FrameworkModel model) {
         _model = model;
+        _urlModel = new SpiderUrlModel(_model.getUrlModel());
         parseProperties();
     }
     
-    public boolean isUnseen(HttpUrl url) {
-        return getConversationCount(url) == 0;
+    public UrlModel getUrlModel() {
+        return _urlModel;
     }
     
-    protected boolean shouldFilter(HttpUrl url) {
-        return ! isUnseen(url);
+    public boolean isUnseen(HttpUrl url) {
+        return _model.getUrlProperty(url, "METHODS") == null;
     }
     
     public void addUnseenLink(HttpUrl url, HttpUrl referer) {
@@ -105,6 +111,14 @@ public class SpiderModel extends FilteredSiteModel {
             _model.readLock().release();
         }
         return 0;
+    }
+    
+    public Cookie[] getCookiesForUrl(HttpUrl url) {
+        return _model.getCookiesForUrl(url);
+    }
+    
+    public void addCookie(Cookie cookie) {
+        _model.addCookie(cookie);
     }
     
     public void parseProperties() {
@@ -179,6 +193,18 @@ public class SpiderModel extends FilteredSiteModel {
     
     public void setAuthRequired(HttpUrl url) {
         _model.setUrlProperty(url, "AUTHREQUIRED", Boolean.toString(true));
+    }
+    
+    private class SpiderUrlModel extends FilteredUrlModel {
+        
+        public SpiderUrlModel(UrlModel model) {
+            super(model);
+        }
+        
+        public boolean shouldFilter(HttpUrl url) {
+            return ! isUnseen(url);
+        }
+        
     }
     
 }

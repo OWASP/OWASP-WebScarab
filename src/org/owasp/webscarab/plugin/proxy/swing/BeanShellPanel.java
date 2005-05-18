@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: BeanShellPanel.java,v 1.4 2005/01/05 11:20:20 rogan Exp $
+ * $Id: BeanShellPanel.java,v 1.5 2005/05/18 15:23:31 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -197,9 +197,6 @@ public class BeanShellPanel extends javax.swing.JPanel implements ProxyPluginUI,
     
     public PrintStream getOut() {
         return _docStream;
-    }
-    
-    public void setModel(org.owasp.webscarab.model.SiteModel model) {
     }
     
     public void setEnabled(boolean enabled) {

@@ -6,7 +6,7 @@
 
 package org.owasp.webscarab.plugin.scripted;
 
-import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.ConversationID;
@@ -25,7 +25,7 @@ import java.net.MalformedURLException;
 public class ScriptedObjectModel {
     
     private Framework _framework;
-    private SiteModel _model;
+    private FrameworkModel _model;
     private Scripted _scripted;
     
     /**
@@ -77,28 +77,16 @@ public class ScriptedObjectModel {
         return new Response(response);
     }
     
-    public int getChildUrlCount(String url) throws MalformedURLException {
+    public int getChildCount(String url) throws MalformedURLException {
         HttpUrl myUrl = null;
         if (url != null) myUrl = new HttpUrl(url);
-        return _model.getChildUrlCount(myUrl);
+        return _model.getUrlModel().getChildCount(myUrl);
     }
     
-    public HttpUrl getChildUrlAt(String url, int index) throws MalformedURLException {
+    public HttpUrl getChildAt(String url, int index) throws MalformedURLException {
         HttpUrl myUrl = null;
         if (url != null) myUrl = new HttpUrl(url);
-        return _model.getChildUrlAt(myUrl, index);
-    }
-    
-    public int getQueryCount(String url) throws MalformedURLException {
-        HttpUrl myUrl = null;
-        if (url != null) myUrl = new HttpUrl(url);
-        return _model.getQueryCount(myUrl);
-    }
-    
-    public HttpUrl getQueryAt(String url, int index) throws MalformedURLException {
-        HttpUrl myUrl = null;
-        if (url != null) myUrl = new HttpUrl(url);
-        return _model.getQueryAt(myUrl, index);
+        return _model.getUrlModel().getChildAt(myUrl, index);
     }
     
     public String getUrlProperty(String url, String property) throws MalformedURLException {
@@ -110,13 +98,13 @@ public class ScriptedObjectModel {
     public int getConversationCount(String url) throws MalformedURLException {
         HttpUrl myUrl = null;
         if (url != null) myUrl = new HttpUrl(url);
-        return _model.getConversationCount(myUrl);
+        return _model.getConversationModel().getConversationCount(myUrl);
     }
     
     public ConversationID getConversationAt(String url, int index) throws MalformedURLException {
         HttpUrl myUrl = null;
         if (url != null) myUrl = new HttpUrl(url);
-        return _model.getConversationAt(myUrl, index);
+        return _model.getConversationModel().getConversationAt(myUrl, index);
     }
     
     public String getConversationProperty(int id, String property) {

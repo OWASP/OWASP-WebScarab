@@ -41,7 +41,7 @@ package org.owasp.webscarab.plugin.fuzz.swing;
 
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.FrameworkModel;
 
 import org.owasp.webscarab.plugin.fuzz.Fuzzer;
 import org.owasp.webscarab.plugin.fuzz.FuzzerEvent;
@@ -53,7 +53,7 @@ import org.owasp.webscarab.plugin.fuzz.Signature;
 import org.owasp.webscarab.util.swing.JTreeTable;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 
-import org.owasp.webscarab.ui.swing.SiteTreeTableModelAdapter;
+import org.owasp.webscarab.ui.swing.UrlTreeTableModelAdapter;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.ui.swing.UrlTreeRenderer;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
@@ -78,7 +78,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     
     private Fuzzer _fuzzer;
     private FuzzerModel _model;
-    private SiteTreeTableModelAdapter _sttm;
+    private UrlTreeTableModelAdapter _uttm;
     
     private ColumnDataModel _dynamicColumn;
     private ColumnDataModel _potentialAppColumn;
@@ -104,12 +104,12 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         _signatureTableModel = new SignatureTableModel();
         signatureTable.setModel(_signatureTableModel);
         
-        _sttm = new SiteTreeTableModelAdapter(_model);
-        _sttm.addColumn(_potentialAppColumn);
-        _sttm.addColumn(_dynamicColumn);
-        _sttm.addColumn(_authColumn);
-        _sttm.addColumn(_errorColumn);
-        _siteTreeTable = new JTreeTable(_sttm);
+        _uttm = new UrlTreeTableModelAdapter(_model.getUrlModel());
+        _uttm.addColumn(_potentialAppColumn);
+        _uttm.addColumn(_dynamicColumn);
+        _uttm.addColumn(_authColumn);
+        _uttm.addColumn(_errorColumn);
+        _siteTreeTable = new JTreeTable(_uttm);
         
         treeScrollPane.getViewport().remove(urlTree);
         urlTree = _siteTreeTable.getTree();
@@ -495,41 +495,44 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         
     }
     
-    private class Listener extends FuzzerListener {
-        
-        public Listener() {
-        }
+    private class Listener implements FuzzerListener {
         
         public void appStatusChanged(FuzzerEvent evt) {
-            HttpUrl url = evt.getUrl();
-            _logger.info("AppStatus Changed " + url);
-            _dynamicColumn.fireValueChanged(url);
-            _potentialAppColumn.fireValueChanged(url);
+//            HttpUrl url = evt.getUrl();
+//            _logger.info("AppStatus Changed " + url);
+//            _dynamicColumn.fireValueChanged(url);
+//            _potentialAppColumn.fireValueChanged(url);
         }
         
         public void signatureAdded(FuzzerEvent evt) {
-            HttpUrl url = evt.getUrl();
-            _potentialAppColumn.fireValueChanged(url);
-            _dynamicColumn.fireValueChanged(url);
-            HttpUrl selected = _signatureTableModel.getUrl();
-            if (selected != null && selected.equals(url)) 
-                _signatureTableModel.fireTableDataChanged();
+//            HttpUrl url = evt.getUrl();
+//            _potentialAppColumn.fireValueChanged(url);
+//            _dynamicColumn.fireValueChanged(url);
+//            HttpUrl selected = _signatureTableModel.getUrl();
+//            if (selected != null && selected.equals(url)) 
+//                _signatureTableModel.fireTableDataChanged();
         }
         
         public void authenticationRequired(FuzzerEvent evt) {
-            HttpUrl url = evt.getUrl();
-            _authColumn.fireValueChanged(url);
+//            HttpUrl url = evt.getUrl();
+//            _authColumn.fireValueChanged(url);
         }
         
         public void urlError(FuzzerEvent evt) {
-            HttpUrl url = evt.getUrl();
-            _errorColumn.fireValueChanged(url);
+//            HttpUrl url = evt.getUrl();
+//            _errorColumn.fireValueChanged(url);
         }
         
         public void fuzzerStarted(FuzzerEvent evt) {
         }
         
         public void fuzzerStopped(FuzzerEvent evt) {
+        }
+        
+        public void pluginRunStatusChanged(boolean running, boolean stopping) {
+        }
+        
+        public void pluginStatusChanged(String status) {
         }
         
     }

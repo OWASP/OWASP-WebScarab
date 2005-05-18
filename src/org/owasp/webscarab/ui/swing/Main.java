@@ -55,7 +55,6 @@ import org.owasp.webscarab.model.FileSystemStore;
 import org.owasp.webscarab.model.StoreException;
 
 import org.owasp.webscarab.model.Preferences;
-import org.owasp.webscarab.model.SiteModel;
 
 import org.owasp.webscarab.plugin.Framework;
 
@@ -180,7 +179,7 @@ public class Main {
         Handler ch = new ConsoleHandler();
         ch.setFormatter(new TextFormatter());
         logger.addHandler(ch);
-        ch.setLevel(Level.INFO);
+        ch.setLevel(Level.FINE);
     }
     
     public static void loadPlugins() {

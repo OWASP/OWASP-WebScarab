@@ -40,10 +40,9 @@
 package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.model.Cookie;
-import org.owasp.webscarab.model.SiteModelAdapter;
-import org.owasp.webscarab.model.SiteModel;
-import org.owasp.webscarab.model.SiteModelListener;
-import org.owasp.webscarab.model.SiteModelEvent;
+import org.owasp.webscarab.model.FrameworkModel;
+import org.owasp.webscarab.model.FrameworkListener;
+import org.owasp.webscarab.model.FrameworkEvent;
 
 import org.owasp.webscarab.util.swing.TableSorter;
 
@@ -62,7 +61,7 @@ import java.util.logging.Logger;
  */
 public class CookieJarViewer extends javax.swing.JFrame {
     
-    private SiteModel _model;
+    private FrameworkModel _model;
     private CookieTableModel _cookieTableModel;
     private HistoricalCookieTableModel _detailTableModel;
     
@@ -71,7 +70,7 @@ public class CookieJarViewer extends javax.swing.JFrame {
     private String _key = null;
     
     /** Creates new form CookieJarViewer */
-    public CookieJarViewer(SiteModel model) {
+    public CookieJarViewer(FrameworkModel model) {
         _model = model;
         initComponents();
         _cookieTableModel = new CookieTableModel(_model);
@@ -394,9 +393,9 @@ public class CookieJarViewer extends javax.swing.JFrame {
     
     private class CookieTableModel extends AbstractTableModel {
         
-        private SiteModel _model = null;
-        private SiteModelListener _listener = new SiteModelAdapter() {
-            public void cookieAdded(SiteModelEvent evt) {
+        private FrameworkModel _model;
+        private FrameworkListener _listener = new FrameworkListener() {
+            public void cookieAdded(FrameworkEvent evt) {
                 Cookie cookie = evt.getCookie();
                 int row = _model.getIndexOfCookie(cookie);
                 int count = _model.getCookieCount(cookie.getKey());
@@ -407,7 +406,7 @@ public class CookieJarViewer extends javax.swing.JFrame {
                 }
             }
             
-            public void cookieRemoved(SiteModelEvent evt) {
+            public void cookieRemoved(FrameworkEvent evt) {
                 Cookie cookie = evt.getCookie();
                 int count = _model.getCookieCount(cookie.getKey());
                 if (count == 0) {
@@ -418,16 +417,20 @@ public class CookieJarViewer extends javax.swing.JFrame {
                 }
             }
             
-            public void dataChanged(SiteModelEvent evt) {
+            public void cookiesChanged() {
                 fireTableDataChanged();
             }
+            
+            public void conversationPropertyChanged(FrameworkEvent evt) {}
+            
+            public void urlPropertyChanged(FrameworkEvent evt) {}
             
         };
         
         private String[] _columnNames = new String[] { "Domain", "Path", "Name", "Date", "Value", "Secure", "Max age", "Comment" };
         private Class[] _columnClass = new Class[] { String.class, String.class, String.class, Date.class, String.class, Boolean.class, String.class, String.class };
         
-        public CookieTableModel(SiteModel model) {
+        public CookieTableModel(FrameworkModel model) {
             this._model = model;
             this._model.addModelListener(_listener);
         }
@@ -473,33 +476,37 @@ public class CookieJarViewer extends javax.swing.JFrame {
     
     private class HistoricalCookieTableModel extends AbstractTableModel {
         
-        private SiteModel _model = null;
+        private FrameworkModel _model = null;
         private String _key = null;
         
-        private SiteModelListener _listener = new SiteModelAdapter() {
-            public void cookieAdded(SiteModelEvent evt) {
+        private FrameworkListener _listener = new FrameworkListener() {
+            public void cookieAdded(FrameworkEvent evt) {
                 Cookie cookie = evt.getCookie();
                 if (_key == null || ! _key.equals(cookie.getKey())) return;
                 int row = _model.getIndexOfCookie(_key, cookie);
                 fireTableRowsInserted(row, row);
             }
             
-            public void cookieRemoved(SiteModelEvent evt) {
+            public void cookieRemoved(FrameworkEvent evt) {
                 Cookie cookie = evt.getCookie();
                 if (_key == null || ! _key.equals(cookie.getKey())) return;
                 fireTableDataChanged();
             }
             
-            public void dataChanged(SiteModelEvent evt) {
+            public void cookiesChanged() {
                 fireTableDataChanged();
             }
+            
+            public void conversationPropertyChanged(FrameworkEvent evt) {}
+            
+            public void urlPropertyChanged(FrameworkEvent evt) {}
             
         };
         
         private String[] _columnNames = new String[] { "Date", "Value", "Secure", "Max age", "Comment" };
         private Class[] _columnClass = new Class[] { Date.class, String.class, Boolean.class, String.class, String.class };
         
-        public HistoricalCookieTableModel(SiteModel model) {
+        public HistoricalCookieTableModel(FrameworkModel model) {
             this._model = model;
             this._model.addModelListener(_listener);
         }
@@ -537,13 +544,6 @@ public class CookieJarViewer extends javax.swing.JFrame {
         
         public Class getColumnClass(int columnIndex) {
             return _columnClass[columnIndex];
-        }
-        
-        public void deleteCookieAt(int row) {
-            if (row < getRowCount() && row > -1) {
-                Cookie cookie = this._model.getCookieAt(_key, row);
-                this._model.removeCookie(cookie);
-            }
         }
         
     }

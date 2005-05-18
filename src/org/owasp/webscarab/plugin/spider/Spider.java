@@ -46,7 +46,7 @@ import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.UrlModel;
 
 import org.owasp.webscarab.parser.Parser;
 
@@ -269,22 +269,10 @@ public class Spider implements Plugin {
             }
         }
         if (links.size() == max) return;
-        // fetch the queries for the url first
-        int count = _model.getQueryCount(url);
+        UrlModel urlModel = _model.getUrlModel();
+        int count = urlModel.getChildCount(url);
         for (int i=0; i<count; i++) {
-            HttpUrl query = _model.getQueryAt(url, i);
-            if (_model.isUnseen(query) && ! isForbiddenPath(query)) {
-                referer = _model.getReferer(query);
-                links.add(new Link(query, referer));
-                if (links.size() == max) return;
-            } else {
-                _logger.warning("Skipping forbidden path " + query);
-            }
-        }
-        // then fetch any child urls
-        count = _model.getChildUrlCount(url);
-        for (int i=0; i<count; i++) {
-            HttpUrl child = _model.getChildUrlAt(url, i);
+            HttpUrl child = urlModel.getChildAt(url, i);
             queueLinksUnder(child, links, max);
             if (links.size() == max) return;
         }
@@ -402,7 +390,7 @@ public class Spider implements Plugin {
                         got = true;
                     }
                     if (!got) {
-                        _logger.info("Didn't get anything from " + tag.getClass().getName() + ": " + tag);
+                        // _logger.info("Didn't get anything from " + tag.getClass().getName() + ": " + tag);
                     }
                 }
             }

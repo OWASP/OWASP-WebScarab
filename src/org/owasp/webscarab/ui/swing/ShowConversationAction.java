@@ -42,7 +42,7 @@ package org.owasp.webscarab.ui.swing;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.FrameworkModel;
 
 import javax.swing.JFrame;
 import javax.swing.AbstractAction;
@@ -54,10 +54,10 @@ import java.awt.event.ActionEvent;
  */
 public class ShowConversationAction extends AbstractAction {
     
-    private SiteModel _model;
+    private FrameworkModel _model;
     
     /** Creates a new instance of ShowConversationAction */
-    public ShowConversationAction(SiteModel model) {
+    public ShowConversationAction(FrameworkModel model) {
         _model = model;
         putValue(NAME, "Show conversation");
         putValue(SHORT_DESCRIPTION, "Opens a new window showing the request and response");

@@ -39,8 +39,6 @@
 
 package org.owasp.webscarab.plugin;
 
-import org.owasp.webscarab.model.SiteModel;
-
 /**
  * specifies the interface between framework and its user interface
  * @author knoppix

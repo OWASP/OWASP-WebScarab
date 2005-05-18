@@ -64,7 +64,7 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
-
+import java.util.logging.Level;
 
 import org.owasp.webscarab.util.MRUCache;
 
@@ -85,13 +85,11 @@ public class FileSystemStore implements SiteModelStore {
     private SortedMap _urlProperties = new TreeMap(new NullComparator());
     
     private SortedMap _urlConversations = new TreeMap(new NullComparator());
-    private SortedMap _urlChildren = new TreeMap(new NullComparator());
-    private SortedMap _urlQueries = new TreeMap(new NullComparator());
+    private SortedMap _urls = new TreeMap(new NullComparator());
     
     private Map _requestCache = new MRUCache(16);
     private Map _responseCache = new MRUCache(16);
-    private Map _childCache = new MRUCache(16);
-    private Map _queryCache = new MRUCache(16);
+    private Map _urlCache = new MRUCache(32);
     
     private SortedMap _cookies = new TreeMap();
     
@@ -102,6 +100,7 @@ public class FileSystemStore implements SiteModelStore {
     
     /** Creates a new instance of FileSystemStore */
     public FileSystemStore(File dir) throws StoreException {
+        _logger.setLevel(Level.FINE);
         if (dir == null) {
             throw new StoreException("Cannot create a new FileSystemStore with a null directory!");
         } else {
@@ -109,16 +108,22 @@ public class FileSystemStore implements SiteModelStore {
         }
         _conversations = new File(_dir, "conversations");
         if (_conversations.exists()) {
+            _logger.fine("Loading session from " + _dir);
             load();
+            _logger.fine("Finished loading session from " + _dir);
         } else {
             create();
         }
     }
     
     private void load() throws StoreException {
+        _logger.fine("Loading conversations");
         loadConversationProperties();
+        _logger.fine("Loading urls");
         loadUrlProperties();
+        _logger.fine("Loading cookies");
         loadCookies();
+        _logger.fine("Done!");
     }
     
     private void loadConversationProperties() throws StoreException {
@@ -333,30 +338,18 @@ public class FileSystemStore implements SiteModelStore {
      * @param url the url to add
      */
     public void addUrl(HttpUrl url) {
-        Map map = new HashMap();
         if (_urlProperties.get(url) != null) throw new IllegalStateException("Adding an URL that is already there " + url);
+        Map map = new HashMap();
         _urlProperties.put(url, map);
         
         HttpUrl parent = url.getParentUrl();
-        SortedSet childSet;
-        Map cache;
-        if (url.getParameters() != null) {
-            childSet = (SortedSet) _urlQueries.get(parent);
-            if (childSet == null) {
-                childSet = new TreeSet();
-                _urlQueries.put(parent, childSet);
-            }
-            cache = _queryCache;
-        } else {
-            childSet = (SortedSet) _urlChildren.get(parent);
-            if (childSet == null) {
-                childSet = new TreeSet();
-                _urlChildren.put(parent, childSet);
-            }
-            cache = _childCache;
+        _urlCache.remove(parent);
+        SortedSet childSet = (SortedSet) _urls.get(parent);
+        if (childSet == null) {
+            childSet = new TreeSet();
+            _urls.put(parent, childSet);
         }
         childSet.add(url);
-        cache.put(parent,childSet.toArray(NO_CHILDREN));
     }
     
     /**
@@ -410,8 +403,8 @@ public class FileSystemStore implements SiteModelStore {
      * @param url the url
      * @return the number of children of the supplied url.
      */
-    public int getChildUrlCount(HttpUrl url) {
-        SortedSet childSet = (SortedSet) _urlChildren.get(url);
+    public int getChildCount(HttpUrl url) {
+        SortedSet childSet = (SortedSet) _urls.get(url);
         if (childSet == null) return 0;
         return childSet.size();
     }
@@ -422,73 +415,31 @@ public class FileSystemStore implements SiteModelStore {
      * @param index the index
      * @return the child at position index.
      */
-    public HttpUrl getChildUrlAt(HttpUrl url, int index) {
-        HttpUrl[] children = (HttpUrl[]) _childCache.get(url);
+    public HttpUrl getChildAt(HttpUrl url, int index) {
+        HttpUrl[] children = (HttpUrl[]) _urlCache.get(url);
         if (children == null) {
-            SortedSet childSet = (SortedSet) _urlChildren.get(url);
+            SortedSet childSet = (SortedSet) _urls.get(url);
             if (childSet == null)
                 throw new IndexOutOfBoundsException(url + " has no children");
             if (index >= childSet.size())
                 throw new IndexOutOfBoundsException(url + " has only " + childSet.size() + " children, not " + index);
             children = ((HttpUrl[]) childSet.toArray(NO_CHILDREN));
-            _childCache.put(url, children);
+            _urlCache.put(url, children);
         }
         return children[index];
     }
     
-    public int getIndexOfUrl(HttpUrl url) {
-        HttpUrl[] children = (HttpUrl[]) _childCache.get(url);
+    public int getIndexOf(HttpUrl url) {
+        HttpUrl parent = url.getParentUrl();
+        HttpUrl[] children = (HttpUrl[]) _urlCache.get(parent);
         if (children == null) {
-            SortedSet childSet = (SortedSet) _urlChildren.get(url);
+            SortedSet childSet = (SortedSet) _urls.get(parent);
             if (childSet == null)
                 throw new IndexOutOfBoundsException(url + " has no children");
             children = ((HttpUrl[]) childSet.toArray(NO_CHILDREN));
-            _childCache.put(url, children);
+            _urlCache.put(parent, children);
         }
         return Arrays.binarySearch(children, url);
-    }
-    
-    /**
-     * returns the number of URL's that are queries of the URL passed.
-     * @param url the url
-     * @return the number of queries of the supplied url.
-     */
-    public int getUrlQueryCount(HttpUrl url) {
-        SortedSet childSet = (SortedSet) _urlQueries.get(url);
-        if (childSet == null) return 0;
-        return childSet.size();
-    }
-    
-    /**
-     * returns the specified query of the URL passed.
-     * @param url the url
-     * @param index the index
-     * @return the query at position index.
-     */
-    public HttpUrl getUrlQueryAt(HttpUrl url, int index) {
-        HttpUrl[] children = (HttpUrl[]) _queryCache.get(url);
-        if (children == null) {
-            SortedSet childSet = (SortedSet) _urlQueries.get(url);
-            if (childSet == null)
-                throw new IndexOutOfBoundsException(url + " has no queries");
-            if (index >= childSet.size())
-                throw new IndexOutOfBoundsException(url + " has only " + childSet.size() + " queries, not " + index);
-            children = ((HttpUrl[]) childSet.toArray(NO_CHILDREN));
-            _queryCache.put(url, children);
-        }
-        return children[index];
-    }
-    
-    public int getIndexOfQuery(HttpUrl url) {
-        HttpUrl[] queries = (HttpUrl[]) _queryCache.get(url);
-        if (queries == null) {
-            SortedSet querySet = (SortedSet) _urlQueries.get(url);
-            if (querySet == null)
-                throw new IndexOutOfBoundsException(url + " has no queries");
-            queries = ((HttpUrl[]) querySet.toArray(NO_CHILDREN));
-            _queryCache.put(url, queries);
-        }
-        return Arrays.binarySearch(queries, url);
     }
     
     /**

@@ -39,11 +39,12 @@
 
 package org.owasp.webscarab.ui.swing;
 
-import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.ConversationModel;
+import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.model.SiteModelAdapter;
-import org.owasp.webscarab.model.SiteModelEvent;
+import org.owasp.webscarab.model.ConversationListener;
+import org.owasp.webscarab.model.ConversationEvent;
 
 import org.owasp.webscarab.util.swing.ExtensibleTableModel;
 
@@ -58,7 +59,8 @@ import java.util.logging.Logger;
  */
 public class ConversationTableModel extends ExtensibleTableModel {
     
-    protected SiteModel _model = null;
+    protected FrameworkModel _frameworkModel = null;
+    protected ConversationModel _conversationModel = null;
     protected HttpUrl _url = null;
     
     private Listener _listener = new Listener();
@@ -66,9 +68,10 @@ public class ConversationTableModel extends ExtensibleTableModel {
     protected Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates a new instance of ConversationTableModel */
-    public ConversationTableModel(SiteModel model) {
-        _model = model;
-        _model.addModelListener(_listener);
+    public ConversationTableModel(FrameworkModel frameworkModel, ConversationModel conversationModel) {
+        _frameworkModel = frameworkModel;
+        _conversationModel = conversationModel;
+        _conversationModel.addConversationListener(_listener);
     }
     
     public void setUrl(HttpUrl url) {
@@ -77,16 +80,16 @@ public class ConversationTableModel extends ExtensibleTableModel {
     }
     
     public Object getKeyAt(int row) {
-        return _model.getConversationAt(_url, row);
+        return _conversationModel.getConversationAt(_url, row);
     }
     
     public int indexOfKey(Object key) {
-        return _model.getIndexOfConversation(_url, (ConversationID) key);
+        return _conversationModel.getIndexOfConversation(_url, (ConversationID) key);
     }
     
     public int getRowCount() {
-        if (_model == null) return 0;
-        return _model.getConversationCount(_url);
+        if (_conversationModel == null) return 0;
+        return _conversationModel.getConversationCount(_url);
     }
     
     public int getColumnCount() {
@@ -125,23 +128,23 @@ public class ConversationTableModel extends ExtensibleTableModel {
         return super.getColumnClass(column-1);
     }
     
-    protected void addedConversation(SiteModelEvent evt) {
+    protected void addedConversation(ConversationEvent evt) {
         ConversationID id = evt.getConversationID();
         int row = indexOfKey(id);
         fireTableRowsInserted(row, row);
     }
     
-    protected void removedConversation(SiteModelEvent evt) {
+    protected void removedConversation(ConversationEvent evt) {
         fireTableDataChanged();
     }
     
-    protected void changedConversations(SiteModelEvent evt) {
+    protected void changedConversations() {
         fireTableDataChanged();
     }
     
-    private class Listener extends SiteModelAdapter {
+    private class Listener implements ConversationListener {
         
-        public void conversationAdded(final SiteModelEvent evt) {
+        public void conversationAdded(final ConversationEvent evt) {
             if (SwingUtilities.isEventDispatchThread()) {
                 addedConversation(evt);
             } else {
@@ -157,7 +160,14 @@ public class ConversationTableModel extends ExtensibleTableModel {
             }
         }
         
-        public void conversationRemoved(final SiteModelEvent evt) {
+        public void conversationChanged(final ConversationEvent evt) {
+            // we don't care. The values that we care about specifically
+            // are set when the conversationAdded event is fired, and
+            // do not change afterwards.
+            // Other changes in user-supplied columns fire their own events
+        }
+        
+        public void conversationRemoved(final ConversationEvent evt) {
             if (SwingUtilities.isEventDispatchThread()) {
                 removedConversation(evt);
             } else {
@@ -173,18 +183,18 @@ public class ConversationTableModel extends ExtensibleTableModel {
             }
         }
         
-        public void dataChanged(final SiteModelEvent evt) {
+        public void conversationsChanged() {
             if (SwingUtilities.isEventDispatchThread()) {
-                changedConversations(evt);
+                changedConversations();
             } else {
                 try {
                     SwingUtilities.invokeAndWait(new Runnable() {
                         public void run() {
-                            changedConversations(evt);
+                            changedConversations();
                         }
                     });
                 } catch (Exception e) {
-                    _logger.warning("Exception processing " + evt + ": " + e);
+                    _logger.warning("Exception: " + e);
                 }
             }
         }

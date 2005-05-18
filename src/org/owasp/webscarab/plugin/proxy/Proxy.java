@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: Proxy.java,v 1.23 2005/02/22 18:40:43 rogan Exp $
+ * $Id: Proxy.java,v 1.24 2005/05/18 15:23:31 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.proxy;
@@ -48,7 +48,6 @@ import java.util.logging.Logger;
 
 import org.owasp.webscarab.model.StoreException;
 
-import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Preferences;
@@ -106,7 +105,7 @@ public class Proxy implements Plugin {
     );
     
     /**
-     * Creates a Proxy Object with a reference to the SiteModel. Creates (but does not
+     * Creates a Proxy Object with a reference to the Framework. Creates (but does not
      * start) the configured Listeners.
      * @param model The Model to submit requests and responses to
      */

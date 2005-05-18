@@ -6,32 +6,28 @@
 
 package org.owasp.webscarab.ui.swing;
 
-import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.ConversationModel;
+import org.owasp.webscarab.model.ConversationListener;
+import org.owasp.webscarab.model.ConversationEvent;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 
-import javax.swing.ListModel;
 import javax.swing.table.AbstractTableModel;
-
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 
 /**
  *
  * @author  rogan
  */
-public class ConversationListTableModel extends AbstractTableModel implements ListDataListener {
+public class ConversationListTableModel extends AbstractTableModel implements ConversationListener {
     
-    private SiteModel _siteModel;
-    private ListModel _listModel;
+    private ConversationModel _conversationModel;
     
     private final static String[] _columnNames = new String[] { "ID", "Method", "Host", "Path", "Parameters", "Status" };
     
     /** Creates a new instance of ConversationListTableModel */
-    public ConversationListTableModel(SiteModel siteModel, ListModel listModel) {
-        _siteModel = siteModel;
-        _listModel = listModel;
-        _listModel.addListDataListener(this);
+    public ConversationListTableModel(ConversationModel conversationModel) {
+        _conversationModel = conversationModel;
+        _conversationModel.addConversationListener(this);
     }
     
     public String getColumnName(int index) {
@@ -43,37 +39,41 @@ public class ConversationListTableModel extends AbstractTableModel implements Li
     }
     
     public int getRowCount() {
-        return _listModel.getSize();
+        return _conversationModel.getConversationCount(null);
     }
     
     public Object getKeyAt(int rowIndex) {
-        return _listModel.getElementAt(rowIndex);
+        return _conversationModel.getConversationAt(null, rowIndex);
     }
     
     public Object getValueAt(int rowIndex, int columnIndex) {
         ConversationID id = (ConversationID) getKeyAt(rowIndex);
-        HttpUrl url = _siteModel.getUrlOf(id);
+        HttpUrl url = _conversationModel.getRequestUrl(id);
         switch (columnIndex) {
             case 0: return id;
-            case 1: return _siteModel.getConversationProperty(id, "METHOD");
+            case 1: return _conversationModel.getRequestMethod(id);
             case 2: return url.getScheme() + "://" + url.getHost() + ":" + url.getPort();
             case 3: return url.getPath();
             case 4: return url.getParameters();
-            case 5: return _siteModel.getConversationProperty(id, "STATUS");
+            case 5: return _conversationModel.getResponseStatus(id);
         }
         return null;
     }
     
-    public void contentsChanged(ListDataEvent e) {
-        fireTableRowsUpdated(e.getIndex0(), e.getIndex1());
+    public void conversationAdded(ConversationEvent evt) {
+        fireTableRowsInserted(evt.getPosition(), evt.getPosition());
     }
     
-    public void intervalAdded(ListDataEvent e) {
-        fireTableRowsInserted(e.getIndex0(), e.getIndex1());
+    public void conversationChanged(ConversationEvent evt) {
+        fireTableRowsUpdated(evt.getPosition(), evt.getPosition());
     }
     
-    public void intervalRemoved(ListDataEvent e) {
-        fireTableRowsDeleted(e.getIndex0(), e.getIndex1());
+    public void conversationRemoved(ConversationEvent evt) {
+        fireTableRowsDeleted(evt.getPosition(), evt.getPosition());
+    }
+    
+    public void conversationsChanged() {
+        fireTableDataChanged();
     }
     
 }

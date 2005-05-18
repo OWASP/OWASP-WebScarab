@@ -32,14 +32,13 @@
  */
 
 /*
- * $Id: Fuzzer.java,v 1.2 2005/03/24 07:12:03 rogan Exp $
+ * $Id: Fuzzer.java,v 1.3 2005/05/18 15:23:31 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.fuzz;
 
 import org.owasp.webscarab.httpclient.AsyncFetcher;
 
-import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
@@ -75,7 +74,7 @@ public class Fuzzer implements Plugin {
     
     public Fuzzer(Framework framework) {
         _framework = framework;
-        _model = new FuzzerModel(_framework.getModel());
+        // _model = new FuzzerModel(_framework.getModel());
     }
     
     public FuzzerModel getModel() {

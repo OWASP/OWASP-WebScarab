@@ -43,7 +43,6 @@ import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.model.SiteModel;
 
 import org.owasp.webscarab.plugin.proxy.ProxyPlugin;
 
@@ -63,8 +62,6 @@ import bsh.TargetError;
  * @author  rdawes
  */
 public class BeanShell extends ProxyPlugin {
-    
-    private SiteModel _model;
     
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
@@ -176,7 +173,6 @@ public class BeanShell extends ProxyPlugin {
     public void setScript(String script) throws EvalError {
         _beanScript = script;
         _interpreter = new Interpreter();
-        _interpreter.set("model", _model);
         _interpreter.eval(_beanScript);
     }
     
@@ -201,7 +197,6 @@ public class BeanShell extends ProxyPlugin {
                 try {
                     synchronized(_interpreter) {
                         _interpreter.unset("response");
-                        _interpreter.set("model", _model);
                         _interpreter.set("nextClient", _in);
                         _interpreter.set("request", request);
                         try {

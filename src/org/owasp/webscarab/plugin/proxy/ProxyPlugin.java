@@ -41,7 +41,6 @@ package org.owasp.webscarab.plugin.proxy;
 
 import org.owasp.webscarab.model.StoreException;
 
-import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.httpclient.HTTPClient;
 
 /**

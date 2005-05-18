@@ -153,7 +153,7 @@ public interface SiteModelStore {
      * @param url the url
      * @return the number of children of the supplied url.
      */
-    public int getChildUrlCount(HttpUrl url);
+    public int getChildCount(HttpUrl url);
     
     /**
      * returns the specified child of the URL passed.
@@ -161,26 +161,9 @@ public interface SiteModelStore {
      * @param index the index
      * @return the child at position index.
      */
-    public HttpUrl getChildUrlAt(HttpUrl url, int index);
+    public HttpUrl getChildAt(HttpUrl url, int index);
     
-    public int getIndexOfUrl(HttpUrl url);
-    
-    /**
-     * returns the number of URL's that are queries of the URL passed.
-     * @param url the url
-     * @return the number of queries of the supplied url.
-     */
-    public int getUrlQueryCount(HttpUrl url);
-    
-    /**
-     * returns the specified query of the URL passed.
-     * @param url the url
-     * @param index the index
-     * @return the query at position index.
-     */
-    public HttpUrl getUrlQueryAt(HttpUrl url, int index);
-    
-    public int getIndexOfQuery(HttpUrl url);
+    public int getIndexOf(HttpUrl url);
     
     /**
      * writes a specific Request instance to long-term storage.

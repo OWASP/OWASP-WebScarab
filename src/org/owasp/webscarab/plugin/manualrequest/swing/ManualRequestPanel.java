@@ -41,10 +41,12 @@ package org.owasp.webscarab.plugin.manualrequest.swing;
 
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.FrameworkModel;
+import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.ConversationID;
 
 import org.owasp.webscarab.plugin.manualrequest.ManualRequest;
+import org.owasp.webscarab.plugin.manualrequest.ManualRequestModel;
 import org.owasp.webscarab.plugin.manualrequest.ManualRequestUI;
 
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
@@ -76,7 +78,7 @@ import java.util.logging.Logger;
  */
 public class ManualRequestPanel extends javax.swing.JPanel implements SwingPluginUI, ManualRequestUI {
     
-    private SiteModel _model;
+    private ManualRequestModel _model;
     private ManualRequest _manualRequest;
     private SwingWorker _sw = null;
     
@@ -111,10 +113,10 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         _responsePanel.setBorder(new TitledBorder("Response"));
         conversationSplitPane.setRightComponent(_responsePanel);
         
-        ListModel conversationList = new ConversationListModel(_model);
+        ListModel conversationList = new ConversationListModel(_model.getConversationModel());
         ComboBoxModel requestModel = new ListComboBoxModel(conversationList);
         requestComboBox.setModel(requestModel);
-        requestComboBox.setRenderer(new ConversationRenderer(_model));
+        requestComboBox.setRenderer(new ConversationRenderer(_model.getConversationModel()));
         
         requestComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -215,7 +217,7 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         Object o = requestComboBox.getSelectedItem();
         if (o instanceof ConversationID) {
             ConversationID id = (ConversationID) o;
-            Request request = _model.getRequest(id);
+            Request request = _model.getConversationModel().getRequest(id);
             _manualRequest.setRequest(request);
         }
     }

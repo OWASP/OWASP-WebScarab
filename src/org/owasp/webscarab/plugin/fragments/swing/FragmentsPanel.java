@@ -41,11 +41,10 @@ package org.owasp.webscarab.plugin.fragments.swing;
 
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.model.SiteModel;
-import org.owasp.webscarab.model.SiteModelAdapter;
 
 import org.owasp.webscarab.plugin.fragments.Fragments;
-import org.owasp.webscarab.plugin.fragments.FragmentsUI;
+import org.owasp.webscarab.plugin.fragments.FragmentsModel;
+import org.owasp.webscarab.plugin.fragments.FragmentListener;
 
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.ui.swing.ConversationListTableModel;
@@ -78,11 +77,11 @@ import javax.swing.AbstractListModel;
  *
  * @author  rogan
  */
-public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI, FragmentsUI {
+public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI {
     
     private Fragments _fragments;
     private Logger _logger = Logger.getLogger(getClass().getName());
-    private SiteModel _model = null;
+    private FragmentsModel _model = null;
     
     private String _type = null;
     
@@ -93,10 +92,8 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
     
     private DefaultListModel _typeListModel = new DefaultListModel();
     private FragmentListModel _flm = new FragmentListModel();
-    private DefaultListModel _conversationList = new DefaultListModel();
     
     private Listener _listener = new Listener();
-    
     
     private static final ColumnDataModel[] CDM = new ColumnDataModel[0];
     
@@ -120,13 +117,12 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         });
         
         fragmentList.addListSelectionListener(new FragmentsListListener());
-        conversationTable.setModel(new ConversationListTableModel(_model,_conversationList));
+        conversationTable.setModel(new ConversationListTableModel(_model.getConversationModel()));
         
         _fragments = fragments;
         createActions();
         
         _model.addModelListener(_listener);
-        _fragments.setUI(this);
         
     }
     
@@ -142,8 +138,8 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         ColumnDataModel cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
                 if (_model == null) return null;
-                String value = _model.getConversationProperty((ConversationID) key, "COMMENTS");
-                return Boolean.valueOf(value != null);
+                String[] value = _model.getConversationFragmentKeys((ConversationID) key, "COMMENTS");
+                return Boolean.valueOf(value != null && value.length > 0);
             }
             public String getColumnName() { return "Comments"; }
             public Class getColumnClass() { return Boolean.class; }
@@ -153,8 +149,8 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
                 if (_model == null) return null;
-                String value = _model.getConversationProperty((ConversationID) key, "SCRIPTS");
-                return Boolean.valueOf(value != null);
+                String[] value = _model.getConversationFragmentKeys((ConversationID) key, "SCRIPTS");
+                return Boolean.valueOf(value != null && value.length > 0);
             }
             public String getColumnName() { return "Scripts"; }
             public Class getColumnClass() { return Boolean.class; }
@@ -164,7 +160,7 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
                 if (_model == null) return null;
-                return _model.getConversationProperty((ConversationID) key, "COOKIE");
+                return _model.getRequestCookies((ConversationID) key);
             }
             public String getColumnName() { return "Cookie"; }
             public Class getColumnClass() { return String.class; }
@@ -174,7 +170,7 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
                 if (_model == null) return null;
-                return _model.getConversationProperty((ConversationID) key, "SET-COOKIE");
+                return _model.getResponseCookies((ConversationID) key);
             }
             public String getColumnName() { return "Set-Cookie"; }
             public Class getColumnClass() { return String.class; }
@@ -184,8 +180,8 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
                 if (_model == null) return null;
-                String value = _model.getUrlProperty((HttpUrl) key, "COMMENTS");
-                return Boolean.valueOf(value != null);
+                String[] keys = _model.getUrlFragmentKeys((HttpUrl) key, "COMMENTS");
+                return Boolean.valueOf(keys != null && keys.length > 0);
             }
             public String getColumnName() { return "Comments"; }
             public Class getColumnClass() { return Boolean.class; }
@@ -195,8 +191,8 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
                 if (_model == null) return null;
-                String value = _model.getUrlProperty((HttpUrl) key, "SCRIPTS");
-                return Boolean.valueOf(value != null);
+                String[] keys = _model.getUrlFragmentKeys((HttpUrl) key, "SCRIPTS");
+                return Boolean.valueOf(keys != null && keys.length > 0);
             }
             public String getColumnName() { return "Scripts"; }
             public Class getColumnClass() { return Boolean.class; }
@@ -206,7 +202,7 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
                 if (_model == null) return null;
-                String value = _model.getUrlProperty((HttpUrl) key, "SET-COOKIE");
+                String value = _model.getResponseCookies((HttpUrl) key);
                 return Boolean.valueOf(value != null);
             }
             public String getColumnName() { return "Set-Cookie"; }
@@ -271,10 +267,6 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         return _conversationActions;
     }
     
-    public void setEnabled(boolean enabled) {
-        // FIXME we should do something here
-    }
-    
     public JPanel getPanel() {
         return this;
     }
@@ -293,28 +285,6 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
     
     public ColumnDataModel[] getUrlColumns() {
         return (ColumnDataModel[]) _urlColumns.values().toArray(CDM);
-    }
-    
-    public void fragmentAdded(HttpUrl url, final ConversationID id, final String type, final String key) {
-        // _logger.info(type + " added " + url + " key = " + key);
-        try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    if (_type != null && _type.equals(type)) {
-                        _flm.fragmentAdded(type, key);
-                        // this does not work, because we fire only on the first occurence
-                        // of the key! Doh! FIXME!
-//                        Object selected = fragmentList.getSelectedValue();
-//                        _logger.info("Selected is " + selected + " key is " + key);
-//                        if (selected != null && selected.equals(key)) {
-//                            _conversationList.addElement(id);
-//                        }
-                    }
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -345,18 +315,14 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
             Object o = getValue(_where);
             if (_where.equals("URL") && o instanceof HttpUrl) {
                 HttpUrl url = (HttpUrl) o;
-                if (_type.equals("COMMENTS")) {
-                    fragments = _fragments.getUrlComments(url);
-                } else if (_type.equals("SCRIPTS")) {
-                    fragments = _fragments.getUrlScripts(url);
-                }
+                fragments = _model.getUrlFragmentKeys(url, _type);
             } else if (_where.equals("CONVERSATION") && o instanceof ConversationID) {
                 ConversationID id = (ConversationID) o;
-                if (_type.equals("COMMENTS")) {
-                    fragments = _fragments.getConversationComments(id);
-                } else if (_type.equals("SCRIPTS")) {
-                    fragments = _fragments.getConversationScripts(id);
-                }
+                fragments = _model.getConversationFragmentKeys(id, _type);
+            }
+            // translate fragment keys into actual fragments
+            for (int i=0; i<fragments.length; i++) {
+                fragments[i] = _model.getFragment(fragments[i]);
             }
             return fragments;
         }
@@ -384,71 +350,119 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         
     }
     
-    private class Listener extends SiteModelAdapter {
+    private class Listener implements FragmentListener {
         
-        public void conversationChanged(ConversationID id, String property) {
-            ColumnDataModel cdm = (ColumnDataModel) _conversationColumns.get(property);
-            if (cdm != null) cdm.fireValueChanged(id);
+        public void fragmentAdded(final HttpUrl url, final ConversationID id, final String type, String key) {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        ColumnDataModel cdm = (ColumnDataModel) _urlColumns.get(type);
+                        if (cdm != null) cdm.fireValueChanged(url);
+                        cdm = (ColumnDataModel) _conversationColumns.get(type);
+                        if (cdm != null) cdm.fireValueChanged(id);
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         
-        public void urlChanged(HttpUrl url, String property) {
-            ColumnDataModel cdm = (ColumnDataModel) _urlColumns.get(property);
-            if (cdm != null) cdm.fireValueChanged(url);
+        public void fragmentAdded(String type, String key, int position) {
         }
         
-        public void dataChanged() {
-            _flm.fireContentsChanged();
+        public void fragmentsChanged() {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        _flm.fireContentsChanged();
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+        
+        public void pluginRunStatusChanged(boolean running, boolean stopping) {
+        }
+        
+        public void pluginStatusChanged(String status) {
+        }
+        
     }
     
-    private class FragmentListModel extends AbstractListModel {
-
+    private class FragmentListModel extends AbstractListModel implements FragmentListener {
+        
         private String _type = null;
         private Object _id = null;
         private int _size = 0;
-
+        
         public FragmentListModel() {
         }
-
+        
         public void setFilter(Object id, String type) {
             fireIntervalRemoved(this, 0, getSize());
             _id = id;
             _type = type;
             fireIntervalAdded(this, 0, getSize());
         }
-
+        
         public Object getElementAt(int index) {
-            return _fragments.getFragmentKeyAt(_type, index);
+            return _model.getFragmentKeyAt(_type, index);
         }
-
+        
         public int getSize() {
             if (_type == null) return 0;
-            _size = _fragments.getFragmentCount(_type);
+            _size = _model.getFragmentCount(_type);
             return _size;
         }
-
-        public void fragmentAdded(String type, String key) {
-            if (_type == null || !_type.equals(type)) return;
-            int row = _fragments.indexOfFragment(type, key);
-            fireIntervalAdded(this, row, row);
-        }
-
-        public void fireContentsChanged() {
+        
+        protected void fireContentsChanged() {
             if (_size > 0) fireIntervalRemoved(this, 0, _size);
             if (getSize()>0) fireIntervalAdded(this, 0, getSize());
         }
-    
+        
+        public void fragmentAdded(HttpUrl url, ConversationID id, String type, String key) {}
+        
+        public void fragmentAdded(String type, String key, final int position) {
+            if (_type == null || !_type.equals(type)) return;
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        fireIntervalAdded(this, position, position);
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        
+        public void fragmentsChanged() {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        fireContentsChanged();
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        
+        public void pluginRunStatusChanged(boolean running, boolean stopping) {}
+        
+        public void pluginStatusChanged(String status) {}
+        
     }
-            
+    
     private class FragmentRenderer extends MultiLineCellRenderer {
         
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             if (value instanceof String) {
-                value = _fragments.getFragment((String) value);
+                value = _model.getFragment((String) value);
             }
             return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
         }
-    
+        
     }
     
     private class FragmentsListListener implements ListSelectionListener {
@@ -456,23 +470,11 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI,
         public void valueChanged(ListSelectionEvent e) {
             if (e.getValueIsAdjusting()) return;
             if (_type == null) return;
-            _conversationList.clear();
             int selected = fragmentList.getSelectedIndex();
-            if (selected == -1) return;
-            System.err.println("selected " + selected);
-            String key = (String) _flm.getElementAt(selected);
-            int count = _model.getConversationCount();
-            for (int i=0; i<count; i++) {
-                ConversationID id = _model.getConversationAt(i);
-                String[] fragments = _model.getConversationProperties(id, _type);
-                if (fragments != null) {
-                    for (int j=0; j<fragments.length; j++) {
-                        if (fragments[j].equals(key)) {
-                            _conversationList.addElement(id);
-                        }
-                    }
-                }
-            }
+            String key = null;
+            if (selected > -1)
+                key = (String) _flm.getElementAt(selected);
+            _model.setSelectedFragment(_type, key);
         }
     }
     

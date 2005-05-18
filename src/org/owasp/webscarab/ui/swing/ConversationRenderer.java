@@ -43,8 +43,8 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 
-import org.owasp.webscarab.model.SiteModel;
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.ConversationModel;
 
 /**
  *
@@ -52,11 +52,11 @@ import org.owasp.webscarab.model.ConversationID;
  */
 public class ConversationRenderer extends JLabel implements ListCellRenderer {
     
-    private SiteModel _model;
+    private ConversationModel _conversationModel;
     
     /** Creates a new instance of ConversationRenderer */
-    public ConversationRenderer(SiteModel model) {
-        _model = model;
+    public ConversationRenderer(ConversationModel conversationModel) {
+        _conversationModel = conversationModel;
     }
     
     public java.awt.Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -72,15 +72,19 @@ public class ConversationRenderer extends JLabel implements ListCellRenderer {
             setForeground(list.getForeground());
         }
         
-        if (id == null || _model == null) {
+        if (id == null) {
             setText("");
+            return this;
+        }
+        if (_conversationModel == null) {
+            setText(id.toString());
             return this;
         }
         StringBuffer text = new StringBuffer();
         text.append(id).append(" - ");
-        text.append(_model.getConversationProperty(id, "METHOD")).append(" ");
-        text.append(_model.getUrlOf(id).getSHPP()).append("    ");
-        text.append(_model.getConversationProperty(id, "STATUS"));
+        text.append(_conversationModel.getRequestMethod(id)).append(" ");
+        text.append(_conversationModel.getRequestUrl(id).getSHPP()).append("    ");
+        text.append(_conversationModel.getResponseStatus(id));
         setText(text.toString());
         
         return this;

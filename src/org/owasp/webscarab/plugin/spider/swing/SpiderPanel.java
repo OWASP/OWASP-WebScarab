@@ -40,7 +40,6 @@
 package org.owasp.webscarab.plugin.spider.swing;
 
 import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.model.SiteModel;
 
 import org.owasp.webscarab.plugin.spider.Spider;
 import org.owasp.webscarab.plugin.spider.SpiderModel;
@@ -49,7 +48,7 @@ import org.owasp.webscarab.plugin.spider.Link;
 
 import org.owasp.webscarab.ui.swing.HeaderPanel;
 import org.owasp.webscarab.ui.swing.UrlTreeRenderer;
-import org.owasp.webscarab.ui.swing.SiteTreeModelAdapter;
+import org.owasp.webscarab.ui.swing.UrlTreeModelAdapter;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 
@@ -84,7 +83,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
         _spider = spider;
         _model = _spider.getModel();
         
-        TreeModel treeModel = new SiteTreeModelAdapter(_model);
+        TreeModel treeModel = new UrlTreeModelAdapter(_model.getUrlModel());
         unseenLinkTree.setModel(treeModel);
         unseenLinkTree.setRootVisible(false);
         unseenLinkTree.setShowsRootHandles(true);

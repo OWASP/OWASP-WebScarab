@@ -67,6 +67,7 @@ import java.io.IOException;
 public class FileSystemStore implements FragmentsStore {
     
     private File _dir;
+    private String _session;
     
     private static final String[] NONE = new String[0];
     
@@ -75,8 +76,9 @@ public class FileSystemStore implements FragmentsStore {
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates a new instance of FileSystemStore */
-    public FileSystemStore(File dir) throws StoreException {
+    public FileSystemStore(File dir, String session) throws StoreException {
         _dir = dir;
+        _session = session;
         create();
     }
     

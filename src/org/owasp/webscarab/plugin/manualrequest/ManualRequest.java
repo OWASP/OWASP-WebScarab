@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: ManualRequest.java,v 1.15 2005/04/11 08:08:19 rogan Exp $
+ * $Id: ManualRequest.java,v 1.16 2005/05/18 15:23:31 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.manualrequest;
@@ -40,7 +40,7 @@ package org.owasp.webscarab.plugin.manualrequest;
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
-import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.NamedValue;
@@ -69,16 +69,12 @@ public class ManualRequest implements Plugin {
     private Response _response = null;
     private Date _responseDate = null;
     
-    private SiteModel _model = null;
-    private Framework _framework = null;
-    
-    private boolean _running = false;
-    private boolean _busy = false;
-    private String _status = "Stopped";
+    private Framework _framework;
+    private ManualRequestModel _model;
     
     public ManualRequest(Framework framework) {
         _framework = framework;
-        _model = _framework.getModel();
+        _model = new ManualRequestModel(_framework.getModel());
     }
     
     /** The plugin name
@@ -89,13 +85,13 @@ public class ManualRequest implements Plugin {
         return new String("Manual Request");
     }
     
-    public SiteModel getModel() {
-        return _framework.getModel();
+    public ManualRequestModel getModel() {
+        return _model;
     }
     
     public void setUI(ManualRequestUI ui) {
         _ui = ui;
-        if (_ui != null) _ui.setEnabled(_running);
+        if (_ui != null) _ui.setEnabled(_model.isRunning());
     }
     
     public void setRequest(Request request) {
@@ -109,8 +105,8 @@ public class ManualRequest implements Plugin {
     public synchronized void fetchResponse() throws IOException {
         if (_request != null) {
             try {
-                _busy = true;
-                _status = "Started, Fetching response";
+                _model.setBusy(true);
+                _model.setStatus("Started, Fetching response");
                 _response = _hc.fetchResponse(_request);
                 if (_response != null) {
                     _responseDate = new Date();
@@ -118,8 +114,8 @@ public class ManualRequest implements Plugin {
                     if (_ui != null) _ui.responseChanged(_response);
                 }
             } finally {
-                _status = "Started, Idle";
-                _busy = false;
+                _model.setStatus("Started, Idle");
+                _model.setBusy(false);
             }
         }
     }
@@ -153,19 +149,21 @@ public class ManualRequest implements Plugin {
     
     public void run() {
         _hc = HTTPClientFactory.getInstance().getHTTPClient();
-        _running = true;
+        _model.setRunning(true);
         // we do not run in our own thread, so we just return
-        if (_ui != null) _ui.setEnabled(_running);
-        _status = "Started, Idle";
+        if (_ui != null) _ui.setEnabled(_model.isRunning());
+        _model.setStatus("Started, Idle");
     }
     
     public boolean stop() {
         _hc = null;
-        _running = false;
+        _model.setStopping(true);
+        _model.setRunning(false);
+        _model.setStopping(false);
         // nothing to stop
-        if (_ui != null) _ui.setEnabled(_running);
-        _status = "Stopped";
-        return ! _running;
+        if (_ui != null) _ui.setEnabled(_model.isRunning());
+        _model.setStatus("Stopped");
+        return ! _model.isRunning();
     }
     
     public void flush() throws StoreException {
@@ -173,15 +171,15 @@ public class ManualRequest implements Plugin {
     }
     
     public boolean isRunning() {
-        return _running;
+        return _model.isRunning();
     }
     
     public boolean isBusy() {
-        return _busy;
+        return _model.isBusy();
     }
     
     public String getStatus() {
-        return _status;
+        return _model.getStatus();
     }
     
     public boolean isModified() {

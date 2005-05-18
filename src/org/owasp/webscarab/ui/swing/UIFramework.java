@@ -68,13 +68,14 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.Position.Bias;
 
 import org.owasp.webscarab.model.Preferences;
-import org.owasp.webscarab.model.SiteModel;
+import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.FileSystemStore;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.FrameworkUI;
 import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.swing.DocumentHandler;
+import org.owasp.webscarab.util.swing.SwingWorker;
 
 import javax.help.HelpSet;
 import javax.help.HelpBroker;
@@ -89,7 +90,7 @@ import java.net.MalformedURLException;
 public class UIFramework extends JFrame implements FrameworkUI {
     
     private Framework _framework;
-    private SiteModel _model;
+    private FrameworkModel _model;
     private ArrayList _plugins;
     
     private CookieJarViewer _cookieJarViewer;
@@ -530,19 +531,32 @@ public class UIFramework extends JFrame implements FrameworkUI {
         jfc.setDialogTitle("Choose a directory that contains a previous session");
         int returnVal = jfc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File dir = jfc.getSelectedFile();
-            try {
-                if (FileSystemStore.isExistingSession(dir)) {
-                    _framework.stopPlugins();
-                    _framework.saveSessionData();
-                    _framework.setSession("FileSystem", dir, "");
-                    _framework.startPlugins();
-                } else {
-                    // FIXME to change this to prompt to create it if it does not already exist
-                    JOptionPane.showMessageDialog(null, new String[] {dir + " does not contain a session ", }, "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (StoreException se) {
-                JOptionPane.showMessageDialog(null, new String[] {"Error loading Session : ", se.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+            final File dir = jfc.getSelectedFile();
+            if (!FileSystemStore.isExistingSession(dir)) {
+                // FIXME to change this to prompt to create it if it does not already exist
+                JOptionPane.showMessageDialog(null, new String[] {dir + " does not contain a session ", }, "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                new SwingWorker() {
+                    public Object construct() {
+                        try {
+                            _framework.stopPlugins();
+                            _framework.saveSessionData();
+                            _framework.setSession("FileSystem", dir, "");
+                            _framework.startPlugins();
+                            return null;
+                        } catch (StoreException se) {
+                            return se;
+                        }
+                    }
+                    public void finished() {
+                        Object result = getValue();
+                        if (result == null) return;
+                        if (result instanceof StoreException) {
+                            StoreException se = (StoreException) result;
+                            JOptionPane.showMessageDialog(null, new String[] {"Error loading Session : ", se.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                }.start();
             }
             Preferences.setPreference("WebScarab.defaultDirectory", jfc.getCurrentDirectory().toString());
         }
@@ -555,19 +569,32 @@ public class UIFramework extends JFrame implements FrameworkUI {
         jfc.setDialogTitle("Select a directory to write the session into");
         int returnVal = jfc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File dir = jfc.getSelectedFile();
-            try {
-                if (! FileSystemStore.isExistingSession(dir)) {
-                    _framework.stopPlugins();
-                    _framework.saveSessionData();
-                    _framework.setSession("FileSystem", dir, "");
-                    _framework.startPlugins();
-                } else {
-                    // FIXME to change this to prompt to open it if it already exists
-                    JOptionPane.showMessageDialog(null, new String[] {dir + " already contains a session ", }, "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (StoreException se) {
-                JOptionPane.showMessageDialog(null, new String[] {"Error creating Session : ", se.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+            final File dir = jfc.getSelectedFile();
+            if (FileSystemStore.isExistingSession(dir)) {
+                // FIXME to change this to prompt to open it if it already exists
+                JOptionPane.showMessageDialog(null, new String[] {dir + " already contains a session ", }, "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                new SwingWorker() {
+                    public Object construct() {
+                        try {
+                            _framework.stopPlugins();
+                            _framework.saveSessionData();
+                            _framework.setSession("FileSystem", dir, "");
+                            _framework.startPlugins();
+                            return null;
+                        } catch (StoreException se) {
+                            return se;
+                        }
+                    }
+                    public void finished() {
+                        Object result = getValue();
+                        if (result == null) return;
+                        if (result instanceof StoreException) {
+                            StoreException se = (StoreException) result;
+                            JOptionPane.showMessageDialog(null, new String[] {"Error creating Session : ", se.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                }.start();
             }
             Preferences.setPreference("WebScarab.defaultDirectory", jfc.getCurrentDirectory().toString());
         }
