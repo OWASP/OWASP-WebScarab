@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: ManualEditPanel.java,v 1.7 2005/02/22 18:57:55 rogan Exp $
+ * $Id: ManualEditPanel.java,v 1.8 2005/05/19 15:20:56 rogan Exp $
  * ProxyUI.java
  *
  * Created on February 17, 2003, 9:05 PM
@@ -49,6 +49,11 @@ import org.owasp.webscarab.plugin.proxy.ManualEditUI;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 
+import javax.swing.ButtonModel;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.ListModel;
 import javax.swing.JPanel;
 
@@ -59,11 +64,32 @@ import javax.swing.JPanel;
 public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI, ManualEditUI {
     
     private ManualEdit _manualEdit;
+    private ButtonModel _requestButtonModel, _responseButtonModel;
     
     /** Creates new form ManualEditPanel */
     public ManualEditPanel(ManualEdit manualEdit) {
         _manualEdit = manualEdit;
         initComponents();
+        _requestButtonModel = interceptRequestCheckBox.getModel();
+        _requestButtonModel.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                System.out.println("Request ActionPerformed");
+                boolean enabled = interceptRequestCheckBox.isSelected();
+                interceptIncludeRegexTextField.setEnabled(isEnabled() && enabled);
+                interceptExcludeRegexTextField.setEnabled(isEnabled() && enabled);
+                interceptMethodList.setEnabled(isEnabled() && enabled);
+                _manualEdit.setInterceptRequest(enabled);
+            }
+        });
+        _responseButtonModel = interceptResponseCheckBox.getModel();
+        _responseButtonModel.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                System.out.println("Response ActionPerformed");
+                boolean enabled = interceptResponseCheckBox.isSelected();
+                interceptResponseTextField.setEnabled(isEnabled() && enabled);
+                _manualEdit.setInterceptResponse(enabled);
+            }
+        });
         configure();
         interceptMethodList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent evt) {
@@ -143,12 +169,6 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
 
         interceptRequestCheckBox.setText("Intercept requests : ");
         interceptRequestCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        interceptRequestCheckBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                interceptRequestCheckBoxActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -259,14 +279,9 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
 
         interceptResponsePanel.setLayout(new java.awt.GridBagLayout());
 
-        interceptResponseCheckBox.setText("Intercept Responses :");
+        interceptResponseCheckBox.setText("Intercept responses : ");
+        interceptResponseCheckBox.setToolTipText("");
         interceptResponseCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        interceptResponseCheckBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                interceptResponseCheckBoxActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -307,7 +322,7 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         add(interceptResponsePanel, gridBagConstraints);
 
     }//GEN-END:initComponents
-
+    
     private void sensitiveCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sensitiveCheckBoxActionPerformed
         _manualEdit.setCaseSensitive(sensitiveCheckBox.isSelected());
     }//GEN-LAST:event_sensitiveCheckBoxActionPerformed
@@ -331,21 +346,7 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
     private void interceptIncludeRegexTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_interceptIncludeRegexTextFieldActionPerformed
         _manualEdit.setIncludeRegex(interceptIncludeRegexTextField.getText());
     }//GEN-LAST:event_interceptIncludeRegexTextFieldActionPerformed
-    
-    private void interceptResponseCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_interceptResponseCheckBoxActionPerformed
-        boolean enabled = interceptResponseCheckBox.isSelected();
-        interceptResponseTextField.setEnabled(isEnabled() && enabled);
-        _manualEdit.setInterceptResponse(enabled);
-    }//GEN-LAST:event_interceptResponseCheckBoxActionPerformed
-    
-    private void interceptRequestCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_interceptRequestCheckBoxActionPerformed
-        boolean enabled = interceptRequestCheckBox.isSelected();
-        interceptIncludeRegexTextField.setEnabled(isEnabled() && enabled);
-        interceptExcludeRegexTextField.setEnabled(isEnabled() && enabled);
-        interceptMethodList.setEnabled(isEnabled() && enabled);
-        _manualEdit.setInterceptRequest(enabled);
-    }//GEN-LAST:event_interceptRequestCheckBoxActionPerformed
-    
+            
     private void interceptMethodListValueChanged(ListSelectionEvent evt) {
         int[] indices = interceptMethodList.getSelectedIndices();
         String[] methods = new String[indices.length];
@@ -361,11 +362,17 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
     }
     
     public Request editRequest(Request request) {
-        return new ManualEditFrame().editRequest(request);
+        ManualEditFrame mef = new ManualEditFrame();
+        mef.setTitle("Edit Request");
+        mef.setInterceptModels(interceptRequestCheckBox.getModel(), interceptResponseCheckBox.getModel());
+        return mef.editRequest(request);
     }
     
     public Response editResponse(Request request, Response response) {
-        return new ManualEditFrame().editResponse(request, response);
+        ManualEditFrame mef = new ManualEditFrame();
+        mef.setTitle("Edit Response");
+        mef.setInterceptModels(interceptRequestCheckBox.getModel(), interceptResponseCheckBox.getModel());
+        return mef.editResponse(request, response);
     }
     
     public void setEnabled(boolean enabled) {

@@ -39,6 +39,7 @@
 
 package org.owasp.webscarab.plugin.proxy.swing;
 
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
@@ -46,10 +47,8 @@ import org.owasp.webscarab.ui.swing.RequestPanel;
 import org.owasp.webscarab.ui.swing.ResponsePanel;
 
 import javax.swing.SwingUtilities;
+import javax.swing.ButtonModel;
 import java.lang.Runnable;
-
-import java.awt.Dimension;
-import java.awt.Point;
 
 /**
  *
@@ -57,8 +56,6 @@ import java.awt.Point;
  */
 public class ManualEditFrame extends javax.swing.JFrame {
     
-    private static Point _location = null;
-    private static Dimension _size = new Dimension(600, 500);
     private static boolean _cancelAll = false;
     private static Object _lock = new Object();
     
@@ -68,24 +65,24 @@ public class ManualEditFrame extends javax.swing.JFrame {
     private Response _response = null;
     private ResponsePanel _responsePanel = null;
     
-    /** Creates new form ConversationEditorFrame */
+    /** Creates new form ManualEditFrame */
     public ManualEditFrame() {
         initComponents();
-        java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 0.2;
+        setPreferredSize();
         _requestPanel = new RequestPanel();
-        getContentPane().add(_requestPanel, gridBagConstraints);
+        contentSplitPane.setTopComponent(_requestPanel);
         _responsePanel = new ResponsePanel();
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.weighty = 1;
-        _responsePanel.setVisible(false);
-        getContentPane().add(_responsePanel, gridBagConstraints);
-        getRootPane().setDefaultButton(acceptButton);
+        contentSplitPane.setBottomComponent(_responsePanel);
+        getRootPane().setDefaultButton(cancelButton);
+    }
+    
+    public void setInterceptModels(ButtonModel interceptRequest, ButtonModel interceptResponse) {
+        interceptRequestCheckBox.setModel(interceptRequest);
+        interceptRequestCheckBox.setEnabled(true);
+        interceptRequestCheckBox.setVisible(true);
+        interceptResponseCheckBox.setModel(interceptResponse);
+        interceptResponseCheckBox.setEnabled(true);
+        interceptResponseCheckBox.setVisible(true);
     }
     
     public Request editRequest(Request request) {
@@ -97,11 +94,12 @@ public class ManualEditFrame extends javax.swing.JFrame {
                 public void run() {
                     _requestPanel.setEditable(true);
                     _requestPanel.setRequest(_request);
-                    if (_size != null) setSize(_size);
-                    if (_location != null) setLocation(_location);
+                    _responsePanel.setEditable(false);
+                    _responsePanel.setResponse(null);
                     show();
                     toFront();
                     requestFocus();
+                    contentSplitPane.setDividerLocation(1.0);
                 }
             });
             do {
@@ -132,12 +130,10 @@ public class ManualEditFrame extends javax.swing.JFrame {
                     _requestPanel.setRequest(request);
                     _responsePanel.setEditable(true);
                     _responsePanel.setResponse(_response);
-                    _responsePanel.setVisible(true);
-                    if (_size != null) setSize(_size);
-                    if (_location != null) setLocation(_location);
                     show();
                     toFront();
                     requestFocus();
+                    contentSplitPane.setDividerLocation(0.3);
                 }
             });
             do {
@@ -166,12 +162,14 @@ public class ManualEditFrame extends javax.swing.JFrame {
         java.awt.GridBagConstraints gridBagConstraints;
 
         jPanel1 = new javax.swing.JPanel();
-        cancelButton = new javax.swing.JButton();
         cancelAllButton = new javax.swing.JButton();
+        cancelButton = new javax.swing.JButton();
         acceptButton = new javax.swing.JButton();
         abortButton = new javax.swing.JButton();
-
-        getContentPane().setLayout(new java.awt.GridBagLayout());
+        jPanel2 = new javax.swing.JPanel();
+        interceptRequestCheckBox = new javax.swing.JCheckBox();
+        interceptResponseCheckBox = new javax.swing.JCheckBox();
+        contentSplitPane = new javax.swing.JSplitPane();
 
         setTitle("Intercept");
         addComponentListener(new java.awt.event.ComponentAdapter() {
@@ -190,16 +188,8 @@ public class ManualEditFrame extends javax.swing.JFrame {
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
-        cancelButton.setText("Cancel edits");
-        cancelButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancelButtonActionPerformed(evt);
-            }
-        });
-
-        jPanel1.add(cancelButton, new java.awt.GridBagConstraints());
-
-        cancelAllButton.setText("Cancel all edits");
+        cancelAllButton.setText("Release all intercepts");
+        cancelAllButton.setToolTipText("Aborts any pending changes, and allows intercepted conversations to proceed");
         cancelAllButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cancelAllButtonActionPerformed(evt);
@@ -208,7 +198,18 @@ public class ManualEditFrame extends javax.swing.JFrame {
 
         jPanel1.add(cancelAllButton, new java.awt.GridBagConstraints());
 
+        cancelButton.setText("Cancel edits");
+        cancelButton.setToolTipText("Cancels any edits made to this conversation");
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelButtonActionPerformed(evt);
+            }
+        });
+
+        jPanel1.add(cancelButton, new java.awt.GridBagConstraints());
+
         acceptButton.setText("Accept edits");
+        acceptButton.setToolTipText("Accepts any edits made to this conversation");
         acceptButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 acceptButtonActionPerformed(evt);
@@ -218,6 +219,7 @@ public class ManualEditFrame extends javax.swing.JFrame {
         jPanel1.add(acceptButton, new java.awt.GridBagConstraints());
 
         abortButton.setText("Abort request");
+        abortButton.setToolTipText("Prevents this request from being sent to the server. Returns an error to the browser");
         abortButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 abortButtonActionPerformed(evt);
@@ -226,12 +228,24 @@ public class ManualEditFrame extends javax.swing.JFrame {
 
         jPanel1.add(abortButton, new java.awt.GridBagConstraints());
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTH;
-        gridBagConstraints.weightx = 1.0;
-        getContentPane().add(jPanel1, gridBagConstraints);
+        getContentPane().add(jPanel1, java.awt.BorderLayout.SOUTH);
+
+        interceptRequestCheckBox.setText("Intercept requests : ");
+        interceptRequestCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+        interceptRequestCheckBox.setEnabled(false);
+        jPanel2.add(interceptRequestCheckBox);
+
+        interceptResponseCheckBox.setText("Intercept responses : ");
+        interceptResponseCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+        interceptResponseCheckBox.setEnabled(false);
+        jPanel2.add(interceptResponseCheckBox);
+
+        getContentPane().add(jPanel2, java.awt.BorderLayout.NORTH);
+
+        contentSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        contentSplitPane.setResizeWeight(0.5);
+        contentSplitPane.setOneTouchExpandable(true);
+        getContentPane().add(contentSplitPane, java.awt.BorderLayout.CENTER);
 
         pack();
     }//GEN-END:initComponents
@@ -245,12 +259,30 @@ public class ManualEditFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_cancelAllButtonActionPerformed
     
     private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
-        if (isVisible()) _size = getSize();
+        if (!isShowing()) return;
+        Preferences.getPreferences().setProperty("ManualEditFrame.size.x",Integer.toString(getWidth()));
+        Preferences.getPreferences().setProperty("ManualEditFrame.size.y",Integer.toString(getHeight()));
     }//GEN-LAST:event_formComponentResized
     
     private void formComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentMoved
-        if (isVisible()) _location = getLocation();
+        if (!isShowing()) return;
+        Preferences.getPreferences().setProperty("ManualEditFrame.position.x",Integer.toString(getX()));
+        Preferences.getPreferences().setProperty("ManualEditFrame.position.y",Integer.toString(getY()));
     }//GEN-LAST:event_formComponentMoved
+    
+    private void setPreferredSize() {
+        try {
+            int xpos = Integer.parseInt(Preferences.getPreference("ManualEditFrame.position.x").trim());
+            int ypos = Integer.parseInt(Preferences.getPreference("ManualEditFrame.position.y").trim());
+            int width = Integer.parseInt(Preferences.getPreference("ManualEditFrame.size.x").trim());
+            int height = Integer.parseInt(Preferences.getPreference("ManualEditFrame.size.y").trim());
+            setBounds(xpos,ypos,width,height);
+        } catch (NumberFormatException nfe) {
+            setSize(800,600);
+        } catch (NullPointerException npe) {
+            setSize(800,600);
+        }
+    }
     
     private void abortButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_abortButtonActionPerformed
         _done = true;
@@ -280,7 +312,6 @@ public class ManualEditFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_cancelButtonActionPerformed
     
-    /** Exit the Application */
     private void exitForm(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_exitForm
         _done = true;
         synchronized (_lock) {
@@ -293,7 +324,11 @@ public class ManualEditFrame extends javax.swing.JFrame {
     private javax.swing.JButton acceptButton;
     private javax.swing.JButton cancelAllButton;
     private javax.swing.JButton cancelButton;
+    private javax.swing.JSplitPane contentSplitPane;
+    private javax.swing.JCheckBox interceptRequestCheckBox;
+    private javax.swing.JCheckBox interceptResponseCheckBox;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     // End of variables declaration//GEN-END:variables
     
 }
