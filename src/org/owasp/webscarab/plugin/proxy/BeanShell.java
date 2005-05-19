@@ -70,13 +70,10 @@ public class BeanShell extends ProxyPlugin {
     private String _defaultScript =
     "/* Please read the JavaDoc and/or the source to understand what methods are available */\n" +
     "\n" +
-    "import org.owasp.webscarab.model.SiteModel;\n" +
     "import org.owasp.webscarab.model.Request;\n" +
     "import org.owasp.webscarab.model.Response;\n" +
     "import org.owasp.webscarab.httpclient.HTTPClient;\n" +
     "import java.io.IOException;\n" +
-    "\n" +
-    "private SiteModel model;\n" +
     "\n" +
     "public Response fetchResponse(HTTPClient nextPlugin, Request request) throws IOException {\n" +
     "   response = nextPlugin.fetchResponse(request);\n" +
