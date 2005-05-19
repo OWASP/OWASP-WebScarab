@@ -73,7 +73,8 @@ public class HTTPClientFactory {
     private int _httpsProxyPort = 80;
     private String[] _noProxy = new String[0];
     
-    private int _timeout = 30000;
+    private int _connectTimeout = 30000;
+    private int _readTimeout = 0;
     
     private SSLContext _sslContext = null;
     
@@ -190,13 +191,18 @@ public class HTTPClientFactory {
         }
     }
     
+    public void setTimeouts(int connectTimeout, int readTimeout) {
+        _connectTimeout = connectTimeout;
+        _readTimeout = readTimeout;
+    }
+    
     public HTTPClient getHTTPClient() {
         URLFetcher uf = new URLFetcher();
         uf.setHttpProxy(_httpProxy, _httpProxyPort);
         uf.setHttpsProxy(_httpsProxy, _httpsProxyPort);
         uf.setNoProxy(_noProxy);
         uf.setSSLContext(_sslContext);
-        uf.setTimeout(_timeout);
+        uf.setTimeouts(_connectTimeout, _readTimeout);
         return uf;
     }
     

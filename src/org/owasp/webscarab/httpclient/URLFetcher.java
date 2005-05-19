@@ -136,8 +136,9 @@ public class URLFetcher implements HTTPClient {
         _factory = (SSLSocketFactory) sslContext.getSocketFactory();
     }
     
-    public void setTimeout(int timeout) {
-        _timeout = timeout;
+    public void setTimeouts(int connectTimeout, int readTimeout) {
+        _connectTimeout = connectTimeout;
+        _timeout = readTimeout;
     }
     
     /** Can be used by a calling class to fetch a request without spawning an additional

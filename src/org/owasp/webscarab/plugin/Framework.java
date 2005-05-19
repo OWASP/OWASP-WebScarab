@@ -347,6 +347,24 @@ public class Framework {
             
             factory.setClientCertificateFile(file, keystorePass, keyPass);
             
+            int connectTimeout = 30000;
+            prop = "HttpClient.connectTimeout";
+            value = Preferences.getPreference(prop,"");
+            if (value != null && !value.equals("")) {
+                try {
+                    connectTimeout = Integer.parseInt(value);
+                } catch (NumberFormatException nfe) {}
+            }
+            int readTimeout = 0;
+            prop = "HttpClient.readTimeout";
+            value = Preferences.getPreference(prop,"");
+            if (value != null && !value.equals("")) {
+                try {
+                    readTimeout = Integer.parseInt(value);
+                } catch (NumberFormatException nfe) {}
+            }
+            factory.setTimeouts(connectTimeout, readTimeout);
+            
         } catch (NumberFormatException nfe) {
             _logger.warning("Error parsing property " + prop + ": " + nfe);
         } catch (Exception e) {
