@@ -2,6 +2,7 @@
 <project basedir="." default="all" name="webscarab">
         <target name="init">
                 <tstamp/>
+                <property file="local.properties"/>
                 <property name="project.version" value="${DSTAMP}-${TSTAMP}"/>
                 <property name="build.dir" location="${basedir}/build"/>
                 <property name="src.dir" location="${basedir}/src"/>
@@ -21,8 +22,7 @@
              	<property name="jhelpjar" value="lib/jhall-2.0_02.jar"/>
              	<property name="chardetjar" value="lib/chardet.jar"/>
              	<property name="tagsoupjar" value="lib/tagsoup-1.0rc2.jar"/>
-             	<property name="javahelpstyle" value="/usr/local/share/docbook-xsl-1.68.1/javahelp/javahelp.xsl"/>
-       		
+                
                 <path id="cpath">
 			<pathelement location="${build.dir}"/>
 			<pathelement path="${concurrentjar}"/>
@@ -57,7 +57,11 @@
 		<javac classpathref="cpath" deprecation="yes" destdir="${build.dir}" excludes="**/test/**" listfiles="yes" optimize="on" srcdir="${src.dir}">
                 </javac>
 	</target>
-        <target depends="prepare" description="JavaHelp" name="javahelp">
+        <target name="setproxy" if="http.proxyHost">
+            <echo>Setting proxy</echo>
+	    <setproxy proxyhost="${http.proxyHost}" proxyport="${http.proxyPort}"/>
+        </target>
+        <target depends="prepare,setproxy" description="JavaHelp" name="javahelp">
             <xslt basedir="doc/userguide/" destdir="${build.dir}/help" scanincludeddirectories="false" includes="swing.xml" style="${javahelpstyle}"/>
             <copy todir="${build.dir}/help/">
                 <fileset dir="doc/userguide/" includes="*.png,*.jpg,*.gif"/>
