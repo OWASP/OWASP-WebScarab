@@ -1,3 +1,8 @@
+2005-05-19 18:10  rogan
+
+	* build.xml: Some build improvements to support proxy settings, and
+	  local properties
+
 2005-05-19 17:26  rogan
 
 	* src/org/owasp/webscarab/ui/swing/Main.java: Don't include Compare
