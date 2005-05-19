@@ -12,7 +12,8 @@ import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
-import javax.swing.event.EventListenerList;
+import java.beans.PropertyChangeSupport;
+import java.beans.PropertyChangeListener;
 
 /**
  *
@@ -21,8 +22,8 @@ import javax.swing.event.EventListenerList;
 public class AbstractPluginModel {
     
     private FrameworkModel _frameworkModel;
+    private PropertyChangeSupport _changeSupport = new PropertyChangeSupport(this);
     
-    protected EventListenerList _listenerList = new EventListenerList();
     private String _status = "Stopped";
     private boolean _running = false;
     private boolean _stopping = false;
@@ -35,7 +36,11 @@ public class AbstractPluginModel {
     }
     
     public void setStatus(String status) {
-        _status = status;
+        if (!_status.equals(status)) {
+            String old = _status;
+            _status = status;
+            _changeSupport.firePropertyChange("status", old, _status);
+        }
     }
     
     public String getStatus() {
@@ -43,7 +48,10 @@ public class AbstractPluginModel {
     }
     
     public void setRunning(boolean running) {
-        _running = running;
+        if (_running != running) {
+            _running = running;
+            _changeSupport.firePropertyChange("running", !_running, _running);
+        }
     }
     
     public boolean isRunning() {
@@ -51,7 +59,10 @@ public class AbstractPluginModel {
     }
     
     public void setStopping(boolean stopping) {
-        _stopping = stopping;
+        if (_stopping != stopping) {
+            _stopping = stopping;
+            _changeSupport.firePropertyChange("stopping", !_stopping, _stopping);
+        }
     }
     
     public boolean isStopping() {
@@ -59,7 +70,10 @@ public class AbstractPluginModel {
     }
     
     public void setModified(boolean modified) {
-        _modified = modified;
+        if (_modified != modified) {
+            _modified = modified;
+            _changeSupport.firePropertyChange("modified", !_modified, _modified);
+        }
     }
     
     public boolean isModified() {
@@ -67,43 +81,30 @@ public class AbstractPluginModel {
     }
     
     public void setBusy(boolean busy) {
-        _busy = busy;
+        if (_busy != busy) {
+            _busy = busy;
+            _changeSupport.firePropertyChange("busy", !_busy, _busy);
+        }
     }
     
     public boolean isBusy() {
         return _busy;
     }
     
-    /**
-     * adds a listener to the model
-     * @param listener the listener to add
-     */
-    public void addModelListener(PluginListener listener) {
-        synchronized(_listenerList) {
-            _listenerList.add(PluginListener.class, listener);
-        }
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        _changeSupport.addPropertyChangeListener(listener);
     }
     
-    /**
-     * removes a listener from the model
-     * @param listener the listener to remove
-     */
-    public void removeModelListener(PluginListener listener) {
-        synchronized(_listenerList) {
-            _listenerList.remove(PluginListener.class, listener);
-        }
+    public void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+        _changeSupport.addPropertyChangeListener(propertyName, listener);
     }
     
-    protected void firePluginStatusChanged(String status) {
-        // FIXME : implement this!
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        _changeSupport.removePropertyChangeListener(listener);
     }
     
-    protected void firePluginRunStatusChanged(boolean running, boolean stopping) {
-        // FIXME : implement this!
-    }
-    
-    protected void fireModifiedStatusChanged(boolean modified) {
-        // FIXME : implement this!
+    public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+        _changeSupport.removePropertyChangeListener(propertyName, listener);
     }
     
 }

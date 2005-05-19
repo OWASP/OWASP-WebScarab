@@ -6,16 +6,16 @@
 
 package org.owasp.webscarab.plugin.fragments;
 
+import java.util.EventListener;
+
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
-
-import org.owasp.webscarab.plugin.PluginListener;
 
 /**
  *
  * @author  rogan
  */
-public interface FragmentListener extends PluginListener {
+public interface FragmentListener extends EventListener {
     
     void fragmentAdded(HttpUrl url, ConversationID id, String type, String key);
     

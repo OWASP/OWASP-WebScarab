@@ -382,12 +382,6 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
             }
         }
         
-        public void pluginRunStatusChanged(boolean running, boolean stopping) {
-        }
-        
-        public void pluginStatusChanged(String status) {
-        }
-        
     }
     
     private class FragmentListModel extends AbstractListModel implements FragmentListener {
@@ -447,10 +441,6 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
                 e.printStackTrace();
             }
         }
-        
-        public void pluginRunStatusChanged(boolean running, boolean stopping) {}
-        
-        public void pluginStatusChanged(String status) {}
         
     }
     

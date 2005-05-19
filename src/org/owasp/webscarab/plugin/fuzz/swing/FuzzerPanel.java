@@ -529,12 +529,6 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         public void fuzzerStopped(FuzzerEvent evt) {
         }
         
-        public void pluginRunStatusChanged(boolean running, boolean stopping) {
-        }
-        
-        public void pluginStatusChanged(String status) {
-        }
-        
     }
     
 }

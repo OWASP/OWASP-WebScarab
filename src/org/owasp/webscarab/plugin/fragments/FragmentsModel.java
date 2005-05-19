@@ -30,6 +30,8 @@ import java.util.Collections;
 
 import java.util.logging.Logger;
 
+import javax.swing.event.EventListenerList;
+
 /**
  *
  * @author  rogan
@@ -43,6 +45,8 @@ public class FragmentsModel extends AbstractPluginModel {
     private ReadWriteLock _rwl = new ReentrantReaderPreferenceReadWriteLock();
     
     private Logger _logger = Logger.getLogger(getClass().getName());
+    
+    private EventListenerList _listenerList = new EventListenerList();
     
     /** Creates a new instance of FragmentsModel */
     public FragmentsModel(FrameworkModel model) {
@@ -134,12 +138,10 @@ public class FragmentsModel extends AbstractPluginModel {
     }
     
     public void addModelListener(FragmentListener listener) {
-        super.addModelListener(listener);
         _listenerList.add(FragmentListener.class, listener);
     }
     
     public void removeModelListener(FragmentListener listener) {
-        super.removeModelListener(listener);
         _listenerList.remove(FragmentListener.class, listener);
     }
     
@@ -334,10 +336,6 @@ public class FragmentsModel extends AbstractPluginModel {
                 _logger.severe("Interrupted! " + ie);
             }
         }
-        
-        public void pluginRunStatusChanged(boolean running, boolean stopping) {}
-        
-        public void pluginStatusChanged(String status) {}
         
     }
 }

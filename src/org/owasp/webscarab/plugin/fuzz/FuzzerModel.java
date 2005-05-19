@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import javax.swing.event.EventListenerList;
+
 /**
  *
  * @author  rogan
@@ -41,6 +43,8 @@ public class FuzzerModel extends AbstractPluginModel {
     
     private HttpUrl _url = null;
     private Signature _signature = null;
+    
+    private EventListenerList _listenerList = new EventListenerList();
     
     /** Creates a new instance of FuzzerModel */
     public FuzzerModel(FrameworkModel model) {
@@ -186,8 +190,11 @@ public class FuzzerModel extends AbstractPluginModel {
     }
     
     public void addModelListener(FuzzerListener listener) {
-        super.addModelListener(listener);
         _listenerList.add(FuzzerListener.class, listener);
+    }
+    
+    public void removeModelListener(FuzzerListener listener) {
+        _listenerList.remove(FuzzerListener.class, listener);
     }
     
     /**

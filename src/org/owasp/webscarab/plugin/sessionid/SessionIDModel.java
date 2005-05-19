@@ -19,6 +19,8 @@ import java.util.TreeMap;
 import java.math.BigInteger;
 import java.util.logging.Logger;
 
+import javax.swing.event.EventListenerList;
+
 /**
  *
  * @author  rogan
@@ -32,6 +34,8 @@ public class SessionIDModel extends AbstractPluginModel {
     private Map _calculators = new TreeMap();
     
     private Logger _logger = Logger.getLogger(getClass().getName());
+    
+    private EventListenerList _listenerList = new EventListenerList();
     
     /** Creates a new instance of SessionIDModel */
     public SessionIDModel(FrameworkModel model) {
@@ -120,17 +124,11 @@ public class SessionIDModel extends AbstractPluginModel {
     }
     
     public void addModelListener(SessionIDListener listener) {
-        super.addModelListener(listener);
-        synchronized(_listenerList) {
-            _listenerList.add(SessionIDListener.class, listener);
-        }
+        _listenerList.add(SessionIDListener.class, listener);
     }
     
     public void removeModelListener(SessionIDListener listener) {
-        super.removeModelListener(listener);
-        synchronized(_listenerList) {
-            _listenerList.remove(SessionIDListener.class, listener);
-        }
+        _listenerList.remove(SessionIDListener.class, listener);
     }
     
     protected void fireSessionIDAdded(String key, int index) {

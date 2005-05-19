@@ -605,12 +605,6 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         return null;
     }
     
-    public void pluginRunStatusChanged(boolean running, boolean stopping) {
-    }
-    
-    public void pluginStatusChanged(String status) {
-    }
-    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel actionPanel;
     private javax.swing.JPanel analysisPanel;

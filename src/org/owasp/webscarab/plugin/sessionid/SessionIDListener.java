@@ -6,13 +6,13 @@
 
 package org.owasp.webscarab.plugin.sessionid;
 
-import org.owasp.webscarab.plugin.PluginListener;
+import java.util.EventListener;
 
 /**
  *
  * @author  rogan
  */
-public interface SessionIDListener extends PluginListener {
+public interface SessionIDListener extends EventListener {
     
     void sessionIDAdded(String key, int index);
     

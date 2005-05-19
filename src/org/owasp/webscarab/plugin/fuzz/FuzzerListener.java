@@ -6,14 +6,15 @@
 
 package org.owasp.webscarab.plugin.fuzz;
 
+import java.util.EventListener;
+
 import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.plugin.PluginListener;
 
 /**
  *
  * @author  rogan
  */
-public interface FuzzerListener extends PluginListener {
+public interface FuzzerListener extends EventListener {
     
     public abstract void appStatusChanged(FuzzerEvent evt);
     
