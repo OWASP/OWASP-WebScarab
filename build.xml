@@ -53,7 +53,7 @@
                 <copy file="server.p12" todir="${build.dir}"/>
                 <copy file="src/org/owasp/webscarab/plugin/scripted/script.bsh" todir="${build.dir}/org/owasp/webscarab/plugin/scripted/"/>
 	</target>
-	<target depends="clean,prepare" description="Compile the sources" name="compile">
+	<target depends="prepare" description="Compile the sources" name="compile">
 		<javac classpathref="cpath" deprecation="yes" destdir="${build.dir}" excludes="**/test/**" listfiles="yes" optimize="on" srcdir="${src.dir}">
                 </javac>
 	</target>
@@ -63,7 +63,7 @@
                 <fileset dir="doc/userguide/" includes="*.png,*.jpg,*.gif"/>
             </copy>
         </target>
-	<target depends="compile" description="Build a jar file" name="build">
+	<target depends="compile,javahelp" description="Build a jar file" name="build">
 		<jar basedir="${build.dir}" jarfile="${jar}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
@@ -126,7 +126,7 @@
                 </keep>
                 <keep implements="org.owasp.webscarab.ui.swing.editors.ByteArrayEditor"/>
                 <keep implements="org.apache.bsf.BSFEngine"/>
-                <keep name="org.owasp.webscarab.*"/>
+                <keep name="org.owasp.webscarab.*" access="public"/>
             </proguard>
         </target>
         <target depends="init,clean" description="packages up the source files" name="source">
