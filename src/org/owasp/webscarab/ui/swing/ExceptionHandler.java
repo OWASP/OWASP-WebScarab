@@ -32,6 +32,7 @@ public class ExceptionHandler {
     }
     
     public void handle(Throwable t) {
+        System.setProperty("sun.awt.exception.handler", "");
         t.printStackTrace();
         DocumentOutputStream dos = new DocumentOutputStream();
         t.printStackTrace(new PrintStream(dos));
