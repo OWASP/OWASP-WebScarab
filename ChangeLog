@@ -1,3 +1,183 @@
+2005-05-19 17:26  rogan
+
+	* src/org/owasp/webscarab/ui/swing/Main.java: Don't include Compare
+	  plugin by default. Not usable yet (too slow!)
+
+2005-05-19 17:26  rogan
+
+	* build.xml: Some build fixes, also try to prevent unused public
+	  methods from being optimised away
+
+2005-05-19 17:24  rogan
+
+	* src/org/owasp/webscarab/util/LevenshteinDistance.java: bugfixes
+
+2005-05-19 17:23  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ExceptionHandler.java: Disable
+	  exception handling from recursively calling this class
+
+2005-05-19 17:20  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/swing/:
+	  ManualEditFrame.form, ManualEditFrame.java, ManualEditPanel.form,
+	  ManualEditPanel.java: Fairly significant modifications: Renamed
+	  the "Cancel all edits" button to a more meaningful text, and
+	  implemented tool-tips for all buttons.  Fixed the default exclude
+	  regex, so it should work now . . .  Rearranged some of the items
+	  in the ManualEditFrame, to improve the layout Added checkboxes to
+	  the ManualEditFrame to allow toggling of intercepts from an
+	  active intercept window
+
+2005-05-19 14:36  rogan
+
+	* src/org/owasp/webscarab/plugin/compare/: Compare.java,
+	  CompareModel.java, swing/ComparePanel.form,
+	  swing/ComparePanel.java: New plugin for showing differences
+	  between responses. VERY VERY slow at the moment! :-(
+
+2005-05-19 14:33  rogan
+
+	* src/org/owasp/webscarab/plugin/:
+	  fragments/swing/FragmentsPanel.java, AbstractPluginModel.java,
+	  fragments/FragmentListener.java, fragments/FragmentsModel.java,
+	  fuzz/FuzzerListener.java, fuzz/FuzzerModel.java,
+	  fuzz/swing/FuzzerPanel.java, sessionid/SessionIDListener.java,
+	  sessionid/SessionIDModel.java,
+	  sessionid/swing/SessionIDPanel.java: Remove useless events from
+	  the AbstractPlugin model, replace them with bound properties
+	  which can be listened to IF needed
+
+2005-05-19 14:31  rogan
+
+	* src/org/owasp/webscarab/: httpclient/HTTPClientFactory.java,
+	  httpclient/URLFetcher.java, plugin/Framework.java: Make
+	  HttpClient timeouts a settable property
+
+2005-05-19 14:28  rogan
+
+	* src/org/owasp/webscarab/plugin/PluginListener.java: Unnecessary
+	  Class
+
+2005-05-19 13:33  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ExceptionHandler.java: Removed
+	  an "exit()" call that should not be here
+
+2005-05-19 11:57  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/BeanShell.java: Removed
+	  references to SiteModel, since that class has been
+	  deprecated/removed.  If you were actually using SiteModel in your
+	  scripts , please let me know, and I'll make a plan for an
+	  alternative solution
+
+2005-05-18 17:32  rogan
+
+	* src/org/owasp/webscarab/util/LevenshteinDistance.java: Calculates
+	  the Levenshtein distance between two byte arrays
+
+2005-05-18 17:27  rogan
+
+	* build.xml: Minor tweaks to the build process
+
+2005-05-18 17:25  rogan
+
+	* src/org/owasp/webscarab/: model/DefaultSiteModel.java,
+	  model/FilteredSiteModel.java, model/SiteModel.java,
+	  model/SiteModelAdapter.java, model/SiteModelEvent.java,
+	  model/SiteModelListener.java, plugin/fragments/FragmentsUI.java,
+	  plugin/sessionid/swing/SessionIDListener.java,
+	  ui/swing/SiteTreeModelAdapter.java,
+	  ui/swing/SiteTreeTableModelAdapter.java: Removal of obsolete
+	  classes, as a result of the refactoring performed
+
+2005-05-18 17:23  rogan
+
+	* src/org/owasp/webscarab/: model/FileSystemStore.java,
+	  model/SiteModelStore.java, plugin/fragments/FileSystemStore.java,
+	  plugin/fragments/Fragments.java,
+	  plugin/fragments/swing/FragmentsPanel.java,
+	  plugin/fuzz/Fuzzer.java, plugin/fuzz/FuzzerEvent.java,
+	  plugin/fuzz/FuzzerListener.java, plugin/fuzz/FuzzerModel.java,
+	  plugin/fuzz/swing/FuzzerPanel.java,
+	  plugin/manualrequest/ManualRequest.java,
+	  plugin/manualrequest/swing/ManualRequestPanel.java,
+	  plugin/proxy/BeanShell.java, plugin/proxy/CookieTracker.java,
+	  plugin/proxy/Proxy.java, plugin/proxy/ProxyPlugin.java,
+	  plugin/proxy/swing/BeanShellPanel.java,
+	  plugin/proxy/swing/MiscPanel.java,
+	  plugin/proxy/swing/ProxyPanel.java,
+	  plugin/scripted/ScriptedObjectModel.java,
+	  plugin/sessionid/SessionIDAnalysis.java,
+	  plugin/sessionid/swing/SessionIDPanel.java,
+	  plugin/spider/Spider.java, plugin/spider/swing/SpiderPanel.java,
+	  plugin/Framework.java, plugin/FrameworkUI.java,
+	  plugin/Plugin.java, plugin/spider/SpiderModel.java,
+	  ui/swing/ConversationListModel.java,
+	  ui/swing/ConversationListTableModel.java,
+	  ui/swing/ConversationPanel.java,
+	  ui/swing/ConversationRenderer.java,
+	  ui/swing/ConversationTableModel.java,
+	  ui/swing/CookieJarViewer.java, ui/swing/Main.java,
+	  ui/swing/ShowConversationAction.java, ui/swing/SummaryPanel.java,
+	  ui/swing/UIFramework.java: Massive refactoring of underlying
+	  models, and removal of references to unused classes
+
+2005-05-18 17:18  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: UrlTreeModelAdapter.java,
+	  UrlTreeTableModelAdapter.java: Provide a TreeModel interface on
+	  top of an UrlModel, rather than on top of a SiteModel
+
+2005-05-18 17:16  rogan
+
+	* src/org/owasp/webscarab/plugin/PluginListener.java: Provide a
+	  basis for other plugin listener interfaces
+
+2005-05-18 17:16  rogan
+
+	* src/org/owasp/webscarab/plugin/AbstractPluginModel.java: Provide
+	  a basis for other models
+
+2005-05-18 17:15  rogan
+
+	* src/org/owasp/webscarab/plugin/sessionid/:
+	  SessionIDListener.java, SessionIDModel.java: Implement a proper
+	  model for SessionID Analysis plugin
+
+2005-05-18 17:14  rogan
+
+	*
+	  src/org/owasp/webscarab/plugin/manualrequest/ManualRequestModel.java:
+	  Implement a model for the ManualRequest plugin
+
+2005-05-18 17:13  rogan
+
+	* src/org/owasp/webscarab/plugin/fragments/: FragmentListener.java,
+	  FragmentsModel.java: Provide an implementation of Model for the
+	  Fragment plugin
+
+2005-05-18 17:12  rogan
+
+	* src/org/owasp/webscarab/model/: AbstractConversationModel.java,
+	  AbstractUrlModel.java, ConversationEvent.java,
+	  ConversationListener.java, ConversationModel.java,
+	  FilteredConversationModel.java, FilteredUrlModel.java,
+	  FrameworkEvent.java, FrameworkListener.java, FrameworkModel.java,
+	  UrlEvent.java, UrlListener.java, UrlModel.java: Refactoring of
+	  SiteModel into separate classes, makes it a lot simpler to
+	  implement proper models for each plugin now
+
+2005-04-14 09:11  rogan
+
+	* build.xml: Try to fix javahelp building outside of netbeans
+
+2005-04-14 08:59  rogan
+
+	* src/org/owasp/webscarab/ui/swing/UIFramework.java: Fix stupid
+	  "failure to save session" error
+
 2005-04-11 16:32  rogan
 
 	* build.xml: Build changes for javahelp and others
