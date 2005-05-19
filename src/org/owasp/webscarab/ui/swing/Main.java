@@ -88,6 +88,9 @@ import org.owasp.webscarab.plugin.spider.swing.SpiderPanel;
 import org.owasp.webscarab.plugin.scripted.Scripted;
 import org.owasp.webscarab.plugin.scripted.swing.ScriptedPanel;
 
+import org.owasp.webscarab.plugin.compare.Compare;
+import org.owasp.webscarab.plugin.compare.swing.ComparePanel;
+
 import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.TempDir;
 
@@ -159,7 +162,6 @@ public class Main {
             JOptionPane.showMessageDialog(null, new String[] {"Error creating Session : ", se.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
         }
         
-        
         _uif.run();
         
         if (tempDir != null) {
@@ -217,6 +219,12 @@ public class Main {
         _uif.addPlugin(fuzzerPanel);
         /* */
         
+        /* Not ready for prime time yet!
+        Compare compare = new Compare(_framework);
+        _framework.addPlugin(compare);
+        ComparePanel comparePanel = new ComparePanel(compare);
+        _uif.addPlugin(comparePanel);
+        /* */
     }
     
     public static void loadProxyPlugins(Proxy proxy, ProxyPanel proxyPanel) {
