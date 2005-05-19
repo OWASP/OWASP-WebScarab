@@ -33,7 +33,6 @@ public class ExceptionHandler {
     
     public void handle(Throwable t) {
         t.printStackTrace();
-        System.exit(0);
         DocumentOutputStream dos = new DocumentOutputStream();
         t.printStackTrace(new PrintStream(dos));
         JTextArea ta = new JTextArea(dos.getDocument());
