@@ -78,7 +78,14 @@ public class ListComboBoxModel extends AbstractListModel implements ComboBoxMode
     }
     
     public void setSelectedItem(Object anItem) {
-        _selected = anItem;
+        if (_selected == null && anItem == null) return;
+        if (_selected == null && anItem != null || 
+            _selected != null && anItem == null ||
+            ! _selected.equals(anItem)) {
+            _selected = anItem;
+            fireContentsChanged(this, -1, -1);
+        }
+        
     }
     
     private class MyListener implements ListDataListener {
