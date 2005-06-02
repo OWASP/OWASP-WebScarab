@@ -73,7 +73,7 @@ public class ManualEditFrame extends javax.swing.JFrame {
         contentSplitPane.setTopComponent(_requestPanel);
         _responsePanel = new ResponsePanel();
         contentSplitPane.setBottomComponent(_responsePanel);
-        getRootPane().setDefaultButton(cancelButton);
+        getRootPane().setDefaultButton(acceptButton);
     }
     
     public void setInterceptModels(ButtonModel interceptRequest, ButtonModel interceptResponse) {
