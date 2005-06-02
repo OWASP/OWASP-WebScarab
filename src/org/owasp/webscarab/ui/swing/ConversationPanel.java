@@ -40,7 +40,6 @@
 package org.owasp.webscarab.ui.swing;
 
 import javax.swing.JFrame;
-import javax.swing.JTabbedPane;
 import javax.swing.JSplitPane;
 import javax.swing.border.TitledBorder;
 
@@ -100,42 +99,28 @@ public class ConversationPanel extends javax.swing.JPanel {
         
         setLayout(new java.awt.BorderLayout());
         
-        if (false) {
-            JTabbedPane tabbedPane = new javax.swing.JTabbedPane();
-            add(tabbedPane, java.awt.BorderLayout.CENTER);
-            
-            tabbedPane.insertTab("Request", null, _requestPanel, null, 0);
-            tabbedPane.insertTab("Response", null, _responsePanel, null, 1);
-            tabbedPane.addChangeListener(new ChangeListener() {
-                public void stateChanged(ChangeEvent e) {
-                    // _logger.info("State Changed : " + e);
-                }
-            });
-        } else {
-            JSplitPane splitPane = new JSplitPane();
-            splitPane.setOneTouchExpandable(true);
-            add(splitPane, java.awt.BorderLayout.CENTER);
-            
-            splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-            _requestPanel.setBorder(new TitledBorder("Request"));
-            splitPane.setTopComponent(_requestPanel);
-            _responsePanel.setBorder(new TitledBorder("Response"));
-            splitPane.setBottomComponent(_responsePanel);
-            String dividerLocation = Preferences.getPreference("ConversationPanel.dividerLocation");
-            if (dividerLocation != null) {
-                try {
-                    splitPane.setDividerLocation(Integer.parseInt(dividerLocation));
-                } catch (NumberFormatException nfe) {}
-            }
-            splitPane.addPropertyChangeListener(new PropertyChangeListener() {
-                public void propertyChange(PropertyChangeEvent e) {
-                    if (e.getPropertyName().equals("dividerLocation")) {
-                        Preferences.setPreference("ConversationPanel.dividerLocation", e.getNewValue().toString());
-                    }
-                }
-            });
+        JSplitPane splitPane = new JSplitPane();
+        splitPane.setOneTouchExpandable(true);
+        add(splitPane, java.awt.BorderLayout.CENTER);
+
+        splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+        _requestPanel.setBorder(new TitledBorder("Request"));
+        splitPane.setTopComponent(_requestPanel);
+        _responsePanel.setBorder(new TitledBorder("Response"));
+        splitPane.setBottomComponent(_responsePanel);
+        String dividerLocation = Preferences.getPreference("ConversationPanel.dividerLocation");
+        if (dividerLocation != null) {
+            try {
+                splitPane.setDividerLocation(Integer.parseInt(dividerLocation));
+            } catch (NumberFormatException nfe) {}
         }
-        
+        splitPane.addPropertyChangeListener(new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent e) {
+                if (e.getPropertyName().equals("dividerLocation")) {
+                    Preferences.setPreference("ConversationPanel.dividerLocation", e.getNewValue().toString());
+                }
+            }
+        });
         
     }
     
