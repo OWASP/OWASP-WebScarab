@@ -55,6 +55,7 @@ public class ConversationFrame extends javax.swing.JFrame {
         ConversationListModel clm = new ConversationListModel(conversations);
         conversationComboBox.setModel(new ListComboBoxModel(clm));
         conversationComboBox.setRenderer(new ConversationRenderer(conversations));
+        resizeFrame();
     }
     
     public void setSelectedConversation(ConversationID id) {
@@ -65,8 +66,8 @@ public class ConversationFrame extends javax.swing.JFrame {
     private void resizeFrame() {
         if (_preferredSize == null) {
             try {
-                int width = Integer.parseInt(Preferences.getPreference("ConversationPanel.width","600"));
-                int height = Integer.parseInt(Preferences.getPreference("ConversationPanel.height","500"));
+                int width = Integer.parseInt(Preferences.getPreference("ConversationFrame.width","600"));
+                int height = Integer.parseInt(Preferences.getPreference("ConversationFrame.height","500"));
                 _preferredSize = new Dimension(width, height);
             } catch (NumberFormatException nfe) {
                 _logger.warning("Error parsing ConversationPanel dimensions: " + nfe);
@@ -75,15 +76,15 @@ public class ConversationFrame extends javax.swing.JFrame {
         }
         if (_preferredLocation == null) {
             try {
-                String value = Preferences.getPreference("ConversationPanel.x");
+                String value = Preferences.getPreference("ConversationFrame.x");
                 if (value != null) {
                     int x = Integer.parseInt(value);
-                    value = Preferences.getPreference("ConversationPanel.y");
+                    value = Preferences.getPreference("ConversationFrame.y");
                     int y = Integer.parseInt(value);
                     _preferredLocation = new Point(x,y);
                 }
             } catch (NumberFormatException nfe) {
-                _logger.warning("Error parsing ConversationPanel location: " + nfe);
+                _logger.warning("Error parsing ConversationFrame location: " + nfe);
             } catch (NullPointerException npe) {
             }
         }
@@ -95,14 +96,14 @@ public class ConversationFrame extends javax.swing.JFrame {
             public void componentMoved(java.awt.event.ComponentEvent evt) {
                 if (!isVisible()) return;
                 _preferredLocation = getLocation();
-                Preferences.setPreference("ConversationPanel.x", Integer.toString(_preferredLocation.x));
-                Preferences.setPreference("ConversationPanel.y", Integer.toString(_preferredLocation.y));
+                Preferences.setPreference("ConversationFrame.x", Integer.toString(_preferredLocation.x));
+                Preferences.setPreference("ConversationFrame.y", Integer.toString(_preferredLocation.y));
             }
             public void componentResized(java.awt.event.ComponentEvent evt) {
                 if (!isVisible()) return;
                 _preferredSize = getSize();
-                Preferences.setPreference("ConversationPanel.width", Integer.toString(_preferredSize.width));
-                Preferences.setPreference("ConversationPanel.height", Integer.toString(_preferredSize.height));
+                Preferences.setPreference("ConversationFrame.width", Integer.toString(_preferredSize.width));
+                Preferences.setPreference("ConversationFrame.height", Integer.toString(_preferredSize.height));
             }
         });
     }
@@ -160,19 +161,19 @@ public class ConversationFrame extends javax.swing.JFrame {
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width-800)/2, (screenSize.height-700)/2, 800, 700);
     }//GEN-END:initComponents
-
+    
     private void previousButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_previousButtonActionPerformed
         int index = conversationComboBox.getSelectedIndex();
-        if (index>0) 
+        if (index>0)
             conversationComboBox.setSelectedIndex(index-1);
     }//GEN-LAST:event_previousButtonActionPerformed
-
+    
     private void nextButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextButtonActionPerformed
         int index = conversationComboBox.getSelectedIndex();
         if (index+1<conversationComboBox.getModel().getSize())
             conversationComboBox.setSelectedIndex(index+1);
     }//GEN-LAST:event_nextButtonActionPerformed
-
+    
     private void conversationComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_conversationComboBoxActionPerformed
         ConversationID id = (ConversationID) conversationComboBox.getSelectedItem();
         if (id == null) {
@@ -190,17 +191,23 @@ public class ConversationFrame extends javax.swing.JFrame {
     
     /** Exit the Application */
     private void exitForm(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_exitForm
-        System.exit(0);
+        dispose();
     }//GEN-LAST:event_exitForm
     
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        try { 
+        try {
             final FrameworkModel model = new FrameworkModel();
             model.setSession("FileSystem",new java.io.File("/tmp/l/1"),"");
             ConversationFrame cf = new ConversationFrame(model.getConversationModel());
+            cf.addWindowListener(new java.awt.event.WindowAdapter() {
+                public void windowClosing(java.awt.event.WindowEvent evt) {
+                    System.exit(0);
+                }
+            });
+            
             cf.show();
             cf.setSelectedConversation(new ConversationID(1));
         } catch (org.owasp.webscarab.model.StoreException se) {
