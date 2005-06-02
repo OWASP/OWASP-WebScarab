@@ -92,7 +92,7 @@ import org.owasp.webscarab.plugin.compare.Compare;
 import org.owasp.webscarab.plugin.compare.swing.ComparePanel;
 
 import org.owasp.webscarab.util.TextFormatter;
-import org.owasp.webscarab.util.TempDir;
+import org.owasp.webscarab.util.swing.ExceptionHandler;
 
 /**
  *
@@ -139,34 +139,8 @@ public class Main {
             System.exit(1);
         }
         
-        File tempDir = null;
-        
-        try {
-            File dir = null;
-            if (args == null || args.length == 0 || args[0].equals("")) {
-                try {
-                    tempDir = TempDir.createTempDir("webscarab", ".tmp", null);
-                    dir = tempDir;
-                } catch (IOException ioe) {
-                    throw new StoreException("Error creating initial temporary session: " + ioe.getMessage());
-                }
-            } else if (args.length == 1) {
-                // treat it as a directory to create or open
-                dir = new File(args[0]);
-            }
-            if (dir != null) {
-                _framework.setSession("FileSystem", dir, "");
-                _framework.startPlugins();
-            }
-        } catch (StoreException se) {
-            JOptionPane.showMessageDialog(null, new String[] {"Error creating Session : ", se.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        
         _uif.run();
         
-        if (tempDir != null) {
-            TempDir.recursiveDelete(tempDir);
-        }
         try {
             Preferences.savePreferences();
         } catch (IOException ioe) {
