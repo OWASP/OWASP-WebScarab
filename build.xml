@@ -118,7 +118,7 @@
                 <injar name="${basedir}/${bsfjar}"/>
                 <injar name="${basedir}/${jfreechartjar}"/>
                 <injar name="${basedir}/${jcommonjar}"/>
-                <injar name="${basedir}/${jchardetjar}"/>
+                <injar name="${basedir}/${chardetjar}"/>
                 <injar name="${basedir}/${tagsoupjar}"/>
                 <libraryjar name="${basedir}/${jhelpjar}"/>
 		<libraryjar name="${java.home}/lib/rt.jar"/>
