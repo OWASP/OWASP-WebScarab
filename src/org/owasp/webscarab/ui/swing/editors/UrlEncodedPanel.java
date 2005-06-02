@@ -39,13 +39,22 @@
 
 package org.owasp.webscarab.ui.swing.editors;
 
+import org.owasp.webscarab.model.Preferences;
+import org.owasp.webscarab.model.NamedValue;
+
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TableModelEvent;
 
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
+
 import java.io.UnsupportedEncodingException;
 
-import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
+
+import javax.swing.table.AbstractTableModel;
 
 import java.awt.Component;
 import javax.swing.CellEditor;
@@ -60,27 +69,35 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
     
     private boolean _editable = false;
     private boolean _modified = false;
-    private Vector _columns;
-    private DefaultTableModel _tableModel;
+    private NamedValueTableModel _tableModel;
     private String _data = null;
+    
+    private List _values = new ArrayList();
+    
+    private ColumnWidthListener _columnWidthListener = new ColumnWidthListener();
     
     /** Creates new form MessagePanel */
     public UrlEncodedPanel() {
         initComponents();
         setName("URLEncoded");
-        _columns = new Vector();
-        _columns.add("Variable");
-        _columns.add("Value");
-        _tableModel  = new DefaultTableModel(_columns.toArray(), 0);
-        _tableModel.addTableModelListener(new TableModelListener() {
-            public void tableChanged(TableModelEvent e) {
-                _modified = true;
-            }
-        });
+        _tableModel  = new NamedValueTableModel();
         headerTable.setModel(_tableModel);
-        headerTable.getColumnModel().getColumn(0).setPreferredWidth(150);
-        headerTable.getColumnModel().getColumn(1).setPreferredWidth(500);
         setEditable(_editable);
+        setColumnWidth(0,150);
+        setColumnWidth(1,500);
+    }
+    
+    private void setColumnWidth(int columnIndex, int def) {
+        TableColumn column = headerTable.getColumnModel().getColumn(columnIndex);
+        int index = column.getModelIndex();
+        String name = headerTable.getModel().getColumnName(index);
+        String preference = Preferences.getPreference("UrlEncoded." + name + ".width", Integer.toString(def));
+        try {
+            column.setPreferredWidth(Integer.parseInt(preference));
+        } catch (NumberFormatException nfe) {
+            column.setPreferredWidth(def);
+        }
+        column.addPropertyChangeListener(_columnWidthListener);
     }
     
     public String[] getContentTypes() {
@@ -90,39 +107,36 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
     public void setBytes(String contentType, byte[] bytes) {
         if (bytes == null) {
             _data = null;
-            _tableModel.setDataVector(null, _columns);
+            _values.clear();
         } else {
             try {
                 _data = new String(bytes, "UTF-8");
             } catch (UnsupportedEncodingException e) {}
-            String[] variables = _data.split("&");
-            String[][] pairs = new String[variables.length][2];
-            for (int i=0; i<variables.length; i++) {
-                String[] parts = variables[i].split("=",2);
-                if (parts.length > 0) {
-                    pairs[i][0] = Encoding.urlDecode(parts[0]);
+            NamedValue[] values = NamedValue.splitNamedValues(_data, "&", "=");
+            String value, decoded;
+            for (int i=0; i<values.length; i++) {
+                value = values[i].getValue();
+                decoded = Encoding.urlDecode(value);
+                if (value != null && !value.equals(decoded)) {
+                    values[i] = new NamedValue(values[i].getName(), decoded);
                 }
-                if (parts.length > 1) {
-                    pairs[i][1] = Encoding.urlDecode(parts[1]);
-                }
+                _values.add(values[i]);
             }
-            _tableModel.setDataVector(pairs, _columns.toArray());
         }
+        _tableModel.fireTableDataChanged();
         _modified = false;
     }
     
     public byte[] getBytes() {
         if (_editable && isModified()) {
             StringBuffer buff = new StringBuffer();
-            Vector pairs = _tableModel.getDataVector();
-            for (int i=0; i<pairs.size(); i++) {
-                Vector v = (Vector) pairs.elementAt(i);
-                String name = (String) v.elementAt(0);
-                if (name == null || name.equals("")) continue;
-                String value = (String) v.elementAt(1);
-                if (value == null) value = "";
+            for (int i=0; i<_values.size(); i++) {
+                NamedValue value = (NamedValue) _values.get(i);
+                if (value.getName() == null || value.getName().equals("")) continue;
                 if (i>0) buff.append("&");
-                buff.append(Encoding.urlEncode(name)).append("=").append(Encoding.urlEncode(value));
+                buff.append(Encoding.urlEncode(value.getName())).append("=");
+                if (value.getValue() != null)
+                    buff.append(Encoding.urlEncode(value.getValue()));
             }
             _data = buff.toString();
         }
@@ -223,19 +237,31 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
 
     }//GEN-END:initComponents
     
+    public void insertRow(int row) {
+        _values.add(row, new NamedValue("Variable", "value"));
+        _modified = true;
+        _tableModel.fireTableRowsInserted(row, row);
+    }
+    
+    public void removeRow(int row) {
+        _values.remove(row);
+        _modified = true;
+        _tableModel.fireTableRowsDeleted(row, row);
+    }
+    
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
         int rowIndex = headerTable.getSelectedRow();
         if (rowIndex > -1) {
-            _tableModel.removeRow(rowIndex);
+            removeRow(rowIndex);
         }
     }//GEN-LAST:event_deleteButtonActionPerformed
     
     private void insertButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertButtonActionPerformed
         int rowIndex = headerTable.getSelectedRow();
         if (rowIndex > -1) {
-            _tableModel.insertRow(rowIndex, new Object[2]);
+            insertRow(rowIndex);
         } else {
-            _tableModel.insertRow(_tableModel.getRowCount(), new Object[2]);
+            insertRow(_tableModel.getRowCount());
         }
     }//GEN-LAST:event_insertButtonActionPerformed
     
@@ -247,4 +273,61 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
     
+    private class NamedValueTableModel extends AbstractTableModel {
+        
+        private String[] _names = new String[] { "Variable", "Value"};
+        
+        public String getColumnName(int column) {
+            return _names[column];
+        }
+        
+        public int getColumnCount() {
+            return 2;
+        }
+        
+        public int getRowCount() {
+            return _values.size();
+        }
+        
+        public Object getValueAt(int row, int column) {
+            if (row > _values.size()-1) return "ERROR";
+            NamedValue nv = (NamedValue) _values.get(row);
+            if (column == 0) return nv.getName();
+            return nv.getValue();
+        }
+        
+        public void setValueAt(Object aValue, int row, int col) {
+            if (_editable && aValue instanceof String) {
+                NamedValue nv = (NamedValue) _values.get(row);
+                if (col == 0) {
+                    _values.set(row, new NamedValue((String)aValue, nv.getValue()));
+                } else {
+                    _values.set(row, new NamedValue(nv.getName(), (String) aValue));
+                }
+                _modified = true;
+                fireTableCellUpdated(row, col);
+            }
+        }
+        
+        public boolean isCellEditable(int row, int column) {
+            return _editable;
+        }
+        
+    }
+    
+    private class ColumnWidthListener implements PropertyChangeListener {
+        
+        public void propertyChange(PropertyChangeEvent evt) {
+            String property = evt.getPropertyName();
+            if (property == null || !"preferredWidth".equals(property)) return;
+            if (! (evt.getSource() instanceof TableColumn)) return;
+            int index = ((TableColumn)evt.getSource()).getModelIndex();
+            String name = headerTable.getModel().getColumnName(index);
+            Object newValue = evt.getNewValue();
+            if (!(newValue instanceof Integer)) return;
+            Preferences.setPreference("UrlEncoded." + name + ".width", newValue.toString());
+        }
+        
+    }
+
 }
