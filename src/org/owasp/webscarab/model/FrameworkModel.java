@@ -91,7 +91,11 @@ public class FrameworkModel {
         try {
             _rwl.writeLock().acquire();
             if (type.equals("FileSystem") && store instanceof File) {
-                _store = new FileSystemStore((File) store);
+                try {
+                    _store = new FileSystemStore((File) store);
+                } catch (Exception e) {
+                    throw new StoreException("Error initialising session : " + e.getMessage());
+                }
             } else {
                 _rwl.writeLock().release();
                 throw new StoreException("Unknown store type " + type + " and store " + store);
