@@ -68,22 +68,11 @@ public class ShowConversationAction extends AbstractAction {
         Object o = getValue("CONVERSATION");
         if (o == null || ! (o instanceof ConversationID)) return;
         ConversationID id = (ConversationID) o;
-        Request request = _model.getRequest(id);
-        Response response = _model.getResponse(id);
-        if (request != null && response != null) {
-            String title = "Conversation " + id;
-            JFrame frame = FrameCache.getFrame(title);
-            if (frame == null) {
-                ConversationPanel cp = new ConversationPanel();
-                cp.setRequest(request, false);
-                cp.setResponse(response, false);
-                frame = cp.inFrame(title);
-                FrameCache.addFrame(title, frame);
-            }
-            frame.show();
-            frame.toFront();
-            frame.requestFocus();
-        }
+        ConversationFrame cf = new ConversationFrame(_model.getConversationModel());
+        cf.setSelectedConversation(id);
+        cf.show();
+        cf.toFront();
+        cf.requestFocus();
     }
     
     public void putValue(String key, Object value) {
