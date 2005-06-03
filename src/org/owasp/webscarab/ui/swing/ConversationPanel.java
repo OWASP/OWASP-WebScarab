@@ -39,7 +39,6 @@
 
 package org.owasp.webscarab.ui.swing;
 
-import javax.swing.JFrame;
 import javax.swing.JSplitPane;
 import javax.swing.border.TitledBorder;
 
@@ -48,9 +47,6 @@ import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
-import java.awt.Dimension;
-import java.awt.Point;
-
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -58,11 +54,6 @@ import java.beans.PropertyChangeEvent;
 
 import java.util.logging.Logger;
 
-import javax.swing.JButton;
-import javax.swing.ListModel;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -74,7 +65,6 @@ public class ConversationPanel extends javax.swing.JPanel {
     
     private RequestPanel _requestPanel;
     private ResponsePanel _responsePanel;
-    private JFrame _frame = null;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -88,9 +78,6 @@ public class ConversationPanel extends javax.swing.JPanel {
     private boolean _responseEditable = false;
     
     private int _selected;
-    
-    private static Dimension _preferredSize = null;
-    private static Point _preferredLocation = null;
     
     /** Creates new form ConversationPanel */
     public ConversationPanel() {
@@ -167,74 +154,8 @@ public class ConversationPanel extends javax.swing.JPanel {
         return _response;
     }
     
-    public JFrame inFrame() {
-        return inFrame("Conversation Panel");
-    }
-    
-    private void resizeFrame() {
-        if (_preferredSize == null) {
-            try {
-                int width = Integer.parseInt(Preferences.getPreference("ConversationPanel.width","600"));
-                int height = Integer.parseInt(Preferences.getPreference("ConversationPanel.height","500"));
-                _preferredSize = new Dimension(width, height);
-            } catch (NumberFormatException nfe) {
-                _logger.warning("Error parsing ConversationPanel dimensions: " + nfe);
-            } catch (NullPointerException npe) {
-            }
-        }
-        if (_preferredLocation == null) {
-            try {
-                String value = Preferences.getPreference("ConversationPanel.x");
-                if (value != null) {
-                    int x = Integer.parseInt(value);
-                    value = Preferences.getPreference("ConversationPanel.y");
-                    int y = Integer.parseInt(value);
-                    _preferredLocation = new Point(x,y);
-                }
-            } catch (NumberFormatException nfe) {
-                _logger.warning("Error parsing ConversationPanel location: " + nfe);
-            } catch (NullPointerException npe) {
-            }
-        }
-        if (_preferredLocation != null) _frame.setLocation(_preferredLocation);
-        if (_preferredSize != null) {
-            _frame.setSize(_preferredSize);
-        } else {
-            _frame.pack();
-        }
-        _frame.addComponentListener(new java.awt.event.ComponentAdapter() {
-            public void componentMoved(java.awt.event.ComponentEvent evt) {
-                if (!_frame.isVisible()) return;
-                _preferredLocation = _frame.getLocation();
-                Preferences.setPreference("ConversationPanel.x", Integer.toString(_preferredLocation.x));
-                Preferences.setPreference("ConversationPanel.y", Integer.toString(_preferredLocation.y));
-            }
-            public void componentResized(java.awt.event.ComponentEvent evt) {
-                if (!_frame.isVisible()) return;
-                _preferredSize = _frame.getSize();
-                Preferences.setPreference("ConversationPanel.width", Integer.toString(_preferredSize.width));
-                Preferences.setPreference("ConversationPanel.height", Integer.toString(_preferredSize.height));
-            }
-        });
-    }
-    
-    public JFrame inFrame(String title) {
-        if (_frame != null) {
-            return _frame;
-        }
-        _frame = new JFrame(title);
-        _frame.getContentPane().setLayout(new java.awt.BorderLayout());
-        _frame.getContentPane().add(this);
-        resizeFrame();
-        return _frame;
-    }
-    
-    public JFrame getFrame() {
-        return _frame;
-    }
-    
     public static void main(String[] args) {
-        final JFrame top = new JFrame("Response Panel");
+        final javax.swing.JFrame top = new javax.swing.JFrame("Response Panel");
         top.getContentPane().setLayout(new java.awt.BorderLayout());
         top.addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
@@ -245,22 +166,13 @@ public class ConversationPanel extends javax.swing.JPanel {
         top.getContentPane().add(cp);
         top.setBounds(100,100,800,600);
         top.show();
-        if (args.length == 0) {
-            JButton button = new JButton("NEXT");
-            final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-            top.getContentPane().add(button, java.awt.BorderLayout.SOUTH);
-            button.addActionListener(new java.awt.event.ActionListener() {
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    loadConversation(top, cp, br);
-                }
-            });
-            loadConversation(top, cp, br);
-        } else if (args.length == 1) {
-            loadConversation(top, cp, args[0]);
+        if (args.length == 1) {
+            top.setTitle(args[0]);
+            loadConversation(cp, args[0]);
         }
     }
     
-    private static void loadConversation(JFrame top, ConversationPanel cp, String file) {
+    private static void loadConversation(ConversationPanel cp, String file) {
         Request request = new Request();
         Response response = new Response();
         try {
@@ -277,19 +189,6 @@ public class ConversationPanel extends javax.swing.JPanel {
         }
         cp.setRequest(request, false);
         cp.setResponse(response, false);
-        top.setTitle(file);
-    }
-    
-    private static void loadConversation(JFrame top, ConversationPanel cp, BufferedReader br) {
-        try {
-            String file = br.readLine();
-            if (file == null) {
-                System.exit(0);
-            }
-            loadConversation(top, cp, file);
-        } catch (IOException ioe) {
-            System.err.println("IOException: " + ioe.getMessage());
-        }
     }
     
 }
