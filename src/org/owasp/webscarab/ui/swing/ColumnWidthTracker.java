@@ -82,6 +82,7 @@ public class ColumnWidthTracker implements PropertyChangeListener, TableColumnMo
     public void columnRemoved(TableColumnModelEvent e) {
         int index = e.getToIndex();
         TableColumnModel tcm = (TableColumnModel) e.getSource();
+        if (index >= tcm.getColumnCount()) return;
         TableColumn tc = tcm.getColumn(index);
         tc.removePropertyChangeListener(this);
     }
