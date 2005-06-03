@@ -11,9 +11,6 @@ import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Preferences;
 
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableColumn;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -25,6 +22,7 @@ import java.util.ArrayList;
 public class HeaderPanel extends javax.swing.JPanel {
     
     private final static NamedValue[] NO_HEADERS = new NamedValue[0];
+    private final static ColumnWidthTracker _cwt = new ColumnWidthTracker("Header");
     
     private boolean _editable = false;
     private boolean _modified = false;
@@ -32,28 +30,12 @@ public class HeaderPanel extends javax.swing.JPanel {
     private HeaderTableModel _htm;
     private List _headers = new ArrayList();
     
-    private ColumnWidthListener _columnWidthListener = new ColumnWidthListener();
-    
     /** Creates new form HeaderPanel */
     public HeaderPanel() {
         _htm = new HeaderTableModel();
         initComponents();
         
-        setColumnWidth(0, 200);
-        setColumnWidth(1, 200);
-    }
-    
-    private void setColumnWidth(int columnIndex, int def) {
-        TableColumn column = headerTable.getColumnModel().getColumn(columnIndex);
-        int index = column.getModelIndex();
-        String name = headerTable.getModel().getColumnName(index);
-        String preference = Preferences.getPreference("Header." + name + ".width", Integer.toString(def));
-        try {
-            column.setPreferredWidth(Integer.parseInt(preference));
-        } catch (NumberFormatException nfe) {
-            column.setPreferredWidth(def);
-        }
-        column.addPropertyChangeListener(_columnWidthListener);
+        _cwt.addTable(headerTable);
     }
     
     public void setEditable(boolean editable) {
@@ -228,18 +210,4 @@ public class HeaderPanel extends javax.swing.JPanel {
         
     }
     
-    private class ColumnWidthListener implements PropertyChangeListener {
-        
-        public void propertyChange(PropertyChangeEvent evt) {
-            String property = evt.getPropertyName();
-            if (property == null || !"preferredWidth".equals(property)) return;
-            if (! (evt.getSource() instanceof TableColumn)) return;
-            int index = ((TableColumn)evt.getSource()).getModelIndex();
-            String name = headerTable.getModel().getColumnName(index);
-            Object newValue = evt.getNewValue();
-            if (!(newValue instanceof Integer)) return;
-            Preferences.setPreference("Header." + name + ".width", newValue.toString());
-        }
-        
-    }
 }

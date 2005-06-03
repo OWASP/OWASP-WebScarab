@@ -39,33 +39,25 @@
 
 package org.owasp.webscarab.ui.swing.editors;
 
-import org.owasp.webscarab.model.Preferences;
-import org.owasp.webscarab.model.NamedValue;
-
-import javax.swing.event.TableModelListener;
-import javax.swing.event.TableModelEvent;
-
-import javax.swing.table.TableColumn;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-
+import java.awt.Color;
 import java.io.UnsupportedEncodingException;
-
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
+import javax.swing.JPanel;
 import javax.swing.table.AbstractTableModel;
 
-import java.awt.Component;
-import javax.swing.CellEditor;
-
+import org.owasp.webscarab.model.NamedValue;
+import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
 import org.owasp.webscarab.util.Encoding;
 
 /**
  *
  * @author  rdawes
  */
-public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEditor {
+public class UrlEncodedPanel extends JPanel implements ByteArrayEditor {
+    
+    private final static ColumnWidthTracker _cwt = new ColumnWidthTracker("UrlEncoded");
     
     private boolean _editable = false;
     private boolean _modified = false;
@@ -74,8 +66,6 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
     
     private List _values = new ArrayList();
     
-    private ColumnWidthListener _columnWidthListener = new ColumnWidthListener();
-    
     /** Creates new form MessagePanel */
     public UrlEncodedPanel() {
         initComponents();
@@ -83,21 +73,7 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
         _tableModel  = new NamedValueTableModel();
         headerTable.setModel(_tableModel);
         setEditable(_editable);
-        setColumnWidth(0,150);
-        setColumnWidth(1,500);
-    }
-    
-    private void setColumnWidth(int columnIndex, int def) {
-        TableColumn column = headerTable.getColumnModel().getColumn(columnIndex);
-        int index = column.getModelIndex();
-        String name = headerTable.getModel().getColumnName(index);
-        String preference = Preferences.getPreference("UrlEncoded." + name + ".width", Integer.toString(def));
-        try {
-            column.setPreferredWidth(Integer.parseInt(preference));
-        } catch (NumberFormatException nfe) {
-            column.setPreferredWidth(def);
-        }
-        column.addPropertyChangeListener(_columnWidthListener);
+        _cwt.addTable(headerTable);
     }
     
     public String[] getContentTypes() {
@@ -154,11 +130,11 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
     public void setEditable(boolean editable) {
         _editable = editable;
         buttonPanel.setVisible(_editable);
-        java.awt.Color color;
+        Color color;
         if (_editable) {
-            color = java.awt.Color.WHITE;
+            color = Color.WHITE;
         } else {
-            color = new java.awt.Color(204, 204, 204);
+            color = new Color(204, 204, 204);
         }
         headerTable.setBackground(color);
     }
@@ -315,19 +291,4 @@ public class UrlEncodedPanel extends javax.swing.JPanel implements ByteArrayEdit
         
     }
     
-    private class ColumnWidthListener implements PropertyChangeListener {
-        
-        public void propertyChange(PropertyChangeEvent evt) {
-            String property = evt.getPropertyName();
-            if (property == null || !"preferredWidth".equals(property)) return;
-            if (! (evt.getSource() instanceof TableColumn)) return;
-            int index = ((TableColumn)evt.getSource()).getModelIndex();
-            String name = headerTable.getModel().getColumnName(index);
-            Object newValue = evt.getNewValue();
-            if (!(newValue instanceof Integer)) return;
-            Preferences.setPreference("UrlEncoded." + name + ".width", newValue.toString());
-        }
-        
-    }
-
 }
