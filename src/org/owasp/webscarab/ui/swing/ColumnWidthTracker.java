@@ -8,6 +8,11 @@ package org.owasp.webscarab.ui.swing;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.Iterator;
+
 import javax.swing.JTable;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -22,10 +27,23 @@ import org.owasp.webscarab.model.Preferences;
  */
 public class ColumnWidthTracker implements PropertyChangeListener, TableColumnModelListener {
     
+    private static HashMap _trackers = new HashMap();
+    
     private String _key;
     
+    private List _tracked = new LinkedList();
+    
+    public static ColumnWidthTracker getTracker(String key) {
+        ColumnWidthTracker tracker = (ColumnWidthTracker) _trackers.get(key);
+        if (tracker == null) {
+            tracker = new ColumnWidthTracker(key);
+            _trackers.put(key, tracker);
+        }
+        return tracker;
+    }
+    
     /** Creates a new instance of ColumnWidthTracker */
-    public ColumnWidthTracker(String key) {
+    protected ColumnWidthTracker(String key) {
         _key = key;
     }
     
@@ -36,6 +54,7 @@ public class ColumnWidthTracker implements PropertyChangeListener, TableColumnMo
             addColumn(tc);
         }
         tcm.addColumnModelListener(this);
+        _tracked.add(tcm);
     }
     
     public void removeTable(JTable table) {
@@ -45,6 +64,7 @@ public class ColumnWidthTracker implements PropertyChangeListener, TableColumnMo
             tc.removePropertyChangeListener(this);
         }
         tcm.removeColumnModelListener(this);
+        _tracked.remove(tcm);
     }
     
     public void propertyChange(PropertyChangeEvent evt) {
@@ -53,7 +73,18 @@ public class ColumnWidthTracker implements PropertyChangeListener, TableColumnMo
         if (! (evt.getSource() instanceof TableColumn)) return;
         TableColumn tc = (TableColumn) evt.getSource();
         String name = String.valueOf(tc.getHeaderValue());
-        Preferences.setPreference(_key + "." + name + ".width", String.valueOf(tc.getPreferredWidth()));
+        int width = tc.getPreferredWidth();
+        Preferences.setPreference(_key + "." + name + ".width", String.valueOf(width));
+        Iterator it = _tracked.iterator();
+        while (it.hasNext()) {
+            TableColumnModel tcm = (TableColumnModel) it.next();
+            for (int i=0; i<tcm.getColumnCount(); i++) {
+                TableColumn tc2 = tcm.getColumn(i);
+                String name2 = String.valueOf(tc2.getHeaderValue());
+                if (name.equals(name2) && tc != tc2 && tc2.getPreferredWidth() != width)
+                    tc2.setPreferredWidth(width);
+            }
+        }
     }
     
     private void addColumn(TableColumn tc) {

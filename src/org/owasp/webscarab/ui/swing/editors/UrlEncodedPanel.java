@@ -57,7 +57,7 @@ import org.owasp.webscarab.util.Encoding;
  */
 public class UrlEncodedPanel extends JPanel implements ByteArrayEditor {
     
-    private final static ColumnWidthTracker _cwt = new ColumnWidthTracker("UrlEncoded");
+    private final static ColumnWidthTracker _cwt = ColumnWidthTracker.getTracker("UrlEncoded");
     
     private boolean _editable = false;
     private boolean _modified = false;

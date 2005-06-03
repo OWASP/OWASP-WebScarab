@@ -48,6 +48,7 @@ import org.owasp.webscarab.plugin.fragments.FragmentListener;
 
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.ui.swing.ConversationListTableModel;
+import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.MultiLineCellRenderer;
 import org.owasp.webscarab.util.swing.ListComboBoxModel;
@@ -118,6 +119,7 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
         
         fragmentList.addListSelectionListener(new FragmentsListListener());
         conversationTable.setModel(new ConversationListTableModel(_model.getConversationModel()));
+        ColumnWidthTracker.getTracker("ConversationTable").addTable(conversationTable);
         
         _fragments = fragments;
         createActions();
@@ -255,6 +257,7 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        conversationTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
         jScrollPane2.setViewportView(conversationTable);
 
         jSplitPane1.setRightComponent(jScrollPane2);

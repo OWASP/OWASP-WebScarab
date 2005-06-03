@@ -110,7 +110,7 @@ public class SummaryPanel extends JPanel {
         _urlTreeTableModel = new UrlTreeTableModelAdapter(_urlModel);
         _urlTreeTable = new JTreeTable(_urlTreeTableModel);
         _urlTreeTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        new ColumnWidthTracker("UrlTree").addTable(_urlTreeTable);
+        ColumnWidthTracker.getTracker("UrlTree").addTable(_urlTreeTable);
         
         ColumnDataModel cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
@@ -203,7 +203,7 @@ public class SummaryPanel extends JPanel {
     
     private void initTable() {
         _conversationTableModel = new ConversationTableModel(_model, _model.getConversationModel());
-        new ColumnWidthTracker("ConversationTable").addTable(conversationTable);
+        ColumnWidthTracker.getTracker("ConversationTable").addTable(conversationTable);
         
         ColumnDataModel cdm = new ColumnDataModel() {
             public Object getValue(Object key) {

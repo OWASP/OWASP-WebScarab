@@ -22,7 +22,7 @@ import java.util.ArrayList;
 public class HeaderPanel extends javax.swing.JPanel {
     
     private final static NamedValue[] NO_HEADERS = new NamedValue[0];
-    private final static ColumnWidthTracker _cwt = new ColumnWidthTracker("Header");
+    private final static ColumnWidthTracker _cwt = ColumnWidthTracker.getTracker("Header");
     
     private boolean _editable = false;
     private boolean _modified = false;
