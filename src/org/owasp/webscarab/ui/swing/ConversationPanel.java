@@ -39,29 +39,28 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import java.awt.BorderLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.logging.Logger;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.border.TitledBorder;
 
-import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-
-import java.util.logging.Logger;
-
-import java.io.FileInputStream;
-import java.io.IOException;
 
 /**
  *
  * @author  rdawes
  */
-public class ConversationPanel extends javax.swing.JPanel {
+public class ConversationPanel extends JPanel {
     
     private RequestPanel _requestPanel;
     private ResponsePanel _responsePanel;
@@ -84,11 +83,11 @@ public class ConversationPanel extends javax.swing.JPanel {
         _requestPanel = new RequestPanel();
         _responsePanel = new ResponsePanel();
         
-        setLayout(new java.awt.BorderLayout());
+        setLayout(new BorderLayout());
         
         JSplitPane splitPane = new JSplitPane();
         splitPane.setOneTouchExpandable(true);
-        add(splitPane, java.awt.BorderLayout.CENTER);
+        add(splitPane, BorderLayout.CENTER);
 
         splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
         _requestPanel.setBorder(new TitledBorder("Request"));
@@ -155,10 +154,10 @@ public class ConversationPanel extends javax.swing.JPanel {
     }
     
     public static void main(String[] args) {
-        final javax.swing.JFrame top = new javax.swing.JFrame("Response Panel");
-        top.getContentPane().setLayout(new java.awt.BorderLayout());
-        top.addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
+        final JFrame top = new JFrame("Response Panel");
+        top.getContentPane().setLayout(new BorderLayout());
+        top.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent evt) {
                 System.exit(0);
             }
         });
