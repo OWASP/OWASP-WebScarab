@@ -39,47 +39,40 @@
 
 package org.owasp.webscarab.ui.swing;
 
-import org.owasp.webscarab.model.FrameworkModel;
-import org.owasp.webscarab.model.FilteredUrlModel;
-import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.model.ConversationID;
-
-import org.owasp.webscarab.util.swing.JTreeTable;
-import org.owasp.webscarab.util.swing.treetable.TreeTableModel;
-import org.owasp.webscarab.util.swing.TableSorter;
-import org.owasp.webscarab.util.swing.ColumnDataModel;
-
-import javax.swing.JTree;
-import javax.swing.SwingUtilities;
-
-import javax.swing.table.TableModel;
-
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreeSelectionModel;
-import javax.swing.tree.TreePath;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.ListSelectionEvent;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.Action;
-import javax.swing.AbstractAction;
-import java.awt.event.ActionEvent;
-import javax.swing.JMenuItem;
-
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.HashMap;
-import java.util.Collections;
+import java.util.Map;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.JTree;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.table.TableModel;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.FilteredUrlModel;
+import org.owasp.webscarab.model.FrameworkModel;
+import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.util.swing.ColumnDataModel;
+import org.owasp.webscarab.util.swing.JTreeTable;
+import org.owasp.webscarab.util.swing.TableSorter;
+
 
 /**
  *
  * @author  rdawes
  */
-public class SummaryPanel extends javax.swing.JPanel {
+public class SummaryPanel extends JPanel {
     
     private FrameworkModel _model;
     private FilteredUrlModel _urlModel;
@@ -116,6 +109,7 @@ public class SummaryPanel extends javax.swing.JPanel {
     private void initTree() {
         _urlTreeTableModel = new UrlTreeTableModelAdapter(_urlModel);
         _urlTreeTable = new JTreeTable(_urlTreeTableModel);
+        _urlTreeTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         new ColumnWidthTracker("UrlTree").addTable(_urlTreeTable);
         
         ColumnDataModel cdm = new ColumnDataModel() {
