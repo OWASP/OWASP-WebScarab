@@ -116,7 +116,7 @@ public class SummaryPanel extends javax.swing.JPanel {
     private void initTree() {
         _urlTreeTableModel = new UrlTreeTableModelAdapter(_urlModel);
         _urlTreeTable = new JTreeTable(_urlTreeTableModel);
-        new ColumnWidthTracker("SummaryTree").addTable(_urlTreeTable);
+        new ColumnWidthTracker("UrlTree").addTable(_urlTreeTable);
         
         ColumnDataModel cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
@@ -209,7 +209,7 @@ public class SummaryPanel extends javax.swing.JPanel {
     
     private void initTable() {
         _conversationTableModel = new ConversationTableModel(_model, _model.getConversationModel());
-        new ColumnWidthTracker("SummaryTable").addTable(conversationTable);
+        new ColumnWidthTracker("ConversationTable").addTable(conversationTable);
         
         ColumnDataModel cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
