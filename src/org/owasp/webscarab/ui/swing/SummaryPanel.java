@@ -116,6 +116,7 @@ public class SummaryPanel extends javax.swing.JPanel {
     private void initTree() {
         _urlTreeTableModel = new UrlTreeTableModelAdapter(_urlModel);
         _urlTreeTable = new JTreeTable(_urlTreeTableModel);
+        new ColumnWidthTracker("SummaryTree").addTable(_urlTreeTable);
         
         ColumnDataModel cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
@@ -144,15 +145,6 @@ public class SummaryPanel extends javax.swing.JPanel {
         urlTree.setRootVisible(false);
         urlTree.setShowsRootHandles(true);
         urlTree.setCellRenderer(new UrlTreeRenderer());
-        
-        int[] preferredColumnWidths = {
-            400, 80, 80, 50, 30, 30, 30
-        };
-        
-        javax.swing.table.TableColumnModel columnModel = _urlTreeTable.getColumnModel();
-        for (int i=0; i<Math.min(preferredColumnWidths.length, columnModel.getColumnCount()); i++) {
-            columnModel.getColumn(i).setPreferredWidth(preferredColumnWidths[i]);
-        }
         
         treeScrollPane.setViewportView(_urlTreeTable);
     }
@@ -217,6 +209,7 @@ public class SummaryPanel extends javax.swing.JPanel {
     
     private void initTable() {
         _conversationTableModel = new ConversationTableModel(_model, _model.getConversationModel());
+        new ColumnWidthTracker("SummaryTable").addTable(conversationTable);
         
         ColumnDataModel cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
@@ -273,15 +266,6 @@ public class SummaryPanel extends javax.swing.JPanel {
         
         TableSorter ts = new TableSorter(_conversationTableModel, conversationTable.getTableHeader());
         conversationTable.setModel(ts);
-        
-        int[] preferredColumnWidths = {
-            40, 60, 400, 250, 60, 60
-        };
-        
-        javax.swing.table.TableColumnModel columnModel = conversationTable.getColumnModel();
-        for (int i=0; i<Math.min(preferredColumnWidths.length, columnModel.getColumnCount()); i++) {
-            columnModel.getColumn(i).setPreferredWidth(preferredColumnWidths[i]);
-        }
     }
     
     private void addTableListeners() {
