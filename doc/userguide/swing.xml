@@ -31,7 +31,7 @@
       <emphasis>Disclaimer</emphasis>
     </para>
     <para>WebScarab is a tool, nothing more. It was created with
-    the best intentions. The authors cannot be held responsible for
+    the best intentions. The author(s) cannot be held responsible for
     what other people choose to use it for.</para>
   </chapter>
   <chapter id="introduction">
@@ -57,22 +57,24 @@
     <para>WebScarab uses the concept of a session to relate various
     conversations. It is compulsory to have a session when using
     WebScarab, because each conversation is written to the session
-    as it is seen.</para>
+    as it is seen, and read back from the session when requested.</para>
     <para>At the moment, sessions can only be saved to a directory
     on the filesystem. When creating a new session, you should
     select an empty directory, or provide the name of a directory
     that should be created.</para>
-    <para>By default, WebScarab creates a temporary session when it
-    is started without any parameters. This temporary session is a
-    directory created in the ${java.io.tmpdir} directory, using a
-    pattern of webscarabnnnnn.tmp.</para>
+    <para>When WebScarab starts up, it prompts you to choose what
+    kind of session to use. The default option is to create a 
+    temporary session. This temporary session is a directory created
+    in the ${java.io.tmpdir} directory, using a pattern of 
+    webscarabnnnnn.tmp.</para>
     <para>
     <emphasis>Note:</emphasis>This temporary directory is deleted
     when WebScarab exits. If you wish to preserve the audit record
     for later review, you should start a new session before
     creating or intercepting any conversations. Alternatively, if
     you need to save a temporary session that already contains
-    conversations, you should NOT exit WebScarab. First change to a
+    conversations, you should <emphasis>NOT</emphasis> exit WebScarab. 
+    First change to a
     new session, or open an existing session. This causes WebScarab
     to flush some memory-based data structures to disk. Then copy
     or move the temporary session directory to a new
@@ -91,7 +93,7 @@
   </chapter>
   <chapter id="environment">
     <title>WebScarab environmental settings</title>
-    <section>
+    <section id="proxies">
       <title>Upstream Proxy</title>
       <para>If you need to use an upstream proxy setting, you can
       configure it under the Tools -&gt; Proxies menu.</para>
@@ -116,7 +118,7 @@
           </mediaobject>
         </figure>
     </section>
-    <section>
+    <section id="clientcerts">
       <title>Client-side Certificates</title>
       <para>WebScarab has support for client side SSL certificates.
       At the moment, it can only access keys and certificates
@@ -170,13 +172,13 @@
             <link linkend="spider">Spider</link>
           </listitem>
           <listitem>
-            <link>SessionID Analysis</link>
+            <link linkend="sessionid">SessionID Analysis</link>
           </listitem>
           <listitem>
-            <link>Scripted</link>
+            <link linkend="scripted">Scripted</link>
           </listitem>
           <listitem>
-            <link>Fragments</link>
+            <link linkend="fragments">Fragments</link>
           </listitem>
         </itemizedlist>
       </para>
@@ -210,7 +212,7 @@
         <para>WebScarab supports multiple HTTP listeners. The
         Listener allows you to specify the IP address and port that
         the Listener listens on. 
-        <emphasis>Note :</emphasis>By default, WebScarab listens
+        <emphasis>Note:</emphasis>By default, WebScarab listens
         only on localhost, so as to eliminate the possibility of
         unauthorized anonymous proxying.</para>
         <para>WebScarab allows you to specify a "base address" for
@@ -221,10 +223,31 @@
         the URL by concatenating the base URL and the path that
         appears in the request line. If the base URL is an HTTPS
         URL, it will immediately negotiate an SSL tunnel prior to
-        trying to read the request from the browser.</para>
+        trying to read the request from the browser. This is useful
+        for the situation where you are using a custom HTTP-based
+        client that does not support configuring an upstream proxy. 
+        Simply change the hosts file on the computer on which the 
+        custom client is running to point the site in question to 
+        the computer on which WebScarab is running on, and WebScarab 
+        will receive requests for the targeted website. <emphasis>Note:
+        </emphasis>You can't run both WebScarab and the client application
+        on the same computer in such a situation, because WebScarab will 
+        get the same IP address from the hosts file when trying to connect
+        to the upstream target, and will end up looping back to itself 
+        recursively. <emphasis>Note:</emphasis>You SHOULD also have to add the
+        WebScarab certificate to the client applications list of recognised
+        certificates, to prevent certificate errors from occuring. If you
+        DON'T have to do this, the client application is vulnerable to a 
+        man in the middle attack, because it does not verify the certificate
+        properly.</para>
         <para>The network simulator allows the user to limit the
         bandwidth available to the client, and introduces
         artificial latencies.</para>
+        <para id="enableplugins">There is also an option to enable plugins. 
+        If this option is NOT selected, the various proxy plugins will NOT be
+        invoked when each request and response is seen. If the plugins
+        do not seem to be working, or your intercepts are not happening,
+        check to make sure that this checkbox is selected.</para>
         <para>On the Windows platform, if the W32WinInet DLL is
         loaded by WebScarab, the Listener that is marked as primary
         will automatically "hijack" the Internet Explorer when it
@@ -235,7 +258,14 @@
         be restored. Obviously, it makes no sense to configure
         multiple Primary listeners, as they will conflict with each
         other, and probably result in the wrong proxy settings
-        being restored when WebScarab is closed.</para>
+        being restored when WebScarab is closed. <emphasis>Note:
+        </emphasis>At this point, there is nothing technically preventing you 
+        from configuring multiple "Primary" listeners. Just don't do it.
+        Also, it makes no sense to configure a Listener with a base URL,
+        as well as setting it as a primary listener, because it will 
+        be talking a different protocol (expecting non-fully-qualified
+        URL's, instead of URL's that include the scheme and host portion).
+        Just don't do it.</para>
       </section>
       <section>
         <title>Active conversations</title>
@@ -261,23 +291,23 @@
             <link linkend="proxybeanshell">Bean Shell</link>
           </listitem>
           <listitem>
-            <link linkend="proxymisc">Reveal hidden form
+            <link linkend="revealhidden">Reveal hidden form
             fields</link>
           </listitem>
           <listitem>
-            <link linkend="proxymisc">Prevent browser caching
+            <link linkend="preventcaching">Prevent browser caching
             content</link>
           </listitem>
           <listitem>
-            <link linkend="proxymisc">Inject known cookies into
+            <link linkend="injectcookies">Inject known cookies into
             requests</link>
           </listitem>
           <listitem>
-            <link linkend="proxymisc">Extract cookies from
+            <link linkend="collectcookies">Extract cookies from
             responses</link>
           </listitem>
           <listitem>
-            <link linkend="proxymisc">Remove NTLM authentication
+            <link linkend="ntlmfilter">Remove NTLM authentication
             headers</link>
           </listitem>
         </itemizedlist></para>
@@ -332,29 +362,29 @@
           <para>There are a number of miscellaneous plugins that
           can operate on proxied conversations. 
           <itemizedlist>
-            <listitem>The "Reveal hidden fields" plugin changes any
+            <listitem id="revealhidden">The "Reveal hidden fields" plugin changes any
             forms fields with the type of "hidden" to have a type
             of "text". This causes the browser to display these
             fields, and makes it easy for the user to modify the
             fields, as well as observing when such hidden fields
             are being used.</listitem>
-            <listitem>The "prevent caching" plugin removes any
+            <listitem id="preventcaching">The "prevent caching" plugin removes any
             "if-modified-since" or similar headers from requests to
             ensure that WebScarab always has a copy of the response
             body, rather than allowing the browser to use a locally
             cached copy.</listitem>
-            <listitem>The "Inject cookies" plugin allows WebScarab
+            <listitem id="injectcookies">The "Inject cookies" plugin allows WebScarab
             to override any cookies in the browser, or to supply
             cookies that the browser does not know about. The
             cookies are retrieved from the "Shared cookies" list,
             and are filtered for applicability according to the
             domain and path attributes.</listitem>
-            <listitem>The "Collect cookies" plugin extracts any
+            <listitem id="collectcookies">The "Collect cookies" plugin extracts any
             "Set-Cookie" headers from responses passing through the
             proxy, and adds those to the "Shared cookies" list.
             these can later be used by other plugins to maintain
             state, if desired.</listitem>
-            <listitem>NTLM authentication cannot be used through a
+            <listitem id="ntlmfilter">NTLM authentication cannot be used through a
             proxy. However, since browsers should use the strongest
             authentication method available, Internet Explorer will
             usually try to use NTLM authentication in favour of
@@ -369,7 +399,7 @@
             WebScarab and APS in a chained configuration (with APS
             closer to the target). This has not been tested,
             however. 
-            <emphasis>Note :</emphasis>Interestingly enough, it IS
+            <emphasis>Note :</emphasis>Interestingly enough, it <emphasis>IS</emphasis>
             possible to perform SPNEGO authentication through a
             proxy. In particular, since WebScarab supports
             persistent connections, it is possible to monitor
@@ -412,6 +442,132 @@
       selected node, and queues them for retrieval. "Fetch
       Selection" queues only the selected nodes for
       retrieval.</para>
+      <para>Future enhancements should also identify HTML forms, and
+      present those to the user for manual modification and submission.
+      This would be a great project for an interested user to implement.</para>
+    </section>
+    <section id="sessionid">
+      <title>Session ID Analysis</title>
+      <para>Session ID Analysis is useful to determine how easy it is for
+      an attacker to brute force a victim's sessionid, and take it over.</para>
+      <para>The principle is that we collect a sample of session identifiers,
+      most likely from a cookie that is set in the browser, but possibly also one that
+      is set in a hidden form field in the HTML body. WebScarab tags all sessionid's 
+      with the date and time that it was collected, and then, after performing some
+      calculations on the string value to convert it into a number, plots the
+      value against time on a graph. The human eye is a lot more efficient at identifying
+      patterns than a computer, so by plotting the values on a pair of axes, we 
+      make it easy for a human to visualise the sequence.</para>
+      <para>The default calculator identifies the possible character set 
+      for each position in the session id string. It then performs base-n conversion
+      of the string to get it to a large number. This is quite an efficient way
+      of converting arbitrary strings into a number, as it does not make any
+      assumptions about the character set, and is reasonably effective at eliminating
+      constant strings (they are reduced to a value of 0 since the character 
+      set does not change)</para>
+      <para>It is possible to use alternative calculators, e.g. a Base64 calculator
+      that knows what the Base64 character set is, but there is no User Interface support
+      for selecting different calculators. It currently requires code changes to use
+      different calculators. This might be a good project for an 
+      interested person to implement.
+      </para>
+      <section id="sessionidcollection">
+        <title>Collecting sessionids</title>
+        <para>There are currently two ways to collect sessionids, from a cookie in the
+        response headers, and by matching a regular expression against the response body.</para>
+        <para>To collect sessionids from cookies, make sure that the "From message body"
+        checkbox is NOT selected. To collect sessionids from the message body, make sure
+        that the "From message body" checkbox IS selected. Provide a name for the series of
+        sessionids (the name is calculated automatically for cookies), and a regular 
+        expression that can be used to identify the identifier from the rest of the message.</para>
+        <para>The regular expression MUST match the ENTIRE message body, so it should probably
+        start and end with ".*" constructs. The portion of the matched text that should be used
+        for the session identifier should be surrounded by round brackets (i.e. a group). 
+        WebScarab will concatenate multiple groups into a single identifier if desired.</para>
+        <para>Example regular expressions:
+        <itemizedlist>
+            <listitem>.*id="(..........)".* will extract a 10-character sessionid 
+            surrounded by quotes, and prefixed by "id="</listitem>
+        </itemizedlist>
+        </para>
+        <para>Once you have specified what you want to collect, you need to provide
+        a request that will result in a response that contains a new sessionid. The
+        easiest way of doing this is to look in the SummaryPanel to see conversations
+        that have a value in the "Set-Cookie" column. Then, select that request from the
+        drop-down menu, and use that exact request to collect new sessionids.</para>
+        <para>Alternatively, you can hand-craft your request, possibly changing a GET to
+        HEAD to reduce the amount of data that needs to be requested.</para>
+        <para>Once the request has been entered, you can test the setup to make sure
+        that it works. Press the "Test" button. If a sessionid is successfully found,
+        a dialog box will be shown with the details. Once the sessionids are being 
+        successfully extracted via the "Test" button, you can specify a number of sessionids
+        to collect in the "Samples" field, and click "Fetch" to start the process</para>
+        <para>If you specify a large number of sessionids, and want to stop the collection
+        process before it finishes naturally, enter "0" into the "Samples" field, and press "Fetch".
+        </para>
+      </section>
+      <section id="sessionidanalysis">
+      <title>Session ID Analysis</title>
+        <para>While the sessionids are being collected, you can change to the
+        Analysis tab, and view the collected values. Using the "Session Identifier"
+        drop-down box, choose the identifier that you are interested in. The table
+        below will fill with the identifiers that have been collected, and will extend
+        as new identifiers are seen. The first column specifies the date/time that the 
+        sessionid was collected, then the actual string value of the identifier is 
+        in the second column. The third column shows the calculated value, which may change
+        over time, as the "per-position character-set" is updated. The final
+        column shows the difference between subsequent calculated values.</para>
+        <para>If you want to copy the sessionids into a spreadsheet program for alternative
+        analysis, you can simply select, Copy (Ctrl-C) and then paste it into your program.
+        </para>
+      </section>
+      <section id="sessionidvisualisation">
+      <title>Session ID Visualisation</title>
+        <para>The "Visualisation" tab contains a graph view of the selected session 
+        identifier. The graph widget is created the first time the tab is selected.
+        If no session identifier is selected on the "Analysis" tab, no points will be
+        shown on the graph. Using the graph, it should be easy to identify linear or
+        repeating patterns in the session ids collected.</para>
+      </section>
+    </section>
+    <section id="scripted">
+      <title>The scripted plugin</title>
+      <para>This plugin is intended to give users the ability to create test scripts,
+      using the facilities of Webscarab.</para>
+      <para>The scripting support is provided by the
+      Bean Scripting Framework (BSF), which means that any BSF-supported scripting
+      language can be used to write test scripts. The default language supported
+      is BeanShell, which is a relaxed Java-like language. For more details of BeanShell,
+      go to http://www.beanshell.org/. If you wish to use one of the other scripting
+      languages such as Jython or Groovy, for example, you should place the appropriate
+      support libraries in the ClassPath prior to running WebScarab, and make sure that
+      your script's filenames end with the appropriate extension for your chosen
+      language. The required extension for BeanShell scripts is ".bsh".</para>
+      <para>The Scripted plugin exports a Java Object with methods that allow you to
+      interact with the rest of WebScarab, for example, fetching a response, or
+      adding a conversation to the WebScarab framework for analysis by the other plugins.
+      It is likely that this object will change, as it is a pretty new feature of WebScarab.
+      Therefore, if the documented behaviour does not match what you observe, please check
+      the source code!</para>
+      <para>
+      The exported Object is documented in org/owasp/webscarab/plugins/scripted/ScriptedObjectModel.java
+      The major methods that you will likely want to use are:
+        <itemizedlist>
+            <listitem>Request <function>getRequest(int id)</function></listitem>
+            <listitem>Response <function>fetchResponse(Request request) throws IOException</function></listitem>
+            <listitem>boolean <function>hasAsyncCapacity()</function></listitem>
+            <listitem>void <function>submitAsyncRequest(Request request)</function></listitem>
+            <listitem>boolean <function>isAsyncBusy()</function></listitem>
+            <listitem>boolean <function>hasAsyncResponse()</function></listitem>
+            <listitem>Response <function>getAsyncResponse() throws IOException</function></listitem>
+            <listitem>ConversationID <function>addConversation(Response response)</function></listitem>
+        </itemizedlist>
+      The "async" methods allow for fetching of Responses in multiple threads, while the 
+      "fetchResponse" method would be used for single-threaded operations.
+      </para>
+    </section>
+    <section id="fragments">
+      <title>The fragments plugin</title>
     </section>
   </chapter>
   <chapter id="appendix">
