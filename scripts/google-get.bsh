@@ -1,0 +1,89 @@
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
+
+// Beanshell script by Chuck Willis (chuck at securityfoundry dot com)
+// for use with WebScarab by Rogan Dawes 
+// http://www.owasp.org/software/webscarab.html
+// Use this script at your own risk, by using it you accept all liability.
+
+// This script is heavily based on Rogan's example script that comes
+// with WebScarab.
+
+// This script will make several get requests to Google
+
+// define subroutines BEFORE the main part of the script executes,
+// otherwise they won't be found
+
+// call this to fetch the requests one after another
+void fetchSequentially() {
+    while (hasMoreRequests()) {
+        request = getNextRequest();
+        response = scripted.fetchResponse(request);
+        out.println("Conversation " + scripted.addConversation(response));
+    }
+}
+
+// call this to fetch them in parallel
+// the number of simultaneous connections is controlled by the Scripting plugin 
+// It is currently fixed at 4 simultaneous requests
+
+void fetchParallel() {
+    while (hasMoreRequests() || scripted.isAsyncBusy()) {
+        while (scripted.hasAsyncCapacity() && hasMoreRequests()) {
+            scripted.submitAsyncRequest(getNextRequest());
+        }
+        if (scripted.hasAsyncResponse()) {
+            while (scripted.hasAsyncResponse()) {
+                response = scripted.getAsyncResponse();
+                request = response.getRequest();
+                out.println("Conversation " + scripted.addConversation(response));
+            }
+        } else Thread.sleep(100);
+    }
+}
+
+/******************************************************************************
+ ***************** USER EDITABLE SCRIPT STARTS HERE ***************************
+ *                                                                            *
+ * Of course, you can modify the bits above, but you shouldn't need           *
+ * to, if you follow the algorithm suggested below.                           *
+ *                                                                            *
+ ******************************************************************************/
+
+String[] listOfStrings = { "test", "owasp", "webappsec" };
+
+// modify this routine to determine when we are finished
+boolean hasMoreRequests() {
+    return i < listOfStrings.length;
+}
+
+// modify this routine to construct the next request
+Request getNextRequest() {
+    // create a new request copied from the template
+    Request request = new Request(template);
+    request.setURL(new HttpUrl("http://www.google.com/search?q=" + listOfStrings[i++]));
+    // now customise it
+    // request.setHeader("Authorization", "Basic whatever " + i++);
+    return request;
+}
+
+// Do some initialisation here
+
+// create a template that contains the basics
+Request template = new Request();
+template.setMethod("GET");
+template.setURL(new HttpUrl("http://www.google.com/"));
+template.setVersion("HTTP/1.0");
+template.setHeader("User-Agent","WebScarab");
+
+// a counter, so we can know when to stop
+int i=0;
+
+// Choose how to submit the requests, sequentially, or in parallel
+
+fetchSequentially();
+
+// fetchParallel();
+

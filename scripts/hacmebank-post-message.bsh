@@ -1,0 +1,333 @@
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
+
+import org.owasp.webscarab.util.Encoding;
+import org.owasp.webscarab.model.NamedValue;
+
+// Beanshell script by Chuck Willis (chuck at securityfoundry dot com)
+// for use with WebScarab by Rogan Dawes 
+// http://www.owasp.org/software/webscarab.html
+// Use this script at your own risk, by using it you accept all liability.
+
+// This script is heavily based on Rogan's example script that comes
+// with WebScarab and help he gave me via email.  Thanks Rogan!
+
+// This script will log in to a copy of Foundstone's Hacme Bank
+// (http://www.foundstone.com/resources/proddesc/hacmebank.htm)
+// and post several messages.  It is meant as a proof of concept for
+// brute forcing form values.
+
+// This script works by establishing a new session for each message posted.  
+// Each session start by getting the homepage, then logging in, following the 
+// redirect, navigating to the proper page, and then posting the message.
+//  At each step, it will use the necessary cookie
+// and viewstate from the previous request(s)
+
+// Since this script does not log all requests made to the web site,
+// you may want to try running this script through another proxy
+// to get a better feel for what it is doing.
+
+// !! you must configure the URL variable below to make this script work !!
+
+String hacmebankURL = "http://192.168.1.2/hacmebank/";
+
+// define subroutines BEFORE the main part of the script executes,
+// otherwise they won't be found
+long timeSlept = 0; // amount of time spent sleeping...
+
+// call this to fetch the requests one after another
+void fetchSequentially() {
+    while (hasMoreRequests()) {
+        request = getNextRequest();
+        response = scripted.fetchResponse(request);
+        out.println("Conversation " + scripted.addConversation(response));
+    }
+}
+
+// call this to fetch them in parallel
+// the number of simultaneous connections is controlled by the Scripting plugin 
+// It is currently fixed at 4 simultaneous requests
+
+void fetchParallel() {
+    while (hasMoreRequests() || scripted.isAsyncBusy()) {
+        while (scripted.hasAsyncCapacity() && hasMoreRequests()) {
+            scripted.submitAsyncRequest(getNextRequest());
+        }
+        if (scripted.hasAsyncResponse()) {
+            while (scripted.hasAsyncResponse()) {
+                Response response = scripted.getAsyncResponse();
+                //request = response.getRequest();
+                handleResponse(response);
+                //out.println("Conversation " + scripted.addConversation(response));
+                //scripted.addConversation(response);
+            }
+        } else {
+					timeSlept= timeSlept+10;
+					Thread.sleep(10);
+				}
+    }
+}
+
+/******************************************************************************
+ ***************** USER EDITABLE SCRIPT STARTS HERE ***************************
+ *                                                                            *
+ * Of course, you can modify the bits above, but you shouldn't need           *
+ * to, if you follow the algorithm suggested below.                           *
+ *                                                                            *
+ ******************************************************************************/
+
+boolean scriptDebug = false; // if true, more details are printed...
+
+String username = "jc";
+String password = "jc789";
+
+
+
+ 
+List phase1ResponseList = new ArrayList(); // responses to the homepage
+List phase2ResponseList = new ArrayList(); // responses to the posting of username and password
+List phase3ResponseList = new ArrayList(); // responses to getting the welcome page
+List phase4ResponseList = new ArrayList(); // responses to posting the request for the post message page
+List phase5ResponseList = new ArrayList(); // responses to getting the post message page
+
+
+String[] formvalues1 = { "subject1", "subject2" };
+String[] formvalues2 = { "message1", "message2" };
+
+int currentformvalue1index = 0;
+int currentformvalue2index = 0;
+boolean triedAll = false;
+
+String[] getFormValues() {
+	String[] toReturn = new String[2];
+	if(scriptDebug) out.println("called getUsername with currentformvalue1index=" +
+		currentformvalue1index + " currentformvalue2index=" + currentformvalue2index);
+	if(currentformvalue1index == formvalues1.length-1 && currentformvalue2index == formvalues2.length-1)
+	{
+	 triedAll = true;
+	  toReturn[0] = formvalues1[currentformvalue1index];
+		toReturn[1] = formvalues2[currentformvalue2index];
+ 	} else if(currentformvalue1index < formvalues1.length) {
+		toReturn[0] = formvalues1[currentformvalue1index++];
+		toReturn[1] = formvalues2[currentformvalue2index];
+	} else if (currentformvalue2index < formvalues2.length) {
+  	currentformvalue1index = 0;
+  	toReturn[0] = formvalues1[currentformvalue1index++];
+		toReturn[1] = formvalues2[++currentformvalue2index];
+    	} else {
+   // error
+	}
+	if(scriptDebug) out.println("returning value1=" + toReturn[0] + " value2=" + toReturn[1]);
+	return toReturn;
+}
+	
+
+public boolean hasMoreRequests() {
+   //return !triedAll || !phase1ResponseList.isEmpty();
+   return !triedAll;
+}
+
+public Request getNextRequest() {
+   if (phase1ResponseList.size() < 2) return createPhase1Request();
+   else if (phase2ResponseList.size() < 2) return createPhase2Request();
+   else if (phase3ResponseList.size() < 2) return createPhase3Request();
+   else if (phase4ResponseList.size() < 2) return createPhase4Request();
+   else if (phase5ResponseList.size() < 2) return createPhase5Request();
+   //else if (phase6ResponseList.size() < 5) return createPhase6Request();
+	 return createPhase6Request();
+}
+
+public void handleResponse(Response response) {
+ Request request = response.getRequest();
+ // if(scriptDebug) out.println("Handling Response to Request: " + request.toString());
+ if (response.getRequest().getMethod().equals("GET")) { // phase 1, 3, or 5 ]
+    if(!response.getStatus().toString().equals("200")) {
+			// error
+			}
+    String url = response.getRequest().getURL().toString();
+ 		if (url.indexOf("welcome.aspx")!=-1) phase3ResponseList.add(response);
+    else if (url.indexOf("PostMessageForm.aspx")!=-1) phase5ResponseList.add(response);
+    else phase1ResponseList.add(response);
+ } else if (response.getRequest().getMethod().equals("POST")) { // otherwise was a post... 2, 4, or 6
+		if(!(response.getStatus().toString().equals("200")||response.getStatus().toString().equals("302"))) {
+			// error
+			}
+    String url = response.getRequest().getURL().toString();
+ 		if (url.indexOf("Login.aspx")!=-1) phase2ResponseList.add(response);
+    else if (url.indexOf("welcome.aspx")!=-1) phase4ResponseList.add(response);
+		else if (url.indexOf("PostMessageForm.aspx")!=-1) {
+
+		   // add Conversation to list
+		   scripted.addConversation(response);
+		 
+	}
+ } else {
+	 //if it wasn't a post or a get, error
+ }
+}
+
+public Request createPhase1Request() {
+  // formulate homepage request
+ return requestURL(hacmebankURL, null);
+}
+
+public Request createPhase2Request() {
+ // pop Phase1 response from list
+	Response homepage = phase1ResponseList.remove(0);
+ 	// get a cookie from response
+	String cookie = getCookieFromResponse("ASP.NET_SessionId", homepage);
+	if(scriptDebug) out.println("Parsed Cookie:" + cookie);
+	 // get viewstate from response
+	String viewstate = getFormValue("__VIEWSTATE", homepage);
+	if(scriptDebug) out.println("Parsed Viewstate:" + viewstate);
+	return makeLogin(hacmebankURL + "Login.aspx",
+		cookie, viewstate, username, password);
+
+}
+
+public Request createPhase3Request() {
+ 	Response loginResponse = phase2ResponseList.remove(0);
+ 	String cookies = getCookiesFromRequest(loginResponse.getRequest());
+	if(scriptDebug) out.println("Parsed Cookies:" + cookies);
+	//String viewstate = getFormValue("__VIEWSTATE", homepage);
+	//if(scriptDebug) out.println("Parsed Viewstate:" + viewstate);
+  return requestURL(hacmebankURL+"welcome.aspx", cookies);
+}
+
+public Request createPhase4Request() {
+	Response response = phase3ResponseList.remove(0);
+ 	String cookies = getCookiesFromRequest(response.getRequest());
+	if(scriptDebug) out.println("Parsed Cookies:" + cookies);
+	String viewstate = getFormValue("__VIEWSTATE", response);
+	if(scriptDebug) out.println("Parsed Viewstate:" + viewstate);
+  
+ return makePost(hacmebankURL+"welcome.aspx", cookies,
+ 	"__EVENTTARGET=lnkBtnPostMessage&__EVENTARGUMENT=&__VIEWSTATE=" +
+	 Encoding.urlEncode(viewstate));
+}
+
+public Request createPhase5Request() {
+ 	Response loginReponse = phase4ResponseList.remove(0);
+ 	String cookies = getCookiesFromRequest(loginReponse.getRequest());
+	if(scriptDebug) out.println("Parsed Cookies:" + cookies);
+	//String viewstate = getFormValue("__VIEWSTATE", homepage);
+	//if(scriptDebug) out.println("Parsed Viewstate:" + viewstate);
+  return requestURL(hacmebankURL+"PostMessageForm.aspx", cookies);
+}
+
+public Request createPhase6Request() {
+ 	Response response = phase5ResponseList.remove(0);
+ 	String cookies = getCookiesFromRequest(response.getRequest());
+	if(scriptDebug) out.println("Parsed Cookies:" + cookies);
+	String viewstate = getFormValue("__VIEWSTATE", response);
+	if(scriptDebug) out.println("Parsed Viewstate:" + viewstate);
+  // formulate homepage request
+  String[] formvalues = getFormValues();
+ return makePost(hacmebankURL+"PostMessageForm.aspx", cookies,
+ 	"__EVENTTARGET=lnkBtnPostMessage&__EVENTARGUMENT=&__VIEWSTATE=" +
+	 Encoding.urlEncode(viewstate) + "&txtMailID=" + formvalues[0] +
+	 "&txtMessage=" + formvalues[1] + "&btnPostMessage=Post+Message");
+}
+
+
+Request requestURL(String url, String cookie) {
+	Request request = new Request();
+	request.setMethod("GET");
+	request.setVersion("HTTP/1.0");
+	request.setHeader("User-Agent","WebScarab");
+	request.setURL(new HttpUrl(url));
+	if (cookie != null) request.setHeader("Cookie",cookie);
+	return request;
+}
+
+
+// this function would be a lot easier if it was not possible for the server to
+// return more than one Set-Cookie header...we could just call response.getHeader("Set-Cookie");
+String getCookieFromResponse(String cookiename, Response response) {
+	NamedValue[] headers = response.getHeaders();
+	String cookievalue = null;
+	for (int i=0; i<headers.length; i++) {
+	  //if(scriptDebug) out.println("HeaderName: " + headers[i].getName() + " HeaderValue: " + headers[i].getValue());
+		if (headers[i].getName().equalsIgnoreCase("Set-Cookie")) {
+		  if (headers[i].getValue().startsWith(cookiename)) { // if header value starts with the cookiename
+        cookievalue = headers[i].getValue().substring(headers[i].getValue().indexOf("=")+1,
+				 	headers[i].getValue().indexOf(";"));
+      }
+  	}
+	}
+  return cookievalue;
+}
+
+String getCookiesFromRequest(Request request) {
+  return request.getHeader("Cookie");
+	//return cookieheader.getValue().toString();
+}
+
+// this function will only return the first instance of the form value name
+// and will probably choke if valuename appears in regular text before it appears
+// in a form
+String getFormValue(String valuename, Response response) {
+	String resp = response.toString();
+	int startname = resp.indexOf(valuename); // index of first character of the value name
+	// example line : <input type="hidden" name="name"    value="value" />
+	// end of form value name and beginning of form value ...
+	int startvalue = resp.indexOf("\"", startname+valuename.length()+1) + 1; // index of the
+	  // first character of the value
+	return resp.substring(startvalue,
+		resp.indexOf("\"", startvalue)); // substring does not include the final ", so this is correct
+		  // no -1 needed
+
+}
+
+// make the login request.
+Request makeLogin(String url, String cookie, String viewstate, String username, String password) {
+	Request request = new Request();
+	request.setMethod("POST");
+	request.setVersion("HTTP/1.0");
+	//request.setHeader("Host", "192.168.1.1");
+	request.setHeader("User-Agent","WebScarab");
+	request.setHeader("Content-Type", "application/x-www-form-urlencoded");
+	request.setHeader("Cookie","ASP.NET_SessionId="+cookie+"; CookieLoginAttempts=4");
+	request.setURL(new HttpUrl(url));
+	String body = new String("__EVENTTARGET=&__EVENTARGUMENT=&__VIEWSTATE="+
+		Encoding.urlEncode(viewstate) +
+		"&txtUserName=" + Encoding.urlEncode(username) +
+		"&txtPassword=" + Encoding.urlEncode(password) +
+		"&btnSubmit=Submit");
+	request.setHeader("Content-Length",body.length().toString());
+	request.setContent(body.getBytes());
+	//if(scriptDebug) out.println("Made Request:" + request.toString());
+//	Response response = scripted.fetchResponse(request);
+	return request;
+}
+
+// make the login request.
+Request makePost(String url, String cookies, String body) {
+	Request request = new Request();
+	request.setMethod("POST");
+	request.setVersion("HTTP/1.0");
+	//request.setHeader("Host", "192.168.1.1");
+	request.setHeader("User-Agent","WebScarab");
+	request.setHeader("Content-Type", "application/x-www-form-urlencoded");
+	request.setHeader("Cookie",cookies);
+	request.setURL(new HttpUrl(url));
+ 	request.setHeader("Content-Length",body.length().toString());
+	request.setContent(body.getBytes());
+	//if(scriptDebug) out.println("Made Request:" + request.toString());
+//	Response response = scripted.fetchResponse(request);
+	return request;
+}
+
+// Choose how to submit the requests, sequentially, or in parallel
+// fetchSequential();
+
+out.println(" -------------- Starting new Run -------------- ");
+long startTime = System.currentTimeMillis();
+fetchParallel();
+long elapsedTime = System.currentTimeMillis() - startTime;
+out.println("Checked " + (formvalues1.length*formvalues2.length) +
+	" combos in " + elapsedTime/1000.0 + " seconds (of which " + timeSlept/1000.0 +
+	" seconds were sleeping)");
+
