@@ -123,7 +123,6 @@
                 <libraryjar name="${basedir}/${jhelpjar}"/>
 		<libraryjar name="${java.home}/lib/rt.jar"/>
 		<libraryjar name="${java.home}/lib/jsse.jar"/>
-                <libraryjar name="/opt/NetBeans3.6/modules/autoload/ext/servlet-2.3.jar"/>
                 <outjar name="${dist.dir}/webscarab-selfcontained-${project.version}.jar"/>
                 <keep name="${mainclass}">
                     <method name="main"/>
