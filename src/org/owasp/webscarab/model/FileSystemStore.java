@@ -77,10 +77,11 @@ public class FileSystemStore implements SiteModelStore {
     private static final HttpUrl[] NO_CHILDREN = new HttpUrl[0];
     
     private File _dir;
-    private File _conversations;
+    private File _conversationDir;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
+    private List _conversations = new ArrayList();
     private SortedMap _conversationProperties = new TreeMap(new NullComparator());
     private SortedMap _urlProperties = new TreeMap(new NullComparator());
     
@@ -106,8 +107,8 @@ public class FileSystemStore implements SiteModelStore {
         } else {
             _dir = dir;
         }
-        _conversations = new File(_dir, "conversations");
-        if (_conversations.exists()) {
+        _conversationDir = new File(_dir, "conversations");
+        if (_conversationDir.exists()) {
             _logger.fine("Loading session from " + _dir);
             load();
             _logger.fine("Finished loading session from " + _dir);
@@ -143,6 +144,7 @@ public class FileSystemStore implements SiteModelStore {
                     try {
                         id = new ConversationID(cid);
                         map = new HashMap();
+                        _conversations.add(id);
                         _conversationProperties.put(id, map);
                     } catch (NumberFormatException nfe) {
                         throw new StoreException("Malformed conversation ID (" + cid +") parsing conversation log");
@@ -211,11 +213,11 @@ public class FileSystemStore implements SiteModelStore {
             throw new StoreException(_dir + " exists, and is not a directory!");
         }
         
-        _conversations = new File(_dir, "conversations");
-        if (!_conversations.exists() && !_conversations.mkdirs()) {
-            throw new StoreException("Couldn't create directory " + _conversations);
-        } else if (!_conversations.isDirectory()) {
-            throw new StoreException(_conversations + " exists, and is not a directory!");
+        _conversationDir = new File(_dir, "conversations");
+        if (!_conversationDir.exists() && !_conversationDir.mkdirs()) {
+            throw new StoreException("Couldn't create directory " + _conversationDir);
+        } else if (!_conversationDir.isDirectory()) {
+            throw new StoreException(_conversationDir + " exists, and is not a directory!");
         }
         
     }
@@ -233,7 +235,7 @@ public class FileSystemStore implements SiteModelStore {
      * @param query any query, or null if none
      * @param status the status line of the response
      */
-    public void addConversation(ConversationID id, String method, HttpUrl url, String status) {
+    public int addConversation(ConversationID id, String method, HttpUrl url, String status) {
         Map map = new HashMap();
         map.put("METHOD", method);
         map.put("URL", url.toString());
@@ -241,6 +243,12 @@ public class FileSystemStore implements SiteModelStore {
         _conversationProperties.put(id, map);
         
         addConversationForUrl(url, id);
+        int index = Collections.binarySearch(_conversations, id);
+        if (index<0) {
+            index = -index -1;
+            _conversations.add(index, id);
+        }
+        return index;
     }
     
     private void addConversationForUrl(HttpUrl url, ConversationID id) {
@@ -486,7 +494,7 @@ public class FileSystemStore implements SiteModelStore {
     public int getIndexOfConversation(HttpUrl url, ConversationID id) {
         List list;
         if (url == null) {
-            list = new ArrayList(_conversationProperties.keySet());
+            list = _conversations;
         } else {
             list = (List) _urlConversations.get(url);
         }
@@ -507,7 +515,7 @@ public class FileSystemStore implements SiteModelStore {
         }
         _requestCache.put(id, request);
         try {
-            File f = new File(_conversations, id + "-request");
+            File f = new File(_conversationDir, id + "-request");
             FileOutputStream fos = new FileOutputStream(f);
             request.write(fos);
             fos.close();
@@ -523,7 +531,7 @@ public class FileSystemStore implements SiteModelStore {
         Object o = _requestCache.get(id);
         if (o != null) return (Request) o;
         
-        File f = new File(_conversations, id + "-request");
+        File f = new File(_conversationDir, id + "-request");
         FileInputStream fis = null;
         try {
             fis = new FileInputStream(f);
@@ -554,7 +562,7 @@ public class FileSystemStore implements SiteModelStore {
         }
         _responseCache.put(id, response);
         try {
-            File f = new File(_conversations, id + "-response");
+            File f = new File(_conversationDir, id + "-response");
             FileOutputStream fos = new FileOutputStream(f);
             response.write(fos);
             fos.close();
@@ -570,7 +578,7 @@ public class FileSystemStore implements SiteModelStore {
         Object o = _responseCache.get(id);
         if (o != null) return (Response) o;
         
-        File f = new File(_conversations, id + "-response");
+        File f = new File(_conversationDir, id + "-response");
         FileInputStream fis = null;
         try {
             fis = new FileInputStream(f);

@@ -53,7 +53,7 @@ public interface SiteModelStore {
      * @param url the url
      * @param status the status line of the response
      */    
-    void addConversation(ConversationID id, String method, HttpUrl url, String status);
+    int addConversation(ConversationID id, String method, HttpUrl url, String status);
     
     /**
      * sets a value for a property, for a specific conversation
