@@ -14,6 +14,8 @@ import org.owasp.webscarab.model.HttpUrl;
 
 import javax.swing.table.AbstractTableModel;
 
+import java.util.Date;
+
 /**
  *
  * @author  rogan
@@ -22,7 +24,8 @@ public class ConversationListTableModel extends AbstractTableModel implements Co
     
     private ConversationModel _conversationModel;
     
-    private final static String[] _columnNames = new String[] { "ID", "Method", "Host", "Path", "Parameters", "Status" };
+    private final static String[] _columnNames = new String[] { "ID", "Date", "Method", "Host", "Path", "Parameters", "Status" };
+    private final static Class[] _columnClass = new Class[] { String.class, Date.class, String.class, String.class, String.class, String.class, String.class };
     
     /** Creates a new instance of ConversationListTableModel */
     public ConversationListTableModel(ConversationModel conversationModel) {
@@ -32,6 +35,10 @@ public class ConversationListTableModel extends AbstractTableModel implements Co
     
     public String getColumnName(int index) {
         return _columnNames[index];
+    }
+    
+    public Class getColumnClass(int columnIndex) {
+        return _columnClass[columnIndex];
     }
     
     public int getColumnCount() {
