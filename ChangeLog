@@ -1,3 +1,192 @@
+2005-06-08 16:31  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ConversationListTableModel.java:
+	  Add a Date column
+
+2005-06-08 16:26  rogan
+
+	* src/org/owasp/webscarab/ui/swing/SummaryPanel.java: Add a Date
+	  column in the Summary panel
+
+2005-06-08 16:23  rogan
+
+	* src/org/owasp/webscarab/model/FrameworkModel.java: Handle old
+	  sessions that do not set a date
+
+2005-06-08 16:19  rogan
+
+	* src/org/owasp/webscarab/:
+	  plugin/sessionid/swing/SessionIDPanel.java,
+	  ui/swing/DateRenderer.java: Moved DateRenderer class to its own
+	  file. Made it configurable from Preferences
+
+2005-06-08 15:21  rogan
+
+	* src/org/owasp/webscarab/: model/AbstractConversationModel.java,
+	  model/ConversationModel.java,
+	  model/FilteredConversationModel.java, model/FrameworkModel.java,
+	  plugin/compare/CompareModel.java,
+	  plugin/fragments/FragmentsModel.java: Implement a
+	  conversationDate property. Also remove duplicated code from the
+	  implementations of ConversationModel
+
+2005-06-08 15:14  rogan
+
+	* src/org/owasp/webscarab/model/: FileSystemStore.java,
+	  SiteModelStore.java: Update the store to return the index into
+	  the conversation list when adding a new Conversation
+
+2005-06-06 13:56  rogan
+
+	* build.xml: remove unneeded dependency
+
+2005-06-06 09:37  rogan
+
+	* scripts/: google-get.bsh, hacmebank-login-sequential.bsh,
+	  hacmebank-login.bsh, hacmebank-post-message.bsh,
+	  webgoat-session-brute.bsh: Some sample beanshell scripts for
+	  exercising the Scripted plugin
+
+2005-06-04 17:46  rogan
+
+	* src/org/owasp/webscarab/plugin/scripted/ScriptedObjectModel.java,
+	  doc/userguide/swing.xml: documentation updates
+
+2005-06-03 11:46  rogan
+
+	* src/org/owasp/webscarab/:
+	  plugin/fragments/swing/FragmentsPanel.form,
+	  plugin/fragments/swing/FragmentsPanel.java,
+	  ui/swing/editors/UrlEncodedPanel.java,
+	  ui/swing/ColumnWidthTracker.java, ui/swing/HeaderPanel.java,
+	  ui/swing/SummaryPanel.java: Update usage of the
+	  ColumnWidthTracker. Now column widths are synchronised over all
+	  tracked instances.
+
+2005-06-03 11:17  rogan
+
+	* src/org/owasp/webscarab/ui/swing/SummaryPanel.java: Make the
+	  TreeTable not limited to the width of the screen
+
+2005-06-03 11:12  rogan
+
+	* src/org/owasp/webscarab/ui/swing/SummaryPanel.java: Change the
+	  preference names to make them generic, and therefore usable
+	  wherever we have a conversation table or tree.
+
+2005-06-03 11:10  rogan
+
+	* src/org/owasp/webscarab/ui/swing/SummaryPanel.java: Add
+	  ColumnWidthTracking to the Url Tree and the ConversationTable
+
+2005-06-03 11:10  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ColumnWidthTracker.java: Do not
+	  remove non-existent columns
+
+2005-06-03 11:02  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: HeaderPanel.java,
+	  editors/UrlEncodedPanel.java: Updated to use the new
+	  ColumnWidthTracker class
+
+2005-06-03 11:01  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ColumnWidthTracker.java: Useful
+	  class for tracking the width of table columns, and setting them
+	  when started
+
+2005-06-03 10:11  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ConversationPanel.java: Fix
+	  import statements
+
+2005-06-03 10:10  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ConversationPanel.java: Removed
+	  unused code, now available in ConversationFrame
+
+2005-06-03 09:57  rogan
+
+	* src/org/owasp/webscarab/ui/swing/UIFramework.java: Print error
+	  messages to stdout when the help files are not found
+
+2005-06-02 18:22  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ShowConversationAction.java: Use
+	  the new ConversationFrame, which allows stepping forwards and
+	  backwards through conversaitons
+
+2005-06-02 18:21  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ConversationFrame.java: A frame
+	  that allows stepping forwards and backwards through the list of
+	  conversations
+
+2005-06-02 18:19  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ConversationPanel.java: removed
+	  some obsolete references to tabbed views
+
+2005-06-02 18:06  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: ConversationFrame.form,
+	  ConversationFrame.java: Provides a way of stepping through
+	  conversations
+
+2005-06-02 17:40  rogan
+
+	* src/org/owasp/webscarab/util/swing/ListComboBoxModel.java: Fire
+	  notifications if the selected item changes
+
+2005-06-02 17:09  rogan
+
+	* src/org/owasp/webscarab/ui/swing/editors/UrlEncodedPanel.java:
+	  Reworked table models to support remembering the column widths
+
+2005-06-02 16:19  rogan
+
+	* src/org/owasp/webscarab/ui/swing/HeaderPanel.java: Remember
+	  preferred column width
+
+2005-06-02 15:18  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: Main.java, UIFramework.form,
+	  UIFramework.java: Create a new startup panel, asking what you
+	  want to do.  Moved creation and deletion of temporary sessions
+	  into UIFramework
+
+2005-06-02 15:16  rogan
+
+	* src/org/owasp/webscarab/model/FrameworkModel.java: Catch and
+	  throw exceptions if necessary while changing session
+
+2005-06-02 15:15  rogan
+
+	* src/org/owasp/webscarab/plugin/proxy/swing/ManualEditFrame.java:
+	  change the default button back to "Accept"
+
+2005-06-02 14:56  rogan
+
+	* src/org/owasp/webscarab/util/swing/: ExceptionHandler.form,
+	  ExceptionHandler.java: Replaces previous ExceptionHandler class
+	  in ui.swing Adds ability to disable GUI exception handling
+
+2005-06-02 14:54  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ExceptionHandler.java: Moved to
+	  util.swing . . .
+
+2005-06-02 11:38  rogan
+
+	* build.xml: Fix spelling of Mozilla character set detection jar,
+	  so that ProGuard would include it properly
+
+2005-05-19 18:26  rogan
+
+	* installer/shortcutSpec.xml: Set the initial working directory, so
+	  that the IE integration library can be found
+
 2005-05-19 18:10  rogan
 
 	* build.xml: Some build improvements to support proxy settings, and
