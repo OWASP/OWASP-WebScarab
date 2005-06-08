@@ -43,6 +43,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -66,7 +67,6 @@ import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.JTreeTable;
 import org.owasp.webscarab.util.swing.TableSorter;
-
 
 /**
  *
@@ -208,6 +208,16 @@ public class SummaryPanel extends JPanel {
         ColumnDataModel cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
                 if (_model == null) return null;
+                return _model.getConversationDate((ConversationID) key);
+            }
+            public String getColumnName() { return "Date"; }
+            public Class getColumnClass() { return Date.class; }
+        };
+        _conversationTableModel.addColumn(cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
                 return _model.getConversationProperty((ConversationID) key, "METHOD");
             }
             public String getColumnName() { return "Method"; }
@@ -260,6 +270,8 @@ public class SummaryPanel extends JPanel {
         
         TableSorter ts = new TableSorter(_conversationTableModel, conversationTable.getTableHeader());
         conversationTable.setModel(ts);
+        
+        conversationTable.setDefaultRenderer(Date.class, new DateRenderer());
     }
     
     private void addTableListeners() {
