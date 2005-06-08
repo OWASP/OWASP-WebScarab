@@ -39,72 +39,59 @@
 
 package org.owasp.webscarab.plugin.sessionid.swing;
 
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.Date;
+import java.util.Map;
+import java.util.logging.Logger;
+import java.util.regex.PatternSyntaxException;
+
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.Action;
+import javax.swing.DefaultListModel;
+import javax.swing.JOptionPane;
+
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.StandardXYItemRenderer;
+import org.jfree.data.AbstractSeriesDataset;
+import org.jfree.data.XYDataset;
+
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-
+import org.owasp.webscarab.plugin.sessionid.SessionID;
+import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysis;
+import org.owasp.webscarab.plugin.sessionid.SessionIDListener;
+import org.owasp.webscarab.plugin.sessionid.SessionIDModel;
 import org.owasp.webscarab.ui.swing.ConversationListModel;
 import org.owasp.webscarab.ui.swing.ConversationRenderer;
+import org.owasp.webscarab.ui.swing.DateRenderer;
 import org.owasp.webscarab.ui.swing.RequestPanel;
 import org.owasp.webscarab.ui.swing.ResponsePanel;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
-
-import org.owasp.webscarab.plugin.sessionid.SessionID;
-import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysis;
-import org.owasp.webscarab.plugin.sessionid.SessionIDModel;
-import org.owasp.webscarab.plugin.sessionid.SessionIDListener;
-
+import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.ListComboBoxModel;
 import org.owasp.webscarab.util.swing.SwingWorker;
 import org.owasp.webscarab.util.swing.TableSorter;
-import org.owasp.webscarab.util.swing.ColumnDataModel;
-
-import javax.swing.ListModel;
-import javax.swing.ComboBoxModel;
-
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-import javax.swing.DefaultListModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
-
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-
-import java.io.IOException;
-
-import java.util.Date;
-import java.util.Map;
-import java.util.Iterator;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.ChartPanel;
-import org.jfree.data.XYDataset;
-import org.jfree.data.AbstractSeriesDataset;
-import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.axis.DateAxis;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.StandardXYItemRenderer;
-
-import javax.swing.table.AbstractTableModel;
-import javax.swing.JOptionPane;
-
-import java.math.BigInteger;
-import java.lang.reflect.InvocationTargetException;
-
-import java.text.SimpleDateFormat;
-
-import java.util.regex.PatternSyntaxException;
 
 /**
  *
  * @author  rdawes
  */
-public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI, SessionIDListener {
+public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDListener {
     
     private final RequestPanel _requestPanel;
     private final ResponsePanel _responsePanel;
@@ -136,12 +123,12 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         });
         _requestPanel = new RequestPanel();
         _requestPanel.selectPanel("Raw");
-        _requestPanel.setBorder(new javax.swing.border.TitledBorder("Request"));
+        _requestPanel.setBorder(new TitledBorder("Request"));
         _requestPanel.setEditable(true);
         _requestPanel.setRequest(null);
         
         _responsePanel = new ResponsePanel();
-        _responsePanel.setBorder(new javax.swing.border.TitledBorder("Response"));
+        _responsePanel.setBorder(new TitledBorder("Response"));
         
         conversationSplitPane.setTopComponent(_requestPanel);
         conversationSplitPane.setBottomComponent(_responsePanel);
@@ -414,7 +401,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
             return;
         }
         testButton.setEnabled(false);
-        final java.awt.Component parent = this;
+        final Component parent = this;
         new SwingWorker() {
             public Object construct() {
                 try {
@@ -566,7 +553,7 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         }
     }
     
-    public javax.swing.JPanel getPanel() {
+    public JPanel getPanel() {
         return this;
     }
     
@@ -574,11 +561,11 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
         return "SessionID Analysis";
     }
     
-    public javax.swing.Action[] getConversationActions() {
+    public Action[] getConversationActions() {
         return null;
     }
     
-    public javax.swing.Action[] getUrlActions() {
+    public Action[] getUrlActions() {
         return null;
     }
     
@@ -632,25 +619,6 @@ public class SessionIDPanel extends javax.swing.JPanel implements SwingPluginUI,
     private javax.swing.JButton testButton;
     private javax.swing.JPanel visualisationPanel;
     // End of variables declaration//GEN-END:variables
-    
-    private class DateRenderer extends DefaultTableCellRenderer {
-        
-        private SimpleDateFormat _sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        
-        public DateRenderer() {
-            super();
-        }
-        
-        public void setValue(Object value) {
-            if ((value != null) && (value instanceof Date)) {
-                Date date = (Date) value;
-                // value = DateUtil.rfc822Format(date);
-                value = _sdf.format(date);
-            }
-            super.setValue(value);
-        }
-        
-    }
     
     private class SessionIDDataset extends AbstractSeriesDataset implements XYDataset {
         
