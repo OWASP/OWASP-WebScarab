@@ -10,12 +10,15 @@ import EDU.oswego.cs.dl.util.concurrent.Sync;
 
 import javax.swing.event.EventListenerList;
 import java.util.logging.Logger;
+import java.util.Date;
 
 /**
  *
  * @author  rogan
  */
 public abstract class AbstractConversationModel implements ConversationModel {
+    
+    private FrameworkModel _model;
     
     private EventListenerList _listenerList = new EventListenerList();
     
@@ -24,7 +27,8 @@ public abstract class AbstractConversationModel implements ConversationModel {
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates a new instance of AbstractConversationModel */
-    public AbstractConversationModel() {
+    public AbstractConversationModel(FrameworkModel model) {
+        _model = model;
     }
     
     public abstract int getConversationCount(HttpUrl url);
@@ -35,15 +39,29 @@ public abstract class AbstractConversationModel implements ConversationModel {
     
     public abstract Sync readLock();
     
-    public abstract String getRequestMethod(ConversationID id);
+    public Date getConversationDate(ConversationID id) {
+        return _model.getConversationDate(id);
+    }
     
-    public abstract String getResponseStatus(ConversationID id);
+    public String getRequestMethod(ConversationID id) {
+        return _model.getRequestMethod(id);
+    }
     
-    public abstract HttpUrl getRequestUrl(ConversationID id);
+    public String getResponseStatus(ConversationID id) {
+        return _model.getResponseStatus(id);
+    }
     
-    public abstract Request getRequest(ConversationID id);
+    public HttpUrl getRequestUrl(ConversationID id) {
+        return _model.getRequestUrl(id);
+    }
     
-    public abstract Response getResponse(ConversationID id);
+    public Request getRequest(ConversationID id) {
+        return _model.getRequest(id);
+    }
+    
+    public Response getResponse(ConversationID id) {
+        return _model.getResponse(id);
+    }
     
     /**
      * adds a listener to the model

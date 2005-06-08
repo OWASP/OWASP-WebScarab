@@ -44,6 +44,7 @@ import EDU.oswego.cs.dl.util.concurrent.Sync;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -73,8 +74,8 @@ public class FrameworkModel {
     
     private SiteModelStore _store = null;
     
-    private FrameworkUrlModel _urlModel = new FrameworkUrlModel();
-    private FrameworkConversationModel _conversationModel = new FrameworkConversationModel();
+    private FrameworkUrlModel _urlModel;
+    private FrameworkConversationModel _conversationModel;
     
     private boolean _modified = false;
     
@@ -85,6 +86,8 @@ public class FrameworkModel {
      */
     public FrameworkModel() {
         _logger.setLevel(Level.INFO);
+        _conversationModel = new FrameworkConversationModel(this);
+        _urlModel = new FrameworkUrlModel();
     }
     
     public void setSession(String type, Object store, String session) throws StoreException {
@@ -192,11 +195,12 @@ public class FrameworkModel {
             _rwl.writeLock().acquire();
             _store.setRequest(id, request);
             _store.setResponse(id, response);
-            _store.addConversation(id, request.getMethod(), url, response.getStatusLine());
+            int index = _store.addConversation(id, request.getMethod(), url, response.getStatusLine());
             _store.setConversationProperty(id, "ORIGIN", origin);
+            _store.setConversationProperty(id, "WHEN", Long.toString(System.currentTimeMillis()));
             _rwl.readLock().acquire();
             _rwl.writeLock().release();
-            _conversationModel.fireConversationAdded(id, 0); // FIXME
+            _conversationModel.fireConversationAdded(id, index); // FIXME
             _rwl.readLock().release();
             addUrlProperty(url, "METHODS", request.getMethod());
             addUrlProperty(url, "STATUS", response.getStatusLine());
@@ -208,6 +212,27 @@ public class FrameworkModel {
     
     public String getConversationOrigin(ConversationID id) {
         return getConversationProperty(id, "ORIGIN");
+    }
+    
+    public Date getConversationDate(ConversationID id) {
+        try {
+            _rwl.readLock().acquire();
+            try {
+                String when = getConversationProperty(id, "WHEN");
+                try {
+                    long time = Long.parseLong(when);
+                    return new Date(time);
+                } catch (NumberFormatException nfe) {
+                    System.err.println("NumberFormatException parsing date for Conversation " + id + ": " + nfe);
+                    return null;
+                }
+            } finally {
+                _rwl.readLock().release();
+            }
+        } catch (InterruptedException ie) {
+            _logger.severe("Interrupted! " + ie);
+            return null;
+        }
     }
     
     /**
@@ -884,6 +909,10 @@ public class FrameworkModel {
     
     private class FrameworkConversationModel extends AbstractConversationModel {
         
+        public FrameworkConversationModel(FrameworkModel model) {
+            super(model);
+        }
+        
         public Sync readLock() {
             return _rwl.readLock();
         }
@@ -929,26 +958,6 @@ public class FrameworkModel {
                 _logger.severe("Interrupted! " + ie);
                 return 0;
             }
-        }
-        
-        public Request getRequest(ConversationID id) {
-            return FrameworkModel.this.getRequest(id);
-        }
-        
-        public Response getResponse(ConversationID id) {
-            return FrameworkModel.this.getResponse(id);
-        }
-        
-        public String getRequestMethod(ConversationID id) {
-            return FrameworkModel.this.getRequestMethod(id);
-        }
-        
-        public HttpUrl getRequestUrl(ConversationID id) {
-            return FrameworkModel.this.getRequestUrl(id);
-        }
-        
-        public String getResponseStatus(ConversationID id) {
-            return FrameworkModel.this.getResponseStatus(id);
         }
         
     }

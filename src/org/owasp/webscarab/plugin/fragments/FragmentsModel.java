@@ -52,7 +52,7 @@ public class FragmentsModel extends AbstractPluginModel {
     public FragmentsModel(FrameworkModel model) {
         super(model);
         _model = model;
-        _fcm = new FragmentConversationModel();
+        _fcm = new FragmentConversationModel(model);
     }
     
     public void addFragment(HttpUrl url, ConversationID id, String type, String fragment) {
@@ -227,6 +227,10 @@ public class FragmentsModel extends AbstractPluginModel {
         private String _key = null;
         private List _conversationList = new ArrayList();
         
+        public FragmentConversationModel(FrameworkModel model) {
+            super(model);
+        }
+        
         public void setSelectedFragment(String type, String key) {
             try {
                 _rwl.writeLock().acquire();
@@ -278,26 +282,6 @@ public class FragmentsModel extends AbstractPluginModel {
         
         public Sync readLock() {
             return _rwl.readLock();
-        }
-        
-        public Request getRequest(ConversationID id) {
-            return _model.getRequest(id);
-        }
-        
-        public String getRequestMethod(ConversationID id) {
-            return _model.getRequestMethod(id);
-        }
-        
-        public HttpUrl getRequestUrl(ConversationID id) {
-            return _model.getRequestUrl(id);
-        }
-        
-        public Response getResponse(ConversationID id) {
-            return _model.getResponse(id);
-        }
-        
-        public String getResponseStatus(ConversationID id) {
-            return _model.getResponseStatus(id);
         }
         
         public void fragmentAdded(String type, String key, int position) {}

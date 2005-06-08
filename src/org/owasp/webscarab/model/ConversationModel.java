@@ -7,6 +7,7 @@
 package org.owasp.webscarab.model;
 
 import EDU.oswego.cs.dl.util.concurrent.Sync;
+import java.util.Date;
 
 /**
  *
@@ -21,6 +22,8 @@ public interface ConversationModel {
     int getIndexOfConversation(HttpUrl url, ConversationID id);
     
     Sync readLock();
+    
+    Date getConversationDate(ConversationID id);
     
     String getRequestMethod(ConversationID id);
     

@@ -23,8 +23,9 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
     private MRUCache _filtered = new MRUCache(16);
     
     /** Creates a new instance of FilteredConversationModel */
-    public FilteredConversationModel(ConversationModel model) {
-        _model = model;
+    public FilteredConversationModel(FrameworkModel model, ConversationModel cmodel) {
+        super(model);
+        _model = cmodel;
         _model.addConversationListener(new Listener());
         updateFiltered(null);
     }
@@ -41,58 +42,76 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
                 }
             }
             _filtered.put(url, filtered);
+            return filtered;
         } catch (InterruptedException ie) {
-//            _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
+            //            _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
+            return null;
         } finally {
             _model.readLock().release();
         }
-        return filtered;
     }
     
     public abstract boolean shouldFilter(ConversationID id);
     
     protected boolean isFiltered(HttpUrl url, ConversationID id) {
-        ArrayList filtered = (ArrayList) _filtered.get(url);
-        if (filtered == null)
-            filtered = updateFiltered(url);
-        return filtered.indexOf(id) > -1;
+        try {
+            _model.readLock().acquire();
+            ArrayList filtered = (ArrayList) _filtered.get(url);
+            if (filtered == null)
+                filtered = updateFiltered(url);
+            return filtered.indexOf(id) > -1;
+        } catch (InterruptedException ie) {
+            // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
+            return false;
+        } finally {
+            _model.readLock().release();
+        }
     }
     
     public ConversationID getConversationAt(HttpUrl url, int index) {
-        
-        return null;
+        try {
+            _model.readLock().acquire();
+            ArrayList filtered = (ArrayList) _filtered.get(url);
+            if (filtered == null)
+                filtered = updateFiltered(url);
+            return (ConversationID) filtered.get(index);
+        } catch (InterruptedException ie) {
+            // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
+            return null;
+        } finally {
+            _model.readLock().release();
+        }
     }
     
     public int getConversationCount(HttpUrl url) {
-        return _model.getConversationCount(null) - _filtered.size();
+        try {
+            _model.readLock().acquire();
+            return _model.getConversationCount(null) - _filtered.size();
+        } catch (InterruptedException ie) {
+            // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
+            return 0;
+        } finally {
+            _model.readLock().release();
+        }
     }
     
     public int getIndexOfConversation(HttpUrl url, ConversationID id) {
-        return -1;
+        try {
+            _model.readLock().acquire();
+            ArrayList filtered = (ArrayList) _filtered.get(url);
+            if (filtered == null)
+                filtered = updateFiltered(url);
+            return filtered.indexOf(id);
+        } catch (InterruptedException ie) {
+            // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
+            return -1;
+        } finally {
+            _model.readLock().release();
+        }
     }
     
     public Sync readLock() {
         return _model.readLock();
-    }
-    
-    public Request getRequest(ConversationID id) {
-        return _model.getRequest(id);
-    }
-    
-    public String getRequestMethod(ConversationID id) {
-        return _model.getRequestMethod(id);
-    }
-    
-    public HttpUrl getRequestUrl(ConversationID id) {
-        return _model.getRequestUrl(id);
-    }
-    
-    public Response getResponse(ConversationID id) {
-        return _model.getResponse(id);
-    }
-    
-    public String getResponseStatus(ConversationID id) {
-        return _model.getResponseStatus(id);
     }
     
     private class Listener implements ConversationListener {

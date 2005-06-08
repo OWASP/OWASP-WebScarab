@@ -45,7 +45,7 @@ public class CompareModel extends AbstractPluginModel {
     private Map _distances = new HashMap();
     private ArrayList _compared = new ArrayList();
     
-    private DiffModel _diffModel = new DiffModel();
+    private DiffModel _diffModel;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -53,6 +53,7 @@ public class CompareModel extends AbstractPluginModel {
     public CompareModel(FrameworkModel model) {
         super(model);
         _model = model;
+        _diffModel = new DiffModel(model);
     }
     
     public ConversationModel getConversationModel() {
@@ -124,6 +125,10 @@ public class CompareModel extends AbstractPluginModel {
     
     private class DiffModel extends AbstractConversationModel {
         
+        public DiffModel(FrameworkModel model) {
+            super(model);
+        }
+        
         public ConversationID getConversationAt(HttpUrl url, int index) {
             try {
                 _rwl.readLock().acquire();
@@ -158,26 +163,6 @@ public class CompareModel extends AbstractPluginModel {
             } finally {
                 _rwl.readLock().release();
             }
-        }
-        
-        public Request getRequest(ConversationID id) {
-            return _model.getRequest(id);
-        }
-        
-        public String getRequestMethod(ConversationID id) {
-            return _model.getRequestMethod(id);
-        }
-        
-        public HttpUrl getRequestUrl(ConversationID id) {
-            return _model.getRequestUrl(id);
-        }
-        
-        public Response getResponse(ConversationID id) {
-            return _model.getResponse(id);
-        }
-        
-        public String getResponseStatus(ConversationID id) {
-            return _model.getResponseStatus(id);
         }
         
         public Sync readLock() {
