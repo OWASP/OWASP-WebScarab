@@ -219,6 +219,7 @@ public class FrameworkModel {
             _rwl.readLock().acquire();
             try {
                 String when = getConversationProperty(id, "WHEN");
+                if (when == null) return null;
                 try {
                     long time = Long.parseLong(when);
                     return new Date(time);
