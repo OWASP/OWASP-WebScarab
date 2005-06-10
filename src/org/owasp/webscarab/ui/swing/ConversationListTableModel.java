@@ -58,11 +58,12 @@ public class ConversationListTableModel extends AbstractTableModel implements Co
         HttpUrl url = _conversationModel.getRequestUrl(id);
         switch (columnIndex) {
             case 0: return id;
-            case 1: return _conversationModel.getRequestMethod(id);
-            case 2: return url.getScheme() + "://" + url.getHost() + ":" + url.getPort();
-            case 3: return url.getPath();
-            case 4: return url.getParameters();
-            case 5: return _conversationModel.getResponseStatus(id);
+            case 1: return _conversationModel.getConversationDate(id);
+            case 2: return _conversationModel.getRequestMethod(id);
+            case 3: return url.getScheme() + "://" + url.getHost() + ":" + url.getPort();
+            case 4: return url.getPath();
+            case 5: return url.getParameters();
+            case 6: return _conversationModel.getResponseStatus(id);
         }
         return null;
     }
