@@ -18,6 +18,7 @@ import java.io.PrintStream;
 public class ExceptionHandler extends javax.swing.JDialog {
     
     private static Frame _parent = null;
+    private static boolean _disabled = false;
     
     /** Creates new form ExceptionHandler */
     public ExceptionHandler() {
@@ -38,14 +39,19 @@ public class ExceptionHandler extends javax.swing.JDialog {
         System.setProperty("sun.awt.exception.handler", "");
         t.printStackTrace();
         
+        if (_disabled) 
+            return;
         DocumentOutputStream dos = new DocumentOutputStream();
         t.printStackTrace(new PrintStream(dos));
         exceptionTextArea.setDocument(dos.getDocument());
         
         show();
         
-        if (!disableCheckBox.isSelected())
+        if (!disableCheckBox.isSelected()) {
             System.setProperty("sun.awt.exception.handler", this.getClass().getName());
+        } else {
+            _disabled = true;
+        }
     }
     
     /** This method is called from within the constructor to
