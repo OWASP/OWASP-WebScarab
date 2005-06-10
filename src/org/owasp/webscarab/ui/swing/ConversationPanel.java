@@ -32,162 +32,319 @@
  */
 
 /*
- * ConversationPanel.java
+ * ConversationPanel2.java
  *
- * Created on November 7, 2003, 10:56 AM
+ * Created on 10 June 2005, 12:55
  */
 
 package org.owasp.webscarab.ui.swing;
 
-import java.awt.BorderLayout;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.logging.Logger;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.border.TitledBorder;
-
-import org.owasp.webscarab.model.Preferences;
+import org.owasp.webscarab.model.ConversationModel;
+import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.model.Preferences;
+
+import org.owasp.webscarab.util.swing.ListComboBoxModel;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Point;
+
+import javax.swing.JFrame;
+import javax.swing.border.TitledBorder;
+
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 /**
- *
- * @author  rdawes
+ * Creates a Swing JPanel that can be used to display a Request and a Response
+ * @author rogan
  */
-public class ConversationPanel extends JPanel {
+public class ConversationPanel extends javax.swing.JPanel {
     
+    private static Dimension _preferredSize = null;
+    private static Point _preferredLocation = null;
+    
+    private ConversationModel _model = null;
+    private ConversationID _selected = null;
+    
+    private JFrame _frame = null;
+    private String _title = null;
     private RequestPanel _requestPanel;
     private ResponsePanel _responsePanel;
     
-    private Logger _logger = Logger.getLogger(getClass().getName());
-    
-    private Request _request = null;
-    private Response _response = null;
-    
-    private boolean _requestModified = false;
-    private boolean _responseModified = false;
-    
-    private boolean _requestEditable = false;
-    private boolean _responseEditable = false;
-    
-    private int _selected;
-    
-    /** Creates new form ConversationPanel */
+    /** Creates new form ConversationPanel2 */
     public ConversationPanel() {
+        initComponents();
+        addPanels();
+    }
+    
+    /**
+     * Creates new form ConversationPanel2
+     * This form displays a tool bar with previous, next and a dropdown selector
+     * to allow for stepping through the conversations in the supplied ConversationModel
+     * @param model the conversations to step through
+     */    
+    public ConversationPanel(ConversationModel model) {
+        _model = model;
+        initComponents();
+        addPanels();
+        ConversationListModel clm = new ConversationListModel(model);
+        conversationComboBox.setModel(new ListComboBoxModel(clm));
+        conversationComboBox.setRenderer(new ConversationRenderer(model));
+        add(toolBar, BorderLayout.NORTH);
+    }
+    
+    private void addPanels() {
         _requestPanel = new RequestPanel();
+        // _requestPanel.setBorder(new TitledBorder("Request"));
+        conversationSplitPane.setTopComponent(_requestPanel);
+        
         _responsePanel = new ResponsePanel();
+        // _responsePanel.setBorder(new TitledBorder("Response"));
+        conversationSplitPane.setBottomComponent(_responsePanel);
         
-        setLayout(new BorderLayout());
-        
-        JSplitPane splitPane = new JSplitPane();
-        splitPane.setOneTouchExpandable(true);
-        add(splitPane, BorderLayout.CENTER);
-
-        splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-        _requestPanel.setBorder(new TitledBorder("Request"));
-        splitPane.setTopComponent(_requestPanel);
-        _responsePanel.setBorder(new TitledBorder("Response"));
-        splitPane.setBottomComponent(_responsePanel);
         String dividerLocation = Preferences.getPreference("ConversationPanel.dividerLocation");
         if (dividerLocation != null) {
             try {
-                splitPane.setDividerLocation(Integer.parseInt(dividerLocation));
+                conversationSplitPane.setDividerLocation(Integer.parseInt(dividerLocation));
             } catch (NumberFormatException nfe) {}
         }
-        splitPane.addPropertyChangeListener(new PropertyChangeListener() {
+        conversationSplitPane.addPropertyChangeListener(new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent e) {
                 if (e.getPropertyName().equals("dividerLocation")) {
                     Preferences.setPreference("ConversationPanel.dividerLocation", e.getNewValue().toString());
                 }
             }
         });
-        
     }
     
-    public void setRequest(Request request, boolean editable) {
-        if (request != null) request = new Request(request);
-        _request = request;
-        _requestEditable = editable;
-        _requestModified = false;
-        _requestPanel.setEditable(editable);
-        _requestPanel.setRequest(_request);
-    }
-    
-    public boolean isRequestModified() {
-        return _requestModified || _requestPanel.isModified();
-    }
-    
-    public Request getRequest() {
-        if (_requestEditable) {
-            if (_requestPanel.isModified()) {
-                _request = _requestPanel.getRequest();
+    private void resizeFrame() {
+        if (_preferredSize == null) {
+            try {
+                int width = Integer.parseInt(Preferences.getPreference("ConversationFrame.width","600"));
+                int height = Integer.parseInt(Preferences.getPreference("ConversationFrame.height","500"));
+                _preferredSize = new Dimension(width, height);
+            } catch (Exception e) {
+                _preferredSize = new Dimension(800, 600);
             }
         }
-        return _request;
+        if (_preferredLocation == null) {
+            try {
+                String value = Preferences.getPreference("ConversationFrame.x");
+                if (value != null) {
+                    int x = Integer.parseInt(value);
+                    value = Preferences.getPreference("ConversationFrame.y");
+                    int y = Integer.parseInt(value);
+                    _preferredLocation = new Point(x,y);
+                }
+            } catch (Exception e) {
+            }
+        }
+        if (_preferredLocation != null) _frame.setLocation(_preferredLocation);
+        if (_preferredSize != null) _frame.setSize(_preferredSize);
+        
+        _frame.addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                if (!_frame.isVisible()) return;
+                _preferredLocation = _frame.getLocation();
+                Preferences.setPreference("ConversationFrame.x", Integer.toString(_preferredLocation.x));
+                Preferences.setPreference("ConversationFrame.y", Integer.toString(_preferredLocation.y));
+            }
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                if (!_frame.isVisible()) return;
+                _preferredSize = _frame.getSize();
+                Preferences.setPreference("ConversationFrame.width", Integer.toString(_preferredSize.width));
+                Preferences.setPreference("ConversationFrame.height", Integer.toString(_preferredSize.height));
+            }
+        });
+    }
+    
+    /**
+     * Sets the request to display.
+     * @param request The request to display (can be null)
+     * @param editable whether the request should be editable or not
+     */    
+    public void setRequest(Request request, boolean editable) {
+        _requestPanel.setEditable(editable);
+        _requestPanel.setRequest(request);
+    }
+    
+    /**
+     * indicates whether the request has been modified
+     * @return true if the request has been modified, false otherwise
+     */    
+    public boolean isRequestModified() {
+        return _requestPanel.isModified();
+    }
+    
+    /**
+     * returns the request currently displayed
+     * @return the request currently displayed
+     */    
+    public Request getRequest() {
+        return _requestPanel.getRequest();
     }
     
     public void setResponse(Response response, boolean editable) {
-        _response = response;
-        _responseEditable = editable;
-        _responseModified = false;
         _responsePanel.setEditable(editable);
         _responsePanel.setResponse(response);
     }
     
     public boolean isResponseModified() {
-        return _responseModified || _responsePanel.isModified();
+        return _responsePanel.isModified();
     }
     
     public Response getResponse() {
-        if (_responseEditable) {
-            if (_responsePanel.isModified()) {
-                _response = _responsePanel.getResponse();
-            }
-        }
-        return _response;
+        return _responsePanel.getResponse();
     }
     
-    public static void main(String[] args) {
-        final JFrame top = new JFrame("Response Panel");
-        top.getContentPane().setLayout(new BorderLayout());
-        top.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent evt) {
-                System.exit(0);
+    /**
+     * Sets the conversation to be displayed in the form.
+     * This only makes sense if the ConversationModel constructor was used!
+     * @param id the conversation to display
+     */    
+    public void setSelectedConversation(ConversationID id) {
+        _selected = id;
+        conversationComboBox.setSelectedItem(_selected);
+    }
+    
+    /**
+     * constructs a JFrame around the ConversationPanel
+     * @return the frame
+     */    
+    public JFrame inFrame() {
+        return inFrame(null);
+    }
+    
+    /**
+     * constructs a JFrame around the ConversationPanel
+     * @param title the title of the Frame
+     * @return the frame
+     */    
+    public JFrame inFrame(String title) {
+        _title = title;
+        _frame = new JFrame();
+        _frame.getContentPane().add(this);
+        _frame.setTitle(_title);
+        resizeFrame();
+        return _frame;
+    }
+    
+    /** This method is called from within the constructor to
+     * initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is
+     * always regenerated by the Form Editor.
+     */
+    private void initComponents() {//GEN-BEGIN:initComponents
+        toolBar = new javax.swing.JToolBar();
+        previousButton = new javax.swing.JButton();
+        nextButton = new javax.swing.JButton();
+        conversationComboBox = new javax.swing.JComboBox();
+        conversationSplitPane = new javax.swing.JSplitPane();
+
+        toolBar.setFloatable(false);
+        previousButton.setMnemonic('P');
+        previousButton.setText("Previous");
+        previousButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                previousButtonActionPerformed(evt);
             }
         });
-        final ConversationPanel cp = new ConversationPanel();
-        top.getContentPane().add(cp);
-        top.setBounds(100,100,800,600);
-        top.show();
-        if (args.length == 1) {
-            top.setTitle(args[0]);
-            loadConversation(cp, args[0]);
+
+        toolBar.add(previousButton);
+
+        nextButton.setMnemonic('N');
+        nextButton.setText("Next");
+        nextButton.setMaximumSize(new java.awt.Dimension(65, 27));
+        nextButton.setMinimumSize(new java.awt.Dimension(65, 27));
+        nextButton.setPreferredSize(new java.awt.Dimension(65, 27));
+        nextButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nextButtonActionPerformed(evt);
+            }
+        });
+
+        toolBar.add(nextButton);
+
+        conversationComboBox.setMaximumSize(new java.awt.Dimension(600, 32767));
+        conversationComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                conversationComboBoxActionPerformed(evt);
+            }
+        });
+
+        toolBar.add(conversationComboBox);
+
+        setLayout(new java.awt.BorderLayout());
+
+        conversationSplitPane.setDividerLocation(100);
+        conversationSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        conversationSplitPane.setResizeWeight(0.3);
+        conversationSplitPane.setOneTouchExpandable(true);
+        add(conversationSplitPane, java.awt.BorderLayout.CENTER);
+
+    }//GEN-END:initComponents
+    
+    private void conversationComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_conversationComboBoxActionPerformed
+        ConversationID id = (ConversationID) conversationComboBox.getSelectedItem();
+        if (id == null) {
+            setRequest(null, false);
+            setResponse(null, false);
+            if (_frame != null)
+                _frame.setTitle("WebScarab - no conversation selected");
+        } else {
+            Request request = _model.getRequest(id);
+            Response response = _model.getResponse(id);
+            setRequest(request, false);
+            setResponse(response, false);
+            if (_frame != null) 
+                _frame.setTitle("WebScarab - conversation " + id);
+        }
+    }//GEN-LAST:event_conversationComboBoxActionPerformed
+    
+    private void nextButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextButtonActionPerformed
+        int index = conversationComboBox.getSelectedIndex();
+        if (index+1<conversationComboBox.getModel().getSize())
+            conversationComboBox.setSelectedIndex(index+1);
+    }//GEN-LAST:event_nextButtonActionPerformed
+    
+    private void previousButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_previousButtonActionPerformed
+        int index = conversationComboBox.getSelectedIndex();
+        if (index>0)
+            conversationComboBox.setSelectedIndex(index-1);
+    }//GEN-LAST:event_previousButtonActionPerformed
+    
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        try {
+            final org.owasp.webscarab.model.FrameworkModel model = new org.owasp.webscarab.model.FrameworkModel();
+            model.setSession("FileSystem",new java.io.File("/tmp/l/1"),"");
+            ConversationPanel cp = new ConversationPanel(model.getConversationModel());
+            JFrame frame = cp.inFrame();
+            frame.addWindowListener(new java.awt.event.WindowAdapter() {
+                public void windowClosing(java.awt.event.WindowEvent evt) {
+                    System.exit(0);
+                }
+            });
+            
+            frame.show();
+            cp.setSelectedConversation(new ConversationID(1));
+        } catch (org.owasp.webscarab.model.StoreException se) {
+            se.printStackTrace();
+            System.exit(0);
         }
     }
     
-    private static void loadConversation(ConversationPanel cp, String file) {
-        Request request = new Request();
-        Response response = new Response();
-        try {
-            FileInputStream fis = new FileInputStream(file+"-request");
-            request.read(fis);
-            request.flushContentStream();
-            fis.close();
-            fis = new FileInputStream(file+"-response");
-            response.read(fis);
-            response.flushContentStream();
-            fis.close();
-        } catch (IOException ioe) {
-            System.err.println(file + ": IOException: " + ioe.getMessage());
-        }
-        cp.setRequest(request, false);
-        cp.setResponse(response, false);
-    }
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JComboBox conversationComboBox;
+    private javax.swing.JSplitPane conversationSplitPane;
+    private javax.swing.JButton nextButton;
+    private javax.swing.JButton previousButton;
+    private javax.swing.JToolBar toolBar;
+    // End of variables declaration//GEN-END:variables
     
 }
