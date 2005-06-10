@@ -23,6 +23,8 @@ import org.owasp.webscarab.util.LevenshteinDistance;
 import org.owasp.webscarab.util.ReentrantReaderPreferenceReadWriteLock;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
@@ -64,50 +66,36 @@ public class CompareModel extends AbstractPluginModel {
         return _diffModel;
     }
     
-    public void setBaseConversation(ConversationID id, HttpUrl url) {
+    public void clearConversations() {
         try {
-            _logger.info("writeLock");
             _rwl.writeLock().acquire();
-            _logger.info("done");
             _distances.clear();
             _compared.clear();
-            if (id != null) {
-                _logger.info("updateDiff");
-                updateDifferences(id, url);
-                _logger.info("done");
-            }
-            _logger.info("readlock");
             _rwl.readLock().acquire();
-            _logger.info("done");
             _rwl.writeLock().release();
-            _logger.info("fire");
             _diffModel.fireConversationsChanged();
-            _logger.info("done");
             _rwl.readLock().release();
         } catch (InterruptedException ie) {
             _logger.warning("Interrupted! " + ie);
         }
     }
     
-    private void updateDifferences(ConversationID id, HttpUrl url) {
-        Response baseResponse = _model.getResponse(id);
-        byte[] baseBytes = baseResponse.getContent();
-        _diff = new LevenshteinDistance(baseBytes);
-        ConversationModel cmodel = _model.getConversationModel();
+    public void addDistance(ConversationID id, int distance) {
         try {
-            _model.readLock().acquire();
-            int count = cmodel.getConversationCount(url);
-            for (int i=0; i<count; i++) {
-                id = cmodel.getConversationAt(url, i);
-                Response response = cmodel.getResponse(id);
-                byte[] bytes = response.getContent();
-                _compared.add(id);
-                _distances.put(id, new Integer(_diff.getDistance(bytes)));
+            _rwl.writeLock().acquire();
+            _distances.put(id, new Integer(distance));
+            int insert = Collections.binarySearch(_compared, id);
+            if (insert < 0) {
+                _compared.add(-insert-1, id);
             }
+            _logger.info("Adding conversation " + id + " distance " + distance + " at " + insert);
+            _rwl.readLock().acquire();
+            _rwl.writeLock().release();
+            if (insert < 0) 
+                _diffModel.fireConversationAdded(id, -insert-1);
+            _rwl.readLock().release();
         } catch (InterruptedException ie) {
             _logger.warning("Interrupted! " + ie);
-        } finally {
-            _model.readLock().release();
         }
     }
     

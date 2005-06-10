@@ -22,6 +22,7 @@ import org.owasp.webscarab.ui.swing.ContentPanel;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.TableSorter;
 import org.owasp.webscarab.util.swing.ListComboBoxModel;
+import org.owasp.webscarab.ui.swing.DateRenderer;
 
 import javax.swing.JPanel;
 import javax.swing.Action;
@@ -33,6 +34,8 @@ import javax.swing.event.ListSelectionListener;
 
 import java.util.logging.Logger;
 import java.util.logging.Level;
+
+import java.util.Date;
 
 /**
  *
@@ -56,6 +59,7 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
         _model = _compare.getModel();
         baseComboBox.setModel(new ListComboBoxModel(new ConversationListModel(_model.getConversationModel())));
         _tableModel = new ConversationListTableModel(_model.getComparisonModel());
+        conversationTable.setDefaultRenderer(Date.class, new DateRenderer());
         _conversationSorter = new TableSorter(_tableModel, conversationTable.getTableHeader());
         conversationTable.setModel(_conversationSorter);
         _baseContent = new ContentPanel();
@@ -70,18 +74,12 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
                 if (o instanceof ConversationID) {
                     ConversationID id = (ConversationID) o;
                     _logger.info("Got " + id);
-                    _model.setBaseConversation(id, null);
-                    _logger.info("setBase");
+                    _compare.setBaseConversation(null, id);
                     ConversationModel cmodel = _model.getConversationModel();
-                    _logger.info("gotConversaiont");
                     Response response = cmodel.getResponse(id);
-                    _logger.info("gotResponse");
                     String contentType = response.getHeader("Content-Type");
-                    _logger.info("Content-Type is " + contentType);
                     _baseContent.setContentType(contentType);
-                    _logger.info("setType");
                     _baseContent.setContent(response.getContent());
-                    _logger.info("setcontent");
                 }
             }
         });
