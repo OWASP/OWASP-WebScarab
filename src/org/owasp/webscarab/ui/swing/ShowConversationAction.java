@@ -68,11 +68,12 @@ public class ShowConversationAction extends AbstractAction {
         Object o = getValue("CONVERSATION");
         if (o == null || ! (o instanceof ConversationID)) return;
         ConversationID id = (ConversationID) o;
-        ConversationFrame cf = new ConversationFrame(_model.getConversationModel());
-        cf.setSelectedConversation(id);
-        cf.show();
-        cf.toFront();
-        cf.requestFocus();
+        ConversationPanel cp = new ConversationPanel(_model.getConversationModel());
+        cp.setSelectedConversation(id);
+        JFrame frame = cp.inFrame();
+        frame.show();
+        frame.toFront();
+        frame.requestFocus();
     }
     
     public void putValue(String key, Object value) {
