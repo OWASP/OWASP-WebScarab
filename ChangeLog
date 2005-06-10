@@ -1,3 +1,40 @@
+2005-06-10 14:28  rogan
+
+	* src/org/owasp/webscarab/: plugin/compare/Compare.java,
+	  plugin/compare/CompareModel.java,
+	  plugin/compare/swing/ComparePanel.java,
+	  util/LevenshteinDistance.java: Update LevenshteinDistance to
+	  compare a List rather than an array Now we can tokenize the text
+	  that we want to compare Moved updating the list of compared
+	  responses to the plugin, and out of the model.
+
+2005-06-10 14:26  rogan
+
+	* src/org/owasp/webscarab/util/swing/ExceptionHandler.java:
+	  Properly disable this on checkbox
+
+2005-06-10 14:24  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: ConversationFrame.form,
+	  ConversationFrame.java: remove redundant classes
+
+2005-06-10 14:23  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ShowConversationAction.java: use
+	  the newly updated ConversationPanel code
+
+2005-06-10 14:22  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: ConversationPanel.form,
+	  ConversationPanel.java: Redone as a proper NetBeans form,
+	  reinstated the inFrame() code Complete replacement for
+	  ConversationFrame
+
+2005-06-10 14:20  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ConversationListTableModel.java:
+	  Actually add a date column
+
 2005-06-08 16:31  rogan
 
 	* src/org/owasp/webscarab/ui/swing/ConversationListTableModel.java:
