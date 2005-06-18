@@ -115,7 +115,7 @@ public class SessionIDAnalysis implements Plugin {
     
     public void setSession(String type, Object store, String session) throws StoreException {
         if (type.equals("FileSystem") && (store instanceof File)) {
-            _model.setSession(type, new FileSystemStore((File) store), session);
+            _model.setStore(new FileSystemStore((File) store));
         } else {
             throw new StoreException("Store type '" + type + "' is not supported in " + getClass().getName());
         }
@@ -315,6 +315,14 @@ public class SessionIDAnalysis implements Plugin {
     }
     
     public void analyse(ConversationID id, Request request, Response response, String origin) {
+        HttpUrl url = request.getURL();
+        String cookie = request.getHeader("Cookie");
+        if (cookie != null) _model.addRequestCookie(id, cookie);
+        cookie = response.getHeader("Set-Cookie");
+        if (cookie != null) {
+            Cookie c = new Cookie(new Date(), cookie);
+            _model.addResponseCookie(id, url, c);
+        }
     }
     
     public Object getScriptableObject() {

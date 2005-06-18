@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.logging.Logger;
 import java.util.regex.PatternSyntaxException;
 
@@ -70,6 +71,7 @@ import org.jfree.data.AbstractSeriesDataset;
 import org.jfree.data.XYDataset;
 
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.sessionid.SessionID;
@@ -93,6 +95,8 @@ import org.owasp.webscarab.util.swing.TableSorter;
  */
 public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDListener {
     
+    private static final ColumnDataModel[] CDM = new ColumnDataModel[0];
+    
     private final RequestPanel _requestPanel;
     private final ResponsePanel _responsePanel;
     private JFreeChart _chart = null;
@@ -102,6 +106,8 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
     private SessionIDDataset _sidd;
     private SessionIDTableModel _tableModel;
     private ConversationListModel _conversationList;
+    private Map _conversationColumns = new HashMap();
+    private Map _urlColumns = new HashMap();
     
     private DefaultListModel _sessionIDNames = new DefaultListModel();
     
@@ -167,6 +173,40 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
         _conversationList = new ConversationListModel(_model.getConversationModel());
         requestComboBox.setModel(new ListComboBoxModel(_conversationList));
         requestComboBox.setRenderer(new ConversationRenderer(_model.getConversationModel()));
+        createColumns();
+    }
+    
+    private void createColumns() {
+        ColumnDataModel cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                return _model.getRequestCookies((ConversationID) key);
+            }
+            public String getColumnName() { return "Cookie"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        _conversationColumns.put("COOKIE", cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                return _model.getResponseCookies((ConversationID) key);
+            }
+            public String getColumnName() { return "Set-Cookie"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        _conversationColumns.put("SET-COOKIE", cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                String value = _model.getResponseCookies((HttpUrl) key);
+                return Boolean.valueOf(value != null);
+            }
+            public String getColumnName() { return "Set-Cookie"; }
+            public Class getColumnClass() { return Boolean.class; }
+        };
+        _urlColumns.put("SET-COOKIE", cdm);
     }
     
     /** This method is called from within the constructor to
@@ -585,11 +625,11 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
     }
     
     public ColumnDataModel[] getConversationColumns() {
-        return null;
+        return (ColumnDataModel[]) _conversationColumns.values().toArray(CDM);
     }
     
     public ColumnDataModel[] getUrlColumns() {
-        return null;
+        return (ColumnDataModel[]) _urlColumns.values().toArray(CDM);
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -162,26 +162,6 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
         cdm = new ColumnDataModel() {
             public Object getValue(Object key) {
                 if (_model == null) return null;
-                return _model.getRequestCookies((ConversationID) key);
-            }
-            public String getColumnName() { return "Cookie"; }
-            public Class getColumnClass() { return String.class; }
-        };
-        _conversationColumns.put("COOKIE", cdm);
-        
-        cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
-                return _model.getResponseCookies((ConversationID) key);
-            }
-            public String getColumnName() { return "Set-Cookie"; }
-            public Class getColumnClass() { return String.class; }
-        };
-        _conversationColumns.put("SET-COOKIE", cdm);
-        
-        cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
                 String[] keys = _model.getUrlFragmentKeys((HttpUrl) key, "COMMENTS");
                 return Boolean.valueOf(keys != null && keys.length > 0);
             }
@@ -201,16 +181,6 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
         };
         _urlColumns.put("SCRIPTS", cdm);
         
-        cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
-                String value = _model.getResponseCookies((HttpUrl) key);
-                return Boolean.valueOf(value != null);
-            }
-            public String getColumnName() { return "Set-Cookie"; }
-            public Class getColumnClass() { return Boolean.class; }
-        };
-        _urlColumns.put("SET-COOKIE", cdm);
     }
     
     /** This method is called from within the constructor to

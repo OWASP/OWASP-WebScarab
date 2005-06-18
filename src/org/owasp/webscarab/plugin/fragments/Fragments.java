@@ -55,7 +55,6 @@ import org.htmlparser.util.ParserException;
 
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.ConversationID;
-import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
@@ -131,15 +130,7 @@ public class Fragments implements Plugin {
     }
     
     public void analyse(ConversationID id, Request request, Response response, String origin) {
-        _model.setModified(true); // we assume that we are modified at this point
         HttpUrl url = request.getURL();
-        String cookie = request.getHeader("Cookie");
-        if (cookie != null) _model.addRequestCookie(id, cookie);
-        cookie = response.getHeader("Set-Cookie");
-        if (cookie != null) {
-            Cookie c = new Cookie(new Date(), cookie);
-            _model.addResponseCookie(id, url, c);
-        }
         Object parsed = Parser.parse(url, response);
         if (parsed != null && parsed instanceof NodeList) {
             NodeList nodes = (NodeList) parsed;
