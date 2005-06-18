@@ -15,7 +15,6 @@ import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.AbstractConversationModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.ConversationID;
-import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.StoreException;
@@ -42,15 +41,12 @@ public class FragmentsModel extends AbstractPluginModel {
     private FrameworkModel _model = null;
     private FragmentConversationModel _fcm = null;
     
-    private ReadWriteLock _rwl = new ReentrantReaderPreferenceReadWriteLock();
-    
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     private EventListenerList _listenerList = new EventListenerList();
     
     /** Creates a new instance of FragmentsModel */
     public FragmentsModel(FrameworkModel model) {
-        super(model);
         _model = model;
         _fcm = new FragmentConversationModel(model);
     }
@@ -71,29 +67,7 @@ public class FragmentsModel extends AbstractPluginModel {
         } catch (InterruptedException ie) {
             _logger.severe("Interrupted! " + ie);
         }
-    }
-    
-    public void addRequestCookie(ConversationID id, String cookie) {
-        _model.addConversationProperty(id, "COOKIE", cookie);
-        // FIXME: fireCookieAdded here
-    }
-    
-    public void addResponseCookie(ConversationID id, HttpUrl url, Cookie cookie) {
-        _model.addConversationProperty(id, "SET-COOKIE", cookie.getName() + "=" + cookie.getValue());
-        _model.addUrlProperty(url, "SET-COOKIE", cookie.getName());
-        // FIXME: fireSetCookieAdded here
-    }
-    
-    public String getRequestCookies(ConversationID id) {
-        return _model.getConversationProperty(id, "COOKIE");
-    }
-    
-    public String getResponseCookies(ConversationID id) {
-        return _model.getConversationProperty(id, "SET-COOKIE");
-    }
-    
-    public String getResponseCookies(HttpUrl url) {
-        return _model.getUrlProperty(url, "SET-COOKIE");
+        setModified(true);
     }
     
     public String[] getUrlFragmentKeys(HttpUrl url, String type) {
@@ -164,6 +138,7 @@ public class FragmentsModel extends AbstractPluginModel {
     public void setStore(FragmentsStore store) {
         _store = store;
         fireFragmentsChanged();
+        setModified(false);
     }
     
     public void flush() throws StoreException {

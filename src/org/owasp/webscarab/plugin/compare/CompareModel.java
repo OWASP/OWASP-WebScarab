@@ -38,8 +38,6 @@ import java.util.logging.Level;
  */
 public class CompareModel extends AbstractPluginModel {
     
-    private ReadWriteLock _rwl = new ReentrantReaderPreferenceReadWriteLock();
-    
     private FrameworkModel _model = null;
     
     private LevenshteinDistance _diff = null;
@@ -53,7 +51,6 @@ public class CompareModel extends AbstractPluginModel {
     
     /** Creates a new instance of CompareModel */
     public CompareModel(FrameworkModel model) {
-        super(model);
         _model = model;
         _diffModel = new DiffModel(model);
     }

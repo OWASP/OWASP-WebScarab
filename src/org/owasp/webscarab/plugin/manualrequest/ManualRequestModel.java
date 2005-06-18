@@ -23,7 +23,6 @@ public class ManualRequestModel extends AbstractPluginModel {
     
     /** Creates a new instance of ManualRequestModel */
     public ManualRequestModel(FrameworkModel model) {
-        super(model);
         _model = model;
     }
     

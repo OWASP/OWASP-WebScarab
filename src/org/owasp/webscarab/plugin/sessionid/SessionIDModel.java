@@ -10,7 +10,9 @@ import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.plugin.AbstractPluginModel;
 
 import java.util.Map;
@@ -39,7 +41,6 @@ public class SessionIDModel extends AbstractPluginModel {
     
     /** Creates a new instance of SessionIDModel */
     public SessionIDModel(FrameworkModel model) {
-        super(model);
         _model = model;
     }
     
@@ -47,13 +48,9 @@ public class SessionIDModel extends AbstractPluginModel {
         return _model.getConversationModel();
     }
     
-    public void setSession(String type, Object store, String session) throws StoreException {
+    public void setStore(SessionIDStore store) throws StoreException {
         _calculators.clear();
-        if (store instanceof SessionIDStore) {
-            _store = (SessionIDStore) store;
-        } else {
-            throw new StoreException("Store is a " + store.getClass().getName());
-        }
+        _store = store;
         for (int i=0; i<_store.getSessionIDNameCount(); i++) {
             String key = _store.getSessionIDName(i);
             Calculator calc = new DefaultCalculator();
@@ -116,6 +113,29 @@ public class SessionIDModel extends AbstractPluginModel {
     
     public Request getRequest(ConversationID id) {
         return _model.getRequest(id);
+    }
+    
+    public void addRequestCookie(ConversationID id, String cookie) {
+        _model.addConversationProperty(id, "COOKIE", cookie);
+        // FIXME: fireCookieAdded here
+    }
+    
+    public void addResponseCookie(ConversationID id, HttpUrl url, Cookie cookie) {
+        _model.addConversationProperty(id, "SET-COOKIE", cookie.getName() + "=" + cookie.getValue());
+        _model.addUrlProperty(url, "SET-COOKIE", cookie.getName());
+        // FIXME: fireSetCookieAdded here
+    }
+    
+    public String getRequestCookies(ConversationID id) {
+        return _model.getConversationProperty(id, "COOKIE");
+    }
+    
+    public String getResponseCookies(ConversationID id) {
+        return _model.getConversationProperty(id, "SET-COOKIE");
+    }
+    
+    public String getResponseCookies(HttpUrl url) {
+        return _model.getUrlProperty(url, "SET-COOKIE");
     }
     
     public void flush() throws StoreException {

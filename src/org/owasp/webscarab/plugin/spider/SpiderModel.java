@@ -14,6 +14,8 @@ import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.FilteredUrlModel;
 
+import org.owasp.webscarab.plugin.AbstractPluginModel;
+
 import java.util.List;
 import java.util.LinkedList;
 import java.util.logging.Logger;
@@ -22,7 +24,7 @@ import java.util.logging.Logger;
  *
  * @author  rogan
  */
-public class SpiderModel {
+public class SpiderModel extends AbstractPluginModel {
     
     private FrameworkModel _model;
     private SpiderUrlModel _urlModel;
@@ -79,8 +81,12 @@ public class SpiderModel {
     public Link dequeueLink() {
         try {
             _model.readLock().acquire();
-            if (_linkQueue.size() == 0) return null;
+            if (_linkQueue.size() == 0) {
+                setStatus("Idle");
+                return null;
+            }
             Link link = (Link) _linkQueue.remove(0);
+            setStatus(_linkQueue.size() + " links remaining");
             return link;
         } catch (InterruptedException ie) {
             _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
