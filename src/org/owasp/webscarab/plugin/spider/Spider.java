@@ -95,14 +95,9 @@ public class Spider implements Plugin {
     private AsyncFetcher _fetcher = null;
     private int _threads = 4;
     
-    private boolean _running = false;
-    private boolean _stopping = false;
-    
     private Thread _runThread = null;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
-    
-    private String _status = "Stopped";
     
     /** Creates a new instance of Spider */
     public Spider(Framework framework) {
@@ -123,16 +118,15 @@ public class Spider implements Plugin {
     }
     
     public void run() {
-        _status = "Started";
-        _stopping = false;
+        _model.setStatus("Started");
+        _model.setStopping(false);
         _runThread = Thread.currentThread();
         
         // start the fetchers
         _fetcher = new AsyncFetcher("Spider", _threads);
         
-        _running = true;
-        if (_ui != null) _ui.setEnabled(_running);
-        while (!_stopping) {
+        _model.setRunning(true);
+        while (!_model.isStopping()) {
             // queue them as fast as they come, sleep a bit otherwise
             if (!queueRequests() && !dequeueResponses()) {
                 try {
@@ -143,10 +137,9 @@ public class Spider implements Plugin {
             }
         }
         _fetcher.stop();
-        _running = false;
+        _model.setRunning(false);
         _runThread = null;
-        if (_ui != null) _ui.setEnabled(_running);
-        _status = "Stopped";
+        _model.setStatus("Stopped");
     }
     
     private boolean queueRequests() {
@@ -211,7 +204,7 @@ public class Spider implements Plugin {
     }
     
     public boolean isBusy() {
-        if (!_running) return false;
+        if (!_model.isRunning()) return false;
         return _model.getQueuedLinkCount()>0;
     }
     
@@ -327,20 +320,17 @@ public class Spider implements Plugin {
     
     public boolean stop() {
         if (isBusy()) return false;
-        _stopping = true;
+        _model.setStopping(true);
         try {
             _runThread.join(5000);
         } catch (InterruptedException ie) {
             _logger.severe("Interrupted stopping " + getPluginName());
         }
-        return !_running;
+        return !_model.isRunning();
     }
     
     public String getStatus() {
-        if (isBusy())
-            return "Started, " +
-            _model.getQueuedLinkCount() + " queued for fetching";
-        return _status;
+        return _model.getStatus();
     }
     
     public void analyse(ConversationID id, Request request, Response response, String origin) {
@@ -437,7 +427,7 @@ public class Spider implements Plugin {
     }
     
     public boolean isRunning() {
-        return _running;
+        return _model.isRunning();
     }
     
     public void setSession(String type, Object store, String session) throws StoreException {
