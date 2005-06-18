@@ -67,7 +67,7 @@
                 <fileset dir="doc/userguide/" includes="*.png,*.jpg,*.gif"/>
             </copy>
         </target>
-	<target depends="compile,javahelp" description="Build a jar file" name="build">
+	<target depends="compile" description="Build a jar file" name="build">
 		<jar basedir="${build.dir}" jarfile="${jar}">
                     <manifest>
                         <attribute name="Main-Class" value="${mainclass}"/>
@@ -98,7 +98,7 @@
       == directory, etc. 
       == IzPack is available from http://www.izforge.com/izpack/
       -->
-	<target depends="clean,build" description="Build a self contained installer package" name="izpack">
+	<target depends="clean,javahelp,build" description="Build a self contained installer package" name="izpack">
                 <taskdef classname="com.izforge.izpack.ant.IzPackTask" classpath="${basedir}/izpack/lib/compiler.jar" name="izpack"/>
 		<izpack basedir="${basedir}" input="${basedir}/installer/izpack.xml" installerType="standard" izPackDir="${basedir}/izpack/" output="${dist.dir}/webscarab-installer-${project.version}.jar"/>
 	</target>
@@ -108,7 +108,7 @@
       == Unfortunately, at this time, the configuration file is heavily
       == tied to a specific desktop, and installation directories
       -->
-        <target depends="clean,build" description="Build a standalone self-contained jar" name="proguard">
+        <target depends="clean,javahelp,build" description="Build a standalone self-contained jar" name="proguard">
             <taskdef classpath="${basedir}/proguard/lib/proguard.jar" resource="proguard/ant/task.properties"/>
             <proguard ignorewarnings="true" obfuscate="false" optimize="true" verbose="true">
                 <injar name="${jar}"/>
