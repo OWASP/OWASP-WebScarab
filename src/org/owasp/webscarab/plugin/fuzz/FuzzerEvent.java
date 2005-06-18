@@ -14,16 +14,28 @@ import org.owasp.webscarab.model.HttpUrl;
  */
 public class FuzzerEvent {
     
-    public static int URL_APPSTATUS_CHANGED = 101;
-    public static int URL_POTENTIAL_APPSTATUS_CHANGED = 102;
-    public static int URL_SIGNATURE_ADDED = 103;
+    public final static int FUZZHEADER_ADDED = 101;
+    public final static int FUZZHEADER_CHANGED = 102;
+    public final static int FUZZHEADER_REMOVED = 103;
+    public final static int FUZZPARAMETER_ADDED = 104;
+    public final static int FUZZPARAMETER_CHANGED = 105;
+    public final static int FUZZPARAMETER_REMOVED = 106;
     
-    public static int URL_AUTHENTICATION_REQUIRED = 104;
-    public static int URL_ERROR = 105;
+    private int _type;
+    private int _row;
     
     /** Creates a new instance of FuzzerEvent */
-    public FuzzerEvent(Object source, int eventType, HttpUrl url) {
-        // super(source, eventType, url, null);
+    public FuzzerEvent(Object source, int eventType, int row) {
+        _type = eventType;
+        _row = row;
+    }
+    
+    public int getType() {
+        return _type;
+    }
+    
+    public int getRow() {
+        return _row;
     }
     
 }

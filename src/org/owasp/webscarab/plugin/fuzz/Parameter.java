@@ -12,9 +12,15 @@ package org.owasp.webscarab.plugin.fuzz;
  */
 public class Parameter {
     
-    String _location;
-    String _name;
-    String _type;
+    public static final String LOCATION_PATH = "Path";
+    public static final String LOCATION_FRAGMENT = "Fragment";
+    public static final String LOCATION_QUERY = "Query";
+    public static final String LOCATION_COOKIE = "Cookie";
+    public static final String LOCATION_BODY = "Body";
+    
+    private String _location;
+    private String _name;
+    private String _type;
     
     /** Creates a new instance of Parameter */
     public Parameter(String location, String name, String type) {

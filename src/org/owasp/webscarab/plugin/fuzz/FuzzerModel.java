@@ -6,6 +6,9 @@
 
 package org.owasp.webscarab.plugin.fuzz;
 
+import java.beans.PropertyChangeSupport;
+
+import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.FrameworkEvent;
 import org.owasp.webscarab.model.FrameworkListener;
@@ -14,16 +17,19 @@ import org.owasp.webscarab.model.UrlModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.NamedValue;
+
+import org.owasp.webscarab.util.ReentrantReaderPreferenceReadWriteLock;
 
 import org.owasp.webscarab.plugin.AbstractPluginModel;
 
 import java.util.logging.Logger;
 
-import java.util.Map;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import javax.swing.event.EventListenerList;
 
@@ -33,160 +39,267 @@ import javax.swing.event.EventListenerList;
  */
 public class FuzzerModel extends AbstractPluginModel {
     
+    public final static String PROPERTY_FUZZMETHOD = "FuzzMethod";
+    public final static String PROPERTY_FUZZURL = "FuzzUrl";
+    public final static String PROPERTY_FUZZVERSION = "FuzzVersion";
+    public final static String PROPERTY_REQUESTINDEX = "RequestIndex";
+    public final static String PROPERTY_TOTALREQUESTS = "TotalRequests";
+    public final static String PROPERTY_BUSYFUZZING = "BusyFuzzing";
+    
     private FrameworkModel _model = null;
+    
+    private ReentrantReaderPreferenceReadWriteLock _rwl = new ReentrantReaderPreferenceReadWriteLock();
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
-    private Map _signatures = new HashMap();
-    
-    private List _queuedUrls = new LinkedList();
-    
-    private HttpUrl _url = null;
-    private Signature _signature = null;
-    
     private EventListenerList _listenerList = new EventListenerList();
+    
+    private String _fuzzMethod = "GET";
+    private String _fuzzUrl = "http://localhost:8080/test";
+    private String _fuzzVersion = "HTTP/1.0";
+    
+    private List _fuzzHeaders = new ArrayList();
+    private List _fuzzParameters = new ArrayList();
+    private List _defaultValues = new ArrayList();
+    private List _fuzzSources = new ArrayList();
+    private List _parameterPriorities = new ArrayList();
+    
+    private int _maxPriority = 0;
+    private int _requestIndex = 0;
+    private int _totalRequests = 0;
+    
+    private boolean _busyFuzzing = false;
+    
     
     /** Creates a new instance of FuzzerModel */
     public FuzzerModel(FrameworkModel model) {
-        super(model);
         _model = model;
     }
     
-    public boolean isAppCandidate(HttpUrl url) {
-        List signatures = (List) _signatures.get(url);
-        String blank = _model.getUrlProperty(url, "BLANKREQUEST");
-        String cookie = _model.getUrlProperty(url, "SET-COOKIE");
-        if (cookie != null && !cookie.equals("")) return true;
-        if (signatures != null && (blank == null || blank.equals(""))) {
-            return true;
+    public void setFuzzMethod(String method) {
+        Object old = _fuzzMethod;
+        _fuzzMethod = method;
+        if (old == null || _fuzzMethod != old)
+            _changeSupport.firePropertyChange(PROPERTY_FUZZMETHOD, old,  _fuzzMethod);
+        resetFuzzer();
+    }
+    
+    public String getFuzzMethod() {
+        return _fuzzMethod;
+    }
+    
+    public void setFuzzUrl(String url) {
+        Object old = _fuzzUrl;
+        _fuzzUrl = url;
+        if (old == null || _fuzzUrl!= old)
+            _changeSupport.firePropertyChange(PROPERTY_FUZZURL, old,  _fuzzUrl);
+        resetFuzzer();
+    }
+    
+    public String getFuzzUrl() {
+        return _fuzzUrl;
+    }
+    
+    public void setFuzzVersion(String version) {
+        Object old = _fuzzVersion;
+        _fuzzVersion = version;
+        if (old == null || _fuzzVersion != old)
+            _changeSupport.firePropertyChange(PROPERTY_FUZZVERSION, old,  _fuzzVersion);
+        resetFuzzer();
+    }
+    
+    public String getFuzzVersion() {
+        return _fuzzVersion;
+    }
+    
+    public void setBusyFuzzing(boolean busy) {
+        boolean old = _busyFuzzing;
+        _busyFuzzing = busy;
+        if (_busyFuzzing!= old)
+            _changeSupport.firePropertyChange(PROPERTY_BUSYFUZZING, old,  _busyFuzzing);
+    }
+    
+    public boolean isBusyFuzzing() {
+        return _busyFuzzing;
+    }
+    
+    public int getFuzzHeaderCount() {
+        return _fuzzHeaders.size();
+    }
+    
+    public void addFuzzHeader(int index, NamedValue header) {
+        _fuzzHeaders.add(index, header);
+        fireFuzzHeaderAdded(index);
+        resetFuzzer();
+    }
+    
+    public void setFuzzHeader(int index, NamedValue header) {
+        _fuzzHeaders.set(index, header);
+        fireFuzzHeaderChanged(index);
+        resetFuzzer();
+    }
+    
+    public void removeFuzzHeader(int index) {
+        _fuzzHeaders.remove(index);
+        fireFuzzHeaderRemoved(index);
+        resetFuzzer();
+    }
+    
+    public NamedValue getFuzzHeader(int position) {
+        return (NamedValue) _fuzzHeaders.get(position);
+    }
+    
+    public int getFuzzParameterCount() {
+        return _fuzzParameters.size();
+    }
+    
+    public void addFuzzParameter(int index, Parameter parameter, Object defaultValue, FuzzSource fuzzSource, int priority) {
+        _logger.info("Adding a parameter at index " + index);
+        _fuzzParameters.add(index, parameter);
+        _defaultValues.add(index, defaultValue);
+        _fuzzSources.add(index, fuzzSource);
+        _parameterPriorities.add(index, new Integer(priority));
+        fireFuzzParameterAdded(index);
+        resetFuzzer();
+    }
+    
+    public void setFuzzParameter(int index, Parameter parameter, Object defaultValue, FuzzSource fuzzSource, int priority) {
+        _logger.info("Setting a parameter at index " + index + ", source is " + fuzzSource);
+        _fuzzParameters.set(index, parameter);
+        _defaultValues.set(index, defaultValue);
+        _fuzzSources.set(index, fuzzSource);
+        _parameterPriorities.set(index, new Integer(priority));
+        fireFuzzParameterChanged(index);
+        resetFuzzer();
+    }
+    
+    public void removeFuzzParameter(int index) {
+        _logger.info("Removing parameter at index " + index);
+        _fuzzParameters.remove(index);
+        _defaultValues.remove(index);
+        _fuzzSources.remove(index);
+        _parameterPriorities.remove(index);
+        fireFuzzParameterRemoved(index);
+        resetFuzzer();
+    }
+    
+    public Parameter getFuzzParameter(int index) {
+        return (Parameter) _fuzzParameters.get(index);
+    }
+    
+    public Object getDefaultParameterValue(int index) {
+        return _defaultValues.get(index);
+    }
+    
+    public FuzzSource getParameterFuzzSource(int index) {
+        return (FuzzSource) _fuzzSources.get(index);
+    }
+    
+    public int getFuzzParameterPriority(int index) {
+        Integer p = (Integer)_parameterPriorities.get(index);
+        if (p == null)
+            return 0;
+        return p.intValue();
+    }
+    
+    public Object getFuzzParameterValue(int index) {
+        FuzzSource fuzzSource = getParameterFuzzSource(index);
+        if (fuzzSource != null) {
+            return fuzzSource.current();
+        } else {
+            return getDefaultParameterValue(index);
         }
-        return false;
     }
     
-    public UrlModel getUrlModel() {
-        return null;
-    }
-    
-    public void setBlankRequest(HttpUrl url) {
-        _model.setUrlProperty(url, "BLANKREQUEST", "true");
-    }
-    
-    public boolean hasBlankRequest(HttpUrl url) {
-        String blank = _model.getUrlProperty(url, "BLANKREQUEST");
-        if (blank == null) return false;
-        return (Boolean.valueOf(blank).equals(Boolean.TRUE));
-    }
-    
-    public void setAuthenticationRequired(HttpUrl url, boolean required) {
-        _model.setUrlProperty(url,  "AUTHREQUIRED", Boolean.toString(required));
-    }
-    
-    public boolean isAuthenticationRequired(HttpUrl url) {
-        String auth = _model.getUrlProperty(url, "AUTHREQUIRED");
-        if (auth == null) return false;
-        return (Boolean.valueOf(auth).equals(Boolean.TRUE));
-    }
-    
-    public boolean hasErrors(HttpUrl url) {
-        String error = _model.getUrlProperty(url, "ERRORS");
-        if (error == null) return false;
-        return (Boolean.valueOf(error).equals(Boolean.TRUE));
-    }
-    
-    public boolean hasDynamicContent(HttpUrl url) {
-        return _model.getUrlProperties(url, "CHECKSUM").length > 1;
-    }
-    
-    public void addCheckSum(HttpUrl url, String checksum) {
-        _model.addUrlProperty(url, "CHECKSUM", checksum);
-    }
-    
-    public void setUrl(HttpUrl url) {
-        setSignature(null);
-        _url = url;
-        //fireSignaturesChanged();
-    }
-    
-    public void addSignature(HttpUrl url, Signature signature, ConversationID id) {
-        List signatures = (List) _signatures.get(url);
-        if (signatures == null) {
-            signatures = new ArrayList();
-            _signatures.put(url, signatures);
-        }
-        if (signatures.indexOf(signature)<0) {
-            signatures.add(signature);
-            fireSignatureAdded(url, signatures.size()-1);
-        }
-    }
-    
-    public int getSignatureCount(HttpUrl url) {
-        if (url == null) return 0;
-        List signatures = (List) _signatures.get(url);
-        if (signatures == null) return 0;
-        return signatures.size();
-    }
-    
-    public Signature getSignature(HttpUrl url, int i) {
-        List signatures = (List) _signatures.get(url);
-        if (signatures == null) return null;
-        return (Signature) signatures.get(i);
-    }
-    
-    public void setConversationError(ConversationID id) {
-        _model.setConversationProperty(id, "ERRORS", "true");
-        _model.setUrlProperty(_model.getRequestUrl(id), "ERRORS", "true");
-    }
-    
-    public void queueUrl(HttpUrl url) {
-        _queuedUrls.add(url);
-    }
-    
-    public int getQueuedUrlCount() {
-        return _queuedUrls.size();
-    }
-    
-    public HttpUrl getQueuedUrl() {
-        if (_queuedUrls.size() > 0) return (HttpUrl) _queuedUrls.remove(0);
-        _logger.warning("Requested a non-existent url");
-        return null;
-    }
-    
-    public void clearUrlQueue() {
-        _queuedUrls.clear();
-    }
-    
-    public void setSignature(Signature signature) {
-        _signature = null;
-        // fireConversationsChanged();
-    }
-    
-    public int getConversationCount() {
-        return 0;
-    }
-    
-    public ConversationID getConversationAt() {
-        return null;
-    }
-    
-    /**
-     * tells listeners that the url's app status has changed
-     * @param url the url
-     */
-    protected void fireAppStatusChanged(HttpUrl url) {
-        // Guaranteed to return a non-null array
-        Object[] listeners = _listenerList.getListenerList();
-        // Process the listeners last to first, notifying
-        // those that are interested in this event
-        FuzzerEvent evt = new FuzzerEvent(this, FuzzerEvent.URL_APPSTATUS_CHANGED, url);
-        for (int i = listeners.length-2; i>=0; i-=2) {
-            if (listeners[i]==FuzzerListener.class) {
-                try {
-                    ((FuzzerListener)listeners[i+1]).appStatusChanged(evt);
-                } catch (Exception e) {
-                    _logger.severe("Unhandled exception: " + e);
+    public void resetFuzzer() {
+        Map sizes = new HashMap();
+        _maxPriority = 0;
+        int count = getFuzzParameterCount();
+        for (int i=0; i<count; i++) {
+            FuzzSource source = getParameterFuzzSource(i);
+            if (source != null) {
+                source.reset();
+                Integer priority = new Integer(getFuzzParameterPriority(i));
+                _maxPriority = Math.max(priority.intValue(), _maxPriority);
+                int size = source.size();
+                Integer s = (Integer) sizes.get(priority);
+                if (s == null) {
+                    sizes.put(priority, new Integer(size));
+                } else {
+                    sizes.put(priority, new Integer(Math.min(s.intValue(),size)));
                 }
             }
         }
+        int totalsize = 1;
+        Iterator it = sizes.values().iterator();
+        while (it.hasNext()) {
+            Integer size = (Integer) it.next();
+            totalsize = totalsize * size.intValue();
+        }
+        setRequestIndex(0);
+        setTotalRequests(totalsize);
+    }
+    
+    public boolean incrementFuzzer() {
+        boolean success = false;
+        int count = getFuzzParameterCount();
+        for (int priority=0; priority<=_maxPriority; priority++) {
+            // make sure we can increment ALL the sources at the current priority
+            // set success = true if so
+            for (int param=0; param<count; param++) {
+                FuzzSource source = getParameterFuzzSource(param);
+                if (source == null) continue; // nothing to do for this param
+                int paramPriority = getFuzzParameterPriority(param);
+                if (paramPriority == priority) { // we need to increment this one
+                    if (source.hasNext()) {
+                        source.increment();
+                        success = true;
+                    } else {
+                        success = false;
+                        break;
+                    }
+                }
+            }
+            if (success) {
+                setRequestIndex(getRequestIndex()+1);
+                return true;
+            } else {
+                // no success, reset all parameters <= current priority, we'll
+                // go around again, and increment the next priority level
+                for (int param=0; param<count; param++) {
+                    FuzzSource source = getParameterFuzzSource(param);
+                    if (source == null) continue; // nothing to do for this param
+                    int paramPriority = getFuzzParameterPriority(param);
+                    if (paramPriority <= priority) {
+                        source.reset();
+                    }
+                }
+            }
+        }
+        // we have gone through all the permutations, no more to do
+        return false;
+    }
+    
+    private void setRequestIndex(int index) {
+        int old = _requestIndex;
+        _requestIndex = index;
+        if (_requestIndex != old)
+            _changeSupport.firePropertyChange(PROPERTY_REQUESTINDEX, old,  _requestIndex);
+    }
+    
+    public int getRequestIndex() {
+        return _requestIndex;
+    }
+    
+    private void setTotalRequests(int count) {
+        int old = _totalRequests;
+        _totalRequests = count;
+        if (_totalRequests != old)
+            _changeSupport.firePropertyChange(PROPERTY_TOTALREQUESTS, old,  _totalRequests);
+    }
+    
+    public int getTotalRequests() {
+        return _totalRequests;
     }
     
     public void addModelListener(FuzzerListener listener) {
@@ -198,19 +311,19 @@ public class FuzzerModel extends AbstractPluginModel {
     }
     
     /**
-     * tells listeners that the url's app status has changed
+     * tells listeners that a header has been added
      * @param url the url
      */
-    protected void fireSignatureAdded(HttpUrl url, int position) {
+    protected void fireFuzzHeaderAdded(int index) {
         // Guaranteed to return a non-null array
         Object[] listeners = _listenerList.getListenerList();
         // Process the listeners last to first, notifying
         // those that are interested in this event
-        FuzzerEvent evt = new FuzzerEvent(this, FuzzerEvent.URL_SIGNATURE_ADDED, url);
+        FuzzerEvent evt = new FuzzerEvent(this, FuzzerEvent.FUZZHEADER_ADDED, index);
         for (int i = listeners.length-2; i>=0; i-=2) {
             if (listeners[i]==FuzzerListener.class) {
                 try {
-                    ((FuzzerListener)listeners[i+1]).signatureAdded(evt);
+                    ((FuzzerListener)listeners[i+1]).fuzzHeaderAdded(evt);
                 } catch (Exception e) {
                     _logger.severe("Unhandled exception: " + e);
                 }
@@ -219,19 +332,19 @@ public class FuzzerModel extends AbstractPluginModel {
     }
     
     /**
-     * tells listeners that the url's app status has changed
+     * tells listeners that a header has been removed
      * @param url the url
      */
-    protected void fireAuthenticationRequired(HttpUrl url) {
+    protected void fireFuzzHeaderChanged(int index) {
         // Guaranteed to return a non-null array
         Object[] listeners = _listenerList.getListenerList();
         // Process the listeners last to first, notifying
         // those that are interested in this event
-        FuzzerEvent evt = new FuzzerEvent(this, FuzzerEvent.URL_AUTHENTICATION_REQUIRED, url);
+        FuzzerEvent evt = new FuzzerEvent(this, FuzzerEvent.FUZZHEADER_CHANGED, index);
         for (int i = listeners.length-2; i>=0; i-=2) {
             if (listeners[i]==FuzzerListener.class) {
                 try {
-                    ((FuzzerListener)listeners[i+1]).authenticationRequired(evt);
+                    ((FuzzerListener)listeners[i+1]).fuzzHeaderChanged(evt);
                 } catch (Exception e) {
                     _logger.severe("Unhandled exception: " + e);
                 }
@@ -240,19 +353,19 @@ public class FuzzerModel extends AbstractPluginModel {
     }
     
     /**
-     * tells listeners that the url's app status has changed
+     * tells listeners that a header has been removed
      * @param url the url
      */
-    protected void fireUrlError(HttpUrl url) {
+    protected void fireFuzzHeaderRemoved(int index) {
         // Guaranteed to return a non-null array
         Object[] listeners = _listenerList.getListenerList();
         // Process the listeners last to first, notifying
         // those that are interested in this event
-        FuzzerEvent evt = new FuzzerEvent(this, FuzzerEvent.URL_ERROR, url);
+        FuzzerEvent evt = new FuzzerEvent(this, FuzzerEvent.FUZZHEADER_REMOVED, index);
         for (int i = listeners.length-2; i>=0; i-=2) {
             if (listeners[i]==FuzzerListener.class) {
                 try {
-                    ((FuzzerListener)listeners[i+1]).urlError(evt);
+                    ((FuzzerListener)listeners[i+1]).fuzzHeaderRemoved(evt);
                 } catch (Exception e) {
                     _logger.severe("Unhandled exception: " + e);
                 }
@@ -260,31 +373,67 @@ public class FuzzerModel extends AbstractPluginModel {
         }
     }
     
-    private class Listener implements FrameworkListener {
-        
-        public void conversationPropertyChanged(FrameworkEvent evt) {
+    /**
+     * tells listeners that a parameter has been added
+     * @param url the url
+     */
+    protected void fireFuzzParameterAdded(int index) {
+        // Guaranteed to return a non-null array
+        Object[] listeners = _listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        FuzzerEvent evt = new FuzzerEvent(this, FuzzerEvent.FUZZPARAMETER_ADDED, index);
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==FuzzerListener.class) {
+                try {
+                    ((FuzzerListener)listeners[i+1]).fuzzParameterAdded(evt);
+                } catch (Exception e) {
+                    _logger.severe("Unhandled exception: " + e);
+                }
+            }
         }
-        
-        public void cookieAdded(FrameworkEvent evt) {
-        }
-        
-        public void cookieRemoved(FrameworkEvent evt) {
-        }
-        
-        public void cookiesChanged() {
-        }
-        
-        public void urlPropertyChanged(FrameworkEvent evt) {
-            HttpUrl url = evt.getUrl();
-            String property = evt.getPropertyName();
-            if (property == null) return;
-            if (property.equals("SET-COOKIE")) fireAppStatusChanged(url);
-            if (property.equals("BLANKREQUEST")) fireAppStatusChanged(url);
-            if (property.equals("CHECKSUM")) fireAppStatusChanged(url);
-            if (property.equals("ERRORS")) fireUrlError(url);
-            if (property.equals("AUTHREQUIRED")) fireAuthenticationRequired(url);
-        }
-        
     }
-
+    
+    /**
+     * tells listeners that a parameter has been added
+     * @param url the url
+     */
+    protected void fireFuzzParameterChanged(int index) {
+        // Guaranteed to return a non-null array
+        Object[] listeners = _listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        FuzzerEvent evt = new FuzzerEvent(this, FuzzerEvent.FUZZPARAMETER_CHANGED, index);
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==FuzzerListener.class) {
+                try {
+                    ((FuzzerListener)listeners[i+1]).fuzzParameterChanged(evt);
+                } catch (Exception e) {
+                    _logger.severe("Unhandled exception: " + e);
+                }
+            }
+        }
+    }
+    
+    /**
+     * tells listeners that a parameter has been added
+     * @param url the url
+     */
+    protected void fireFuzzParameterRemoved(int index) {
+        // Guaranteed to return a non-null array
+        Object[] listeners = _listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        FuzzerEvent evt = new FuzzerEvent(this, FuzzerEvent.FUZZPARAMETER_REMOVED, index);
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==FuzzerListener.class) {
+                try {
+                    ((FuzzerListener)listeners[i+1]).fuzzParameterRemoved(evt);
+                } catch (Exception e) {
+                    _logger.severe("Unhandled exception: " + e);
+                }
+            }
+        }
+    }
+    
 }

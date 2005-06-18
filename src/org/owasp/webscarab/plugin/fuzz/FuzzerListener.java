@@ -16,16 +16,16 @@ import org.owasp.webscarab.model.HttpUrl;
  */
 public interface FuzzerListener extends EventListener {
     
-    public abstract void appStatusChanged(FuzzerEvent evt);
+    void fuzzHeaderAdded(FuzzerEvent evt);
     
-    public abstract void signatureAdded(FuzzerEvent evt);
+    void fuzzHeaderChanged(FuzzerEvent evt);
     
-    public abstract void authenticationRequired(FuzzerEvent evt);
+    void fuzzHeaderRemoved(FuzzerEvent evt);
     
-    public abstract void urlError(FuzzerEvent evt);
+    void fuzzParameterAdded(FuzzerEvent evt);
     
-    public abstract void fuzzerStarted(FuzzerEvent evt);
+    void fuzzParameterChanged(FuzzerEvent evt);
     
-    public abstract void fuzzerStopped(FuzzerEvent evt);
+    void fuzzParameterRemoved(FuzzerEvent evt);
     
 }
