@@ -77,7 +77,7 @@ public class CompareModel extends AbstractPluginModel {
         }
     }
     
-    public void addDistance(ConversationID id, int distance) {
+    public void setDistance(ConversationID id, int distance) {
         try {
             _rwl.writeLock().acquire();
             _distances.put(id, new Integer(distance));

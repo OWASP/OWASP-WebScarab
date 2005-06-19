@@ -58,7 +58,7 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
         _compare = compare;
         _model = _compare.getModel();
         baseComboBox.setModel(new ListComboBoxModel(new ConversationListModel(_model.getConversationModel())));
-        _tableModel = new ConversationListTableModel(_model.getComparisonModel());
+        _tableModel = new DistanceTableModel(_model.getComparisonModel());
         conversationTable.setDefaultRenderer(Date.class, new DateRenderer());
         _conversationSorter = new TableSorter(_tableModel, conversationTable.getTableHeader());
         conversationTable.setModel(_conversationSorter);
@@ -69,11 +69,9 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
     
         baseComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                _logger.info("Performed");
                 Object o = baseComboBox.getSelectedItem();
                 if (o instanceof ConversationID) {
                     ConversationID id = (ConversationID) o;
-                    _logger.info("Got " + id);
                     _compare.setBaseConversation(null, id);
                     ConversationModel cmodel = _model.getConversationModel();
                     Response response = cmodel.getResponse(id);
@@ -172,5 +170,49 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSplitPane jSplitPane1;
     // End of variables declaration//GEN-END:variables
+    
+    private class DistanceTableModel extends ConversationListTableModel {
+        
+        private int _column = 1;
+        
+        public DistanceTableModel(ConversationModel conversations) {
+            super(conversations);
+        }
+        
+        public int getColumnCount() {
+            return super.getColumnCount()+1;
+        }
+        
+        public Class getColumnClass(int column) {
+            if (column < _column) {
+                return super.getColumnClass(column);
+            } else if (column == _column) {
+                return Integer.class;
+            } else {
+                return super.getColumnClass(column-1);
+            }
+        }
+        
+        public String getColumnName(int column) {
+            if (column < _column) {
+                return super.getColumnName(column);
+            } else if (column == _column) {
+                return "Distance";
+            } else {
+                return super.getColumnName(column-1);
+            }
+        }
+        
+        public Object getValueAt(int row, int column) {
+            if (column < _column) {
+                return super.getValueAt(row, column);
+            } else if (column == _column) {
+                return _model.getDistance(_model.getComparisonModel().getConversationAt(null, row));
+            } else {
+                return super.getValueAt(row, column-1);
+            }
+        }
+        
+    }
     
 }

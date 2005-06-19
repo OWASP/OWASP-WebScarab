@@ -125,15 +125,15 @@ public class Compare implements Plugin {
                         ConversationID cid = cmodel.getConversationAt(_url, i);
                         _logger.info("Checking conversation " + i + " == " + cid);
                         if (cid.equals(id)) {
-                            _model.addDistance(cid, 0);
+                            _model.setDistance(cid, 0);
                         } else {
-                            Response response = cmodel.getResponse(id);
+                            Response response = cmodel.getResponse(cid);
                             String ctype = response.getHeader("Content-Type");
                             _logger.info("Content-type is " + ctype);
                             if (ctype != null && ctype.startsWith("text")) {
                                 byte[] bytes = response.getContent();
                                 List target = tokenize(bytes);
-                                _model.addDistance(cid, _diff.getDistance(target));
+                                _model.setDistance(cid, _diff.getDistance(target));
                             }
                         }
                     }
@@ -161,6 +161,12 @@ public class Compare implements Plugin {
     private List tokenize(byte[] bytes) {
         if (bytes == null)
             return new ArrayList();
+//        List byteList = new ArrayList();
+//        for (int i=0; i<bytes.length; i++) {
+//            byteList.add(new Byte(bytes[i]));
+//        }
+//        return byteList;
+//        
         String[] words = new String(bytes).split("\\s");
         List tokens = Arrays.asList(words);
         return tokens;
