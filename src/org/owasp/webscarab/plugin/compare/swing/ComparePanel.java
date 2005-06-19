@@ -22,6 +22,7 @@ import org.owasp.webscarab.ui.swing.ContentPanel;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.TableSorter;
 import org.owasp.webscarab.util.swing.ListComboBoxModel;
+import org.owasp.webscarab.ui.swing.ConversationRenderer;
 import org.owasp.webscarab.ui.swing.DateRenderer;
 
 import javax.swing.JPanel;
@@ -58,6 +59,7 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
         _compare = compare;
         _model = _compare.getModel();
         baseComboBox.setModel(new ListComboBoxModel(new ConversationListModel(_model.getConversationModel())));
+        baseComboBox.setRenderer(new ConversationRenderer(_model.getConversationModel()));
         _tableModel = new ConversationTableModel(_model.getComparisonModel());
         _tableModel.addColumn(new ColumnDataModel() {
             public Object getValue(Object key) {
@@ -123,6 +125,7 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
 
         setLayout(new java.awt.BorderLayout());
 
+        baseComboBox.setMaximumSize(null);
         add(baseComboBox, java.awt.BorderLayout.NORTH);
 
         jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);

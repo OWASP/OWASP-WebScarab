@@ -135,42 +135,33 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
+        jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         requestComboBox = new javax.swing.JComboBox();
         conversationSplitPane = new javax.swing.JSplitPane();
+        jPanel2 = new javax.swing.JPanel();
         getCookieButton = new javax.swing.JButton();
         fetchResponseButton = new javax.swing.JButton();
         updateCookiesButton = new javax.swing.JButton();
 
-        setLayout(new java.awt.GridBagLayout());
+        setLayout(new java.awt.BorderLayout());
 
-        jLabel1.setText("Previous Requests :");
+        jPanel1.setLayout(new java.awt.BorderLayout());
+
+        jLabel1.setText("Previous Requests : ");
         jLabel1.setMinimumSize(new java.awt.Dimension(135, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        add(jLabel1, gridBagConstraints);
+        jPanel1.add(jLabel1, java.awt.BorderLayout.WEST);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        add(requestComboBox, gridBagConstraints);
+        jPanel1.add(requestComboBox, java.awt.BorderLayout.CENTER);
+
+        add(jPanel1, java.awt.BorderLayout.NORTH);
 
         conversationSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         conversationSplitPane.setResizeWeight(0.5);
         conversationSplitPane.setOneTouchExpandable(true);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        add(conversationSplitPane, gridBagConstraints);
+        add(conversationSplitPane, java.awt.BorderLayout.CENTER);
+
+        jPanel2.setLayout(new java.awt.GridLayout());
 
         getCookieButton.setText("Get Cookies");
         getCookieButton.addActionListener(new java.awt.event.ActionListener() {
@@ -179,11 +170,7 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
             }
         });
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.weightx = 1.0;
-        add(getCookieButton, gridBagConstraints);
+        jPanel2.add(getCookieButton);
 
         fetchResponseButton.setText("Fetch Response");
         fetchResponseButton.addActionListener(new java.awt.event.ActionListener() {
@@ -192,11 +179,7 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
             }
         });
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.weightx = 1.0;
-        add(fetchResponseButton, gridBagConstraints);
+        jPanel2.add(fetchResponseButton);
 
         updateCookiesButton.setText("Update CookieJar");
         updateCookiesButton.addActionListener(new java.awt.event.ActionListener() {
@@ -205,11 +188,9 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
             }
         });
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.weightx = 1.0;
-        add(updateCookiesButton, gridBagConstraints);
+        jPanel2.add(updateCookiesButton);
+
+        add(jPanel2, java.awt.BorderLayout.SOUTH);
 
     }//GEN-END:initComponents
     
@@ -327,6 +308,8 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
     private javax.swing.JButton fetchResponseButton;
     private javax.swing.JButton getCookieButton;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JComboBox requestComboBox;
     private javax.swing.JButton updateCookiesButton;
     // End of variables declaration//GEN-END:variables
