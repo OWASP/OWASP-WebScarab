@@ -302,7 +302,6 @@ public class Framework {
         _model.addConversation(id, request, response, origin);
         synchronized(_analysisQueue) {
             _analysisQueue.add(id);
-            _logger.info("Analysis queue has " + _analysisQueue.size() + " entries");
         }
     }
     
