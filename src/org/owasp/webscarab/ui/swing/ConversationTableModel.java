@@ -47,11 +47,13 @@ import org.owasp.webscarab.model.ConversationListener;
 import org.owasp.webscarab.model.ConversationEvent;
 
 import org.owasp.webscarab.util.swing.ExtensibleTableModel;
+import org.owasp.webscarab.util.swing.ColumnDataModel;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.SwingUtilities;
 
 import java.util.logging.Logger;
+import java.util.Date;
 
 /**
  *
@@ -59,8 +61,7 @@ import java.util.logging.Logger;
  */
 public class ConversationTableModel extends ExtensibleTableModel {
     
-    protected FrameworkModel _frameworkModel = null;
-    protected ConversationModel _conversationModel = null;
+    protected ConversationModel _model = null;
     protected HttpUrl _url = null;
     
     private Listener _listener = new Listener();
@@ -68,10 +69,10 @@ public class ConversationTableModel extends ExtensibleTableModel {
     protected Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates a new instance of ConversationTableModel */
-    public ConversationTableModel(FrameworkModel frameworkModel, ConversationModel conversationModel) {
-        _frameworkModel = frameworkModel;
-        _conversationModel = conversationModel;
-        _conversationModel.addConversationListener(_listener);
+    public ConversationTableModel(ConversationModel model) {
+        _model = model;
+        addStandardColumns();
+        _model.addConversationListener(_listener);
     }
     
     public void setUrl(HttpUrl url) {
@@ -79,17 +80,92 @@ public class ConversationTableModel extends ExtensibleTableModel {
         fireTableDataChanged();
     }
     
+    private void addStandardColumns() {
+        ColumnDataModel cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                return _model.getConversationDate((ConversationID) key);
+            }
+            public String getColumnName() { return "Date"; }
+            public Class getColumnClass() { return Date.class; }
+        };
+        addColumn(cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                return _model.getRequestMethod((ConversationID) key);
+            }
+            public String getColumnName() { return "Method"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        addColumn(cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                HttpUrl url = _model.getRequestUrl((ConversationID) key);
+                return url.getScheme() + "://" + url.getHost() + ":" + url.getPort();
+            }
+            public String getColumnName() { return "Host"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        addColumn(cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                HttpUrl url = _model.getRequestUrl((ConversationID) key);
+                return url.getPath();
+            }
+            public String getColumnName() { return "Path"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        addColumn(cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                HttpUrl url = _model.getRequestUrl((ConversationID) key);
+                return url.getParameters();
+            }
+            public String getColumnName() { return "Parameters"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        addColumn(cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                return _model.getResponseStatus((ConversationID) key);
+            }
+            public String getColumnName() { return "Status"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        addColumn(cdm);
+        
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                return _model.getConversationOrigin((ConversationID) key);
+            }
+            public String getColumnName() { return "Origin"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        addColumn(cdm);
+    }
+    
     public Object getKeyAt(int row) {
-        return _conversationModel.getConversationAt(_url, row);
+        return _model.getConversationAt(_url, row);
     }
     
     public int indexOfKey(Object key) {
-        return _conversationModel.getIndexOfConversation(_url, (ConversationID) key);
+        return _model.getIndexOfConversation(_url, (ConversationID) key);
     }
     
     public int getRowCount() {
-        if (_conversationModel == null) return 0;
-        return _conversationModel.getConversationCount(_url);
+        if (_model == null) return 0;
+        return _model.getConversationCount(_url);
     }
     
     public int getColumnCount() {

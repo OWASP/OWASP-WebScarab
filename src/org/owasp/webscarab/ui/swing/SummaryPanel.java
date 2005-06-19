@@ -61,6 +61,7 @@ import javax.swing.table.TableModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.FilteredUrlModel;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.HttpUrl;
@@ -75,6 +76,7 @@ import org.owasp.webscarab.util.swing.TableSorter;
 public class SummaryPanel extends JPanel {
     
     private FrameworkModel _model;
+    private ConversationModel _conversationModel;
     private FilteredUrlModel _urlModel;
     private JTreeTable _urlTreeTable;
     private ArrayList _urlActions = new ArrayList();
@@ -89,8 +91,9 @@ public class SummaryPanel extends JPanel {
     
     /** Creates new form SummaryPanel */
     public SummaryPanel(FrameworkModel model) {
-        // FIXME this is the wrong place for this, I think?
         _model = model;
+        _conversationModel = _model.getConversationModel();
+        // FIXME this is the wrong place for this, I think?
         _urlModel = new FilteredUrlModel(model.getUrlModel()) {
             protected boolean shouldFilter(HttpUrl url) {
                 return _model.getUrlProperty(url, "METHODS") == null;
@@ -103,7 +106,9 @@ public class SummaryPanel extends JPanel {
         
         initTable();
         addTableListeners();
-        addConversationActions(new Action[] {new ShowConversationAction(_model)});
+        addConversationActions(new Action[] {
+            new ShowConversationAction(_model.getConversationModel())
+        });
     }
     
     private void initTree() {
@@ -202,71 +207,8 @@ public class SummaryPanel extends JPanel {
     }
     
     private void initTable() {
-        _conversationTableModel = new ConversationTableModel(_model, _model.getConversationModel());
+        _conversationTableModel = new ConversationTableModel(_model.getConversationModel());
         ColumnWidthTracker.getTracker("ConversationTable").addTable(conversationTable);
-        
-        ColumnDataModel cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
-                return _model.getConversationDate((ConversationID) key);
-            }
-            public String getColumnName() { return "Date"; }
-            public Class getColumnClass() { return Date.class; }
-        };
-        _conversationTableModel.addColumn(cdm);
-        
-        cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
-                return _model.getConversationProperty((ConversationID) key, "METHOD");
-            }
-            public String getColumnName() { return "Method"; }
-            public Class getColumnClass() { return String.class; }
-        };
-        _conversationTableModel.addColumn(cdm);
-        
-        cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
-                HttpUrl url = _model.getRequestUrl((ConversationID) key);
-                return url.getScheme() + "://" + url.getHost() + ":" + url.getPort();
-            }
-            public String getColumnName() { return "Host"; }
-            public Class getColumnClass() { return String.class; }
-        };
-        _conversationTableModel.addColumn(cdm);
-        
-        cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
-                HttpUrl url = _model.getRequestUrl((ConversationID) key);
-                return url.getPath();
-            }
-            public String getColumnName() { return "Path"; }
-            public Class getColumnClass() { return String.class; }
-        };
-        _conversationTableModel.addColumn(cdm);
-        
-        cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
-                HttpUrl url = _model.getRequestUrl((ConversationID) key);
-                return url.getParameters();
-            }
-            public String getColumnName() { return "Parameters"; }
-            public Class getColumnClass() { return String.class; }
-        };
-        _conversationTableModel.addColumn(cdm);
-        
-        cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
-                return _model.getConversationProperty((ConversationID) key, "STATUS");
-            }
-            public String getColumnName() { return "Status"; }
-            public Class getColumnClass() { return String.class; }
-        };
-        _conversationTableModel.addColumn(cdm);
         
         TableSorter ts = new TableSorter(_conversationTableModel, conversationTable.getTableHeader());
         conversationTable.setModel(ts);

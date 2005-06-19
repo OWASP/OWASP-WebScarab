@@ -16,7 +16,7 @@ import org.owasp.webscarab.plugin.compare.CompareModel;
 
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.ui.swing.ConversationListModel;
-import org.owasp.webscarab.ui.swing.ConversationListTableModel;
+import org.owasp.webscarab.ui.swing.ConversationTableModel;
 import org.owasp.webscarab.ui.swing.ContentPanel;
 
 import org.owasp.webscarab.util.swing.ColumnDataModel;
@@ -45,7 +45,7 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
     
     private Compare _compare;
     private CompareModel _model;
-    private ConversationListTableModel _tableModel;
+    private ConversationTableModel _tableModel;
     private ContentPanel _baseContent;
     private ContentPanel _selectedContent;
     private TableSorter _conversationSorter;
@@ -58,7 +58,16 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
         _compare = compare;
         _model = _compare.getModel();
         baseComboBox.setModel(new ListComboBoxModel(new ConversationListModel(_model.getConversationModel())));
-        _tableModel = new DistanceTableModel(_model.getComparisonModel());
+        _tableModel = new ConversationTableModel(_model.getComparisonModel());
+        _tableModel.addColumn(new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                return _model.getDistance((ConversationID) key);
+            }
+            public String getColumnName() { return "Distance"; }
+            public Class getColumnClass() { return Integer.class; }
+        });
+        
         conversationTable.setDefaultRenderer(Date.class, new DateRenderer());
         _conversationSorter = new TableSorter(_tableModel, conversationTable.getTableHeader());
         conversationTable.setModel(_conversationSorter);
@@ -170,49 +179,5 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSplitPane jSplitPane1;
     // End of variables declaration//GEN-END:variables
-    
-    private class DistanceTableModel extends ConversationListTableModel {
-        
-        private int _column = 1;
-        
-        public DistanceTableModel(ConversationModel conversations) {
-            super(conversations);
-        }
-        
-        public int getColumnCount() {
-            return super.getColumnCount()+1;
-        }
-        
-        public Class getColumnClass(int column) {
-            if (column < _column) {
-                return super.getColumnClass(column);
-            } else if (column == _column) {
-                return Integer.class;
-            } else {
-                return super.getColumnClass(column-1);
-            }
-        }
-        
-        public String getColumnName(int column) {
-            if (column < _column) {
-                return super.getColumnName(column);
-            } else if (column == _column) {
-                return "Distance";
-            } else {
-                return super.getColumnName(column-1);
-            }
-        }
-        
-        public Object getValueAt(int row, int column) {
-            if (column < _column) {
-                return super.getValueAt(row, column);
-            } else if (column == _column) {
-                return _model.getDistance(_model.getComparisonModel().getConversationAt(null, row));
-            } else {
-                return super.getValueAt(row, column-1);
-            }
-        }
-        
-    }
     
 }
