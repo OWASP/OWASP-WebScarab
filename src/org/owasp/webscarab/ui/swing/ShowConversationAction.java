@@ -42,7 +42,7 @@ package org.owasp.webscarab.ui.swing;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.model.FrameworkModel;
+import org.owasp.webscarab.model.ConversationModel;
 
 import javax.swing.JFrame;
 import javax.swing.AbstractAction;
@@ -54,10 +54,10 @@ import java.awt.event.ActionEvent;
  */
 public class ShowConversationAction extends AbstractAction {
     
-    private FrameworkModel _model;
+    private ConversationModel _model;
     
     /** Creates a new instance of ShowConversationAction */
-    public ShowConversationAction(FrameworkModel model) {
+    public ShowConversationAction(ConversationModel model) {
         _model = model;
         putValue(NAME, "Show conversation");
         putValue(SHORT_DESCRIPTION, "Opens a new window showing the request and response");
@@ -68,7 +68,7 @@ public class ShowConversationAction extends AbstractAction {
         Object o = getValue("CONVERSATION");
         if (o == null || ! (o instanceof ConversationID)) return;
         ConversationID id = (ConversationID) o;
-        ConversationPanel cp = new ConversationPanel(_model.getConversationModel());
+        ConversationPanel cp = new ConversationPanel(_model);
         cp.setSelectedConversation(id);
         JFrame frame = cp.inFrame();
         frame.show();
