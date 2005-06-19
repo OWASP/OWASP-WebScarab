@@ -54,12 +54,12 @@ import org.owasp.webscarab.plugin.fuzz.FuzzFactory;
 
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
-import org.owasp.webscarab.util.swing.ComboBoxCellEditor;
 
 import javax.swing.Action;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.SwingUtilities;
+import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.event.ListSelectionListener;
@@ -70,6 +70,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 
 import java.io.File;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import java.io.IOException;
@@ -114,17 +115,15 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         _parameterTableModel = new ParameterTableModel();
         paramTable.setModel(_parameterTableModel);
         DefaultComboBoxModel paramTypes = new DefaultComboBoxModel(Parameter.getParameterLocations());
-        ComboBoxCellEditor cbce = new ComboBoxCellEditor(paramTypes);
+        DefaultCellEditor dce = new DefaultCellEditor(new JComboBox(paramTypes));
         TableColumn col = paramTable.getColumnModel().getColumn(0);
-        col.setCellEditor(cbce);
-        col.setCellRenderer(cbce);
+        col.setCellEditor(dce);
         _fuzzSources = new DefaultComboBoxModel(_fuzzFactory.getSourceDescriptions());
         _fuzzSources.insertElementAt("", 0);
-        cbce = new ComboBoxCellEditor(_fuzzSources);
+        dce = new DefaultCellEditor(new JComboBox(_fuzzSources));
         col = paramTable.getColumnModel().getColumn(5);
-        col.setCellEditor(cbce);
-        col.setCellRenderer(cbce);
-        paramTable.setRowHeight((int)cbce.getComponent().getPreferredSize().getHeight());
+        col.setCellEditor(dce);
+        paramTable.setRowHeight((int)dce.getComponent().getPreferredSize().getHeight());
     }
     
     private void configureFuzzDialog() {
@@ -718,7 +717,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         if (row == -1) {
             row = paramTable.getRowCount();
         }
-        _model.addFuzzParameter(row, new Parameter(Parameter.LOCATION_QUERY, "v"+row, "Value"), "a" + row, null, 0);
+        _model.addFuzzParameter(row, new Parameter(Parameter.LOCATION_QUERY, "v"+row, "String"), "a" + row, null, 0);
     }//GEN-LAST:event_addParameterButtonActionPerformed
     
     private void deleteHeaderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteHeaderButtonActionPerformed
