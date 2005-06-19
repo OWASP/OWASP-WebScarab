@@ -91,6 +91,9 @@ import org.owasp.webscarab.plugin.scripted.swing.ScriptedPanel;
 import org.owasp.webscarab.plugin.compare.Compare;
 import org.owasp.webscarab.plugin.compare.swing.ComparePanel;
 
+import org.owasp.webscarab.plugin.search.Search;
+import org.owasp.webscarab.plugin.search.swing.SearchPanel;
+
 import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.swing.ExceptionHandler;
 
@@ -195,6 +198,11 @@ public class Main {
         _framework.addPlugin(compare);
         ComparePanel comparePanel = new ComparePanel(compare);
         _uif.addPlugin(comparePanel);
+        
+        Search search = new Search(_framework);
+        _framework.addPlugin(search);
+        SearchPanel searchPanel = new SearchPanel(search);
+        _uif.addPlugin(searchPanel);
     }
     
     public static void loadProxyPlugins(Proxy proxy, ProxyPanel proxyPanel) {
