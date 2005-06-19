@@ -186,19 +186,15 @@ public class Main {
         _framework.addPlugin(fragments);
         _uif.addPlugin(new FragmentsPanel(fragments));
         
-        /* Not ready for prime time yet!
         Fuzzer fuzzer = new Fuzzer(_framework);
         _framework.addPlugin(fuzzer);
         FuzzerPanel fuzzerPanel = new FuzzerPanel(fuzzer);
         _uif.addPlugin(fuzzerPanel);
-        /* */
         
-        /* Not ready for prime time yet!
         Compare compare = new Compare(_framework);
         _framework.addPlugin(compare);
         ComparePanel comparePanel = new ComparePanel(compare);
         _uif.addPlugin(comparePanel);
-        /* */
     }
     
     public static void loadProxyPlugins(Proxy proxy, ProxyPanel proxyPanel) {
