@@ -107,6 +107,12 @@ public class SearchModel extends AbstractPluginModel {
         } else {
             String[] searches = _model.getConversationProperties(id, "SEARCH");
             if (searches != null) {
+                // FIXME this causes all the SEARCH results to be set to
+                // null, with the consequence that conversations are removed
+                // and immediately readded as we put the property back
+                // Need to implement a 
+                // FrameworkModel.removeConversationProperty(id, name, value)
+                // method somehow
                 _model.setConversationProperty(id, "SEARCH", null);
                 for (int i=0; i<searches.length; i++) {
                     if (!searches[i].equals(description)) {
@@ -177,8 +183,8 @@ public class SearchModel extends AbstractPluginModel {
             
             public void conversationChanged(ConversationEvent evt) {
                 ConversationID id = evt.getConversationID();
+                int index = Collections.binarySearch(_conversations, id);
                 if (hasSearchMatch(id, _description)) {
-                    int index = Collections.binarySearch(_conversations, id);
                     if (index < 0) {
                         index = -index -1;
                         try {
@@ -192,6 +198,20 @@ public class SearchModel extends AbstractPluginModel {
                             e.printStackTrace();
                         }
                     }
+                } else {
+                    if (index >= 0) {
+                        try {
+                            _rwl.writeLock().acquire();
+                            _conversations.remove(index);
+                            _rwl.readLock().acquire();
+                            _rwl.writeLock().release();
+                            SearchConversationModel.this.fireConversationRemoved(id, index);
+                            _rwl.readLock().release();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    
                 }
             }
             

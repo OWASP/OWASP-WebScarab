@@ -6,38 +6,51 @@
 
 package org.owasp.webscarab.plugin.search.swing;
 
+import java.util.Date;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import javax.swing.Action;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableModel;
+
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.plugin.search.Search;
 import org.owasp.webscarab.plugin.search.SearchModel;
-
-import org.owasp.webscarab.ui.swing.ConversationListTableModel;
+import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
+import org.owasp.webscarab.ui.swing.ConversationTableModel;
+import org.owasp.webscarab.ui.swing.ShowConversationAction;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
-
-import org.owasp.webscarab.util.swing.SwingWorker;
+import org.owasp.webscarab.ui.swing.DateRenderer;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
-
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.SwingUtilities;
-import javax.swing.Action;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.ListSelectionEvent;
-
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
+import org.owasp.webscarab.util.swing.SwingWorker;
+import org.owasp.webscarab.util.swing.TableSorter;
 
 /**
  *
  * @author  rogan
  */
-public class SearchPanel extends javax.swing.JPanel implements SwingPluginUI {
+public class SearchPanel extends JPanel implements SwingPluginUI {
     
     private Search _search;
     private SearchModel _model;
+    private ConversationModel _conversationModel;
     private DefaultComboBoxModel _searches = new DefaultComboBoxModel();
+    private ShowConversationAction _showConversationAction;
+    private TableSorter _conversationSorter;
     
     /** Creates new form JPanel */
     public SearchPanel(Search search) {
         _search = search;
         _model = search.getModel();
+        _conversationModel = _model.getConversationModel();
         initComponents();
         searchList.setModel(_searches);
         searchComboBox.setModel(_searches);
@@ -56,7 +69,29 @@ public class SearchPanel extends javax.swing.JPanel implements SwingPluginUI {
                 expressionTextArea.setText(expression);
             }
         });
-        conversationTable.setModel(new ConversationListTableModel(_model.getConversationModel()));
+        
+        TableModel tm = new ConversationTableModel(_conversationModel);
+        _conversationSorter = new TableSorter(tm, conversationTable.getTableHeader());
+        conversationTable.setModel(_conversationSorter);
+        conversationTable.setDefaultRenderer(Date.class, new DateRenderer());
+        
+        ColumnWidthTracker.getTracker("ConversationTable").addTable(conversationTable);
+        _showConversationAction = new ShowConversationAction(_model.getConversationModel());
+        conversationTable.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
+                    int row = conversationTable.getSelectedRow();
+                    row = _conversationSorter.modelIndex(row);
+                    if (row >-1) {
+                        ConversationID id = _conversationModel.getConversationAt(null, row);
+                        _showConversationAction.putValue("CONVERSATION", id);
+                        ActionEvent evt = new ActionEvent(conversationTable, 0, (String) _showConversationAction.getValue(Action.ACTION_COMMAND_KEY));
+                        _showConversationAction.actionPerformed(evt);
+                    }
+                }
+            }
+        });
+        
     }
     
     private void updateSearches() {
@@ -91,10 +126,8 @@ public class SearchPanel extends javax.swing.JPanel implements SwingPluginUI {
         reloadButton = new javax.swing.JButton();
         resultsPanel = new javax.swing.JPanel();
         searchComboBox = new javax.swing.JComboBox();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
         conversationScrollPane = new javax.swing.JScrollPane();
         conversationTable = new javax.swing.JTable();
-        treeScrollPane = new javax.swing.JScrollPane();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -142,6 +175,7 @@ public class SearchPanel extends javax.swing.JPanel implements SwingPluginUI {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         searchPanel.add(jLabel3, gridBagConstraints);
 
+        jScrollPane4.setMinimumSize(new java.awt.Dimension(22, 44));
         jScrollPane4.setPreferredSize(new java.awt.Dimension(0, 0));
         jScrollPane4.setViewportView(expressionTextArea);
 
@@ -153,7 +187,7 @@ public class SearchPanel extends javax.swing.JPanel implements SwingPluginUI {
         gridBagConstraints.weighty = 0.5;
         searchPanel.add(jScrollPane4, gridBagConstraints);
 
-        jPanel3.setLayout(new java.awt.GridLayout());
+        jPanel3.setLayout(new java.awt.GridLayout(1, 0));
 
         addButton.setText("Add");
         addButton.addActionListener(new java.awt.event.ActionListener() {
@@ -207,20 +241,17 @@ public class SearchPanel extends javax.swing.JPanel implements SwingPluginUI {
 
             }
         ));
+        conversationTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
         conversationScrollPane.setViewportView(conversationTable);
 
-        jTabbedPane1.addTab("Conversations", conversationScrollPane);
-
-        jTabbedPane1.addTab("Tree", treeScrollPane);
-
-        resultsPanel.add(jTabbedPane1, java.awt.BorderLayout.CENTER);
+        resultsPanel.add(conversationScrollPane, java.awt.BorderLayout.CENTER);
 
         jSplitPane1.setRightComponent(resultsPanel);
 
         add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
     }//GEN-END:initComponents
-
+    
     private void searchComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchComboBoxActionPerformed
         Object selected = searchComboBox.getSelectedItem();
         if (selected != null) {
@@ -250,7 +281,8 @@ public class SearchPanel extends javax.swing.JPanel implements SwingPluginUI {
         String expression = expressionTextArea.getText();
         if (!description.equals("") && !expression.equals("")) {
             _search.addSearch(description, expression);
-            // reload(description);
+            reload(description);
+            searchList.setSelectedValue(description, true);
         }
     }//GEN-LAST:event_addButtonActionPerformed
     
@@ -281,7 +313,7 @@ public class SearchPanel extends javax.swing.JPanel implements SwingPluginUI {
         return new ColumnDataModel[0];
     }
     
-    public javax.swing.JPanel getPanel() {
+    public JPanel getPanel() {
         return this;
     }
     
@@ -311,13 +343,11 @@ public class SearchPanel extends javax.swing.JPanel implements SwingPluginUI {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JButton reloadButton;
     private javax.swing.JPanel resultsPanel;
     private javax.swing.JComboBox searchComboBox;
     private javax.swing.JList searchList;
     private javax.swing.JPanel searchPanel;
-    private javax.swing.JScrollPane treeScrollPane;
     // End of variables declaration//GEN-END:variables
     
     private class Listener implements PropertyChangeListener {

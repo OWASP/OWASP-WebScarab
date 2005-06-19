@@ -6,17 +6,22 @@
 
 package org.owasp.webscarab.plugin.search;
 
-import org.owasp.webscarab.model.*;
-import org.owasp.webscarab.plugin.*;
-
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.logging.Logger;
-
-import bsh.Interpreter;
 import bsh.EvalError;
+import bsh.Interpreter;
 import bsh.TargetError;
+
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.ConversationModel;
+import org.owasp.webscarab.model.FrameworkModel;
+import org.owasp.webscarab.model.Preferences;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.model.StoreException;
+import org.owasp.webscarab.plugin.Framework;
+import org.owasp.webscarab.plugin.Hook;
+import org.owasp.webscarab.plugin.Plugin;
+
+import java.util.logging.Logger;
 
 /**
  *
@@ -29,7 +34,7 @@ public class Search implements Plugin {
     private Interpreter _interpreter = new Interpreter();
     
     private SearchModel _model;
-
+    
     private Thread _runThread;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
@@ -39,18 +44,55 @@ public class Search implements Plugin {
         _framework = framework;
         _frameworkModel = _framework.getModel();
         _model = new SearchModel(_frameworkModel);
+        loadSearches();
     }
     
     public SearchModel getModel() {
         return _model;
     }
     
+    private void loadSearches() {
+        String base="Search.";
+        String description;
+        String expression;
+        int i=0;
+        do {
+            description=Preferences.getPreference(base+i+".description");
+            expression=Preferences.getPreference(base+i+".expression");
+            _logger.info(i+": " + description + " = " + expression);
+            if (description != null && expression != null) {
+                _model.addSearch(description, expression);
+            }
+            i++;
+        } while (description != null );
+    }
+    
+    private void saveSearches() {
+        String base = "Search.";
+        String[] searches = _model.getSearches();
+        for (int i=0; i<searches.length; i++) {
+            String expression = _model.getSearchExpression(searches[i]);
+            Preferences.setPreference(base+i+".description", searches[i]);
+            Preferences.setPreference(base+i+".expression", expression);
+        }
+        Preferences.remove(base+searches.length+".description");
+        Preferences.remove(base+searches.length+".expression");
+    }
+    
     public void addSearch(String description, String expression) {
         _model.addSearch(description, expression);
+        saveSearches();
     }
     
     public void removeSearch(String description) {
         _model.removeSearch(description);
+        ConversationModel cmodel = _frameworkModel.getConversationModel();
+        int count = cmodel.getConversationCount(null);
+        for (int i=0; i<count; i++) {
+            ConversationID id = cmodel.getConversationAt(null, i);
+            _model.setSearchMatch(id, description, false);
+        }
+        saveSearches();
     }
     
     public void setFilter(String description) {
@@ -61,11 +103,10 @@ public class Search implements Plugin {
         ConversationID id = null;
         try {
             String expr = _model.getSearchExpression(description);
-            ConversationModel cmodel = _framework.getModel().getConversationModel();
+            ConversationModel cmodel = _frameworkModel.getConversationModel();
             int count = cmodel.getConversationCount(null);
             for (int i=0; i<count; i++) {
                 id = cmodel.getConversationAt(null, i);
-                _logger.info("Checking conversation " + id);
                 Request request = cmodel.getRequest(id);
                 Response response = cmodel.getResponse(id);
                 String origin = cmodel.getConversationOrigin(id);
@@ -86,7 +127,6 @@ public class Search implements Plugin {
         Object result = _interpreter.eval(expression);
         if (result != null && result instanceof Boolean) {
             boolean b = ((Boolean)result).booleanValue();
-            _logger.info("Got " + b);
             return b;
         } else {
             _logger.info("Got a " + result);
@@ -95,17 +135,20 @@ public class Search implements Plugin {
     }
     
     public void analyse(ConversationID id, Request request, Response response, String origin) {
+        _logger.info("Analyse called");
         try {
             _model.readLock().acquire();
             synchronized(_interpreter) {
                 String[] searches = _model.getSearches();
+                _logger.info("Got " + searches.length + " searches to check");
                 for (int i=0; i<searches.length; i++) {
                     try {
                         String expression = _model.getSearchExpression(searches[i]);
+                        _logger.info("Testing " + searches[i] + " == " + expression);
                         boolean matches = matches(id, request, response, origin, expression);
                         if (matches) {
                             _model.setSearchMatch(id, searches[i], true);
-                        }
+                        } // no point unsetting if false, could not be set yet
                     } catch (TargetError te) {
                         _logger.warning("Evaluation error for conversation " + id + " : " + te.getMessage());
                     }
