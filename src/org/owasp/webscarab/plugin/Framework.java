@@ -124,7 +124,6 @@ public class Framework {
         while (it.hasNext()) {
             Plugin plugin = (Plugin) it.next();
             if (!plugin.isRunning()) {
-                _logger.info("Setting session for " + plugin.getPluginName());
                 plugin.setSession(type, store, session);
             } else {
                 _logger.warning(plugin.getPluginName() + " is running while we are setting the session");
