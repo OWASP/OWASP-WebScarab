@@ -32,13 +32,14 @@
  */
 
 /*
- * $Id: Fuzzer.java,v 1.4 2005/06/18 19:16:51 rogan Exp $
+ * $Id: Fuzzer.java,v 1.5 2005/06/19 01:24:50 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.fuzz;
 
 import org.owasp.webscarab.httpclient.AsyncFetcher;
 
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
@@ -59,6 +60,7 @@ import java.util.HashMap;
 
 import java.util.logging.Logger;
 
+import java.net.URL;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.net.MalformedURLException;
@@ -69,6 +71,7 @@ public class Fuzzer implements Plugin {
     
     private FuzzerModel _model = null;
     private Framework _framework = null;
+    private FuzzFactory _fuzzFactory = new FuzzFactory();
     
     private AsyncFetcher _fetcher = null;
     private int _threads = 4;
@@ -82,6 +85,28 @@ public class Fuzzer implements Plugin {
     public Fuzzer(Framework framework) {
         _framework = framework;
         _model = new FuzzerModel(_framework.getModel());
+        loadFuzzStrings();
+    }
+    
+    private void loadFuzzStrings() {
+        int i = 0;
+        String description;
+        while ((description = Preferences.getPreference("Fuzz." + i + ".description")) != null) {
+            String location = Preferences.getPreference("Fuzz." + i + ".location");
+            if (location != null && !description.equals("")) {
+                try {
+                    URL url = new URL(location);
+                    _fuzzFactory.loadFuzzStrings(description, url.openStream());
+                } catch (IOException ioe) {
+                    _logger.warning("Error loading \"" + description + "\" from " + location + " : " + ioe.getMessage());
+                }
+            }
+            i++;
+        }
+    }
+    
+    public FuzzFactory getFuzzFactory() {
+        return _fuzzFactory;
     }
     
     public FuzzerModel getModel() {
@@ -254,6 +279,10 @@ public class Fuzzer implements Plugin {
                 _logger.warning("No response!");
                 return false;
             }
+            if (response.getStatus().equals("400")) {
+                _logger.warning("Bad request");
+                _model.setBusyFuzzing(false);
+            }
         } catch (IOException ioe) {
             _logger.warning("Caught exception : " + ioe.getMessage());
             _model.setBusyFuzzing(false);
@@ -264,7 +293,6 @@ public class Fuzzer implements Plugin {
             _logger.warning("Got a null request from the response!");
             return false;
         }
-        _logger.info("Adding response to the framework: " + response.getStatusLine());
         _framework.addConversation(request, response, "Fuzzer");
         return true;
     }

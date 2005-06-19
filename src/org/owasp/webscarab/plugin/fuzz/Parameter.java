@@ -22,6 +22,16 @@ public class Parameter {
     private String _name;
     private String _type;
     
+    public static String[] getParameterLocations() {
+        return new String[] {
+          LOCATION_PATH,
+          LOCATION_FRAGMENT,
+          LOCATION_QUERY,
+          LOCATION_COOKIE,
+          LOCATION_BODY,
+        };
+    }
+    
     /** Creates a new instance of Parameter */
     public Parameter(String location, String name, String type) {
         _location = location;

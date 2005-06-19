@@ -54,14 +54,25 @@ import org.owasp.webscarab.plugin.fuzz.FuzzFactory;
 
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
+import org.owasp.webscarab.util.swing.ComboBoxCellEditor;
 
 import javax.swing.Action;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumn;
 import javax.swing.SwingUtilities;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
 
 import java.util.logging.Logger;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+
+import java.io.File;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import java.io.IOException;
 
 /**
  *
@@ -73,7 +84,9 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     private FuzzerModel _model;
     private HeaderTableModel _headerTableModel;
     private ParameterTableModel _parameterTableModel;
-    private FuzzFactory _fuzzFactory = new FuzzFactory();
+    private FuzzFactory _fuzzFactory;
+    private DefaultComboBoxModel _fuzzSources;
+    private DefaultListModel _fuzzItems;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -83,13 +96,61 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         _model = fuzzer.getModel();
         initComponents();
         initFields();
-        _headerTableModel = new HeaderTableModel();
-        _parameterTableModel = new ParameterTableModel();
-        headerTable.setModel(_headerTableModel);
-        paramTable.setModel(_parameterTableModel);
+        
+        _fuzzFactory = _fuzzer.getFuzzFactory();
+        configureTables();
+        configureFuzzDialog();
+        
         Listener listener = new Listener();
         _model.addPropertyChangeListener(listener);
         _model.addModelListener(listener);
+        _fuzzFactory.addPropertyChangeListener(listener);
+    }
+    
+    private void configureTables() {
+        _headerTableModel = new HeaderTableModel();
+        headerTable.setModel(_headerTableModel);
+        
+        _parameterTableModel = new ParameterTableModel();
+        paramTable.setModel(_parameterTableModel);
+        DefaultComboBoxModel paramTypes = new DefaultComboBoxModel(Parameter.getParameterLocations());
+        ComboBoxCellEditor cbce = new ComboBoxCellEditor(paramTypes);
+        TableColumn col = paramTable.getColumnModel().getColumn(0);
+        col.setCellEditor(cbce);
+        col.setCellRenderer(cbce);
+        _fuzzSources = new DefaultComboBoxModel(_fuzzFactory.getSourceDescriptions());
+        _fuzzSources.insertElementAt("", 0);
+        cbce = new ComboBoxCellEditor(_fuzzSources);
+        col = paramTable.getColumnModel().getColumn(5);
+        col.setCellEditor(cbce);
+        col.setCellRenderer(cbce);
+        paramTable.setRowHeight((int)cbce.getComponent().getPreferredSize().getHeight());
+    }
+    
+    private void configureFuzzDialog() {
+        fuzzDialog.setBounds(200, 200, 600, 400);
+        fuzzDialog.setResizable(false);
+        _fuzzItems = new DefaultListModel();
+        valueList.setModel(_fuzzItems);
+        nameList.setModel(_fuzzSources);
+        nameList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent evt) {
+                Object value = nameList.getSelectedValue();
+                if (value != null && !"".equals(value)) {
+                    FuzzSource source = _fuzzFactory.getSource((String)value);
+                    _fuzzItems.clear();
+                    if (source != null) {
+                        itemsLabel.setText("Items : " + source.size());
+                        while (source.hasNext()) {
+                            _fuzzItems.addElement(source.current());
+                            source.increment();
+                        }
+                    } else {
+                        itemsLabel.setText("Items : ");
+                    }
+                }
+            }
+        });
     }
     
     private void initFields() {
@@ -104,7 +165,14 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     private void updateFields(PropertyChangeEvent evt) {
         String property = evt.getPropertyName();
         Object value = evt.getNewValue();
-        if (property.equals(FuzzerModel.PROPERTY_FUZZMETHOD) && !value.equals(methodTextField.getText())) {
+        if (evt.getSource() == _fuzzFactory) {
+            _fuzzSources.removeAllElements();
+            _fuzzSources.addElement("");
+            String[] names = _fuzzFactory.getSourceDescriptions();
+            for (int i=0; i< names.length; i++) {
+                _fuzzSources.addElement(names[i]);
+            }
+        } else if (property.equals(FuzzerModel.PROPERTY_FUZZMETHOD) && !value.equals(methodTextField.getText())) {
             methodTextField.setText(value.toString());
         } else if (property.equals(FuzzerModel.PROPERTY_FUZZURL) && !value.toString().equals(urlTextField.getText())) {
             urlTextField.setText(value.toString());
@@ -127,6 +195,24 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
+        fuzzDialog = new javax.swing.JDialog();
+        jPanel4 = new javax.swing.JPanel();
+        jLabel8 = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        nameList = new javax.swing.JList();
+        jLabel10 = new javax.swing.JLabel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        valueList = new javax.swing.JList();
+        itemsLabel = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        descriptionTextField = new javax.swing.JTextField();
+        fileNameTextField = new javax.swing.JTextField();
+        browseButton = new javax.swing.JButton();
+        jPanel3 = new javax.swing.JPanel();
+        loadButton = new javax.swing.JButton();
+        deleteButton = new javax.swing.JButton();
+        closeButton = new javax.swing.JButton();
+        jLabel4 = new javax.swing.JLabel();
         fuzzPanel = new javax.swing.JPanel();
         requestPanel = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
@@ -154,9 +240,148 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         jLabel2 = new javax.swing.JLabel();
         currentTextField = new javax.swing.JTextField();
         actionPanel = new javax.swing.JPanel();
+        sourcesButton = new javax.swing.JButton();
         startButton = new javax.swing.JButton();
         stopButton = new javax.swing.JButton();
         statusLabel = new javax.swing.JLabel();
+
+        fuzzDialog.getContentPane().setLayout(new java.awt.GridBagLayout());
+
+        fuzzDialog.setTitle("Fuzz Sources");
+        jPanel4.setLayout(new java.awt.GridBagLayout());
+
+        jLabel8.setText("Fuzz Sources");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(jLabel8, gridBagConstraints);
+
+        jScrollPane3.setMaximumSize(new java.awt.Dimension(100, 32767));
+        jScrollPane3.setMinimumSize(new java.awt.Dimension(100, 50));
+        jScrollPane3.setPreferredSize(new java.awt.Dimension(100, 131));
+        nameList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jScrollPane3.setViewportView(nameList);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weighty = 1.0;
+        jPanel4.add(jScrollPane3, gridBagConstraints);
+
+        jLabel10.setText("Items");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(jLabel10, gridBagConstraints);
+
+        jScrollPane4.setViewportView(valueList);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
+        gridBagConstraints.weightx = 0.7;
+        gridBagConstraints.weighty = 1.0;
+        jPanel4.add(jScrollPane4, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        fuzzDialog.getContentPane().add(jPanel4, gridBagConstraints);
+
+        itemsLabel.setText("Items : ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        fuzzDialog.getContentPane().add(itemsLabel, gridBagConstraints);
+
+        jLabel9.setText("Description : ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        fuzzDialog.getContentPane().add(jLabel9, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        fuzzDialog.getContentPane().add(descriptionTextField, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        gridBagConstraints.weightx = 1.0;
+        fuzzDialog.getContentPane().add(fileNameTextField, gridBagConstraints);
+
+        browseButton.setText("Browse");
+        browseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                browseButtonActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        fuzzDialog.getContentPane().add(browseButton, gridBagConstraints);
+
+        jPanel3.setLayout(new java.awt.GridLayout(1, 2));
+
+        loadButton.setText("Load");
+        loadButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                loadButtonActionPerformed(evt);
+            }
+        });
+
+        jPanel3.add(loadButton);
+
+        deleteButton.setText("Remove");
+        deleteButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteButtonActionPerformed(evt);
+            }
+        });
+
+        jPanel3.add(deleteButton);
+
+        closeButton.setText("Close");
+        closeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                closeButtonActionPerformed(evt);
+            }
+        });
+
+        jPanel3.add(closeButton);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        fuzzDialog.getContentPane().add(jPanel3, gridBagConstraints);
+
+        jLabel4.setText("File : ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        fuzzDialog.getContentPane().add(jLabel4, gridBagConstraints);
 
         setLayout(new java.awt.BorderLayout());
 
@@ -249,13 +474,10 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         headerPanel.setPreferredSize(new java.awt.Dimension(527, 100));
         headerTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+
             }
         ));
         jScrollPane1.setViewportView(headerTable);
@@ -307,21 +529,12 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
 
         paramTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null}
+
             },
             new String [] {
-                "Location", "Name", "Type", "Default", "Priority", "Fuzz Source"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Object.class
-            };
 
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
             }
-        });
+        ));
         jScrollPane2.setViewportView(paramTable);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -332,7 +545,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         gridBagConstraints.weighty = 1.0;
         parameterPanel.add(jScrollPane2, gridBagConstraints);
 
-        jPanel2.setLayout(new java.awt.GridLayout());
+        jPanel2.setLayout(new java.awt.GridLayout(2, 1));
 
         addParameterButton.setText("Add");
         addParameterButton.addActionListener(new java.awt.event.ActionListener() {
@@ -386,6 +599,17 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         gridBagConstraints.gridy = 4;
         fuzzPanel.add(statusPanel, gridBagConstraints);
 
+        actionPanel.setLayout(new java.awt.GridLayout());
+
+        sourcesButton.setText("Sources");
+        sourcesButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sourcesButtonActionPerformed(evt);
+            }
+        });
+
+        actionPanel.add(sourcesButton);
+
         startButton.setText("Start");
         startButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -417,15 +641,60 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         add(statusLabel, java.awt.BorderLayout.SOUTH);
 
     }//GEN-END:initComponents
-
+    
+    private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed
+        fuzzDialog.hide();
+    }//GEN-LAST:event_closeButtonActionPerformed
+    
+    private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseButtonActionPerformed
+        JFileChooser jfc = new JFileChooser(fileNameTextField.getText());
+        jfc.setDialogTitle("Select a file to load");
+        int returnVal = jfc.showOpenDialog(fuzzDialog);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = jfc.getSelectedFile();
+            if (file != null && !file.isDirectory()) {
+                fileNameTextField.setText(file.toString());
+            }
+        }
+    }//GEN-LAST:event_browseButtonActionPerformed
+    
+    private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
+        String name = (String) nameList.getSelectedValue();
+        if (name != null) {
+            _fuzzFactory.removeSource(name);
+        }
+    }//GEN-LAST:event_deleteButtonActionPerformed
+    
+    private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
+        try {
+            String description = descriptionTextField.getText();
+            if (description.equals("")) {
+                JOptionPane.showMessageDialog(null, new String[] {"Description cannot be empty", }, "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            File file = new File(fileNameTextField.getText());
+            if (file.isDirectory()) {
+                JOptionPane.showMessageDialog(null, new String[] {file.toString() + " is a directory", }, "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            _fuzzFactory.loadFuzzStrings(description, file);
+        } catch (IOException ioe) {
+            JOptionPane.showMessageDialog(null, new String[] {"Error load fuzz strings!", ioe.getMessage() }, "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_loadButtonActionPerformed
+    
+    private void sourcesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sourcesButtonActionPerformed
+        fuzzDialog.show();
+    }//GEN-LAST:event_sourcesButtonActionPerformed
+    
     private void versionTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_versionTextFieldActionPerformed
         _model.setFuzzVersion(versionTextField.getText());
     }//GEN-LAST:event_versionTextFieldActionPerformed
-
+    
     private void methodTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_methodTextFieldActionPerformed
         _model.setFuzzMethod(methodTextField.getText());
     }//GEN-LAST:event_methodTextFieldActionPerformed
-
+    
     private void urlTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_urlTextFieldActionPerformed
         _model.setFuzzUrl(urlTextField.getText());
     }//GEN-LAST:event_urlTextFieldActionPerformed
@@ -494,32 +763,51 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     private javax.swing.JPanel actionPanel;
     private javax.swing.JButton addHeaderButton;
     private javax.swing.JButton addParameterButton;
+    private javax.swing.JButton browseButton;
+    private javax.swing.JButton closeButton;
     private javax.swing.JTextField currentTextField;
+    private javax.swing.JButton deleteButton;
     private javax.swing.JButton deleteHeaderButton;
     private javax.swing.JButton deleteParameterButton;
+    private javax.swing.JTextField descriptionTextField;
+    private javax.swing.JTextField fileNameTextField;
+    private javax.swing.JDialog fuzzDialog;
     private javax.swing.JPanel fuzzPanel;
     private javax.swing.JPanel headerPanel;
     private javax.swing.JTable headerTable;
+    private javax.swing.JLabel itemsLabel;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JButton loadButton;
     private javax.swing.JTextField methodTextField;
+    private javax.swing.JList nameList;
     private javax.swing.JTable paramTable;
     private javax.swing.JPanel parameterPanel;
     private javax.swing.JPanel requestPanel;
+    private javax.swing.JButton sourcesButton;
     private javax.swing.JButton startButton;
     private javax.swing.JLabel statusLabel;
     private javax.swing.JPanel statusPanel;
     private javax.swing.JButton stopButton;
     private javax.swing.JTextField totalTextField;
     private javax.swing.JTextField urlTextField;
+    private javax.swing.JList valueList;
     private javax.swing.JTextField versionTextField;
     // End of variables declaration//GEN-END:variables
     
@@ -644,7 +932,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     
     private class ParameterTableModel extends AbstractTableModel {
         
-        private String[] _columnNames = new String[] {"Location", "Name", "Type", "Value", "Priority", "FuzzSource"};
+        private String[] _columnNames = new String[] {"Location", "Name", "Type", "Value", "Priority", "Fuzz Source"};
         
         public String getColumnName(int columnIndex) {
             return _columnNames[columnIndex];
@@ -667,7 +955,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
                 case 2: return param.getType();
                 case 3: return _model.getDefaultParameterValue(rowIndex);
                 case 4: return new Integer(_model.getFuzzParameterPriority(rowIndex));
-                case 5: 
+                case 5:
                     FuzzSource source = _model.getParameterFuzzSource(rowIndex);
                     if (source != null) {
                         return source.getDescription();
@@ -678,7 +966,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
             return null;
         }
         
-
+        
         public boolean isCellEditable(int rowIndex, int ColumnIndex) {
             return true;
         }

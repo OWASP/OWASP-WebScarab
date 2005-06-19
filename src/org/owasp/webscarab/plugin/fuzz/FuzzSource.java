@@ -24,4 +24,6 @@ public interface FuzzSource {
     
     void increment();
     
+    FuzzSource newInstance();
+    
 }

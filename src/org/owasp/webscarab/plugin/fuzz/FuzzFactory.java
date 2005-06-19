@@ -8,12 +8,20 @@ package org.owasp.webscarab.plugin.fuzz;
 
 import java.io.IOException;
 import java.io.File;
+import java.io.Reader;
 import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+
+import java.beans.PropertyChangeSupport;
+import java.beans.PropertyChangeListener;
 
 /**
  *
@@ -21,34 +29,53 @@ import java.util.Iterator;
  */
 public class FuzzFactory {
     
+    public static final String SOURCES = "Sources";
+    
+    private Map _sources = new TreeMap();
+    private PropertyChangeSupport _changeSupport = new PropertyChangeSupport(this);
+    
     /** Creates a new instance of FuzzFactory */
     public FuzzFactory() {
     }
     
-    public String[] getSources() {
-        return new String[] {"XSS Strings", "SQL Injection Strings"};
+    public String[] getSourceDescriptions() {
+        return (String[]) _sources.keySet().toArray(new String[_sources.size()]);
     }
     
-    public FuzzSource getSource(String source) {
-        if (source.equals("XSS Strings")) {
-            return new ArraySource(source, new String[] {"<b>text</b>", "<script>alert(\"Gotcha\");</script>"});
-        } else if (source.equals("SQL Injection Strings")) {
-            return new ArraySource(source, new String[] {"a", "' --", "\" --"});
-        } else if (source.toLowerCase().startsWith ("test")) {
-            String count = source.substring(4).trim();
-            try {
-                return getTestSource(Integer.parseInt(count));
-            } catch (Exception e) {}
-        }
-        return null;
+    public void addSource(FuzzSource source) {
+        _sources.put(source.getDescription(), source);
+        _changeSupport.firePropertyChange(SOURCES, null, null);
     }
     
-    public FuzzSource getTestSource(int count) {
-        String[] items = new String[count];
-        for (int i=0; i<count; i++) {
-            items[i] = "Item " + i;
+    public void loadFuzzStrings(String description, InputStream inputStream) throws IOException {
+        addSource(new FileSource(description, new InputStreamReader(inputStream)));
+    }
+    
+    public void loadFuzzStrings(String description, File file) throws IOException {
+        addSource(new FileSource(description, new FileReader(file)));
+    }
+    
+    public boolean removeSource(String name) {
+        boolean success = (_sources.remove(name) != null);
+        _changeSupport.firePropertyChange(SOURCES, null, null);
+        return success;
+    }
+    
+    public FuzzSource getSource(String name) {
+        FuzzSource source = (FuzzSource) _sources.get(name);
+        if (source == null) {
+            return null;
+        } else {
+            return source.newInstance();
         }
-        return new ArraySource("Test " + count, items);
+    }
+    
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        _changeSupport.addPropertyChangeListener(listener);
+    }
+    
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        _changeSupport.removePropertyChangeListener(listener);
     }
     
     private class FileSource implements FuzzSource {
@@ -57,9 +84,9 @@ public class FuzzFactory {
         private String[] _items;
         private int _index = 0;
         
-        public FileSource(String description, File source) throws IOException {
+        public FileSource(String description, Reader reader) throws IOException {
             _description = description;
-            BufferedReader br = new BufferedReader(new FileReader(source));
+            BufferedReader br = new BufferedReader(reader);
             String line;
             List items = new LinkedList();
             while ((line = br.readLine()) != null) {
@@ -97,6 +124,10 @@ public class FuzzFactory {
             return _items[_index];
         }
         
+        public FuzzSource newInstance() {
+            return new ArraySource(_description, _items);
+        }
+        
     }
     
     private class ArraySource implements FuzzSource {
@@ -132,6 +163,10 @@ public class FuzzFactory {
         
         public Object current() {
             return _items[_index];
+        }
+        
+        public FuzzSource newInstance() {
+            return new ArraySource(_description, _items);
         }
         
     }
