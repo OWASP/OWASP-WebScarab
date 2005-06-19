@@ -23,6 +23,8 @@ public interface ConversationModel {
     
     Sync readLock();
     
+    String getConversationOrigin(ConversationID id);
+    
     Date getConversationDate(ConversationID id);
     
     String getRequestMethod(ConversationID id);

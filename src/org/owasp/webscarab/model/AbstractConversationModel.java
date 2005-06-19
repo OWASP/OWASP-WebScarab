@@ -39,6 +39,10 @@ public abstract class AbstractConversationModel implements ConversationModel {
     
     public abstract Sync readLock();
     
+    public String getConversationOrigin(ConversationID id) {
+        return _model.getConversationOrigin(id);
+    }
+    
     public Date getConversationDate(ConversationID id) {
         return _model.getConversationDate(id);
     }
