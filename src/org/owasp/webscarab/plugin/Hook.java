@@ -49,13 +49,11 @@ public class Hook {
                 if (script.isEnabled()) {
 //                    if (_scriptManager != null) _scriptManager.scriptStarted(this, script);
                     try {
-                        System.err.println("Script language is " + script.getLanguage());
                         _bsfManager.exec(script.getLanguage(), _name, 0, 0, script.getScript());
                     } catch (BSFException bsfe) {
                         _logger.warning("Script exception: " + bsfe);
 //                        if (_scriptManager != null) _scriptManager.scriptError(this, script, bsfe);
                     }
-                    System.err.println("Finished executing the script");
 //                    if (_scriptManager != null) _scriptManager.scriptEnded(this, script);
                 }
             }
