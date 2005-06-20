@@ -1,3 +1,190 @@
+2005-06-20 10:44  rogan
+
+	* src/org/owasp/webscarab/plugin/fuzz/: sql.txt, xss.txt: Sample
+	  files for fuzzing
+
+2005-06-20 10:43  rogan
+
+	* src/org/owasp/webscarab/plugin/Hook.java: reduced logging
+
+2005-06-20 10:41  rogan
+
+	* scripts/no-images.bsh: Demonstrates rejecting conversations based
+	  on the content-type, when adding to the framework
+
+2005-06-20 10:40  rogan
+
+	* src/org/owasp/webscarab/plugin/search/: Search.java,
+	  SearchModel.java, swing/SearchPanel.java: General improvements to
+	  the search functionality
+
+2005-06-20 10:40  rogan
+
+	* src/org/owasp/webscarab/plugin/Framework.java: Added a new hook
+	  executed when a conversation is added to the framework
+
+2005-06-20 10:39  rogan
+
+	* src/org/owasp/webscarab/ui/swing/: ScriptManagerFrame.form,
+	  ScriptManagerFrame.java: Laid the window out a little better
+
+2005-06-20 10:39  rogan
+
+	* src/org/owasp/webscarab/plugin/ScriptManager.java: Fixed stupid
+	  bug in getPlugin
+
+2005-06-20 10:37  rogan
+
+	* src/org/owasp/webscarab/plugin/ScriptableConversation.java:
+	  Represents a new conversation being added to the framework
+
+2005-06-20 00:21  rogan
+
+	* src/org/owasp/webscarab/plugin/: compare/swing/ComparePanel.java,
+	  compare/swing/ComparePanel.form,
+	  manualrequest/swing/ManualRequestPanel.java,
+	  manualrequest/swing/ManualRequestPanel.form: Made sure that long
+	  requests do not mess up the layout of the windows, added a
+	  conversation Renderer to the Compare drop down box
+
+2005-06-20 00:06  rogan
+
+	* src/org/owasp/webscarab/ui/swing/Main.java: Load the new Search
+	  plugin at startup
+
+2005-06-20 00:05  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ConversationListTableModel.java:
+	  Redundant class.
+
+2005-06-20 00:03  rogan
+
+	* src/org/owasp/webscarab/plugin/Framework.java: Reduced logging
+
+2005-06-20 00:02  rogan
+
+	* src/org/owasp/webscarab/plugin/search/: SearchModel.java,
+	  Search.java, swing/SearchPanel.form, swing/SearchPanel.java:
+	  Implemented search saving and loading
+
+2005-06-20 00:01  rogan
+
+	* src/org/owasp/webscarab/ui/swing/ShowConversationAction.java:
+	  Eliminated use of FrameworkModel
+
+2005-06-20 00:00  rogan
+
+	* src/org/owasp/webscarab/: plugin/compare/swing/ComparePanel.java,
+	  plugin/fragments/swing/FragmentsPanel.java,
+	  ui/swing/SummaryPanel.java, ui/swing/ConversationTableModel.java:
+	  Modified ConversationTableModel to create the default columns.
+	  Modified FragmentsPanel and ComparePanel to use
+	  ConversationTableModel instead of ConversationListTableModel
+
+2005-06-19 20:32  rogan
+
+	* src/org/owasp/webscarab/plugin/search/: Search.java,
+	  SearchModel.java, swing/SearchPanel.form, swing/SearchPanel.java:
+	  [no log message]
+
+2005-06-19 20:31  rogan
+
+	* src/org/owasp/webscarab/model/: AbstractConversationModel.java,
+	  ConversationModel.java: Added method to get the Origin of the
+	  conversation to ConversationModel
+
+2005-06-19 04:50  rogan
+
+	* src/org/owasp/webscarab/ui/swing/Main.java: Enable the Fuzzer and
+	  Compare plugins
+
+2005-06-19 04:49  rogan
+
+	* src/org/owasp/webscarab/plugin/compare/: Compare.java,
+	  CompareModel.java, swing/ComparePanel.java: Updated to actually
+	  show the distance
+
+2005-06-19 04:10  rogan
+
+	* src/org/owasp/webscarab/plugin/fuzz/swing/FuzzerPanel.java: Fixed
+	  bizarre problems with ComboBox renderers, by removing the
+	  renderer!
+
+2005-06-19 04:08  rogan
+
+	* src/org/owasp/webscarab/util/swing/: ComboBoxCellEditor.java,
+	  ComboBoxCellRenderer.java: Unused classes
+
+2005-06-19 03:49  rogan
+
+	* src/org/owasp/webscarab/util/swing/ComboBoxCellRenderer.java:
+	  Renders tables cells to look like a combobox
+
+2005-06-19 03:28  rogan
+
+	* src/org/owasp/webscarab/plugin/Framework.java: Reduce logging
+
+2005-06-19 03:25  rogan
+
+	* src/org/owasp/webscarab/plugin/fuzz/RequestFuzzer.java: Unused
+	  file
+
+2005-06-19 03:24  rogan
+
+	* src/org/owasp/webscarab/plugin/fuzz/: FuzzFactory.java,
+	  FuzzSource.java, Fuzzer.java, Parameter.java,
+	  swing/FuzzerPanel.form, swing/FuzzerPanel.java: Various
+	  enhancements to make it more usable.	Implemented loading of Fuzz
+	  Strings from a file Loading of preferred fuzz strings at init
+
+2005-06-19 03:20  rogan
+
+	* src/org/owasp/webscarab/util/swing/ComboBoxCellEditor.java: A
+	  simple editor/render using a JCombobox
+
+2005-06-18 21:20  rogan
+
+	* src/org/owasp/webscarab/plugin/fuzz/: FuzzFactory.java,
+	  FuzzSource.java, FuzzerEvent.java, FuzzerListener.java,
+	  FuzzerModel.java, Parameter.java, swing/FuzzerPanel.form,
+	  swing/FuzzerPanel.java: Initial stab at fuzzer support
+
+2005-06-18 21:16  rogan
+
+	* src/org/owasp/webscarab/plugin/fuzz/Fuzzer.java: Initial stab at
+	  fuzzer support
+
+2005-06-18 21:11  rogan
+
+	* src/org/owasp/webscarab/plugin/spider/Spider.java: moved all
+	  'state' into the plugin model
+
+2005-06-18 21:10  rogan
+
+	* src/org/owasp/webscarab/plugin/: fragments/Fragments.java,
+	  fragments/swing/FragmentsPanel.java,
+	  sessionid/SessionIDAnalysis.java,
+	  sessionid/swing/SessionIDPanel.java: moved extraction of cookies
+	  to sessionid plugin from fragments plugin
+
+2005-06-18 21:09  rogan
+
+	* src/org/owasp/webscarab/plugin/: AbstractPluginModel.java,
+	  compare/CompareModel.java, fragments/FragmentsModel.java,
+	  manualrequest/ManualRequestModel.java,
+	  sessionid/SessionIDModel.java, spider/SpiderModel.java: Minor
+	  improvements to AbstractPluginModel, rolled through into other
+	  plugin models
+
+2005-06-18 21:05  rogan
+
+	* build.xml: only build the javahelp when making a set of
+	  distributables
+
+2005-06-18 21:03  rogan
+
+	* installer/izpack.xml: Include sample scripts in the distribution
+
 2005-06-10 14:28  rogan
 
 	* src/org/owasp/webscarab/: plugin/compare/Compare.java,
