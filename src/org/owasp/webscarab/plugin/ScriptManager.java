@@ -73,14 +73,8 @@ public class ScriptManager {
     }
     
     public String getPlugin(int i) {
-        Iterator it = _hooks.keySet().iterator();
-        int pos = -1;
-        String name = null;
-        while (it.hasNext() && pos++ < i) {
-            name = (String) it.next();
-        }
-        if (pos == i) return name;
-        return null;
+        String[] plugins = (String[]) _hooks.keySet().toArray(new String[0]);
+        return plugins[i];
     }
     
     public int getHookCount(String plugin) {
