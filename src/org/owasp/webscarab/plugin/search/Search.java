@@ -59,7 +59,6 @@ public class Search implements Plugin {
         do {
             description=Preferences.getPreference(base+i+".description");
             expression=Preferences.getPreference(base+i+".expression");
-            _logger.info(i+": " + description + " = " + expression);
             if (description != null && expression != null) {
                 _model.addSearch(description, expression);
             }
@@ -135,16 +134,13 @@ public class Search implements Plugin {
     }
     
     public void analyse(ConversationID id, Request request, Response response, String origin) {
-        _logger.info("Analyse called");
         try {
             _model.readLock().acquire();
             synchronized(_interpreter) {
                 String[] searches = _model.getSearches();
-                _logger.info("Got " + searches.length + " searches to check");
                 for (int i=0; i<searches.length; i++) {
                     try {
                         String expression = _model.getSearchExpression(searches[i]);
-                        _logger.info("Testing " + searches[i] + " == " + expression);
                         boolean matches = matches(id, request, response, origin, expression);
                         if (matches) {
                             _model.setSearchMatch(id, searches[i], true);

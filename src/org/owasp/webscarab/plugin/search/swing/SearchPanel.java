@@ -54,7 +54,6 @@ public class SearchPanel extends JPanel implements SwingPluginUI {
         initComponents();
         searchList.setModel(_searches);
         searchComboBox.setModel(_searches);
-        updateSearches();
         _model.addPropertyChangeListener(new Listener());
         searchList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent evt) {
@@ -92,6 +91,7 @@ public class SearchPanel extends JPanel implements SwingPluginUI {
             }
         });
         
+        updateSearches();
     }
     
     private void updateSearches() {
@@ -283,6 +283,7 @@ public class SearchPanel extends JPanel implements SwingPluginUI {
             _search.addSearch(description, expression);
             reload(description);
             searchList.setSelectedValue(description, true);
+            searchComboBox.setSelectedItem(description);
         }
     }//GEN-LAST:event_addButtonActionPerformed
     

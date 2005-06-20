@@ -64,7 +64,6 @@ public class SearchModel extends AbstractPluginModel {
     }
     
     public String getSearchExpression(String description) {
-        _logger.info("Requesting search expression for " + description);
         return (String) _searches.get(description);
     }
     
