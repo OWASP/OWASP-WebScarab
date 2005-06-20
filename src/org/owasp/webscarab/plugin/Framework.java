@@ -80,7 +80,7 @@ public class Framework {
     
     private ScriptManager _scriptManager;
     
-    private Hook _allowAddConversation;
+    private AddConversationHook _allowAddConversation;
     
     private Hook _analyseConversation;
     
@@ -93,6 +93,8 @@ public class Framework {
     public Framework() {
         _model = new FrameworkModel();
         _scriptManager = new ScriptManager(this);
+        _allowAddConversation = new AddConversationHook();
+        _scriptManager.registerHooks("Framework", new Hook[] { _allowAddConversation });
         extractVersionFromManifest();
         configureHTTPClient();
         _qp = new Framework.QueueProcessor();
@@ -299,7 +301,11 @@ public class Framework {
     }
     
     public void addConversation(ConversationID id, Request request, Response response, String origin) {
+        ScriptableConversation conversation = new ScriptableConversation(request, response, origin);
+        _allowAddConversation.runScripts(conversation);
+        if (conversation.isCancelled()) return;
         _model.addConversation(id, request, response, origin);
+        if (!conversation.shouldAnalyse()) return;
         synchronized(_analysisQueue) {
             _analysisQueue.add(id);
         }
@@ -404,4 +410,29 @@ public class Framework {
         }
         
     }
+    
+    private class AddConversationHook extends Hook {
+        
+        public AddConversationHook() {
+            super("Add Conversation", 
+            "Called when a new conversation is added to the framework.\n" +
+            "Use conversation.setCancelled(boolean) and conversation.setAnalyse(boolean) " +
+            "after deciding using conversation.getRequest() and conversation.getResponse()");
+        }
+        
+        public void runScripts(ScriptableConversation conversation) {
+            if (_bsfManager == null) return;
+            synchronized(_bsfManager) {
+                try {
+                    _bsfManager.declareBean("conversation", conversation, conversation.getClass());
+                    super.runScripts();
+                    _bsfManager.undeclareBean("connection");
+                } catch (Exception e) {
+                    _logger.severe("Declaring or undeclaring a bean should not throw an exception! " + e);
+                }
+            }
+        }
+        
+    }
+    
 }
