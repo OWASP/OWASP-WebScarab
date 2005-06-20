@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: Fuzzer.java,v 1.5 2005/06/19 01:24:50 rogan Exp $
+ * $Id: Fuzzer.java,v 1.6 2005/06/20 17:20:56 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.fuzz;
@@ -181,9 +181,9 @@ public class Fuzzer implements Plugin {
             String location = parameter.getLocation();
             if (location.equals(Parameter.LOCATION_PATH)) {
                 if (path == null) {
-                    path = Encoding.urlEncode((String) value);
+                    path = (String) value;
                 } else {
-                    path = path + "/" + (value == null ? "" : Encoding.urlEncode((String) value));
+                    path = path + "/" + (value == null ? "" : (String) value);
                 }
             } else if (location.equals(Parameter.LOCATION_FRAGMENT)) {
                 String frag = parameter.getName();
