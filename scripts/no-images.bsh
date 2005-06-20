@@ -1,0 +1,7 @@
+response = conversation.getResponse();
+out.println("Got a " + response.status);
+type=response.getHeader("Content-Type");
+out.println("With content-type " + type);
+if (type!=null && type.startsWith("image")) {
+    conversation.setCancelled(true);
+}
