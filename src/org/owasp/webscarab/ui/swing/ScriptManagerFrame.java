@@ -43,13 +43,14 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
     private Hook _hook = null;
     private Script _script = null;
     private JTreeTable _hookTree;
-    private HookScriptTreeModel _treeModel = new HookScriptTreeModel();
+    private HookScriptTreeModel _treeModel;
     
     private File _dir = null;
     
     /** Creates new form ScriptManagerFrame */
     public ScriptManagerFrame(ScriptManager manager) {
         _manager = manager;
+        _treeModel = new HookScriptTreeModel();
         initComponents();
         _hookTree = new JTreeTable(_treeModel);
         hookScrollPane.getViewport().add(_hookTree);
@@ -162,11 +163,12 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
         jPanel2 = new javax.swing.JPanel();
         hookScrollPane = new javax.swing.JScrollPane();
         jLabel3 = new javax.swing.JLabel();
-        descriptionTextArea = new javax.swing.JTextArea();
         jLabel2 = new javax.swing.JLabel();
         scriptTextField = new javax.swing.JTextField();
         jScrollPane3 = new javax.swing.JScrollPane();
         scriptTextArea = new javax.swing.JTextArea();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        descriptionTextArea = new javax.swing.JTextArea();
         scriptToolBar = new javax.swing.JToolBar();
         newButton = new javax.swing.JButton();
         addButton = new javax.swing.JButton();
@@ -178,13 +180,13 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
         hookScrollPane.setMaximumSize(new java.awt.Dimension(300, 32767));
-        hookScrollPane.setMinimumSize(new java.awt.Dimension(300, 200));
+        hookScrollPane.setMinimumSize(new java.awt.Dimension(250, 200));
         hookScrollPane.setPreferredSize(new java.awt.Dimension(300, 363));
         hookScrollPane.setVerifyInputWhenFocusTarget(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.gridheight = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
@@ -198,25 +200,10 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         jPanel2.add(jLabel3, gridBagConstraints);
 
-        descriptionTextArea.setBackground(new java.awt.Color(204, 204, 204));
-        descriptionTextArea.setEditable(false);
-        descriptionTextArea.setLineWrap(true);
-        descriptionTextArea.setWrapStyleWord(true);
-        descriptionTextArea.setBorder(null);
-        descriptionTextArea.setMinimumSize(new java.awt.Dimension(200, 45));
-        descriptionTextArea.setPreferredSize(new java.awt.Dimension(400, 45));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.weightx = 1.0;
-        jPanel2.add(descriptionTextArea, gridBagConstraints);
-
         jLabel2.setText("Script : ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         jPanel2.add(jLabel2, gridBagConstraints);
@@ -225,8 +212,8 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
         scriptTextField.setEditable(false);
         scriptTextField.setBorder(null);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         jPanel2.add(scriptTextField, gridBagConstraints);
@@ -236,13 +223,31 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         jPanel2.add(jScrollPane3, gridBagConstraints);
+
+        jScrollPane1.setMinimumSize(new java.awt.Dimension(300, 48));
+        descriptionTextArea.setBackground(new java.awt.Color(204, 204, 204));
+        descriptionTextArea.setEditable(false);
+        descriptionTextArea.setLineWrap(true);
+        descriptionTextArea.setWrapStyleWord(true);
+        descriptionTextArea.setBorder(null);
+        descriptionTextArea.setMinimumSize(new java.awt.Dimension(200, 45));
+        descriptionTextArea.setPreferredSize(new java.awt.Dimension(400, 45));
+        jScrollPane1.setViewportView(descriptionTextArea);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 0.2;
+        jPanel2.add(jScrollPane1, gridBagConstraints);
 
         getContentPane().add(jPanel2, java.awt.BorderLayout.CENTER);
 
@@ -335,6 +340,7 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JButton newButton;
     private javax.swing.JButton removeButton;
