@@ -732,8 +732,12 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
                         SessionID prev = _model.getSessionIDAt(_key, rowIndex - 1);
                         BigInteger prevValue = _model.getSessionIDValue(_key, prev);
                         BigInteger now = _model.getSessionIDValue(_key,  id);
-                        if (now != null && prevValue != null) return now.subtract(prevValue);
-                    };
+                        if (now != null && prevValue != null) {
+                            return now.subtract(prevValue);
+                        } else {
+                            return null;
+                        }
+                    }
                 default: return null;
             }
         }

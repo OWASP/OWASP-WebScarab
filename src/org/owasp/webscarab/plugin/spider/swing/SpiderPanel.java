@@ -446,9 +446,9 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
             super.putValue(key, value);
             if (key != null && key.equals("URL")) {
                 if (value != null && value instanceof HttpUrl) {
-                    setEnabled(true);
+                    this.setEnabled(true);
                 } else {
-                    setEnabled(false);
+                    this.setEnabled(false);
                 }
             }
         }

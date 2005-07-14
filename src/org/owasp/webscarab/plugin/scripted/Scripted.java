@@ -121,7 +121,7 @@ public class Scripted implements Plugin {
         }
         String language = "Unknown";
         try {
-            language = _bsfManager.getLangFromFilename(file.getName());
+            language = BSFManager.getLangFromFilename(file.getName());
         } catch (Throwable t) {}
         loadScript(language, new FileReader(file));
         _scriptFile = file;

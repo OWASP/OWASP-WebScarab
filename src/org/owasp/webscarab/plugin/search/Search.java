@@ -117,7 +117,7 @@ public class Search implements Plugin {
         }
     }
     
-    private boolean matches(ConversationID id, Request request, Response response, String origin, String expression) throws TargetError, EvalError {
+    private boolean matches(ConversationID id, Request request, Response response, String origin, String expression) throws EvalError {
         _interpreter.set("frameworkModel", _frameworkModel);
         _interpreter.set("id", id);
         _interpreter.set("request", request);

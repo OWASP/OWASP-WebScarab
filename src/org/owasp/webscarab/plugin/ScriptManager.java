@@ -91,7 +91,7 @@ public class ScriptManager {
     
     public void addScript(String plugin, Hook hook, Script script, int position) {
         try { 
-            String language = _bsfManager.getLangFromFilename(script.getFile().getName());
+            String language = BSFManager.getLangFromFilename(script.getFile().getName());
             if (language != null) {
                 script.setLanguage(language);
                 script.setEnabled(true);

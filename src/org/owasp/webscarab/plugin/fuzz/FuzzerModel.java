@@ -48,8 +48,6 @@ public class FuzzerModel extends AbstractPluginModel {
     
     private FrameworkModel _model = null;
     
-    private ReentrantReaderPreferenceReadWriteLock _rwl = new ReentrantReaderPreferenceReadWriteLock();
-    
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     private EventListenerList _listenerList = new EventListenerList();

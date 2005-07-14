@@ -77,9 +77,8 @@ public class ConversationID implements Comparable {
      * creates a Conversation ID based on the string provided.
      * The next no-parameter ConversationID created will be "greater" than this one.
      * @param id a string representation of the ConversationID
-     * @throws NumberFormatException if there are any errors parsing the string
      */    
-    public ConversationID(String id) throws NumberFormatException {
+    public ConversationID(String id) {
         this(Integer.parseInt(id.trim()));
     }
     

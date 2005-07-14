@@ -37,21 +37,21 @@ import javax.swing.tree.TreeCellRenderer;
  * @version 1.0 11/09/98
  */
 public class MultiLineTreeCellRenderer extends JPanel implements TreeCellRenderer {
-    protected JLabel       icon;
-    protected TreeTextArea text;
+    protected JLabel       _icon;
+    protected TreeTextArea _text;
     
     public MultiLineTreeCellRenderer() {
         setLayout(new BoxLayout(this,BoxLayout.X_AXIS));
-        icon = new JLabel() {
+        _icon = new JLabel() {
             public void setBackground(Color color) {
                 if(color instanceof ColorUIResource)
                     color = null;
                 super.setBackground(color);
             }
         };
-        add(icon);
+        add(_icon);
         add(Box.createHorizontalStrut(4));
-        add(text  = new TreeTextArea());
+        add(_text  = new TreeTextArea());
     }
     
     public Component getTreeCellRendererComponent(JTree tree, Object value,
@@ -60,22 +60,22 @@ public class MultiLineTreeCellRenderer extends JPanel implements TreeCellRendere
         String  stringValue = tree.convertValueToText(value, isSelected,
         expanded, leaf, row, hasFocus);
         setEnabled(tree.isEnabled());
-        text.setText(stringValue);
-        text.setSelect(isSelected);
-        text.setFocus(hasFocus);
+        _text.setText(stringValue);
+        _text.setSelect(isSelected);
+        _text.setFocus(hasFocus);
         if (leaf) {
-            icon.setIcon(UIManager.getIcon("Tree.leafIcon"));
+            _icon.setIcon(UIManager.getIcon("Tree.leafIcon"));
         } else if (expanded) {
-            icon.setIcon(UIManager.getIcon("Tree.openIcon"));
+            _icon.setIcon(UIManager.getIcon("Tree.openIcon"));
         } else {
-            icon.setIcon(UIManager.getIcon("Tree.closedIcon"));
+            _icon.setIcon(UIManager.getIcon("Tree.closedIcon"));
         }
         return this;
     }
     
     public Dimension getPreferredSize() {
-        Dimension iconD = icon.getPreferredSize();
-        Dimension textD = text.getPreferredSize();
+        Dimension iconD = _icon.getPreferredSize();
+        Dimension textD = _text.getPreferredSize();
         int height = iconD.height < textD.height ?
         textD.height : iconD.height;
         return new Dimension(iconD.width + textD.width, height);
@@ -159,3 +159,4 @@ public class MultiLineTreeCellRenderer extends JPanel implements TreeCellRendere
         }
     }
 }
+
