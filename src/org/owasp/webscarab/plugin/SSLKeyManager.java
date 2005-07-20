@@ -8,7 +8,7 @@
  * Open. You can then make changes to the template in the Source Editor.
  */
 
-package org.owasp.webscarab.httpclient;
+package org.owasp.webscarab.plugin;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.KeyManager;
