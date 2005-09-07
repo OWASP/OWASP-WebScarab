@@ -48,6 +48,8 @@ import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.proxy.ProxyPlugin;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  *
@@ -110,13 +112,37 @@ public class RevealHidden extends ProxyPlugin {
         }
         
         private byte[] revealHidden(byte[] content) {
-            String text = new String(content);
-            text = text.replaceAll("type=\"[Hh][Ii][Dd][Dd][Ee][Nn]\"", "  type=\"text\"");
-            text = text.replaceAll("type='[Hh][Ii][Dd][Dd][Ee][Nn]'", "  type='text'");
-            text = text.replaceAll("type=[Hh][Ii][Dd][Dd][Ee][Nn]", "  type=text");
-            return text.getBytes();
+            /* We split this pattern into two parts, one before "hidden" and one after
+             * Then it is simple to concatenate part 1 + "text" + part 2 to get an
+             * "unhidden" input tag 
+             */
+            Pattern inputPattern = Pattern.compile("(<input.+?type=[\"']{0,1})hidden([\"']{0,1}.+?>)", Pattern.CASE_INSENSITIVE);
+            Matcher inputMatcher = inputPattern.matcher(new String(content));
+            StringBuffer outbuf = new StringBuffer();
+            
+            /* matched hidden input parameter */
+            while(inputMatcher.find()) {
+                String input = inputMatcher.group();
+                String name = "noname";
+                
+                // extract hidden field name
+                Pattern namePattern = Pattern.compile("name=[\"']{0,1}(\\w+)[\"']{0,1}", Pattern.CASE_INSENSITIVE);
+                Matcher nameMatcher = namePattern.matcher(input);
+                if (nameMatcher.find() && nameMatcher.groupCount() == 1){
+                    name = nameMatcher.group(1);
+                }
+                
+                // make hidden field a text field - there MUST be 2 groups
+                // Note: this way we don't have to care about which quotes are being used
+                input = inputMatcher.group(1) + "text" + inputMatcher.group(2);
+
+                /* insert [hidden] <fieldname> before the field itself */
+                inputMatcher.appendReplacement(outbuf, "<STRONG style=\"background-color: white;\"> [hidden field name =\"" + name + "\"]:</STRONG> "+ input);
+            }
+            inputMatcher.appendTail(outbuf);
+            return outbuf.toString().getBytes();
         }
 
     }
-    
+
 }
