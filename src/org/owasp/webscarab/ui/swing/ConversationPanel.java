@@ -210,11 +210,19 @@ public class ConversationPanel extends javax.swing.JPanel {
         conversationComboBox.setSelectedItem(_selected);
     }
     
+    public ConversationID getSelectedConversation() {
+        return _selected;
+    }
+    
     /**
      * constructs a JFrame around the ConversationPanel
      * @return the frame
      */    
     public JFrame inFrame() {
+        ConversationID selected = getSelectedConversation();
+        if (selected != null) {
+            return inFrame("WebScarab - conversation " + selected);
+        }
         return inFrame(null);
     }
     
