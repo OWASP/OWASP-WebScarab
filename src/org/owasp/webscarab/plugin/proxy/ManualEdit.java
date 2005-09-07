@@ -57,7 +57,7 @@ import java.util.regex.PatternSyntaxException;
 public class ManualEdit extends ProxyPlugin {
     
     private static String INCLUDE = ".*";
-    private static String EXCLUDE = ".*\\.(gif)|(jpg)|(css)|(js)$";
+    private static String EXCLUDE = ".*\\.(gif|jpg|png|css|js|ico|swf)$";
     private static String CONTENT = "text/.*";
     
     private String _includeRegex = "";
