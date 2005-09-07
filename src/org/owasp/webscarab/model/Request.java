@@ -47,6 +47,7 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 
 import java.text.ParseException;
+import java.util.logging.Level;
 
 /** This class represents a request that can be sent to an HTTP server.
  * @author rdawes
@@ -59,6 +60,7 @@ public class Request extends Message {
     
     /** Creates a new instance of Request */
     public Request() {
+        _logger.setLevel(Level.INFO);
     }
     
     /**
@@ -93,8 +95,10 @@ public class Request extends Message {
      */    
     public void read(InputStream is, HttpUrl base) throws IOException {
         String line = null;
+        _logger.fine("Base: " + base);
         try {
             line = readLine(is);
+            _logger.fine("Request: " + line);
         } catch (SocketTimeoutException ste) {
             // System.err.println("Read timed out. Closing connection");
             return;
