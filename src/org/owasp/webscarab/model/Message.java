@@ -100,6 +100,7 @@ public class Message {
         String line = null;
         do {
             line=readLine(is);
+            _logger.finer("Header: " + line);
             if (line.startsWith(" ")) {
                 if (previous == null) {
                     _logger.severe("Got a continuation header but had no previous header line");
@@ -573,6 +574,10 @@ public class Message {
             try {
                 _content.write(bytes);
             } catch (IOException ioe) {} // can't fail
+        }
+        String cl = getHeader("Content-length");
+        if (cl != null) {
+            setHeader(new NamedValue("Content-length", Integer.toString(_content.size())));
         }
     }
     
