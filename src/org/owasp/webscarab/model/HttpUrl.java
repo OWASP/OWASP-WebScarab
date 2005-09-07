@@ -74,7 +74,8 @@ public class HttpUrl implements Comparable {
      * @throws MalformedURLException if the url is malformed
      */    
     public HttpUrl(HttpUrl url, String relative) throws MalformedURLException {
-        if (url == null || relative.indexOf("://") > -1) { // relative could be a fully qualified URL
+        // relative could be a fully qualified URL
+        if (url == null || relative.startsWith("http://") || relative.startsWith("https://")) { 
             parseUrl(relative);
             _hashcode = this.toString().hashCode();
             return;
