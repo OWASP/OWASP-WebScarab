@@ -6,6 +6,15 @@
 
 package org.owasp.webscarab.plugin.fuzz;
 
+import org.owasp.webscarab.model.Cookie;
+import org.owasp.webscarab.model.NamedValue;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.HttpUrl;
+
+import java.util.Date;
+import java.util.List;
+import java.util.ArrayList;
+
 /**
  *
  * @author  rogan
@@ -24,11 +33,11 @@ public class Parameter {
     
     public static String[] getParameterLocations() {
         return new String[] {
-          LOCATION_PATH,
-          LOCATION_FRAGMENT,
-          LOCATION_QUERY,
-          LOCATION_COOKIE,
-          LOCATION_BODY,
+            LOCATION_PATH,
+                    LOCATION_FRAGMENT,
+                    LOCATION_QUERY,
+                    LOCATION_COOKIE,
+                    LOCATION_BODY,
         };
     }
     

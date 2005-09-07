@@ -7,6 +7,7 @@
 package org.owasp.webscarab.plugin.fuzz;
 
 import java.beans.PropertyChangeSupport;
+import java.net.MalformedURLException;
 
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.FrameworkModel;
@@ -298,6 +299,44 @@ public class FuzzerModel extends AbstractPluginModel {
     
     public int getTotalRequests() {
         return _totalRequests;
+    }
+    
+    public void addSignature(Signature signature) {
+        HttpUrl url = signature.getUrl();
+        _model.addUrlProperty(url, "SIGNATURE", signature.toString());
+    }
+    
+    public int getSignatureCount(HttpUrl url) {
+        String[] signatures = _model.getUrlProperties(url, "SIGNATURE");
+        if (signatures == null) return 0;
+        return signatures.length;
+    }
+    
+    public Signature getSignature(HttpUrl url, int index) {
+        String[] signatures = _model.getUrlProperties(url, "SIGNATURE");
+        if (signatures == null) return null;
+        try {
+            return new Signature(signatures[index]);
+        } catch (MalformedURLException mue) {
+            _logger.severe("Malformed URL reading a signature! " + mue.getMessage());
+            return null;
+        }
+    }
+    
+    public void addChecksum(HttpUrl url, String checksum) {
+        _model.addUrlProperty(url, "CHECKSUM", checksum);
+    }
+    
+    public int getChecksumCount(HttpUrl url) {
+        String[] checksums = _model.getUrlProperties(url, "CHECKSUM");
+        if (checksums == null) return 0;
+        return checksums.length;
+    }
+    
+    public String getChecksum(HttpUrl url, int index) {
+        String[] checksums = _model.getUrlProperties(url, "CHECKSUM");
+        if (checksums == null) return null;
+        return checksums[index];
     }
     
     public void addModelListener(FuzzerListener listener) {

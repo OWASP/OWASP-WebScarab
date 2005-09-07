@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: Fuzzer.java,v 1.6 2005/06/20 17:20:56 rogan Exp $
+ * $Id: Fuzzer.java,v 1.7 2005/09/07 15:41:11 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.fuzz;
@@ -207,7 +207,7 @@ public class Fuzzer implements Plugin {
                     query = query + "&" + q;
                 }
             } else if (location.equals(Parameter.LOCATION_COOKIE)) {
-                String c = parameter.getName() + "=" + Encoding.urlEncode((String) value);
+                String c = parameter.getName() + "=" + (String) value;
                 if (cookie == null) {
                     cookie = c;
                 } else {
@@ -326,6 +326,14 @@ public class Fuzzer implements Plugin {
     }
     
     public void analyse(ConversationID id, Request request, Response response, String origin) {
+        Signature signature = new Signature(request);
+        _model.addSignature(signature);
+        if (!response.getStatus().equals("304")) {
+            byte[] content = response.getContent();
+            if (content == null) content = new byte[0];
+            String checksum = Encoding.hashMD5(content);
+            _model.addChecksum(signature.getUrl(), checksum);
+        }
     }
     
     private Parameter[] getParameters(Request request) {
