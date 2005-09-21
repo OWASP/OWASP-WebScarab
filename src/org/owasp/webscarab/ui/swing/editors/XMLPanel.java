@@ -42,6 +42,7 @@ package org.owasp.webscarab.ui.swing.editors;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 
 import org.w3c.dom.*;
 import javax.xml.parsers.*;
@@ -119,6 +120,31 @@ public class XMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
         } else {
             xmlTree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode("No elements")));
         }
+        expandAll(xmlTree, true);
+    }
+    
+    private void expandAll(JTree tree, boolean expand) {
+        TreeModel model = tree.getModel();
+        
+        // Traverse tree from root
+        expandAll(tree, new TreePath(tree.getModel().getRoot()), expand);
+    }
+    
+    private void expandAll(JTree tree, TreePath path, boolean expand) {
+        Object parent = path.getLastPathComponent();
+        int childCount = tree.getModel().getChildCount(parent);
+        for (int i=0; i<childCount; i++) {
+            Object child = tree.getModel().getChild(parent, i);
+            TreePath childPath = path.pathByAddingChild(child);
+            expandAll(tree, childPath, expand);
+        }
+        
+        // Expansion or collapse must be done bottom-up
+        if (expand) {
+            tree.expandPath(path);
+        } else {
+            tree.collapsePath(path);
+        }
     }
     
     public boolean isModified() {
@@ -175,7 +201,16 @@ public class XMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
                     case Node.ELEMENT_NODE:
                         text = "<" + node.getNodeName();
                         NamedNodeMap nnm = node.getAttributes();
-                        if (nnm.getLength()>0) text = text + " " + nnm.toString();
+                        if (nnm.getLength()>0) {
+                            StringBuffer buff = new StringBuffer();
+                            Node attr = nnm.item(0);
+                            buff.append(attr.getNodeName()).append("=").append(attr.getNodeValue());
+                            for (int i=1; i<nnm.getLength();i++) {
+                                attr = nnm.item(i);
+                                buff.append(" ").append(attr.getNodeName()).append("=").append(attr.getNodeValue());
+                            }
+                            text = text + " " + buff.toString();
+                        }
                         text = text + ">";
                         break;
                     case Node.TEXT_NODE: text = node.getNodeValue(); break;
