@@ -96,6 +96,8 @@ public class NTLMFilter extends ProxyPlugin {
         }
         
         public Response fetchResponse(Request request) throws IOException {
+            // We should consider inserting a new header here, too
+            // Proxy-support: Session-Based-Authentication
             Response response = _in.fetchResponse(request);
             if (_enabled) {
                 boolean changed = false;
