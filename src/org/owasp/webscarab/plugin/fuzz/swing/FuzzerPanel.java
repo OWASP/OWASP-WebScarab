@@ -39,6 +39,8 @@
 
 package org.owasp.webscarab.plugin.fuzz.swing;
 
+import java.awt.event.ActionEvent;
+import javax.swing.AbstractAction;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.NamedValue;
@@ -687,14 +689,20 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     }//GEN-LAST:event_sourcesButtonActionPerformed
     
     private void versionTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_versionTextFieldActionPerformed
+        if (_model.getFuzzVersion().equals(versionTextField.getText()))
+            return;
         _model.setFuzzVersion(versionTextField.getText());
     }//GEN-LAST:event_versionTextFieldActionPerformed
     
     private void methodTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_methodTextFieldActionPerformed
+        if (_model.getFuzzMethod().equals(methodTextField.getText()))
+            return;
         _model.setFuzzMethod(methodTextField.getText());
     }//GEN-LAST:event_methodTextFieldActionPerformed
     
     private void urlTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_urlTextFieldActionPerformed
+        if (_model.getFuzzUrl().equals(urlTextField.getText()))
+            return;
         _model.setFuzzUrl(urlTextField.getText());
     }//GEN-LAST:event_urlTextFieldActionPerformed
     
@@ -703,6 +711,9 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     }//GEN-LAST:event_stopButtonActionPerformed
     
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
+        methodTextFieldActionPerformed(evt);
+        urlTextFieldActionPerformed(evt);
+        versionTextFieldActionPerformed(evt);
         _fuzzer.startFuzzing();
     }//GEN-LAST:event_startButtonActionPerformed
     
@@ -717,7 +728,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         if (row == -1) {
             row = paramTable.getRowCount();
         }
-        _model.addFuzzParameter(row, new Parameter(Parameter.LOCATION_QUERY, "v"+row, "String"), "a" + row, null, 0);
+        _model.addFuzzParameter(row, new Parameter(Parameter.LOCATION_QUERY, "v"+row, "String", "a" + row), null, 0);
     }//GEN-LAST:event_addParameterButtonActionPerformed
     
     private void deleteHeaderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteHeaderButtonActionPerformed
@@ -735,7 +746,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     }//GEN-LAST:event_addHeaderButtonActionPerformed
     
     public Action[] getConversationActions() {
-        return new Action[0];
+        return new Action[] { new FuzzConversationAction() };
     }
     
     public ColumnDataModel[] getConversationColumns() {
@@ -952,7 +963,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
                 case 0: return param.getLocation();
                 case 1: return param.getName();
                 case 2: return param.getType();
-                case 3: return _model.getDefaultParameterValue(rowIndex);
+                case 3: return param.getValue();
                 case 4: return new Integer(_model.getFuzzParameterPriority(rowIndex));
                 case 5:
                     FuzzSource source = _model.getParameterFuzzSource(rowIndex);
@@ -972,18 +983,47 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         
         public void setValueAt(Object aValue, int rowIndex, int colIndex) {
             Parameter parameter = _model.getFuzzParameter(rowIndex);
-            Object defValue = _model.getDefaultParameterValue(rowIndex);
+            Object defValue = parameter.getValue();
             int priority = _model.getFuzzParameterPriority(rowIndex);
             FuzzSource source = _model.getParameterFuzzSource(rowIndex);
             switch (colIndex) {
-                case 0: parameter = new Parameter((String) aValue, parameter.getName(), parameter.getType()); break;
-                case 1: parameter = new Parameter(parameter.getLocation(), (String) aValue, parameter.getType()); break;
-                case 2: parameter = new Parameter(parameter.getLocation(), parameter.getName(), (String) aValue); break;
-                case 3: defValue = aValue; break;
+                case 0: parameter = new Parameter((String) aValue, parameter.getName(), parameter.getType(), defValue); break;
+                case 1: parameter = new Parameter(parameter.getLocation(), (String) aValue, parameter.getType(), defValue); break;
+                case 2: parameter = new Parameter(parameter.getLocation(), parameter.getName(), (String) aValue, defValue); break;
+                case 3: parameter = new Parameter(parameter.getLocation(), parameter.getName(), parameter.getType(), aValue); break;
                 case 4: priority = Integer.parseInt(aValue.toString()); break;
                 case 5: source = _fuzzFactory.getSource((String) aValue); break;
             }
-            _model.setFuzzParameter(rowIndex, parameter, defValue, source, priority);
+            _model.setFuzzParameter(rowIndex, parameter, source, priority);
+        }
+        
+    }
+    
+    private class FuzzConversationAction extends AbstractAction {
+        
+        /** Creates a new instance of ShowConversationAction */
+        public FuzzConversationAction() {
+            putValue(NAME, "Use as fuzz template");
+            putValue(SHORT_DESCRIPTION, "Loads this request into the Fuzzer");
+            putValue("CONVERSATION", null);
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+            Object o = getValue("CONVERSATION");
+            if (o == null || ! (o instanceof ConversationID)) return;
+            ConversationID id = (ConversationID) o;
+            _fuzzer.loadTemplateFromConversation(id);
+        }
+        
+        public void putValue(String key, Object value) {
+            super.putValue(key, value);
+            if (key != null && key.equals("CONVERSATION")) {
+                if (value != null && value instanceof ConversationID) {
+                    setEnabled(true);
+                } else {
+                    setEnabled(false);
+                }
+            }
         }
         
     }

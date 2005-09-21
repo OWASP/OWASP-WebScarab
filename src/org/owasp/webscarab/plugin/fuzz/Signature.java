@@ -30,7 +30,7 @@ public class Signature {
     private String _method;
     private HttpUrl _url;
     private String _contentType;
-    private List _parameters;
+    private Parameter[] _parameters;
     
     /** Creates a new instance of Signature */
     public Signature(Request request) {
@@ -38,7 +38,7 @@ public class Signature {
         _url = request.getURL();
         if (_url.getParameters() != null) _url = _url.getParentUrl();
         _contentType = request.getHeader("Content-Type");
-        _parameters = parseParameters(request);
+        _parameters = Parameter.getParameters(request);
     }
     
     public Signature(String signature) throws MalformedURLException {
@@ -48,16 +48,17 @@ public class Signature {
         _contentType = parts[2].substring(1, parts[2].length()-1);
         if (_contentType.equals("null")) 
             _contentType = null;
-        _parameters = new ArrayList();
+        List parameters = new ArrayList();
         for (int i=3; i<parts.length; i++) {
             int colon = parts[i].indexOf(":");
             String location = parts[i].substring(0, colon);
             int left = parts[i].indexOf('(', colon);
             String name = parts[i].substring(colon+1, left);
             String type = parts[i].substring(left+1, parts[i].length()-1);
-            Parameter param = new Parameter(location, name, type);
-            _parameters.add(param);
+            Parameter param = new Parameter(location, name, type, "");
+            parameters.add(param);
         }
+        _parameters = (Parameter[]) parameters.toArray(Parameter.NO_PARAMS);
     }
     
     public String getMethod() {
@@ -73,18 +74,16 @@ public class Signature {
     }
     
     public Parameter[] getParameters() {
-        return (Parameter[]) _parameters.toArray(NONE);
+        return _parameters;
     }
     
     public String toString() {
         StringBuffer buff = new StringBuffer();
         buff.append(_method).append(" ").append(_url).append(" ");
         buff.append("(").append(_contentType).append(")");
-        Iterator it = _parameters.iterator();
-        while (it.hasNext()) {
-            Parameter param = (Parameter) it.next();
-            buff.append(" ").append(param.getLocation()).append(":").append(param.getName());
-            buff.append("(").append(param.getType()).append(")");
+        for (int i=0; i<_parameters.length; i++) {
+            buff.append(" ").append(_parameters[i].getLocation()).append(":").append(_parameters[i].getName());
+            buff.append("(").append(_parameters[i].getType()).append(")");
         }
         return buff.toString();
     }
@@ -97,66 +96,11 @@ public class Signature {
         if (_contentType == null && that._contentType != null) return false;
         if (_contentType != null && that._contentType == null) return false;
         if (_contentType != null && !_contentType.equals(that._contentType)) return false;
-        if (_parameters.size() != that._parameters.size()) return false;
-        for (int i=0; i<_parameters.size(); i++) {
-            if (! _parameters.get(i).equals(that._parameters.get(i))) return false;
+        if (_parameters.length != that._parameters.length) return false;
+        for (int i=0; i<_parameters.length; i++) {
+            if (! _parameters[i].equals(that._parameters[i])) return false;
         }
         return true;
-    }
-    
-    private List parseParameters(Request request) {
-        List params = new ArrayList();
-        HttpUrl url = request.getURL();
-        String fragment = url.getFragment();
-        if (fragment != null) {
-            NamedValue[] nv = NamedValue.splitNamedValues(fragment, "&", "=");
-            for (int i=0; i<nv.length; i++) {
-                if (nv[i] != null) {
-                    Parameter param = new Parameter(Parameter.LOCATION_FRAGMENT, nv[i].getName(), "String");
-                    params.add(param);
-                }
-            }
-        }
-        String query = url.getQuery();
-        if (query != null) {
-            NamedValue[] nv = NamedValue.splitNamedValues(query, "&", "=");
-            for (int i=0; i<nv.length; i++) {
-                if (nv[i] != null) {
-                    Parameter param = new Parameter(Parameter.LOCATION_QUERY, nv[i].getName(), "String");
-                    params.add(param);
-                }
-            }
-        }
-        NamedValue[] headers = request.getHeaders();
-        for (int i=0; i<headers.length; i++) {
-            if (headers[i].getName().equals("Cookie")) {
-                String cookies = headers[i].getValue();
-                NamedValue[] nv = NamedValue.splitNamedValues(cookies, "; *", "=");
-                for (int j=0; j<nv.length; j++) {
-                    if (nv[j] != null) {
-                        Parameter param = new Parameter(Parameter.LOCATION_COOKIE, nv[j].getName(), "String");
-                        params.add(param);
-                    }
-                }
-            }
-        }
-        if (request.getMethod().equals("POST")) {
-            String type = request.getHeader("Content-Type");
-            if (type != null && type.equals("application/x-www-form-urlencoded")) {
-                byte[] content = request.getContent();
-                if (content != null && content.length>0) {
-                    String text = new String(content);
-                    NamedValue[] nv = NamedValue.splitNamedValues(text, "&", "=");
-                    for (int i=0; i<nv.length; i++) {
-                        if (nv[i] != null) {
-                            Parameter param = new Parameter(Parameter.LOCATION_BODY, nv[i].getName(), "String");
-                            params.add(param);
-                        }
-                    }
-                }
-            }
-        }
-        return params;
     }
     
 }

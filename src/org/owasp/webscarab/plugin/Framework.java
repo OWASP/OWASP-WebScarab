@@ -221,6 +221,7 @@ public class Framework {
     }
     
     public boolean isModified() {
+        if (_model.isModified()) return true;
         Iterator it = _plugins.iterator();
         while (it.hasNext()) {
             Plugin plugin = (Plugin) it.next();

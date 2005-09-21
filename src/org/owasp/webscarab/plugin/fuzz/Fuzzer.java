@@ -32,7 +32,7 @@
  */
 
 /*
- * $Id: Fuzzer.java,v 1.7 2005/09/07 15:41:11 rogan Exp $
+ * $Id: Fuzzer.java,v 1.8 2005/09/21 22:06:33 rogan Exp $
  */
 
 package org.owasp.webscarab.plugin.fuzz;
@@ -165,9 +165,9 @@ public class Fuzzer implements Plugin {
             // _logger.info("Header is " + _model.getFuzzHeader(i));
             request.addHeader(_model.getFuzzHeader(i));
         }
-        if (request.getMethod().equals("POST")) {
-            request.setHeader("Content-Type", "application/x-www-form-urlencoded");
-        }
+//        if (request.getMethod().equals("POST")) {
+//            request.setHeader("Content-Type", "application/x-www-form-urlencoded");
+//        }
         String url = _model.getFuzzUrl().toString();
         String path = null;
         String fragment = null;
@@ -211,7 +211,7 @@ public class Fuzzer implements Plugin {
                 if (cookie == null) {
                     cookie = c;
                 } else {
-                    cookie = cookie + "; " + cookie;
+                    cookie = cookie + "; " + c;
                 }
             } else if (location.equals(Parameter.LOCATION_BODY)) {
                 // FIXME - Assumes this is normal form data
@@ -336,60 +336,35 @@ public class Fuzzer implements Plugin {
         }
     }
     
-    private Parameter[] getParameters(Request request) {
-        List parameters = new ArrayList();
-        String method = request.getMethod();
-        HttpUrl url = request.getURL();
-        
-        String query = url.getQuery();
-        String fragments = url.getFragment();
-        if (url.getParameters() != null) url = url.getParentUrl();
-        String contentType = request.getHeader("Content-Type");
-        
-        if (fragments != null) {
-            NamedValue[] values = NamedValue.splitNamedValues(fragments, "&", "=");
-            for (int i=0; i<values.length; i++) {
-                parameters.add(new Parameter("FRAGMENT", values[i].getName(), "STRING"));
-            }
+    public void loadTemplateFromConversation(ConversationID id) {
+        if (_model.isBusyFuzzing()) {
+            stopFuzzing();
         }
-        if (query != null) {
-            NamedValue[] values = NamedValue.splitNamedValues(query, "&", "=");
-            for (int i=0; i<values.length; i++) {
-                parameters.add(new Parameter("URL", values[i].getName(), "STRING"));
-            }
+        Request request = _framework.getModel().getRequest(id);
+        HttpUrl url = request.getURL();
+        if (url.getParameters()!=null)
+            url = url.getParentUrl();
+        _model.setFuzzMethod(request.getMethod());
+        _model.setFuzzUrl(url.toString());
+        _model.setFuzzVersion(request.getVersion());
+        while(_model.getFuzzHeaderCount()>0) {
+            _model.removeFuzzHeader(0);
+        }
+        while(_model.getFuzzParameterCount()>0) {
+            _model.removeFuzzParameter(0);
         }
         NamedValue[] headers = request.getHeaders();
-        for (int i=0; i<headers.length; i++) {
-            if (headers[i].getName().equals("Cookie")) {
-                NamedValue[] cookies = NamedValue.splitNamedValues(headers[i].getValue(), "; *", "=");
-                for (int j=0; j<cookies.length; j++) {
-                    parameters.add(new Parameter("COOKIE", cookies[j].getName(), "STRING"));
-                }
+        if (headers != null) {
+            for (int i=0; i<headers.length; i++) {
+                if (headers[i].getName().equals("Cookie"))
+                    continue;
+                _model.addFuzzHeader(_model.getFuzzHeaderCount(), headers[i]);
             }
         }
-        if (method.equals("POST")) {
-            if (contentType != null) {
-                Parameter[] body = getParamsFromContent(contentType, request.getContent());
-                for (int i=0; i< body.length; i++) {
-                    parameters.add(body[i]);
-                }
-            }
+        Parameter[] params = Parameter.getParameters(request);
+        for (int i=0; i<params.length; i++) {
+            _model.addFuzzParameter(i, params[i], null, 0);
         }
-        return (Parameter[]) parameters.toArray(NO_PARAMS);
-    }
-    
-    private Parameter[] getParamsFromContent(String contentType, byte[] content) {
-        if (contentType.equals("application/x-www-form-urlencoded")) {
-            String body = new String(content);
-            NamedValue[] nv = NamedValue.splitNamedValues(body, "&", "=");
-            Parameter[] params = new Parameter[nv.length];
-            for (int i=0; i< nv.length; i++) {
-                params[i] = new Parameter("BODY", nv[i].getName(), "STRING");
-            }
-            return params;
-        }
-        // FIXME do Multi-part here, too
-        return new Parameter[0];
     }
     
     public Object getScriptableObject() {

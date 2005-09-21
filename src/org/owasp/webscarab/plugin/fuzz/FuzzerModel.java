@@ -59,7 +59,6 @@ public class FuzzerModel extends AbstractPluginModel {
     
     private List _fuzzHeaders = new ArrayList();
     private List _fuzzParameters = new ArrayList();
-    private List _defaultValues = new ArrayList();
     private List _fuzzSources = new ArrayList();
     private List _parameterPriorities = new ArrayList();
     
@@ -152,20 +151,18 @@ public class FuzzerModel extends AbstractPluginModel {
         return _fuzzParameters.size();
     }
     
-    public void addFuzzParameter(int index, Parameter parameter, Object defaultValue, FuzzSource fuzzSource, int priority) {
+    public void addFuzzParameter(int index, Parameter parameter, FuzzSource fuzzSource, int priority) {
         _logger.info("Adding a parameter at index " + index);
         _fuzzParameters.add(index, parameter);
-        _defaultValues.add(index, defaultValue);
         _fuzzSources.add(index, fuzzSource);
         _parameterPriorities.add(index, new Integer(priority));
         fireFuzzParameterAdded(index);
         resetFuzzer();
     }
     
-    public void setFuzzParameter(int index, Parameter parameter, Object defaultValue, FuzzSource fuzzSource, int priority) {
+    public void setFuzzParameter(int index, Parameter parameter, FuzzSource fuzzSource, int priority) {
         _logger.info("Setting a parameter at index " + index + ", source is " + fuzzSource);
         _fuzzParameters.set(index, parameter);
-        _defaultValues.set(index, defaultValue);
         _fuzzSources.set(index, fuzzSource);
         _parameterPriorities.set(index, new Integer(priority));
         fireFuzzParameterChanged(index);
@@ -175,7 +172,6 @@ public class FuzzerModel extends AbstractPluginModel {
     public void removeFuzzParameter(int index) {
         _logger.info("Removing parameter at index " + index);
         _fuzzParameters.remove(index);
-        _defaultValues.remove(index);
         _fuzzSources.remove(index);
         _parameterPriorities.remove(index);
         fireFuzzParameterRemoved(index);
@@ -184,10 +180,6 @@ public class FuzzerModel extends AbstractPluginModel {
     
     public Parameter getFuzzParameter(int index) {
         return (Parameter) _fuzzParameters.get(index);
-    }
-    
-    public Object getDefaultParameterValue(int index) {
-        return _defaultValues.get(index);
     }
     
     public FuzzSource getParameterFuzzSource(int index) {
@@ -206,7 +198,7 @@ public class FuzzerModel extends AbstractPluginModel {
         if (fuzzSource != null) {
             return fuzzSource.current();
         } else {
-            return getDefaultParameterValue(index);
+            return ((Parameter)_fuzzParameters.get(index)).getValue();
         }
     }
     

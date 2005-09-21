@@ -52,6 +52,8 @@ public class NamedValue {
                 String[] nv = pairs[i].split(nvSeparator,2);
                 if (nv.length == 2) { 
                     values[i] = new NamedValue(nv[0], nv[1]);
+                } else if (nv.length == 1) {
+                    values[i] = new NamedValue(nv[0], "");
                 } else {
                     values[i] = null;
                 }
