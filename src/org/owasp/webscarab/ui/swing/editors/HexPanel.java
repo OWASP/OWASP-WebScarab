@@ -255,8 +255,6 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
     private class HexTableModel extends AbstractTableModel {
         
         private int _columns = 8;
-        private boolean _editable = false;
-        private boolean _modified = false;
         
         public HexTableModel() {
         }
