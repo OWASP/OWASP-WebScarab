@@ -86,6 +86,8 @@
         </javac>
     </target>
     <target depends="prepare" description="JavaHelp" name="javahelp">
+        <!-- Commented out until I can get Ant working properly
+            Using xsltproc in the meantime
         <xmlcatalog id="docbook_catalogs">
             <catalogpath>
                 <fileset dir="${docbook.location}" includes="**/catalog.xml"/>
@@ -100,11 +102,15 @@
         >
             <xmlcatalog refid="docbook_catalogs"/>
         </xslt>
+        -->
+        <copy todir="${build.dir}/help/">
+            <fileset dir="doc/userguide/javahelp/"/>
+        </copy>
         <copy todir="${build.dir}/help/">
             <fileset dir="doc/userguide/" includes="*.png,*.jpg,*.gif,*.css"/>
         </copy>
     </target>
-    <target depends="compile,javahelp" description="Build a jar file" name="build">
+    <target depends="compile" description="Build a jar file" name="build">
         <jar basedir="${build.dir}" jarfile="${jar}">
             <manifest>
                 <attribute name="Main-Class" value="${mainclass}"/>
@@ -134,7 +140,7 @@
         </javadoc>
     </target>
     <target 
-        depends="clean,build" 
+        depends="clean,javahelp,build" 
         description="Build a self contained installer package" 
         name="izpack"
     >
