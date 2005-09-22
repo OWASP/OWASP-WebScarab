@@ -137,7 +137,7 @@ public class RevealHidden extends ProxyPlugin {
                 input = inputMatcher.group(1) + "text" + inputMatcher.group(2);
 
                 /* insert [hidden] <fieldname> before the field itself */
-                inputMatcher.appendReplacement(outbuf, "<STRONG style=\"background-color: white;\"> [hidden field name =\"" + name + "\"]:</STRONG> "+ input);
+                inputMatcher.appendReplacement(outbuf, "<STRONG style=\"background-color: white;\"> [hidden field name =\"" + name + "\"]:</STRONG> "+ input + "<BR/>");
             }
             inputMatcher.appendTail(outbuf);
             return outbuf.toString().getBytes();
