@@ -63,7 +63,7 @@ public class DOMTreeModel extends AbstractTreeModel {
     }
     
     public boolean isLeaf(Object node) {
-        return getChildCount(node) == 0;
+        return ((Node)node).getNodeType() != Node.ELEMENT_NODE;
     }
     
     public void valueForPathChanged(TreePath path, Object newValue) {
