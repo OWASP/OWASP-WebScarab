@@ -39,6 +39,7 @@
      	<property name="jhelpjar" value="lib/jhall-2.0_02.jar"/>
      	<property name="chardetjar" value="lib/chardet.jar"/>
      	<property name="tagsoupjar" value="lib/tagsoup-1.0rc2.jar"/>
+     	<property name="wsdljar" value="lib/wsdl4j.jar"/>
         
         <path id="cpath">
             <pathelement location="${build.dir}"/>
@@ -51,6 +52,7 @@
             <pathelement location="${jhelpjar}"/>
             <pathelement location="${chardetjar}"/>
             <pathelement location="${tagsoupjar}"/>
+            <pathelement location="${wsdljar}"/>
         </path>
     </target>
     <target depends="init" description="clean up the build area" name="clean">
@@ -116,7 +118,7 @@
                 <attribute name="Main-Class" value="${mainclass}"/>
                 <attribute 
                     name="Class-Path" 
-                    value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar}"
+                    value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar} ${wsdljar}"
                 />
                 <!-- <attribute name="Built-By" value="${user.name}"/> -->
                 <section name="common">

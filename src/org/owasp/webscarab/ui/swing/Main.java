@@ -93,6 +93,8 @@ import org.owasp.webscarab.plugin.compare.swing.ComparePanel;
 
 import org.owasp.webscarab.plugin.search.Search;
 import org.owasp.webscarab.plugin.search.swing.SearchPanel;
+import org.owasp.webscarab.plugin.webservice.WebService;
+import org.owasp.webscarab.plugin.webservice.swing.WebServicePanel;
 
 import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.swing.ExceptionHandler;
@@ -172,6 +174,10 @@ public class Main {
         ManualRequest manualRequest = new ManualRequest(_framework);
         _framework.addPlugin(manualRequest);
         _uif.addPlugin(new ManualRequestPanel(manualRequest));
+        
+        WebService webservice = new WebService(_framework);
+        _framework.addPlugin(webservice);
+        _uif.addPlugin(new WebServicePanel(webservice));
         
         Spider spider = new Spider(_framework);
         _framework.addPlugin(spider);
