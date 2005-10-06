@@ -114,7 +114,7 @@ public class CompareModel extends AbstractPluginModel {
             super(model);
         }
         
-        public ConversationID getConversationAt(HttpUrl url, int index) {
+        public ConversationID getConversationAt(int index) {
             try {
                 _rwl.readLock().acquire();
                 return (ConversationID) _compared.get(index);
@@ -126,7 +126,7 @@ public class CompareModel extends AbstractPluginModel {
             }
         }
         
-        public int getConversationCount(HttpUrl url) {
+        public int getConversationCount() {
             try {
                 _rwl.readLock().acquire();
                 return _compared.size();
@@ -138,7 +138,7 @@ public class CompareModel extends AbstractPluginModel {
             }
         }
         
-        public int getIndexOfConversation(HttpUrl url, ConversationID id) {
+        public int getIndexOfConversation(ConversationID id) {
             try {
                 _rwl.readLock().acquire();
                 return Collections.binarySearch(_compared, id);

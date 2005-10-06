@@ -119,10 +119,10 @@ public class Compare implements Plugin {
                     List baseline = tokenize(baseBytes);
                     _diff = new LevenshteinDistance(baseline);
                     
-                    count = cmodel.getConversationCount(_url);
+                    count = cmodel.getConversationCount();
                     _logger.info("Checking " + count + " conversaitons");
                     for (int i=0; i<count; i++) {
-                        ConversationID cid = cmodel.getConversationAt(_url, i);
+                        ConversationID cid = cmodel.getConversationAt(i);
                         _logger.info("Checking conversation " + i + " == " + cid);
                         if (cid.equals(id)) {
                             _model.setDistance(cid, 0);

@@ -133,27 +133,20 @@ public class ScriptedObjectModel {
     
     /**
      * returns the number of conversations for the specified URL.
-     * @param url the url you are interested in, or null for all conversations
      * @throws MalformedURLException if the URL is malformed
      * @return the number of conversations 
      */    
-    public int getConversationCount(String url) throws MalformedURLException {
-        HttpUrl myUrl = null;
-        if (url != null) myUrl = new HttpUrl(url);
-        return _model.getConversationModel().getConversationCount(myUrl);
+    public int getConversationCount() {
+        return _model.getConversationModel().getConversationCount();
     }
     
     /**
      * returns the identifier of the conversation at the specified index
-     * @param url indicates the url of conversations that you are interested in, or null for all conversations
      * @param index
-     * @throws MalformedURLException if the url is malformed
      * @return the ConversationID at the requested index
      */    
-    public ConversationID getConversationAt(String url, int index) throws MalformedURLException {
-        HttpUrl myUrl = null;
-        if (url != null) myUrl = new HttpUrl(url);
-        return _model.getConversationModel().getConversationAt(myUrl, index);
+    public ConversationID getConversationAt(int index) {
+        return _model.getConversationModel().getConversationAt(index);
     }
     
     /**

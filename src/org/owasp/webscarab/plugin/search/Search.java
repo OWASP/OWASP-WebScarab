@@ -86,9 +86,9 @@ public class Search implements Plugin {
     public void removeSearch(String description) {
         _model.removeSearch(description);
         ConversationModel cmodel = _frameworkModel.getConversationModel();
-        int count = cmodel.getConversationCount(null);
+        int count = cmodel.getConversationCount();
         for (int i=0; i<count; i++) {
-            ConversationID id = cmodel.getConversationAt(null, i);
+            ConversationID id = cmodel.getConversationAt(i);
             _model.setSearchMatch(id, description, false);
         }
         saveSearches();
@@ -103,9 +103,9 @@ public class Search implements Plugin {
         try {
             String expr = _model.getSearchExpression(description);
             ConversationModel cmodel = _frameworkModel.getConversationModel();
-            int count = cmodel.getConversationCount(null);
+            int count = cmodel.getConversationCount();
             for (int i=0; i<count; i++) {
-                id = cmodel.getConversationAt(null, i);
+                id = cmodel.getConversationAt(i);
                 Request request = cmodel.getRequest(id);
                 Response response = cmodel.getResponse(id);
                 String origin = cmodel.getConversationOrigin(id);

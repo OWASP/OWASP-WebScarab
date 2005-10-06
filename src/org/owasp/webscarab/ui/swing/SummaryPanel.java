@@ -76,7 +76,7 @@ import org.owasp.webscarab.util.swing.TableSorter;
 public class SummaryPanel extends JPanel {
     
     private FrameworkModel _model;
-    private ConversationModel _conversationModel;
+    private UrlFilteredConversationModel _conversationModel;
     private FilteredUrlModel _urlModel;
     private JTreeTable _urlTreeTable;
     private ArrayList _urlActions = new ArrayList();
@@ -92,7 +92,7 @@ public class SummaryPanel extends JPanel {
     /** Creates new form SummaryPanel */
     public SummaryPanel(FrameworkModel model) {
         _model = model;
-        _conversationModel = _model.getConversationModel();
+        _conversationModel = new UrlFilteredConversationModel(_model, _model.getConversationModel());
         // FIXME this is the wrong place for this, I think?
         _urlModel = new FilteredUrlModel(model.getUrlModel()) {
             protected boolean shouldFilter(HttpUrl url) {
@@ -164,7 +164,7 @@ public class SummaryPanel extends JPanel {
                     }
                 }
                 if (treeCheckBox.isSelected()) {
-                    _conversationTableModel.setUrl(_treeURL);
+                    _conversationModel.setUrl(_treeURL);
                 }
                 synchronized (_urlActions) {
                     for (int i=0; i<_urlActions.size(); i++) {
@@ -348,9 +348,9 @@ public class SummaryPanel extends JPanel {
     
     private void treeCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_treeCheckBoxActionPerformed
         if (treeCheckBox.isSelected() && _treeURL != null) {
-            _conversationTableModel.setUrl(_treeURL);
+            _conversationModel.setUrl(_treeURL);
         } else {
-            _conversationTableModel.setUrl(null);
+            _conversationModel.setUrl(null);
         }
     }//GEN-LAST:event_treeCheckBoxActionPerformed
     

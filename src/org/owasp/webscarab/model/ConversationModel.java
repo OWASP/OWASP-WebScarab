@@ -15,11 +15,11 @@ import java.util.Date;
  */
 public interface ConversationModel {
     
-    int getConversationCount(HttpUrl url);
+    int getConversationCount();
     
-    ConversationID getConversationAt(HttpUrl url, int index);
+    ConversationID getConversationAt(int index);
     
-    int getIndexOfConversation(HttpUrl url, ConversationID id);
+    int getIndexOfConversation(ConversationID id);
     
     Sync readLock();
     

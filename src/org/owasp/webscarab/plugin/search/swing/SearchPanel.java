@@ -82,7 +82,7 @@ public class SearchPanel extends JPanel implements SwingPluginUI {
                     int row = conversationTable.getSelectedRow();
                     row = _conversationSorter.modelIndex(row);
                     if (row >-1) {
-                        ConversationID id = _conversationModel.getConversationAt(null, row);
+                        ConversationID id = _conversationModel.getConversationAt(row);
                         _showConversationAction.putValue("CONVERSATION", id);
                         ActionEvent evt = new ActionEvent(conversationTable, 0, (String) _showConversationAction.getValue(Action.ACTION_COMMAND_KEY));
                         _showConversationAction.actionPerformed(evt);

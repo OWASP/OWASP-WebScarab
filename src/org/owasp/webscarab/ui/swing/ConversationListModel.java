@@ -73,15 +73,15 @@ public class ConversationListModel extends AbstractListModel {
     }
     
     public int getIndexOfConversation(ConversationID id) {
-        return _model.getIndexOfConversation(null, id);
+        return _model.getIndexOfConversation(id);
     }
     
     public int getConversationCount() {
-        return _model.getConversationCount(null);
+        return _model.getConversationCount();
     }
     
     public ConversationID getConversationAt(int index) {
-        return _model.getConversationAt(null, index);
+        return _model.getConversationAt(index);
     }
     
     public int getSize() {

@@ -918,11 +918,11 @@ public class FrameworkModel {
             return _rwl.readLock();
         }
         
-        public ConversationID getConversationAt(HttpUrl url, int index) {
+        public ConversationID getConversationAt(int index) {
             try {
                 readLock().acquire();
                 try {
-                    return _store.getConversationAt(url, index);
+                    return _store.getConversationAt(null, index);
                 } finally {
                     readLock().release();
                 }
@@ -932,12 +932,12 @@ public class FrameworkModel {
             }
         }
         
-        public int getConversationCount(HttpUrl url) {
+        public int getConversationCount() {
             if (_store == null) return 0;
             try {
                 readLock().acquire();
                 try {
-                    return _store.getConversationCount(url);
+                    return _store.getConversationCount(null);
                 } finally {
                     readLock().release();
                 }
@@ -947,11 +947,11 @@ public class FrameworkModel {
             }
         }
         
-        public int getIndexOfConversation(HttpUrl url, ConversationID id) {
+        public int getIndexOfConversation(ConversationID id) {
             try {
                 readLock().acquire();
                 try {
-                    return _store.getIndexOfConversation(url, id);
+                    return _store.getIndexOfConversation(null, id);
                 } finally {
                     readLock().release();
                 }

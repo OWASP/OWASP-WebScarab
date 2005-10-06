@@ -214,9 +214,9 @@ public class FragmentsModel extends AbstractPluginModel {
                 _conversationList.clear();
                 if (_type != null && _key != null) {
                     ConversationModel cmodel = _model.getConversationModel();
-                    int count = cmodel.getConversationCount(null);
+                    int count = cmodel.getConversationCount();
                     for (int i=0; i<count; i++) {
-                        ConversationID id = cmodel.getConversationAt(null, i);
+                        ConversationID id = cmodel.getConversationAt(i);
                         String[] fragments = getConversationFragmentKeys(id,  _type);
                         if (fragments != null) {
                             for (int j=0; j<fragments.length; j++) {
@@ -237,21 +237,15 @@ public class FragmentsModel extends AbstractPluginModel {
             }
         }
         
-        public ConversationID getConversationAt(HttpUrl url, int index) {
-            if (url != null)
-                _logger.warning("Request for a conversation with a non-null url! NOT IMPLEMENTED!");
+        public ConversationID getConversationAt(int index) {
             return (ConversationID) _conversationList.get(index);
         }
         
-        public int getConversationCount(HttpUrl url) {
-            if (url != null)
-                _logger.warning("Request for a conversation with a non-null url! NOT IMPLEMENTED!");
+        public int getConversationCount() {
             return _conversationList.size();
         }
         
-        public int getIndexOfConversation(HttpUrl url, ConversationID id) {
-            if (url != null)
-                _logger.warning("Request for a conversation with a non-null url! NOT IMPLEMENTED!");
+        public int getIndexOfConversation(ConversationID id) {
             return Collections.binarySearch(_conversationList, id);
         }
         
@@ -264,7 +258,7 @@ public class FragmentsModel extends AbstractPluginModel {
         public void fragmentAdded(HttpUrl url, ConversationID id, String type, String key) {
             if (_type != null && _key != null) {
                 if (_type.equals(type) && _key.equals(key)) {
-                    int index = getIndexOfConversation(null, id);
+                    int index = getIndexOfConversation(id);
                     if (index < 0) {
                         try {
                             _rwl.writeLock().acquire();

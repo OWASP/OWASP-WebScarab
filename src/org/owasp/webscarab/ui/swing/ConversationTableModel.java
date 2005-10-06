@@ -62,7 +62,6 @@ import java.util.Date;
 public class ConversationTableModel extends ExtensibleTableModel {
     
     protected ConversationModel _model = null;
-    protected HttpUrl _url = null;
     
     private Listener _listener = new Listener();
     
@@ -73,11 +72,6 @@ public class ConversationTableModel extends ExtensibleTableModel {
         _model = model;
         addStandardColumns();
         _model.addConversationListener(_listener);
-    }
-    
-    public void setUrl(HttpUrl url) {
-        _url = url;
-        fireTableDataChanged();
     }
     
     private void addStandardColumns() {
@@ -156,16 +150,16 @@ public class ConversationTableModel extends ExtensibleTableModel {
     }
     
     public Object getKeyAt(int row) {
-        return _model.getConversationAt(_url, row);
+        return _model.getConversationAt(row);
     }
     
     public int indexOfKey(Object key) {
-        return _model.getIndexOfConversation(_url, (ConversationID) key);
+        return _model.getIndexOfConversation((ConversationID) key);
     }
     
     public int getRowCount() {
         if (_model == null) return 0;
-        return _model.getConversationCount(_url);
+        return _model.getConversationCount();
     }
     
     public int getColumnCount() {

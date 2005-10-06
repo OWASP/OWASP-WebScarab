@@ -145,9 +145,9 @@ public class SearchModel extends AbstractPluginModel {
             _conversations.clear();
             if (_description != null) {
                 ConversationModel cmodel = _model.getConversationModel();
-                int count = cmodel.getConversationCount(null);
+                int count = cmodel.getConversationCount();
                 for (int i=0; i< count; i++) {
-                    ConversationID id = cmodel.getConversationAt(null, i);
+                    ConversationID id = cmodel.getConversationAt(i);
                     if (hasSearchMatch(id, _description)) {
                         _conversations.add(id);
                     }
@@ -155,15 +155,15 @@ public class SearchModel extends AbstractPluginModel {
             }
         }
         
-        public ConversationID getConversationAt(HttpUrl url, int index) {
+        public ConversationID getConversationAt(int index) {
             return (ConversationID) _conversations.get(index);
         }
         
-        public int getConversationCount(HttpUrl url) {
+        public int getConversationCount() {
             return _conversations.size();
         }
         
-        public int getIndexOfConversation(HttpUrl url, ConversationID id) {
+        public int getIndexOfConversation(ConversationID id) {
             return _conversations.indexOf(id);
         }
         

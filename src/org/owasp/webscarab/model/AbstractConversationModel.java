@@ -31,11 +31,11 @@ public abstract class AbstractConversationModel implements ConversationModel {
         _model = model;
     }
     
-    public abstract int getConversationCount(HttpUrl url);
+    public abstract int getConversationCount();
     
-    public abstract ConversationID getConversationAt(HttpUrl url, int index);
+    public abstract ConversationID getConversationAt(int index);
     
-    public abstract int getIndexOfConversation(HttpUrl url, ConversationID id);
+    public abstract int getIndexOfConversation(ConversationID id);
     
     public abstract Sync readLock();
     

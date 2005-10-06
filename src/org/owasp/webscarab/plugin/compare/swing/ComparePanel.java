@@ -102,7 +102,7 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
                 }
                 selected = _conversationSorter.modelIndex(selected);
                 ConversationModel cmodel = _model.getComparisonModel();
-                ConversationID id = cmodel.getConversationAt(null, selected);
+                ConversationID id = cmodel.getConversationAt(selected);
                 Response response = cmodel.getResponse(id);
                 String contentType = response.getHeader("Content-Type");
                 _selectedContent.setContentType(contentType);
