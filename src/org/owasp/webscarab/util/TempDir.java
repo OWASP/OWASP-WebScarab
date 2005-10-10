@@ -7,6 +7,8 @@
 package org.owasp.webscarab.util;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import java.util.Random;
@@ -25,48 +27,46 @@ public class TempDir {
     }
     
     /* -- Temporary files -- */
-
+    
     private static final Object tmpFileLock = new Object();
-
+    
     private static int counter = -1; /* Protected by tmpFileLock */
-
+    
     private static File generateFile(String prefix, String suffix, File dir)
-	throws IOException
-    {
-	if (counter == -1) {
-	    counter = new Random().nextInt() & 0xffff;
-	}
-	counter++;
-	return new File(dir, prefix + Integer.toString(counter) + suffix);
+    throws IOException {
+        if (counter == -1) {
+            counter = new Random().nextInt() & 0xffff;
+        }
+        counter++;
+        return new File(dir, prefix + Integer.toString(counter) + suffix);
     }
-
+    
     private static String tmpdir; /* Protected by tmpFileLock */
-
+    
     private static String getTempDir() {
-	if (tmpdir == null) {
-	    GetPropertyAction a = new GetPropertyAction("java.io.tmpdir");
-	    tmpdir = ((String) AccessController.doPrivileged(a));
-	}
-	return tmpdir;
+        if (tmpdir == null) {
+            GetPropertyAction a = new GetPropertyAction("java.io.tmpdir");
+            tmpdir = ((String) AccessController.doPrivileged(a));
+        }
+        return tmpdir;
     }
-
+    
     private static boolean checkAndCreate(File file, SecurityManager sm)
-	throws IOException
-    {
-	if (sm != null) {
-	    try {
-		sm.checkWrite(file.getPath());
-	    } catch (AccessControlException x) {
-		/* Throwing the original AccessControlException could disclose
-		   the location of the default temporary directory, so we
-		   re-throw a more innocuous SecurityException */
-		throw new SecurityException("Unable to create temporary file");
-	    }
-	}
+    throws IOException {
+        if (sm != null) {
+            try {
+                sm.checkWrite(file.getPath());
+            } catch (AccessControlException x) {
+                /* Throwing the original AccessControlException could disclose
+                   the location of the default temporary directory, so we
+                   re-throw a more innocuous SecurityException */
+                throw new SecurityException("Unable to create temporary file");
+            }
+        }
         if (file.exists()) return false;
         return file.mkdirs();
     }
-
+    
     /**
      * <p> Creates a new directory in the specified directory, using the
      * given prefix and suffix strings to generate its name.  If this method
@@ -137,24 +137,23 @@ public class TempDir {
      * @since 1.2
      */
     public static File createTempDir(String prefix, String suffix,
-				      File directory)
-        throws IOException
-    {
-	if (prefix == null) throw new NullPointerException();
-	if (prefix.length() < 3)
-	    throw new IllegalArgumentException("Prefix string too short");
-	String s = (suffix == null) ? ".tmp" : suffix;
-	synchronized (tmpFileLock) {
-	    if (directory == null) {
-		directory = new File(getTempDir());
-	    }
-	    SecurityManager sm = System.getSecurityManager();
-	    File f;
-	    do {
-		f = generateFile(prefix, s, directory);
-	    } while (!checkAndCreate(f, sm));
-	    return f;
-	}
+            File directory)
+            throws IOException {
+        if (prefix == null) throw new NullPointerException();
+        if (prefix.length() < 3)
+            throw new IllegalArgumentException("Prefix string too short");
+        String s = (suffix == null) ? ".tmp" : suffix;
+        synchronized (tmpFileLock) {
+            if (directory == null) {
+                directory = new File(getTempDir());
+            }
+            SecurityManager sm = System.getSecurityManager();
+            File f;
+            do {
+                f = generateFile(prefix, s, directory);
+            } while (!checkAndCreate(f, sm));
+            return f;
+        }
     }
     
     /**
@@ -173,5 +172,34 @@ public class TempDir {
         }
         return dir.delete();
     }
+    
+    public static void recursiveCopy(File source, File dest) throws IOException {
+        if (dest.exists())
+            throw new IOException("Copy to existing directory " + dest);
+        if (!source.isDirectory())
+            throw new IOException("Source is not a directory " + source);
+        if (!dest.mkdirs()) 
+            throw new IOException("Could not create destination directory " + dest);
+        
+        File[] ls = source.listFiles();
+        
+        for (int i = 0; i < ls.length; i++) {
+            if (ls[i].isDirectory()) {
+                recursiveCopy(ls[i], new File(dest, ls[i].getName()));
+            } else {
+                File newDest = new File(dest, ls[i].getName());
+                FileInputStream fis = new FileInputStream(ls[i]);
+                FileOutputStream fos = new FileOutputStream(newDest);
+                byte[] buff = new byte[1024];
+                int got;
+                while ((got=fis.read(buff))>0) {
+                    fos.write(buff, 0, got);
+                }
+                fis.close();
+                fos.close();
+            }
+        }
+    }
+    
     
 }
