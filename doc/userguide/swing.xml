@@ -230,6 +230,9 @@
             <link linkend="manualrequest">Manual Request</link>
           </listitem>
           <listitem>
+            <link linkend="webservices">Web Services</link>
+          </listitem>
+          <listitem>
             <link linkend="spider">Spider</link>
           </listitem>
           <listitem>
@@ -632,9 +635,7 @@
                 closer to the target). This has not
                 been tested,
                 however. 
-                <emphasis>Note
-                  :
-                </emphasis>
+                <emphasis>Note:</emphasis>
                 Interestingly enough, it <emphasis>
                   IS
                 </emphasis>
@@ -690,6 +691,26 @@
         retrieved, and
         adds them to the "Shared Cookies" list.
       </para>
+    </section>
+    <section id="webservices">
+      <title>The Web Services plugin</title>
+      <para>The Web Services plugin is intended to allow the user 
+      to manually consume a SOAP web service. The plugin automatically 
+      identifies conversations that contain WSDL documents, and
+      presents them in a drop down list for selection.</para>
+      <para>One can also type in the URL manually, which will 
+      result in the plugin retrieving the WSDL. If the WSDL is 
+      not accessible via an HTTP or HTTPS url, the operator can also 
+      access a local copy of the WSDL by simply providing the path to the
+      local copy in the WSDL URL field, and pressing Load.</para>
+      <para>The plugin then presents the available services and 
+      operations, and automatically populates a tree containing
+      the parameters that the service requires.</para>
+      <para>The operator can then press the &quot;Execute&quot; button
+      to submit the request the server, and receive the response.</para>
+      <para>At the moment, the web services plugin is still very immature,
+      and is likely to be buggy. At the very least, this initial implementation
+      only has support for RPC/encoded transports.</para>
     </section>
     <section id="spider">
       <title>The Spider plugin</title>
