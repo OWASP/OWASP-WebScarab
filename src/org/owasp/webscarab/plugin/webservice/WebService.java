@@ -338,18 +338,24 @@ public class WebService implements Plugin {
     }
     
     private Element createElement(Node parent, String variableName, String namespaceURI) {
-        String prefix = _model.getSchema().getPrefix(namespaceURI);
-        if (prefix == null)
-            throw new RuntimeException("No prefix found for " + namespaceURI);
         Document doc;
         if (parent instanceof Document) {
             doc = (Document) parent;
         } else {
             doc = parent.getOwnerDocument();
         }
-        Element element = doc.createElementNS(namespaceURI, prefix + ":" + variableName);
-        parent.appendChild(element);
-        return element;
+        if (namespaceURI != null) {
+            String prefix = _model.getSchema().getPrefix(namespaceURI);
+            if (prefix == null)
+                throw new RuntimeException("No prefix found for " + namespaceURI);
+            Element element = doc.createElementNS(namespaceURI, prefix + ":" + variableName);
+            parent.appendChild(element);
+            return element;
+        } else {
+            Element element = doc.createElement(variableName);
+            parent.appendChild(element);
+            return element;
+        }
     }
     
     private Element createElement(Node parent, String variableName) {

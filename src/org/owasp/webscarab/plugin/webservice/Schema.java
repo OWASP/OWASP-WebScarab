@@ -157,11 +157,14 @@ public class Schema {
     }
     
     public String getPrefix(String namespaceURI) {
+        if (namespaceURI == null) 
+            throw new NullPointerException("NamespaceURI is NULL");
         Iterator it = namespaces.keySet().iterator();
         while (it.hasNext()) {
-            String abbr = (String) it.next();
-            if (namespaceURI.equals(namespaces.get(abbr))) {
-                return abbr;
+            String prefix = (String) it.next();
+            String ns = (String) namespaces.get(prefix);
+            if (ns != null && namespaceURI.equals(ns)) {
+                return prefix;
             }
         }
         int i = 0;

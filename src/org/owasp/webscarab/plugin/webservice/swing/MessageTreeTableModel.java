@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.wsdl.Message;
 import javax.wsdl.Part;
+import javax.xml.namespace.QName;
 import org.owasp.webscarab.plugin.webservice.ArrayValue;
 import org.owasp.webscarab.plugin.webservice.ComplexValue;
 import org.owasp.webscarab.plugin.webservice.Field;
@@ -139,8 +140,14 @@ public class MessageTreeTableModel extends AbstractTreeTableModel {
             } else if (node instanceof Part) {
                 // System.err.println("Node " + node + " : " + ((Part)node).getTypeName());
                 switch (column) {
-                    case 1: return ((Part)node).getTypeName().getLocalPart();
-                    case 2: return Boolean.FALSE;
+                    case 1: 
+                        QName typeName = ((Part)node).getTypeName();
+                        if (typeName != null) {
+                            return typeName.getLocalPart();
+                        } else {
+                            return null;
+                        }
+                    case 2: return null; // Boolean.FALSE; // FIXME, we should present this info!
                     case 3:
                         if (isLeaf(node)) {
                             SimpleValue value = (SimpleValue) getValueForPart((Part)node);

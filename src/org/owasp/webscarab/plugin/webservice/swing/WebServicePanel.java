@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.wsdl.WSDLException;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
@@ -74,6 +76,15 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
                     Preferences.setPreference("WebService.dividerLocation", e.getNewValue().toString());
                 }
             }
+        });
+        wsdlComboBox.getModel().addListDataListener(new ListDataListener() {
+            public void intervalRemoved(ListDataEvent evt) {}
+            public void intervalAdded(ListDataEvent evt) {
+                if (wsdlComboBox.getSelectedIndex() == -1) {
+                    wsdlComboBox.setSelectedIndex(evt.getIndex1());
+                }
+            }
+            public void contentsChanged(ListDataEvent evt) {}
         });
     }
     
@@ -302,8 +313,8 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
             public Object construct() {
                 try {
                     ConversationID id = _plugin.getWSDL(urlTextField.getText());
-                    // FIXME! This is a kluge, we want to wait for the analyse thread in Framework to finish
-                    Thread.currentThread().sleep(500);
+//                    // FIXME! This is a kluge, we want to wait for the analyse thread in Framework to finish
+//                    Thread.currentThread().sleep(500);
                     return id;
                 } catch (Exception e) {
                     return e;
