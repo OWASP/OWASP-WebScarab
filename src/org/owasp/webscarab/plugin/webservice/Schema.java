@@ -105,10 +105,17 @@ public class Schema {
                 Node element = elements.item(i);
                 String fieldName = element.getAttributes().getNamedItem("name").getNodeValue();
                 String fieldType = element.getAttributes().getNamedItem("type").getNodeValue();
-                String namespaceAbbr = fieldType.substring(0, fieldType.indexOf(":"));
-                fieldType = fieldType.substring(fieldType.indexOf(":")+1);
-                String namespace = (String) namespaces.get(namespaceAbbr);
-                QName fieldTypeQName = new QName(namespace, fieldType);
+                // System.err.println("Parsing field " + fieldName + " : " + fieldType);
+                int colon = fieldType.indexOf(":");
+                QName fieldTypeQName;
+                if (colon>-1) {
+                    String prefix = fieldType.substring(0, colon);
+                    fieldType = fieldType.substring(fieldType.indexOf(":")+1);
+                    String namespace = (String) namespaces.get(prefix);
+                    fieldTypeQName = new QName(namespace, fieldType);
+                } else {
+                    fieldTypeQName = new QName(fieldType);
+                }
                 Field field = new Field(fieldName, fieldTypeQName);
                 fields.add(field);
             }

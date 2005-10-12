@@ -92,7 +92,7 @@ public class MessageTreeTableModel extends AbstractTreeTableModel {
             Part part = (Part) obj;
             Type type = _schema.getType(part.getTypeName());
             if (type == null) {
-                System.err.println("no type for " + part.getTypeName());
+                System.err.println("no type for " + part + " : " + part.getTypeName());
                 return 0;
             }
             Field[] fields = type.getFields();
@@ -137,6 +137,7 @@ public class MessageTreeTableModel extends AbstractTreeTableModel {
             if (node instanceof Message) {
                 return null;
             } else if (node instanceof Part) {
+                // System.err.println("Node " + node + " : " + ((Part)node).getTypeName());
                 switch (column) {
                     case 1: return ((Part)node).getTypeName().getLocalPart();
                     case 2: return Boolean.FALSE;

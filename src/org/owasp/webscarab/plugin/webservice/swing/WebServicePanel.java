@@ -32,6 +32,7 @@ import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.JTreeTable;
 import org.owasp.webscarab.util.swing.ListComboBoxModel;
 import org.owasp.webscarab.util.swing.SwingWorker;
+import org.owasp.webscarab.util.swing.TreeUtil;
 import org.owasp.webscarab.util.swing.treetable.DefaultTreeTableModel;
 
 /**
@@ -134,7 +135,7 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel1.add(jLabel1, gridBagConstraints);
 
-        jLabel2.setText("URL : ");
+        jLabel2.setText("WSDL URL : ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -280,6 +281,7 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
             _inputTreeTableModel = new MessageTreeTableModel(_model.getSchema(), operInfo.getInputMessage(), values);
             _inputTreeTable.setModel(_inputTreeTableModel);
             _inputTreeTable.getTree().setCellRenderer(new MessageTreeRenderer());
+            TreeUtil.expandAll(_inputTreeTable.getTree(), true);
         }
     }//GEN-LAST:event_operationComboBoxActionPerformed
     
@@ -299,7 +301,10 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
         new SwingWorker() {
             public Object construct() {
                 try {
-                    return _plugin.getWSDL(urlTextField.getText());
+                    ConversationID id = _plugin.getWSDL(urlTextField.getText());
+                    // FIXME! This is a kluge, we want to wait for the analyse thread in Framework to finish
+                    Thread.currentThread().sleep(500);
+                    return id;
                 } catch (Exception e) {
                     return e;
                 }

@@ -11,6 +11,9 @@
 package org.owasp.webscarab.plugin.webservice;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -104,10 +107,29 @@ public class WebService implements Plugin {
     public ConversationID getWSDL(String url) throws MalformedURLException, IOException, SAXException, WSDLException {
         Request request = new Request();
         request.setMethod("GET");
-        request.setURL(new HttpUrl(url));
         request.setVersion("HTTP/1.0");
-        HTTPClient client = HTTPClientFactory.getInstance().getHTTPClient();
-        Response response = client.fetchResponse(request);
+        Response response;
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            request.setURL(new HttpUrl(url));
+            HTTPClient client = HTTPClientFactory.getInstance().getHTTPClient();
+            response = client.fetchResponse(request);
+        } else {
+            File file = new File(url);
+            String location = "http://manually_provided_wsdl"+file.getAbsolutePath().replaceAll("\\\\", "/").replaceAll(":","|");
+            request.setURL(new HttpUrl(location));
+            FileInputStream fis = new FileInputStream(file);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buff = new byte[2048];
+            int got;
+            while ((got=fis.read(buff))>0) {
+                baos.write(buff,0,got);
+            }
+            response = new Response();
+            response.setVersion("HTTP/1.0");
+            response.setStatus("200 read from " + url);
+            response.setHeader("Content-Type", "text/xml");
+            response.setContent(baos.toByteArray());
+        }
         return _framework.addConversation(request, response, getPluginName());
     }
     
