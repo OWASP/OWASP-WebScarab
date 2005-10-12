@@ -245,10 +245,9 @@ public class TableSorter extends AbstractTableModel {
     public int modelIndex(int viewIndex) {
         Row[] rows = getViewToModel();
         if (viewIndex >= rows.length) {
-            System.err.println("Index row count is " + rows.length + ", looking for item " + viewIndex);
-            System.exit(1);
+            System.err.println("TableSorter: Index row count is " + rows.length + ", looking for item " + viewIndex);
         }
-        return getViewToModel()[viewIndex].modelIndex;
+        return rows[viewIndex].modelIndex;
     }
     
     private int[] getModelToView() {
