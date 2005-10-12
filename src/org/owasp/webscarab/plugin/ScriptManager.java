@@ -89,21 +89,17 @@ public class ScriptManager {
         return hooks[i];
     }
     
-    public void addScript(String plugin, Hook hook, Script script, int position) {
-        try { 
-            String language = BSFManager.getLangFromFilename(script.getFile().getName());
-            if (language != null) {
-                script.setLanguage(language);
-                script.setEnabled(true);
-                hook.addScript(script, position);
-                fireScriptAdded(plugin, hook, script);
-            }
-        } catch (BSFException bsfe) {
-            _logger.warning("Language not supported " + bsfe);
+    public void addScript(String plugin, Hook hook, Script script, int position) throws BSFException {
+        String language = BSFManager.getLangFromFilename(script.getFile().getName());
+        if (language != null) {
+            script.setLanguage(language);
+            script.setEnabled(true);
+            hook.addScript(script, position);
+            fireScriptAdded(plugin, hook, script);
         }
     }
     
-    public void addScript(String plugin, Hook hook, Script script) {
+    public void addScript(String plugin, Hook hook, Script script) throws BSFException {
         addScript(plugin, hook, script, hook.getScriptCount());
     }
     
