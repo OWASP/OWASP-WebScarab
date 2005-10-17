@@ -143,7 +143,7 @@ public class ConversationListModel extends AbstractListModel {
                         }
                     });
                 } catch (Exception e) {
-                    _logger.warning("Exception! " + e);
+                    _logger.warning("Exception! " + e + " : " + e.getStackTrace()[0]);
                 }
             }
         }
@@ -175,7 +175,8 @@ public class ConversationListModel extends AbstractListModel {
                         }
                     });
                 } catch (Exception e) {
-                    _logger.warning("Exception! " + e);
+                    _logger.warning("Exception! " + e + " : " + e.getStackTrace()[0]);
+                    e.printStackTrace();
                 }
             }
         }
