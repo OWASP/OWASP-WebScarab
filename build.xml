@@ -135,7 +135,7 @@
     </target>
     <target depends="init" description="JavaDoc" name="javadoc">
         <mkdir dir="${javadoc.dir}"/>
-        <javadoc classpathref="cpath" destdir="${dist.dir}/doc/" packagenames="*">
+        <javadoc classpathref="cpath" destdir="${javadoc.dir}/" packagenames="*">
             <sourcepath>
                 <pathelement location="${src.dir}"/>
             </sourcepath>
@@ -190,6 +190,7 @@
             <injar name="${basedir}/${jcommonjar}"/>
             <injar name="${basedir}/${chardetjar}"/>
             <injar name="${basedir}/${tagsoupjar}"/>
+            <injar name="${basedir}/${wsdljar}"/>
             <libraryjar name="${basedir}/${jhelpjar}"/>
             <libraryjar name="${java.home}/lib/rt.jar"/>
             <libraryjar name="${java.home}/lib/jsse.jar"/>
@@ -232,10 +233,15 @@
                 excludes="**/.*" 
                 prefix="webscarab-${project.version}/src"
             />
+            <zipfileset 
+                dir="${javadoc.dir}" 
+                excludes="**/.*" 
+                prefix="webscarab-${project.version}/doc/api"
+            />
         </zip>
     </target>
     <target 
-        depends="clean,source,proguard,izpack" 
+        depends="clean,source,javadoc,proguard,izpack" 
         description="Build all distributables" 
         name="dist"
     />
