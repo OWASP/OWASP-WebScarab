@@ -18,6 +18,7 @@ import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.FilteredConversationModel;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.AbstractPluginModel;
@@ -35,6 +36,8 @@ public class WebServiceModel extends AbstractPluginModel {
     private Schema _schema = null;
     
     private ServiceInfo[] _services;
+    
+    private NamedValue[] _extraHeaders = null;
     
     private EventListenerList _listenerList = new EventListenerList();
     
@@ -120,6 +123,14 @@ public class WebServiceModel extends AbstractPluginModel {
     
     public ConversationModel getWSDLConversations() {
         return _wsdlModel;
+    }
+    
+    public void setExtraHeaders(NamedValue[] headers) {
+        _extraHeaders = headers;
+    }
+    
+    public NamedValue[] getExtraHeaders() {
+        return _extraHeaders;
     }
     
     /**

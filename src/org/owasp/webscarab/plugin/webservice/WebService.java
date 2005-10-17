@@ -52,6 +52,7 @@ import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.StoreException;
@@ -104,19 +105,22 @@ public class WebService implements Plugin {
         return _model;
     }
     
-    public ConversationID getWSDL(String url) throws MalformedURLException, IOException, SAXException, WSDLException {
-        Request request = new Request();
-        request.setMethod("GET");
-        request.setVersion("HTTP/1.0");
-        Response response;
-        if (url.startsWith("http://") || url.startsWith("https://")) {
-            request.setURL(new HttpUrl(url));
-            HTTPClient client = HTTPClientFactory.getInstance().getHTTPClient();
-            response = client.fetchResponse(request);
-        } else {
-            File file = new File(url);
-            String location = "http://manually_provided_wsdl"+file.getAbsolutePath().replaceAll("\\\\", "/").replaceAll(":","|");
+    public Definition getWSDL(String location) throws MalformedURLException, IOException, SAXException, WSDLException {
+        if (location.startsWith("http://") || location.startsWith("https://")) {
+            Request request = new Request();
+            request.setMethod("GET");
+            request.setVersion("HTTP/1.0");
             request.setURL(new HttpUrl(location));
+            HTTPClient client = HTTPClientFactory.getInstance().getHTTPClient();
+            Response response = client.fetchResponse(request);
+            byte[] wsdl = response.getContent();
+            Definition definition = parseWSDL(location, parseXML(wsdl));
+            if (definition != null) {
+                _framework.addConversation(request, response, getPluginName());
+            }
+            return definition;
+        } else {
+            File file = new File(location);
             FileInputStream fis = new FileInputStream(file);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] buff = new byte[2048];
@@ -124,13 +128,9 @@ public class WebService implements Plugin {
             while ((got=fis.read(buff))>0) {
                 baos.write(buff,0,got);
             }
-            response = new Response();
-            response.setVersion("HTTP/1.0");
-            response.setStatus("200 read from " + url);
-            response.setHeader("Content-Type", "text/xml");
-            response.setContent(baos.toByteArray());
+            Definition definition = parseWSDL(file.toURI().toString(), parseXML(baos.toByteArray()));
+            return definition;
         }
-        return _framework.addConversation(request, response, getPluginName());
     }
     
     public void analyse(ConversationID id, Request request, Response response, String origin) {
@@ -139,9 +139,8 @@ public class WebService implements Plugin {
             byte[] content = response.getContent();
             if (content == null || content.length == 0)
                 return;
-            InputStream is = new ByteArrayInputStream(content);
             try {
-                Document doc = parseXML(is);
+                Document doc = parseXML(content);
                 parseWSDL(request.getURL().toString(), doc);
                 _model.setWSDLResponse(id);
             } catch (Exception ignored) {
@@ -192,30 +191,30 @@ public class WebService implements Plugin {
         return true;
     }
     
-    public void selectWSDL(ConversationID id) throws WSDLException {
+    public Definition getDefinition(ConversationID id) throws WSDLException, SAXException {
         String url = _model.getURL(id).toString();
         byte[] wsdl = _model.getWSDL(id);
         if (wsdl != null) {
-            try {
-                Document doc = parseXML(new ByteArrayInputStream(wsdl));
-                _model.setDefinition(parseWSDL(url, doc));
-                Schema schema = createSchemaFromTypes(_model.getDefinition());
-                if (schema != null) {
-                    // must do this before setServices, since setServices triggers
-                    // the UI to read the schema
-                    _model.setSchema(schema);
-                    ServiceInfo[] services = buildComponents(_model.getDefinition());
-                    _model.setServices(services);
-                } else {
-                    _logger.warning("Can't proceed with an empty schema!");
-                    _model.setDefinition(null);
-                    _model.setSchema(null);
-                    _model.setServices(null);
-                }
-            } catch (IOException impossible) {
-            } catch (SAXException se) {
-                se.printStackTrace();
-            }
+            Document doc = parseXML(wsdl);
+            return parseWSDL(url, doc);
+        }
+        return null;
+    }
+    
+    public void selectWSDL(Definition definition) throws WSDLException {
+        _model.setDefinition(definition);
+        Schema schema = createSchemaFromTypes(_model.getDefinition());
+        if (schema != null) {
+            // must do this before setServices, since setServices triggers
+            // the UI to read the schema
+            _model.setSchema(schema);
+            ServiceInfo[] services = buildComponents(_model.getDefinition());
+            _model.setServices(services);
+        } else {
+            _logger.warning("Can't proceed with an empty schema!");
+            _model.setDefinition(null);
+            _model.setSchema(null);
+            _model.setServices(null);
         }
     }
     
@@ -270,27 +269,34 @@ public class WebService implements Plugin {
     }
     
     public Response invokeOperation(OperationInfo operation, Value[] values) throws MalformedURLException, IOException {
-            Request request = new Request();
-            request.setMethod("POST");
-            HttpUrl targetUrl = new HttpUrl(operation.getTargetURL());
-            request.setURL(targetUrl);
-            request.setVersion("HTTP/1.0");
-            request.addHeader("Accept","application/soap+xml, application/dime, multipart/related, text/*");
-            request.addHeader("Host", targetUrl.getHost() + ":" + targetUrl.getPort());
-            request.addHeader("Content-Type", "text/xml; charset=utf-8");
-            request.addHeader("SOAPAction", "\""+operation.getSoapActionURI()+"\"");
-            Document doc = constructMessageDocument(operation, values);
-            StringWriter sw = new StringWriter();
-            new DOMWriter().write(sw, doc);
-            String body = sw.toString();
-            request.addHeader("Content-Length", String.valueOf(body.length()));
-            request.setContent(body.getBytes());
-            HTTPClient client = HTTPClientFactory.getInstance().getHTTPClient();
-            Response response = client.fetchResponse(request);
-            if (response != null) {
-                _framework.addConversation(request, response, getPluginName());
+        Request request = new Request();
+        request.setMethod("POST");
+        HttpUrl targetUrl = new HttpUrl(operation.getTargetURL());
+        request.setURL(targetUrl);
+        request.setVersion("HTTP/1.0");
+        request.addHeader("Accept","application/soap+xml, application/dime, multipart/related, text/*");
+        request.addHeader("Host", targetUrl.getHost() + ":" + targetUrl.getPort());
+        request.addHeader("Content-Type", "text/xml; charset=utf-8");
+        request.addHeader("SOAPAction", "\""+operation.getSoapActionURI()+"\"");
+        NamedValue[] headers = _model.getExtraHeaders();
+        if (headers != null && headers.length > 0) {
+            for (int i=0; i< headers.length; i++) {
+                if (headers[i] != null)
+                    request.addHeader(headers[i]);
             }
-            return response;
+        }
+        Document doc = constructMessageDocument(operation, values);
+        StringWriter sw = new StringWriter();
+        new DOMWriter().write(sw, doc);
+        String body = sw.toString();
+        request.addHeader("Content-Length", String.valueOf(body.length()));
+        request.setContent(body.getBytes());
+        HTTPClient client = HTTPClientFactory.getInstance().getHTTPClient();
+        Response response = client.fetchResponse(request);
+        if (response != null) {
+            _framework.addConversation(request, response, getPluginName());
+        }
+        return response;
     }
     
     private Document constructMessageDocument(OperationInfo operation, Value[] values) {
@@ -445,18 +451,20 @@ public class WebService implements Plugin {
         text.setNodeValue(s);
     }
     
-    private Document parseXML(InputStream is) throws IOException, SAXException {
+    private Document parseXML(byte[] xml) throws SAXException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setValidating(false);
         factory.setNamespaceAware(true);
         try {
+            InputSource src = new InputSource(new ByteArrayInputStream(xml));
             DocumentBuilder builder = factory.newDocumentBuilder();
             builder.setErrorHandler(new XMLErrorHandler());
-            Document document = builder.parse(is);
+            Document document = builder.parse(src);
             return document;
         } catch (ParserConfigurationException pce) {
             // Parser with specified options can't be built
             pce.printStackTrace();
+        } catch (IOException impossible) {
         }
         return null;
     }

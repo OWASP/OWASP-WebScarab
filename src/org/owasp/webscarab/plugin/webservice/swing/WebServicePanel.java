@@ -15,6 +15,7 @@ import javax.swing.Action;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import javax.wsdl.Definition;
 import javax.wsdl.WSDLException;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
@@ -28,6 +29,7 @@ import org.owasp.webscarab.plugin.webservice.WebServiceListener;
 import org.owasp.webscarab.plugin.webservice.WebServiceModel;
 import org.owasp.webscarab.ui.swing.ConversationListModel;
 import org.owasp.webscarab.ui.swing.ConversationRenderer;
+import org.owasp.webscarab.ui.swing.HeaderPanel;
 import org.owasp.webscarab.ui.swing.ResponsePanel;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
@@ -49,11 +51,17 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
     private JTreeTable _inputTreeTable;
     private MessageTreeTableModel _inputTreeTableModel = null;
     
+    private HeaderPanel _hp;
+    
     private Logger _logger = Logger.getLogger(getClass().toString());
     
     /** Creates new form WebServicePanel */
     public WebServicePanel(WebService plugin) {
         initComponents();
+        
+        _hp  = new HeaderPanel();
+        _hp.setEditable(true);
+        
         _responsePanel = new ResponsePanel();
         splitPane.setBottomComponent(_responsePanel);
         _plugin = plugin;
@@ -80,7 +88,7 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
         wsdlComboBox.getModel().addListDataListener(new ListDataListener() {
             public void intervalRemoved(ListDataEvent evt) {}
             public void intervalAdded(ListDataEvent evt) {
-                if (wsdlComboBox.getSelectedIndex() == -1) {
+                if (wsdlComboBox.getSelectedIndex() == -1 && wsdlComboBox.getModel().getSize() > 0) {
                     wsdlComboBox.setSelectedIndex(evt.getIndex1());
                 }
             }
@@ -133,6 +141,8 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
         urlTextField = new javax.swing.JTextField();
         splitPane = new javax.swing.JSplitPane();
         requestScrollPane = new javax.swing.JScrollPane();
+        jPanel2 = new javax.swing.JPanel();
+        headerButton = new javax.swing.JButton();
         executeButton = new javax.swing.JButton();
 
         setLayout(new java.awt.BorderLayout());
@@ -242,6 +252,15 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
 
         add(splitPane, java.awt.BorderLayout.CENTER);
 
+        headerButton.setText("Headers");
+        headerButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                headerButtonActionPerformed(evt);
+            }
+        });
+
+        jPanel2.add(headerButton);
+
         executeButton.setText("Execute");
         executeButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -249,10 +268,18 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
             }
         });
 
-        add(executeButton, java.awt.BorderLayout.SOUTH);
+        jPanel2.add(executeButton);
+
+        add(jPanel2, java.awt.BorderLayout.SOUTH);
 
     }
     // </editor-fold>//GEN-END:initComponents
+
+    private void headerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_headerButtonActionPerformed
+        _hp.setHeaders(_model.getExtraHeaders());
+        JOptionPane.showMessageDialog(this, _hp, "Spider Extra Headers", JOptionPane.PLAIN_MESSAGE);
+        _model.setExtraHeaders(_hp.getHeaders());
+    }//GEN-LAST:event_headerButtonActionPerformed
     
     private void executeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_executeButtonActionPerformed
         _responsePanel.setResponse(null);
@@ -312,10 +339,9 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
         new SwingWorker() {
             public Object construct() {
                 try {
-                    ConversationID id = _plugin.getWSDL(urlTextField.getText());
-//                    // FIXME! This is a kluge, we want to wait for the analyse thread in Framework to finish
-//                    Thread.currentThread().sleep(500);
-                    return id;
+                    Definition definition = _plugin.getWSDL(urlTextField.getText());
+                    _plugin.selectWSDL(definition);
+                    return null;
                 } catch (Exception e) {
                     return e;
                 }
@@ -324,10 +350,7 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
             //Runs on the event-dispatching thread.
             public void finished() {
                 Object obj = getValue();
-                if (obj != null && obj instanceof ConversationID) {
-                    ConversationID id = (ConversationID) obj;
-                    wsdlComboBox.setSelectedItem(id);
-                } else {
+                if (obj != null && obj instanceof Exception) {
                     JOptionPane.showMessageDialog(null, new String[] {"Error fetching WSDL: ", obj.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
                     _logger.severe("Exception fetching WSDL: " + obj);
                 }
@@ -344,21 +367,22 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
         ConversationID id = (ConversationID) wsdlComboBox.getSelectedItem();
         if (id != null) {
             try {
-                _plugin.selectWSDL(id);
-            } catch (WSDLException w) {
-                JOptionPane.showMessageDialog(null, new String[] {"Error parsing WSDL : ", w.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+                _plugin.selectWSDL(_plugin.getDefinition(id));
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, new String[] {"Error parsing WSDL : ", e.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }//GEN-LAST:event_wsdlComboBoxActionPerformed
     
-    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton executeButton;
+    private javax.swing.JButton headerButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JButton loadButton;
     private javax.swing.JComboBox operationComboBox;
     private javax.swing.JScrollPane requestScrollPane;
