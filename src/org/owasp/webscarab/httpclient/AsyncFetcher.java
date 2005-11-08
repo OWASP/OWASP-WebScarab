@@ -39,6 +39,8 @@
 
 package org.owasp.webscarab.httpclient;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
@@ -54,32 +56,35 @@ public class AsyncFetcher {
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
-    private Fetcher[] _fetchers;
-    private boolean[] _pending;
+    private List _fetchers = new ArrayList();
     
     public AsyncFetcher(String basename, int threads) {
-        _fetchers = new Fetcher[threads];
-        _pending = new boolean[threads];
         for (int i=0; i<threads; i++) {
-            _fetchers[i] = new Fetcher(basename + "-" + i);
-            _fetchers[i].start();
-            _pending[i] = false;
+            _fetchers.add(new Fetcher(basename + "-" + i));
+            fetcher(i).start();
         }
         // give the threads a chance to start, and wait()
         Thread.yield();
     }
     
+    private Fetcher fetcher(int i) {
+        return (Fetcher) _fetchers.get(i);
+    }
+    
     public boolean hasCapacity() {
-        for (int i=0; i<_fetchers.length; i++) {
-            if (_fetchers[i].hasCapacity()) return true;
+        for (int i=0; i<_fetchers.size(); i++) {
+            if (fetcher(i).hasCapacity()) return true;
         }
         return false;
     }
     
     public boolean submit(Request request) {
-        for (int i=0; i<_fetchers.length; i++) {
-            if (_fetchers[i].hasCapacity()) {
-                _fetchers[i].submit(request);
+        for (int i=0; i<_fetchers.size(); i++) {
+            if (fetcher(i).hasCapacity()) {
+                // we push fetchers that have a request to the end of the list
+                Fetcher f = (Fetcher) _fetchers.remove(i);
+                f.submit(request);
+                _fetchers.add(f);
                 return true;
             }
         }
@@ -87,16 +92,16 @@ public class AsyncFetcher {
     }
     
     public boolean hasResponse() {
-        for (int i=0; i<_fetchers.length; i++) {
-            if (_fetchers[i].hasResponse()) return true;
+        for (int i=0; i<_fetchers.size(); i++) {
+            if (fetcher(i).hasResponse()) return true;
         }
         return false;
     }
     
     public Response receive() throws IOException {
-        for (int i=0; i<_fetchers.length; i++) {
-            if (_fetchers[i].hasResponse()) {
-                return _fetchers[i].receive();
+        for (int i=0; i<_fetchers.size(); i++) {
+            if (fetcher(i).hasResponse()) {
+                return fetcher(i).receive();
             }
         }
         _logger.info("receive called, but no response available");
@@ -104,15 +109,15 @@ public class AsyncFetcher {
     }
     
     public boolean isBusy() {
-        for (int i=0; i<_fetchers.length; i++) {
-            if (_fetchers[i].isBusy()) return true;
+        for (int i=0; i<_fetchers.size(); i++) {
+            if (fetcher(i).isBusy()) return true;
         }
         return false;
     }
     
     public void stop() {
-        for (int i=0; i<_fetchers.length; i++) {
-            _fetchers[i].interrupt();
+        for (int i=0; i<_fetchers.size(); i++) {
+            fetcher(i).interrupt();
         }
     }
     
