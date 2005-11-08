@@ -281,8 +281,6 @@ public class UIFramework extends JFrame implements FrameworkUI {
      */
     // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
     private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
-
         logLevelButtonGroup = new javax.swing.ButtonGroup();
         summaryInternalFrame = new javax.swing.JInternalFrame();
         logInternalFrame = new javax.swing.JInternalFrame();
@@ -555,8 +553,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     
     private void saveMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveMenuItemActionPerformed
         if (_tempDir != null) {
-            String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
-            JFileChooser jfc = new JFileChooser(defaultDir);
+            JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDir"));
             jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             jfc.setDialogTitle("Select a directory to write the session into");
             int returnVal = jfc.showOpenDialog(this);
@@ -593,7 +590,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
                         }
                     }.start();
                 }
-                Preferences.setPreference("WebScarab.defaultDirectory", jfc.getCurrentDirectory().toString());
+                Preferences.setPreference("WebScarab.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
             }
         } else {
             try {
@@ -657,8 +654,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     }
     
     private void openExistingSession() {
-        String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
-        JFileChooser jfc = new JFileChooser(defaultDir);
+        JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDir"));
         jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         jfc.setDialogTitle("Choose a directory that contains a previous session");
         int returnVal = jfc.showOpenDialog(this);
@@ -670,7 +666,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
             } else {
                 loadSession(dir);
             }
-            Preferences.setPreference("WebScarab.defaultDirectory", jfc.getCurrentDirectory().toString());
+            Preferences.setPreference("WebScarab.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
         }
     }
     
@@ -688,8 +684,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     }
     
     private void createNewSession() {
-        String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
-        JFileChooser jfc = new JFileChooser(defaultDir);
+        JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDir"));
         jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         jfc.setDialogTitle("Select a directory to write the session into");
         int returnVal = jfc.showOpenDialog(this);
@@ -701,7 +696,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
             } else {
                 loadSession(dir);
             }
-            Preferences.setPreference("WebScarab.defaultDirectory", jfc.getCurrentDirectory().toString());
+            Preferences.setPreference("WebScarab.defaultDirectory", jfc.getCurrentDirectory().getAbsolutePath());
         }
     }
     

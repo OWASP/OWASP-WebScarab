@@ -7,6 +7,7 @@
 package org.owasp.webscarab.ui.swing;
 
 import org.apache.bsf.BSFException;
+import org.owasp.webscarab.model.Preferences;
 
 import org.owasp.webscarab.plugin.Hook;
 import org.owasp.webscarab.plugin.Script;
@@ -44,8 +45,6 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
     private Script _script = null;
     private JTreeTable _hookTree;
     private HookScriptTreeModel _treeModel;
-    
-    private File _dir = null;
     
     /** Creates new form ScriptManagerFrame */
     public ScriptManagerFrame(ScriptManager manager) {
@@ -317,7 +316,7 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
         } else {
             return;
         }
-        JFileChooser jfc = new JFileChooser(_dir);
+        JFileChooser jfc = new JFileChooser(Preferences.getPreference("ScriptManager.DefaultDir"));
         jfc.setDialogTitle("Load script");
         int returnVal = jfc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -329,6 +328,7 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
                 JOptionPane.showMessageDialog(null, new String[] {"Error loading Script : ", e.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
+        Preferences.setPreference("ScriptManager.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
     }//GEN-LAST:event_addButtonActionPerformed
     
     /** Exit the Application */

@@ -99,8 +99,7 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, Event.CTRL_MASK), "Load");
         getActionMap().put("Save", new AbstractAction() {
             public void actionPerformed(ActionEvent evt) {
-                String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
-                JFileChooser jfc = new JFileChooser(defaultDir);
+                JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDir"));
                 jfc.setDialogTitle("Select a file to write the message content to");
                 int returnVal = jfc.showOpenDialog(HexPanel.this);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -112,13 +111,13 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
                         JOptionPane.showMessageDialog(HexPanel.this, "Error writing file: " + ioe.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
+                Preferences.setPreference("WebScarab.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
             }
         });
         getActionMap().put("Load", new AbstractAction() {
             public void actionPerformed(ActionEvent evt) {
                 if (!_editable) return;
-                String defaultDir = Preferences.getPreference("WebScarab.defaultDirectory", null);
-                JFileChooser jfc = new JFileChooser(defaultDir);
+                JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDir"));
                 jfc.setDialogTitle("Select a file to read the message content from");
                 int returnVal = jfc.showOpenDialog(HexPanel.this);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -139,6 +138,7 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
                         JOptionPane.showMessageDialog(HexPanel.this, "Error writing file: " + ioe.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
+                Preferences.setPreference("WebScarab.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
             }
         });
     }
