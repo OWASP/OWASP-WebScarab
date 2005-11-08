@@ -107,7 +107,7 @@ public class SummaryPanel extends JPanel {
         initTable();
         addTableListeners();
         addConversationActions(new Action[] {
-            new ShowConversationAction(_model.getConversationModel())
+            new ShowConversationAction(_conversationModel)
         });
     }
     
@@ -207,7 +207,7 @@ public class SummaryPanel extends JPanel {
     }
     
     private void initTable() {
-        _conversationTableModel = new ConversationTableModel(_model.getConversationModel());
+        _conversationTableModel = new ConversationTableModel(_conversationModel);
         ColumnWidthTracker.getTracker("ConversationTable").addTable(conversationTable);
         
         TableSorter ts = new TableSorter(_conversationTableModel, conversationTable.getTableHeader());
