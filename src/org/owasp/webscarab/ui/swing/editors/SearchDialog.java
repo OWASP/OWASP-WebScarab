@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -39,7 +39,12 @@
 
 package org.owasp.webscarab.ui.swing.editors;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.text.JTextComponent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -52,7 +57,7 @@ import java.awt.event.KeyEvent;
  * @author  rdawes
  */
 public class SearchDialog extends javax.swing.JDialog {
-
+    
     private JTextComponent _textComponent = null;
     
     /** Creates new form SearchDialog */
@@ -73,6 +78,19 @@ public class SearchDialog extends javax.swing.JDialog {
         if (selection != null) {
             findTextField.setText(selection);
         }
+        addWindowListener(new WindowAdapter() {
+            public void windowActivated(WindowEvent evt) {
+                findTextField.requestFocus();
+            }
+        });
+        KeyStroke escapeKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
+        Action escapeAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                setVisible( false );
+            }
+        };
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escapeKeyStroke, "ESCAPE");
+        getRootPane().getActionMap().put("ESCAPE", escapeAction);
         getRootPane().setDefaultButton(searchButton);
     }
     
@@ -98,7 +116,7 @@ public class SearchDialog extends javax.swing.JDialog {
             } else {
                 System.err.println("'" + searchText + "' not found!");
                 _textComponent.setCaretPosition(caret);
-            }                
+            }
         }
     }
     
@@ -248,18 +266,19 @@ public class SearchDialog extends javax.swing.JDialog {
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(buttonPanel, gridBagConstraints);
 
-        pack();
+        java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        setBounds((screenSize.width-400)/2, (screenSize.height-120)/2, 400, 120);
     }
     // </editor-fold>//GEN-END:initComponents
-
+    
     private void replaceTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_replaceTextFieldActionPerformed
         doReplace();
     }//GEN-LAST:event_replaceTextFieldActionPerformed
-
+    
     private void findTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_findTextFieldActionPerformed
         doSearch();
     }//GEN-LAST:event_findTextFieldActionPerformed
-
+    
     private void replaceButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_replaceButtonActionPerformed
         doReplace();
     }//GEN-LAST:event_replaceButtonActionPerformed
@@ -285,7 +304,7 @@ public class SearchDialog extends javax.swing.JDialog {
         text.setEditable(true);
         new SearchDialog(new javax.swing.JFrame(), text).show();
     }
-        
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel buttonPanel;
     private javax.swing.JButton closeButton;
