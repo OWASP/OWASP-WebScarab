@@ -116,6 +116,10 @@ public class FileSystemStore implements SessionIDStore {
         return insert;
     }
     
+    public void clearSessionIDs(String key) {
+        _sessionIDs.remove(key);
+    }
+    
     public int getSessionIDNameCount() {
         return _sessionIDs.size();
     }

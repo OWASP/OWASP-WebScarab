@@ -49,6 +49,8 @@ public interface SessionIDStore {
     
     int addSessionID(String key, SessionID id);
     
+    void clearSessionIDs(String key);
+    
     int getSessionIDNameCount();
     
     String getSessionIDName(int index);

@@ -88,6 +88,13 @@ public class SessionIDModel extends AbstractPluginModel {
         if (changed) fireCalculatorChanged(key);
     }
     
+    public void clearSessionIDs(String key) {
+        setModified(true);
+        _store.clearSessionIDs(key);
+        _calculators.remove(key);
+        fireSessionIDsChanged();
+    }
+    
     public int getSessionIDNameCount() {
         if (_store == null) return 0;
         return _store.getSessionIDNameCount();

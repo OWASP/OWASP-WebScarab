@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -79,9 +79,9 @@ public class ListComboBoxModel extends AbstractListModel implements ComboBoxMode
     
     public void setSelectedItem(Object anItem) {
         if (_selected == null && anItem == null) return;
-        if (_selected == null && anItem != null || 
-            _selected != null && anItem == null ||
-            ! _selected.equals(anItem)) {
+        if (_selected == null && anItem != null ||
+                _selected != null && anItem == null ||
+                ! _selected.equals(anItem)) {
             _selected = anItem;
             fireContentsChanged(this, -1, -1);
         }
@@ -92,6 +92,7 @@ public class ListComboBoxModel extends AbstractListModel implements ComboBoxMode
         
         public void contentsChanged(ListDataEvent e) {
             fireContentsChanged(ListComboBoxModel.this, e.getIndex0(), e.getIndex1());
+            setSelectedItem(null);
         }
         
         public void intervalAdded(ListDataEvent e) {
@@ -100,7 +101,72 @@ public class ListComboBoxModel extends AbstractListModel implements ComboBoxMode
         
         public void intervalRemoved(ListDataEvent e) {
             fireIntervalRemoved(ListComboBoxModel.this, e.getIndex0(), e.getIndex1());
+            // we should notify listeners if the selected item has been removed
+            if (_selected == null) return;
+            int size = getSize();
+            for (int i=0; i<size; i++) {
+                Object item = getElementAt(i);
+                if (item != null && item.equals(_selected)) return;
+            }
+            // we haven't found it, it's been removed
+            setSelectedItem(null);
         }
         
     }
+    
+    public static void main(String[] argList) {
+        javax.swing.JFrame top = new javax.swing.JFrame("ListComboBoxTest");
+        final javax.swing.DefaultListModel dlm = new javax.swing.DefaultListModel();
+        final ListComboBoxModel lcbm = new ListComboBoxModel(dlm);
+        lcbm.addListDataListener(new ListDataListener() {
+            public void intervalRemoved(ListDataEvent evt) {
+                System.err.println("Interval Removed : " + evt);
+            }
+            public void intervalAdded(ListDataEvent evt) {
+                System.err.println("Interval Added : " + evt);
+            }
+            public void contentsChanged(ListDataEvent evt) {
+                System.err.println("ContentsChanged: " + evt);
+            }
+        });
+        dlm.addElement("a");
+        dlm.addElement("b");
+        dlm.addElement("c");
+        dlm.addElement("d");
+        javax.swing.JComboBox jcb = new javax.swing.JComboBox(lcbm);
+        jcb.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                System.err.println("Event : " + evt.paramString());
+            }
+        });
+        top.getContentPane().setLayout(new java.awt.BorderLayout());
+        top.addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                System.exit(0);
+            }
+        });
+        top.getContentPane().add(jcb, java.awt.BorderLayout.NORTH);
+        javax.swing.JButton clear = new javax.swing.JButton("CLEAR");
+        top.getContentPane().add(clear, java.awt.BorderLayout.SOUTH);
+        clear.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dlm.clear();
+                System.err.println("DLM size = " + dlm.size());
+                System.err.println("Selected item = " + lcbm.getSelectedItem());
+            }
+        });
+        javax.swing.JButton select = new javax.swing.JButton("SELECT");
+        top.getContentPane().add(select, java.awt.BorderLayout.WEST);
+        select.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                lcbm.setSelectedItem(lcbm.getElementAt(0));
+                System.err.println("Selected " + lcbm.getSelectedItem());
+            }
+        });
+        // top.setBounds(100,100,600,400);
+        top.pack();
+        top.show();
+        
+    }
+    
 }

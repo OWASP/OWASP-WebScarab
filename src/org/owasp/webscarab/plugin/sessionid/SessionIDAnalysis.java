@@ -39,6 +39,8 @@
 
 package org.owasp.webscarab.plugin.sessionid;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import org.owasp.webscarab.httpclient.AsyncFetcher;
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
@@ -331,6 +333,26 @@ public class SessionIDAnalysis implements Plugin {
     
     public Hook[] getScriptingHooks() {
         return new Hook[0];
+    }
+    
+    public void clearSessionIDs(String key) {
+        _model.clearSessionIDs(key);
+    }
+    
+    public void exportIDSToCSV(String key, File file) throws IOException {
+        int count = _model.getSessionIDCount(key);
+        if (count == 0) return;
+        BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+        StringBuffer buff = new StringBuffer();
+        for (int i=0; i<count; i++) {
+            SessionID id = _model.getSessionIDAt(key, i);
+            buff.append(id.getDate().getTime());
+            buff.append(",").append(_model.getSessionIDValue(key, id));
+            buff.append(",").append(id.getValue()).append("\n");
+            bw.write(buff.toString().toCharArray());
+            buff.delete(0, buff.length());
+        }
+        bw.close();
     }
     
 }
