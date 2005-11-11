@@ -176,7 +176,7 @@ public class FrameworkModel {
      */
     public ConversationID addConversation(Request request, Response response, String origin) {
         ConversationID id = reserveConversationID();
-        addConversation(id, request, response, origin);
+        addConversation(id, new Date(System.currentTimeMillis()), request, response, origin);
         return id;
     }
     
@@ -188,16 +188,13 @@ public class FrameworkModel {
      * @param response the response from the server
      * @param origin the plugin that created this conversation
      */
-    public void addConversation(ConversationID id, Request request, Response response, String origin) {
+    public void addConversation(ConversationID id, Date when, Request request, Response response, String origin) {
         try {
             HttpUrl url = request.getURL();
             addUrl(url); // fires appropriate events
             _rwl.writeLock().acquire();
-            _store.setRequest(id, request);
-            _store.setResponse(id, response);
-            int index = _store.addConversation(id, request.getMethod(), url, response.getStatusLine());
+            int index = _store.addConversation(id, when, request, response);
             _store.setConversationProperty(id, "ORIGIN", origin);
-            _store.setConversationProperty(id, "WHEN", Long.toString(System.currentTimeMillis()));
             _rwl.readLock().acquire();
             _rwl.writeLock().release();
             _conversationModel.fireConversationAdded(id, index); // FIXME

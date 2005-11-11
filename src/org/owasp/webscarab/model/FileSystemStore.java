@@ -229,20 +229,21 @@ public class FileSystemStore implements SiteModelStore {
     /**
      * adds a new conversation
      * @param id the id of the new conversation
-     * @param method the method used in the request
-     * @param url the url, excluding any fragment or query parts
-     * @param fragment any fragment, or null if none
-     * @param query any query, or null if none
-     * @param status the status line of the response
+     * @param when the date the conversation was created
+     * @param request the request to add
+     * @param response the response to add
      */
-    public int addConversation(ConversationID id, String method, HttpUrl url, String status) {
+    public int addConversation(ConversationID id, Date when, Request request, Response response) {
+        setRequest(id, request);
+        setResponse(id, response);
         Map map = new HashMap();
-        map.put("METHOD", method);
-        map.put("URL", url.toString());
-        map.put("STATUS", status);
         _conversationProperties.put(id, map);
+        setConversationProperty(id, "METHOD", request.getMethod());
+        setConversationProperty(id, "URL", request.getURL().toString());
+        setConversationProperty(id, "STATUS", response.getStatusLine());
+        setConversationProperty(id, "WHEN", Long.toString(when.getTime()));
         
-        addConversationForUrl(url, id);
+        addConversationForUrl(request.getURL(), id);
         int index = Collections.binarySearch(_conversations, id);
         if (index<0) {
             index = -index -1;

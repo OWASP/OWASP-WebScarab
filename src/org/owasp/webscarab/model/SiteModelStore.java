@@ -39,6 +39,8 @@
 
 package org.owasp.webscarab.model;
 
+import java.util.Date;
+
 /**
  * This interface defines the necessary functions for a persistent or non-persistent
  * backing store.
@@ -49,11 +51,11 @@ public interface SiteModelStore {
     /**
      * adds a new conversation
      * @param id the id of the new conversation
-     * @param method the method used in the request
-     * @param url the url
-     * @param status the status line of the response
+     * @param when the date the conversation was created
+     * @param request the request to add
+     * @param response the response to add
      */    
-    int addConversation(ConversationID id, String method, HttpUrl url, String status);
+    int addConversation(ConversationID id, Date when, Request request, Response response);
     
     /**
      * sets a value for a property, for a specific conversation
