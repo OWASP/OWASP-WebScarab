@@ -59,4 +59,9 @@ public class StoreException extends java.lang.Exception {
     public StoreException(String msg) {
         super(msg);
     }
+    
+    public StoreException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
+    
 }
