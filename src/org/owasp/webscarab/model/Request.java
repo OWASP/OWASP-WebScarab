@@ -61,6 +61,8 @@ public class Request extends Message {
     /** Creates a new instance of Request */
     public Request() {
         _logger.setLevel(Level.INFO);
+        setMethod("GET");
+        setVersion("HTTP/1.0");
     }
     
     /**
