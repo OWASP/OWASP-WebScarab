@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
@@ -302,10 +303,14 @@ public class Framework {
     }
     
     public void addConversation(ConversationID id, Request request, Response response, String origin) {
+        addConversation(id, new Date(), request, response, origin);
+    }
+    
+    public void addConversation(ConversationID id, Date when, Request request, Response response, String origin) {
         ScriptableConversation conversation = new ScriptableConversation(request, response, origin);
         _allowAddConversation.runScripts(conversation);
         if (conversation.isCancelled()) return;
-        _model.addConversation(id, request, response, origin);
+        _model.addConversation(id, when, request, response, origin);
         if (!conversation.shouldAnalyse()) return;
         synchronized(_analysisQueue) {
             _analysisQueue.add(id);
@@ -314,7 +319,7 @@ public class Framework {
     
     public ConversationID addConversation(Request request, Response response, String origin) {
         ConversationID id = reserveConversationID();
-        addConversation(id, request, response, origin);
+        addConversation(id, new Date(), request, response, origin);
         return id;
     }
     
