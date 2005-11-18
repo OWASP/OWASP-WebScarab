@@ -169,20 +169,6 @@ public class FrameworkModel {
     /**
      * adds a request and a response to the model, also specifying which plugin caused
      * it.
-     * @param request the request
-     * @param response the response from the server
-     * @param origin the plugin that created this conversation
-     * @return the ConversationID that identifies this conversation
-     */
-    public ConversationID addConversation(Request request, Response response, String origin) {
-        ConversationID id = reserveConversationID();
-        addConversation(id, new Date(System.currentTimeMillis()), request, response, origin);
-        return id;
-    }
-    
-    /**
-     * adds a request and a response to the model, also specifying which plugin caused
-     * it.
      * @param id the previously reserved ConversationID that identifies this conversation
      * @param request the request
      * @param response the response from the server
