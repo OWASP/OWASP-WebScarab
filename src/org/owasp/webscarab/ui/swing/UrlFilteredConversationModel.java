@@ -37,7 +37,6 @@ public class UrlFilteredConversationModel extends FilteredConversationModel {
         } else if (_url == null && url != null || _url != null && url == null || !_url.equals(url)) {
             _url = url;
             updateConversations();
-            fireConversationsChanged();
         }
     }
     

@@ -38,9 +38,9 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
     }
     
     protected void updateConversations() {
-        _conversations.clear();
         try {
-            _rwl.readLock().acquire();
+            _rwl.writeLock().acquire();
+            _conversations.clear();
             int count = _model.getConversationCount();
             for (int i=0 ; i<count; i++) {
                 ConversationID id = _model.getConversationAt(i);
@@ -48,10 +48,12 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
                     _conversations.add(id);
                 }
             }
-        } catch (InterruptedException ie) {
-            //            _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
-        } finally {
+            _rwl.readLock().acquire();
+            _rwl.writeLock().release();
+            fireConversationsChanged();
             _rwl.readLock().release();
+        } catch (InterruptedException ie) {
+            // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
         }
     }
     
@@ -182,16 +184,7 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
         }
         
         public void conversationsChanged() {
-            try {
-                _rwl.writeLock().acquire();
-                updateConversations();
-                _rwl.readLock().acquire();
-                _rwl.writeLock().release();
-                fireConversationsChanged();
-                _rwl.readLock().release();
-            } catch (InterruptedException ie) {
-                // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
-            }
+            updateConversations();
         }
         
     }
