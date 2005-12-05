@@ -55,6 +55,8 @@ import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.Preferences;
 
 import org.owasp.webscarab.plugin.Framework;
+import org.owasp.webscarab.plugin.extensions.Extensions;
+import org.owasp.webscarab.plugin.extensions.swing.ExtensionsPanel;
 
 import org.owasp.webscarab.plugin.fragments.Fragments;
 import org.owasp.webscarab.plugin.fragments.swing.FragmentsPanel;
@@ -207,6 +209,11 @@ public class Main {
         _framework.addPlugin(search);
         SearchPanel searchPanel = new SearchPanel(search);
         _uif.addPlugin(searchPanel);
+        
+        Extensions extensions = new Extensions(_framework);
+        _framework.addPlugin(extensions);
+        ExtensionsPanel extensionsPanel = new ExtensionsPanel(extensions);
+        _uif.addPlugin(extensionsPanel);
     }
     
     public static void loadProxyPlugins(Proxy proxy, ProxyPanel proxyPanel) {

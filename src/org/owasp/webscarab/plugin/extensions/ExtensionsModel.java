@@ -10,6 +10,7 @@
 
 package org.owasp.webscarab.plugin.extensions;
 
+import java.util.logging.Logger;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.FilteredConversationModel;
@@ -30,6 +31,11 @@ public class ExtensionsModel extends AbstractPluginModel {
     private ConversationModel _conversationModel;
     private UrlModel _urlModel;
     
+    private String[] _directoryExtensions = { ".zip", ".arj", ".tar", ".tar.gz", ".tar.bz2"};
+    private String[] _fileExtensions = { ".bak", "~" };
+    
+    private Logger _logger = Logger.getLogger(getClass().getName());
+    
     /** Creates a new instance of ExtensionsModel */
     public ExtensionsModel(FrameworkModel model) {
         _model = model;
@@ -41,9 +47,17 @@ public class ExtensionsModel extends AbstractPluginModel {
         
         _urlModel = new FilteredUrlModel(model.getUrlModel()) {
             public boolean shouldFilter(HttpUrl url) {
-                return isTested(url);
+                return url.getParameters() != null || isTested(url);
             }
         };
+    }
+    
+    public void setDirectoryExtensions(String[] extensions) {
+        _directoryExtensions = extensions;
+    }
+    
+    public void setFileExtensions(String[] extensions) {
+        _fileExtensions = extensions;
     }
     
     public ConversationModel getConversationModel() {
@@ -54,21 +68,42 @@ public class ExtensionsModel extends AbstractPluginModel {
         return _urlModel;
     }
     
-    private int getExtensionCount(HttpUrl url) {
-        // check whether a file or directory, return appropriate value
+    public int getExtensionsTested(HttpUrl url) {
+        String checked = _model.getUrlProperty(url, "EXTENSIONS");
+        if (checked == null) 
+            return 0;
+        try {
+            int count = Integer.parseInt(checked);
+            return count;
+        } catch (NumberFormatException nfe) {
+            _logger.warning("NumberFormatException parsing Extensions property: " + checked);
+        }
+        return 0;
     }
     
-    private boolean isTested(HttpUrl url) {
-        String tested = _model.getUrlProperty(url, "Extensions");
-        if (tested == null) return false;
-        try {
-            int count = Integer.parseInt(tested);
-            if (count > getExtensionCount(url)) 
-                return true;
-        } catch (NumberFormatException nfe) {
-            _logger.warning("NumberFormatException parsing Extensions property: " + tested);
+    public void incrementExtensionsTested(HttpUrl url) {
+        int count = getExtensionsTested(url);
+        _model.setUrlProperty(url, "EXTENSIONS", Integer.toString(count++));
+    }
+    
+    public int getExtensionCount(HttpUrl url) {
+        if (url.getPath().endsWith("/")) {
+            return (_directoryExtensions == null ? 0 : _directoryExtensions.length);
+        } else {
+            return (_fileExtensions == null ? 0 : _fileExtensions.length);
         }
-        return false;
+    }
+    
+    public String getExtension(HttpUrl url, int index) {
+        if (url.getPath().endsWith("/")) {
+            return _directoryExtensions[index];
+        } else {
+            return _fileExtensions[index];
+        }
+    }
+    
+    public boolean isTested(HttpUrl url) {
+        return getExtensionsTested(url) >= getExtensionCount(url);
     }
     
 }

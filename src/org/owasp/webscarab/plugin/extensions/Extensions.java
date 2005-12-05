@@ -87,8 +87,8 @@ public class Extensions implements Plugin {
         return _model.isRunning();
     }
     
-    public void loadFileExtensions(File file) throws IOException {
-        // convenience method, calls setFileExtensions . . . 
+    public String[] loadStrings(File file) throws IOException {
+        return null;
     }
     
     public void setFileExtensions(String[] extensions) {
@@ -97,21 +97,18 @@ public class Extensions implements Plugin {
     // can't quite decide whether this should be in the model or not.
     // your thoughts?
     public String[] getFileExtensions() {
+        return null;
     }
     
-    public void loadDirectoryExtensions(File file) throws IOException {
-        // same as above
-    }
-    
-    public void setDirectoryExtensions(String extensions) {
+    public void setDirectoryExtensions(String[] extensions) {
     }
     
     public String[] getDirectoryExtensions() {
+        return null;
     }
     
     public ExtensionsModel getModel() {
-        // ExtensionsModel should have a getUrlModel() and a getConversationModel()
-        // method, like FrameworkModel
+        return _model;
     }
     
     public void checkExtensionsUnder(HttpUrl url) throws IOException {
