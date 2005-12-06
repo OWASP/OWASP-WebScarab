@@ -124,9 +124,11 @@ public class MultiLineTreeCellRenderer extends JPanel implements TreeCellRendere
             int lines = 0;
             try {
                 while ((line = br.readLine()) != null) {
-                    TextLayout tl = new TextLayout(line, font, frc);
-                    maxWidth = Math.max(maxWidth, tl.getBounds().getWidth());
-                    maxHeight = Math.max(maxHeight, tl.getBounds().getHeight());
+                    if (!line.equals("")) {
+                        TextLayout tl = new TextLayout(line, font, frc);
+                        maxWidth = Math.max(maxWidth, tl.getBounds().getWidth());
+                        maxHeight = Math.max(maxHeight, tl.getBounds().getHeight());
+                    }
                     lines++;
                 }
             } catch (IOException ex) {
