@@ -190,6 +190,7 @@ public class Framework {
      * starts all the plugins in the framework
      */
     public void startPlugins() {
+        HTTPClientFactory.getInstance().initSSLContext();
         Iterator it = _plugins.iterator();
         while (it.hasNext()) {
             Plugin plugin = (Plugin) it.next();

@@ -222,16 +222,16 @@ public class UIFramework extends JFrame implements FrameworkUI {
         doc.addDocumentListener(new TextScroller(logTextArea));
         
         String level = Preferences.getPreference("UI.logLevel","INFO");
-        if (level.equals("SEVERE")) { 
-            severeLogRadioButtonMenuItem.setSelected(true); 
-        } else if (level.equals("INFO")) { 
-            infoLogRadioButtonMenuItem.setSelected(true); 
-        } else if (level.equals("FINE")) { 
-            fineLogRadioButtonMenuItem.setSelected(true); 
-        } else if (level.equals("FINER")) { 
-            finerLogRadioButtonMenuItem.setSelected(true); 
-        } else if (level.equals("FINEST")) { 
-            finestLogRadioButtonMenuItem.setSelected(true); 
+        if (level.equals("SEVERE")) {
+            severeLogRadioButtonMenuItem.setSelected(true);
+        } else if (level.equals("INFO")) {
+            infoLogRadioButtonMenuItem.setSelected(true);
+        } else if (level.equals("FINE")) {
+            fineLogRadioButtonMenuItem.setSelected(true);
+        } else if (level.equals("FINER")) {
+            finerLogRadioButtonMenuItem.setSelected(true);
+        } else if (level.equals("FINEST")) {
+            finestLogRadioButtonMenuItem.setSelected(true);
         }
     }
     
@@ -303,6 +303,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
         cookieJarMenuItem = new javax.swing.JMenuItem();
         transcoderMenuItem = new javax.swing.JMenuItem();
         scriptMenuItem = new javax.swing.JMenuItem();
+        restartMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         contentsMenuItem = new javax.swing.JMenuItem();
         logMenu = new javax.swing.JMenu();
@@ -472,6 +473,15 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         toolsMenu.add(scriptMenuItem);
 
+        restartMenuItem.setText("Restart Plugins");
+        restartMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                restartMenuItemActionPerformed(evt);
+            }
+        });
+
+        toolsMenu.add(restartMenuItem);
+
         mainMenuBar.add(toolsMenu);
 
         helpMenu.setMnemonic('H');
@@ -550,6 +560,15 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
     }
     // </editor-fold>//GEN-END:initComponents
+    
+    private void restartMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_restartMenuItemActionPerformed
+        if (!_framework.isRunning()) return;
+        if (!_framework.stopPlugins()) {
+            String[] status = _framework.getStatus();
+            JOptionPane.showMessageDialog(this, status, "Error - Plugins are busy", JOptionPane.ERROR_MESSAGE);
+        }
+        _framework.startPlugins();
+    }//GEN-LAST:event_restartMenuItemActionPerformed
     
     private void saveMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveMenuItemActionPerformed
         if (_tempDir != null) {
@@ -718,16 +737,16 @@ public class UIFramework extends JFrame implements FrameworkUI {
     
     private void logLevelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logLevelActionPerformed
         String cmd = evt.getActionCommand().toUpperCase();
-        if (cmd.equals("SEVERE")) { 
-            _dh.setLevel(Level.SEVERE); 
-        } else if (cmd.equals("INFO")) { 
-            _dh.setLevel(Level.INFO); 
-        } else if (cmd.equals("FINE")) { 
-            _dh.setLevel(Level.FINE); 
-        } else if (cmd.equals("FINER")) { 
-            _dh.setLevel(Level.FINER); 
-        } else if (cmd.equals("FINEST")) { 
-            _dh.setLevel(Level.FINEST); 
+        if (cmd.equals("SEVERE")) {
+            _dh.setLevel(Level.SEVERE);
+        } else if (cmd.equals("INFO")) {
+            _dh.setLevel(Level.INFO);
+        } else if (cmd.equals("FINE")) {
+            _dh.setLevel(Level.FINE);
+        } else if (cmd.equals("FINER")) {
+            _dh.setLevel(Level.FINER);
+        } else if (cmd.equals("FINEST")) {
+            _dh.setLevel(Level.FINEST);
         } else {
             System.err.println("Unknown log level: '" + cmd + "'");
             return;
@@ -825,6 +844,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private javax.swing.JMenuItem newMenuItem;
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem proxyMenuItem;
+    private javax.swing.JMenuItem restartMenuItem;
     private javax.swing.JMenuItem saveMenuItem;
     private javax.swing.JMenuItem scriptMenuItem;
     private javax.swing.JRadioButtonMenuItem severeLogRadioButtonMenuItem;
