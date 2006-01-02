@@ -82,6 +82,8 @@ public class HTTPClientFactory {
     private String _keystorePassword = "";
     private String _keyPassword = "";
     
+    private Authenticator _authenticator = null;
+    
     // Create a trust manager that does not validate certificate chains
     private static TrustManager[] _trustAllCerts = new TrustManager[]{
         new X509TrustManager() {
@@ -196,6 +198,14 @@ public class HTTPClientFactory {
         _readTimeout = readTimeout;
     }
     
+    public void setAuthenticator(Authenticator authenticator) {
+        _authenticator = authenticator;
+    }
+    
+    public Authenticator getAuthenticator() {
+        return _authenticator;
+    }
+    
     public HTTPClient getHTTPClient() {
         URLFetcher uf = new URLFetcher();
         uf.setHttpProxy(_httpProxy, _httpProxyPort);
@@ -203,6 +213,7 @@ public class HTTPClientFactory {
         uf.setNoProxy(_noProxy);
         uf.setSSLContext(_sslContext);
         uf.setTimeouts(_connectTimeout, _readTimeout);
+        uf.setAuthenticator(_authenticator);
         return uf;
     }
     

@@ -14,6 +14,8 @@ import org.owasp.webscarab.model.HttpUrl;
  */
 public interface Authenticator {
 
-    String getChallengeResponse(HttpUrl url, String challenge, boolean first);
+    String getAuthenticationHeader(HttpUrl url, String challenge, String preferredCredentials);
+    
+    String getCredentials(HttpUrl url, String challenge);
     
 }

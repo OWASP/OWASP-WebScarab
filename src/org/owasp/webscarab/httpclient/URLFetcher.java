@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -90,6 +90,10 @@ public class URLFetcher implements HTTPClient {
     private int _timeout = 0;
     private int _connectTimeout = 10000;
     
+    private Authenticator _authenticator = null;
+    private String _authCreds = null;
+    private String _proxyAuthCreds = null;
+    
     /** Creates a new instance of URLFetcher
      */
     public URLFetcher() {
@@ -141,6 +145,14 @@ public class URLFetcher implements HTTPClient {
         _timeout = readTimeout;
     }
     
+    public void setAuthenticator(Authenticator authenticator) {
+        _authenticator = authenticator;
+    }
+    
+    public Authenticator getAuthenticator() {
+        return _authenticator;
+    }
+    
     /** Can be used by a calling class to fetch a request without spawning an additional
      * thread. This is appropriate when the calling class is already running in an
      * independant thread, and must wait for the response before continuing.
@@ -151,7 +163,7 @@ public class URLFetcher implements HTTPClient {
         if (_response != null) {
             _response.flushContentStream(); // flush the content stream, just in case it wasn't read
             _response = null;
-        };
+        }
         if (request == null) {
             _logger.severe("Asked to fetch a null request");
             return null;
@@ -162,47 +174,41 @@ public class URLFetcher implements HTTPClient {
             return null;
         }
         
-        if (invalidSocket(url)) {
-            String proxyAuth = request.getHeader("Proxy-Authorization");
-            _socket = opensocket(url, proxyAuth);
-            if (_response != null) { // there was an error opening the socket
-                return _response;
-            } else {
-                _in = _socket.getInputStream();
-                _out = _socket.getOutputStream();
-            }
+        // Get any provided credentials from the request
+        _authCreds = request.getHeader("Authorization");
+        _proxyAuthCreds = request.getHeader("Proxy-Authorization");
+        
+        connect(url);
+        if (_response != null) { // there was an error opening the socket
+            return _response;
         }
-        // Still send the real request
-        if (_out != null) { // we are connected to a live server
-            _logger.fine("Writing the request");
-            // depending on whether we are connected directly to the server, or via a proxy
-            if (_direct) {
-                request.writeDirect(_out);
-            } else {
-                request.write(_out);
-            }
-            _out.flush();
-            _logger.fine("Finished writing the request");
+        
+        // depending on whether we are connected directly to the server, or via a proxy
+        if (_direct) {
+            request.writeDirect(_out);
         } else {
-            // we make sure that the request body has been read (if any)
-            request.flushContentStream();
+            request.write(_out);
         }
+        _out.flush();
         
         _response = new Response();
         _response.setRequest(request);
         
-        // test for spurious 100 header from IIS 4 and 5.
-        // See http://mail.python.org/pipermail/python-list/2000-December/023204.html
-        _logger.fine("Reading the response");
         do {
-            _response.read(_in);
-        } while (_response.getStatus().equals("100"));
+            // test for spurious 100 header from IIS 4 and 5.
+            // See http://mail.python.org/pipermail/python-list/2000-December/023204.html
+            _logger.fine("Reading the response");
+            do {
+                _response.read(_in);
+            } while (_response.getStatus().equals("100"));
         
-        // if the request method is HEAD, we get no contents, EVEN though there
-        // may be a Content-Length header.
-        if (request.getMethod().equals("HEAD")) _response.setNoBody();
+            // if the request method is HEAD, we get no contents, EVEN though there
+            // may be a Content-Length header.
+            if (request.getMethod().equals("HEAD")) _response.setNoBody();
         
-        _logger.info(request.getURL() +" : " + _response.getStatusLine());
+            _logger.info(request.getURL() +" : " + _response.getStatusLine());
+        
+        } while (true);
         
         String connection = _response.getHeader("Proxy-Connection");
         if (connection != null && "close".equalsIgnoreCase(connection)) {
@@ -225,9 +231,10 @@ public class URLFetcher implements HTTPClient {
         return _response;
     }
     
-    private Socket opensocket(HttpUrl url, String proxyAuth) throws IOException {
-        Socket socket = new Socket();
-        socket.setSoTimeout(_timeout);
+    private void connect(HttpUrl url) throws IOException {
+        if (! invalidSocket(url)) return;
+        _socket = new Socket();
+        _socket.setSoTimeout(_timeout);
         _direct = true;
         
         // We record where we are connected to, in case we might reuse this socket later
@@ -238,32 +245,52 @@ public class URLFetcher implements HTTPClient {
         if (useProxy(url)) {
             if (!ssl) {
                 _logger.fine("Connect to " + _httpProxy + ":" + _httpProxyPort);
-                socket.connect(new InetSocketAddress(_httpProxy, _httpProxyPort), _connectTimeout);
+                _socket.connect(new InetSocketAddress(_httpProxy, _httpProxyPort), _connectTimeout);
+                _in = _socket.getInputStream();
+                _out = _socket.getOutputStream();
                 _direct = false;
-                return socket;
             } else {
-                socket.connect(new InetSocketAddress(_httpsProxy, _httpsProxyPort), _connectTimeout);
-                _in = socket.getInputStream();
-                _out = socket.getOutputStream();
-                _out.write(("CONNECT " + _host + ":" + _port + " HTTP/1.0\r\n").getBytes());
-                if (proxyAuth != null && !proxyAuth.equals("")) {
-                    _out.write(("Proxy-Authorization: " + proxyAuth + "\r\n").getBytes());
-                }
-                _out.write("\r\n".getBytes());
-                _out.flush();
-                _logger.fine("Sent CONNECT, reading Proxy response");
-                Response response = new Response();
-                response.read(_in);
-                _logger.fine("Got proxy response " + response.getStatusLine());
-                if (!response.getStatus().equals("200")) {
-                    _response = response;
-                    return null;
-                }
+                _socket.connect(new InetSocketAddress(_httpsProxy, _httpsProxyPort), _connectTimeout);
+                _in = _socket.getInputStream();
+                _out = _socket.getOutputStream();
+                String oldChallenge = null;
+                String challenge = null;
+                do {
+                    _out.write(("CONNECT " + _host + ":" + _port + " HTTP/1.0\r\n").getBytes());
+                    String authHeader = null;
+                    if (_authenticator != null) {
+                        authHeader = _authenticator.getAuthenticationHeader(url, challenge, _proxyAuthCreds);
+                    } else {
+                        authHeader = _proxyAuthCreds;
+                    }
+                    if (authHeader != null) {
+                        _out.write(("Proxy-Authorization: " + authHeader + "\r\n").getBytes());
+                    }
+                    _out.write("\r\n".getBytes());
+                    _out.flush();
+                    _logger.fine("Sent CONNECT, reading Proxy response");
+                    Response response = new Response();
+                    response.read(_in);
+                    _logger.fine("Got proxy response " + response.getStatusLine());
+                    String status = response.getStatus();
+                    challenge = response.getHeader("Proxy-Authenticate");
+                    if (status.equals("200")) { // we are successfully connected
+                        break;
+                    }
+                    if (status.equals("407")) {
+                        oldChallenge = challenge;
+                        challenge = response.getHeader("Proxy-Authenticate");
+                        if (oldChallenge != null && challenge != null && oldChallenge.equals(challenge)) {
+                            _response = response;
+                            break;
+                        }
+                    }
+                } while (true);
                 _logger.fine("HTTPS CONNECT successful");
             }
         } else {
             _logger.fine("Connect to " + _host + ":" + _port );
-            socket.connect(new InetSocketAddress(_host, _port), _connectTimeout);
+            _socket.connect(new InetSocketAddress(_host, _port), _connectTimeout);
         }
         
         if (ssl) {
@@ -273,17 +300,16 @@ public class URLFetcher implements HTTPClient {
             // Use the factory to create a secure socket connected to the
             // HTTPS port of the specified web server.
             try {
-                SSLSocket sslsocket=(SSLSocket)_factory.createSocket(socket,socket.getInetAddress().getHostName(),socket.getPort(),true);
+                SSLSocket sslsocket=(SSLSocket)_factory.createSocket(_socket,_socket.getInetAddress().getHostName(),_socket.getPort(),true);
                 sslsocket.setUseClientMode(true);
-                socket = sslsocket;
-                socket.setSoTimeout(_timeout);
+                _socket = sslsocket;
+                _socket.setSoTimeout(_timeout);
             } catch (IOException ioe) {
                 _logger.severe("Error layering SSL over the existing socket: " + ioe);
                 throw ioe;
             }
             _logger.fine("Finished negotiating SSL");
         }
-        return socket;
     }
     
     private boolean useProxy(HttpUrl url) {
