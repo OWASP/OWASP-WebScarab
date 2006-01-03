@@ -56,6 +56,8 @@ import javax.net.ssl.X509TrustManager;
 import javax.net.ssl.SSLContext;
 
 import java.util.logging.Logger;
+import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.Preferences;
 
 /**
  *
@@ -99,6 +101,29 @@ public class HTTPClientFactory {
     
     /** Creates a new instance of HttpClientFactory */
     protected HTTPClientFactory() {
+        _authenticator = new Authenticator() {
+            public String getCredentials(HttpUrl url, String[] challenges) {
+                _logger.info("Returning credentials for " + url);
+                return creds(challenges);
+            }
+            public String getProxyCredentials(String hostname, String[] challenges) {
+                _logger.info("Returning proxy credentials for " + hostname);
+                return creds(challenges);
+            }
+            private String creds(String[] challenges) {
+                for (int i=0; i<challenges.length; i++) {
+                    _logger.info("Challenge: " + challenges[i]);
+                    if (challenges[i].startsWith("Basic")) {
+                        return Preferences.getPreference("HTTPClient.BasicCredentials");
+                    }
+                    if (challenges[i].startsWith("NTLM")) {
+                        return Preferences.getPreference("HTTPClient.NTLMCredentials");
+                    }
+                }
+                return null;
+            }
+        };
+        
         initSSLContext(null);
     }
     

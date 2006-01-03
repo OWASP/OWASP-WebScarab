@@ -178,56 +178,107 @@ public class URLFetcher implements HTTPClient {
         _authCreds = request.getHeader("Authorization");
         _proxyAuthCreds = request.getHeader("Proxy-Authorization");
         
-        connect(url);
-        if (_response != null) { // there was an error opening the socket
-            return _response;
-        }
-        
-        // depending on whether we are connected directly to the server, or via a proxy
-        if (_direct) {
-            request.writeDirect(_out);
-        } else {
-            request.write(_out);
-        }
-        _out.flush();
-        
-        _response = new Response();
-        _response.setRequest(request);
-        
+        String status;
+        String oldProxyAuthHeader = null;
+        String proxyAuthHeader = constructAuthenticationHeader(null, _proxyAuthCreds);
+        String oldAuthHeader = null;
+        String authHeader = constructAuthenticationHeader(null, _authCreds);
         do {
+            _logger.info("Entering request loop");
+
+            // make sure that we have a "clean" request
+            request.deleteHeader("Proxy-Authorization");
+            request.deleteHeader("Authorization");
+            
+            _response = null;
+            connect(url);
+            if (_response != null) { // there was an error opening the socket
+                return _response;
+            }
+        
+            if (authHeader != null)
+                request.setHeader("Authorization", authHeader);
+            // depending on whether we are connected directly to the server, or via a proxy
+            if (_direct) {
+                _logger.info("Writing direct request");
+                request.writeDirect(_out);
+                _logger.info("Done writing direct request");
+            } else {
+                if (proxyAuthHeader != null) {
+                    request.setHeader("Proxy-Authorization", proxyAuthHeader);
+                }
+                request.write(_out);
+                _logger.info(request.toString());
+            }
+            _out.flush();
+            
+            _response = new Response();
+            _response.setRequest(request);
+        
             // test for spurious 100 header from IIS 4 and 5.
             // See http://mail.python.org/pipermail/python-list/2000-December/023204.html
             _logger.fine("Reading the response");
             do {
                 _response.read(_in);
-            } while (_response.getStatus().equals("100"));
-        
+                status = _response.getStatus();
+            } while (status.equals("100"));
+            
+            if (status.equals("407")) {
+                oldProxyAuthHeader = proxyAuthHeader;
+                String[] challenges = _response.getHeaders("Proxy-Authenticate");
+                if (_proxyAuthCreds == null && _authenticator != null) {
+                    _proxyAuthCreds = _authenticator.getProxyCredentials(_httpProxy, challenges);
+                }
+                if (_proxyAuthCreds == null) {
+                    break;
+                }
+                proxyAuthHeader = constructAuthenticationHeader(challenges, _proxyAuthCreds);
+                if (proxyAuthHeader == null || oldProxyAuthHeader != null && oldProxyAuthHeader.equals(proxyAuthHeader)) {
+                    _logger.info("No possible authentication");
+                    break;
+                } 
+            }
+            
+            if (status.equals("401")) {
+                oldAuthHeader = authHeader;
+                String[] challenges = _response.getHeaders("WWW-Authenticate");
+                if (_authCreds == null && _authenticator != null)
+                    _authCreds = _authenticator.getCredentials(url, challenges);
+                if (_authCreds == null) {
+                    break;
+                }
+                authHeader = constructAuthenticationHeader(challenges, _authCreds);
+                if (authHeader == null || oldAuthHeader != null && oldAuthHeader.equals(authHeader)) {
+                    break;
+                } 
+            }
+            
             // if the request method is HEAD, we get no contents, EVEN though there
             // may be a Content-Length header.
             if (request.getMethod().equals("HEAD")) _response.setNoBody();
-        
+            
             _logger.info(request.getURL() +" : " + _response.getStatusLine());
-        
-        } while (true);
-        
-        String connection = _response.getHeader("Proxy-Connection");
-        if (connection != null && "close".equalsIgnoreCase(connection)) {
-            _in = null;
-            _out = null;
-            // do NOT close the socket itself, since the message body has not yet been read!
-        } else {
-            connection = _response.getHeader("Connection");
-            String version = request.getVersion();
-            if (version.equals("HTTP/1.0") && "Keep-alive".equalsIgnoreCase(connection)) {
-                _lastRequestTime = System.currentTimeMillis();
-            } else if (version.equals("HTTP/1.1") && (connection == null || !connection.equalsIgnoreCase("Close"))) {
-                _lastRequestTime = System.currentTimeMillis();
-            } else {
+            
+            String connection = _response.getHeader("Proxy-Connection");
+            if (connection != null && "close".equalsIgnoreCase(connection)) {
                 _in = null;
                 _out = null;
                 // do NOT close the socket itself, since the message body has not yet been read!
+            } else {
+                connection = _response.getHeader("Connection");
+                String version = request.getVersion();
+                if (version.equals("HTTP/1.0") && "Keep-alive".equalsIgnoreCase(connection)) {
+                    _lastRequestTime = System.currentTimeMillis();
+                } else if (version.equals("HTTP/1.1") && (connection == null || !connection.equalsIgnoreCase("Close"))) {
+                    _lastRequestTime = System.currentTimeMillis();
+                } else {
+                    _in = null;
+                    _out = null;
+                    // do NOT close the socket itself, since the message body has not yet been read!
+                }
             }
-        }
+        } while ((status.equals("401") && authHeader != null) || (status.equals("407") && proxyAuthHeader != null));
+        
         return _response;
     }
     
@@ -253,16 +304,11 @@ public class URLFetcher implements HTTPClient {
                 _socket.connect(new InetSocketAddress(_httpsProxy, _httpsProxyPort), _connectTimeout);
                 _in = _socket.getInputStream();
                 _out = _socket.getOutputStream();
-                String oldChallenge = null;
-                String challenge = null;
+                String oldAuthHeader = null;
+                String authHeader = constructAuthenticationHeader(null, _proxyAuthCreds);
+                String status;
                 do {
                     _out.write(("CONNECT " + _host + ":" + _port + " HTTP/1.0\r\n").getBytes());
-                    String authHeader = null;
-                    if (_authenticator != null) {
-                        authHeader = _authenticator.getAuthenticationHeader(url, challenge, _proxyAuthCreds);
-                    } else {
-                        authHeader = _proxyAuthCreds;
-                    }
                     if (authHeader != null) {
                         _out.write(("Proxy-Authorization: " + authHeader + "\r\n").getBytes());
                     }
@@ -272,20 +318,23 @@ public class URLFetcher implements HTTPClient {
                     Response response = new Response();
                     response.read(_in);
                     _logger.fine("Got proxy response " + response.getStatusLine());
-                    String status = response.getStatus();
-                    challenge = response.getHeader("Proxy-Authenticate");
-                    if (status.equals("200")) { // we are successfully connected
-                        break;
-                    }
+                    status = response.getStatus();
                     if (status.equals("407")) {
-                        oldChallenge = challenge;
-                        challenge = response.getHeader("Proxy-Authenticate");
-                        if (oldChallenge != null && challenge != null && oldChallenge.equals(challenge)) {
+                        oldAuthHeader = authHeader;
+                        String[] challenges = response.getHeaders("Proxy-Authenticate");
+                        if (_proxyAuthCreds == null && _authenticator != null)
+                            _proxyAuthCreds = _authenticator.getProxyCredentials(_httpsProxy, challenges);
+                        if (_proxyAuthCreds == null) {
                             _response = response;
-                            break;
+                            return;
                         }
+                        authHeader = constructAuthenticationHeader(challenges, _proxyAuthCreds);
+                        if (authHeader == null || oldAuthHeader != null && oldAuthHeader.equals(authHeader)) {
+                            _response = response;
+                            return;
+                        } 
                     }
-                } while (true);
+                } while (status.equals("407") && authHeader != null);
                 _logger.fine("HTTPS CONNECT successful");
             }
         } else {
@@ -310,6 +359,8 @@ public class URLFetcher implements HTTPClient {
             }
             _logger.fine("Finished negotiating SSL");
         }
+        _in = _socket.getInputStream();
+        _out = _socket.getOutputStream();
     }
     
     private boolean useProxy(HttpUrl url) {
@@ -366,6 +417,23 @@ public class URLFetcher implements HTTPClient {
             _logger.fine("Previous request was to a different host");
         }
         return true;
+    }
+    
+    private String constructAuthenticationHeader(String[] challenges, String credentials) {
+        /* credentials string looks like:
+         * Basic BASE64(username:password)
+         * or
+         * NTLM BASE64(domain\ username:password)
+         */
+        if (credentials != null && credentials.startsWith("Basic")) {
+            return credentials;
+        }
+        if (challenges != null) {
+            for (int i=0; i<challenges.length; i++) {
+                _logger.info("Can't do auth for " + challenges[i]);
+            }
+        }
+        return null;
     }
     
 }
