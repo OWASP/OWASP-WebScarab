@@ -102,36 +102,6 @@ public class HTTPClientFactory {
     
     /** Creates a new instance of HttpClientFactory */
     protected HTTPClientFactory() {
-        _authenticator = new Authenticator() {
-            public String getCredentials(HttpUrl url, String[] challenges) {
-                _logger.info("Returning credentials for " + url);
-                return creds(challenges);
-            }
-            public String getProxyCredentials(String hostname, String[] challenges) {
-                _logger.info("Returning proxy credentials for " + hostname);
-                return creds(challenges);
-            }
-            private String creds(String[] challenges) {
-                if (challenges == null) 
-                    return null; // no pre-emptive auth!
-                for (int i=0; i<challenges.length; i++) {
-                    // _logger.info("Challenge: " + challenges[i]);
-                    if (challenges[i].startsWith("Basic")) {
-                        return Preferences.getPreference("HTTPClient.BasicCredentials");
-                    }
-                    if (challenges[i].startsWith("NTLM")) {
-                        return Preferences.getPreference("HTTPClient.NTLMCredentials");
-                    }
-                    if (challenges[i].startsWith("Negotiate")) {
-                        String auth = Preferences.getPreference("HTTPClient.NTLMCredentials");
-                        if (auth != null) 
-                            return "Negotiate " + auth.substring(5);
-                    }
-                }
-                return null;
-            }
-        };
-        
         initSSLContext();
     }
     

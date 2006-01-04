@@ -71,6 +71,7 @@ import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.FileSystemStore;
 import org.owasp.webscarab.model.StoreException;
+import org.owasp.webscarab.plugin.CredentialManager;
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.FrameworkUI;
 import org.owasp.webscarab.util.TempDir;
@@ -100,6 +101,8 @@ public class UIFramework extends JFrame implements FrameworkUI {
     
     private TranscoderFrame _transcoder = null;
     private ScriptManagerFrame _scriptManagerFrame = null;
+    private CredentialManagerFrame _credentialManagerFrame = null;
+    private CredentialRequestDialog _credentialRequestDialog = null;
     
     private Logger _logger = Logger.getLogger("org.owasp.webscarab");
     
@@ -135,6 +138,11 @@ public class UIFramework extends JFrame implements FrameworkUI {
         
         _cookieJarViewer = new CookieJarViewer(_model);
         _certDialog = new CertificateDialog(this, _framework);
+        
+        CredentialManager cm = _framework.getCredentialManager();
+        _credentialManagerFrame = new CredentialManagerFrame(cm);
+        _credentialRequestDialog = new CredentialRequestDialog(this, true, cm);
+        cm.setUI(_credentialRequestDialog);
         
         initLogging();
         initEditorViews();
@@ -299,6 +307,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
         wrapTextCheckBoxMenuItem = new javax.swing.JCheckBoxMenuItem();
         toolsMenu = new javax.swing.JMenu();
         proxyMenuItem = new javax.swing.JMenuItem();
+        credentialsMenuItem = new javax.swing.JMenuItem();
         certsMenuItem = new javax.swing.JMenuItem();
         cookieJarMenuItem = new javax.swing.JMenuItem();
         transcoderMenuItem = new javax.swing.JMenuItem();
@@ -433,6 +442,15 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         toolsMenu.add(proxyMenuItem);
 
+        credentialsMenuItem.setText("Credentials");
+        credentialsMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                credentialsMenuItemActionPerformed(evt);
+            }
+        });
+
+        toolsMenu.add(credentialsMenuItem);
+
         certsMenuItem.setMnemonic('C');
         certsMenuItem.setText("Certificates");
         certsMenuItem.setToolTipText("Allows configuration of client certificates");
@@ -560,6 +578,10 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
     }
     // </editor-fold>//GEN-END:initComponents
+
+    private void credentialsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_credentialsMenuItemActionPerformed
+        _credentialManagerFrame.setVisible(true);
+    }//GEN-LAST:event_credentialsMenuItemActionPerformed
     
     private void restartMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_restartMenuItemActionPerformed
         if (!_framework.isRunning()) return;
@@ -826,6 +848,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private javax.swing.JMenuItem certsMenuItem;
     private javax.swing.JMenuItem contentsMenuItem;
     private javax.swing.JMenuItem cookieJarMenuItem;
+    private javax.swing.JMenuItem credentialsMenuItem;
     private javax.swing.JDesktopPane desktopPane;
     private javax.swing.JMenu editorMenu;
     private javax.swing.JMenuItem exitMenuItem;

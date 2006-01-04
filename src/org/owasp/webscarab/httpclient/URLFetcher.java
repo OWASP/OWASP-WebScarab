@@ -485,14 +485,14 @@ public class URLFetcher implements HTTPClient {
         if (challenges != null) {
             for (int i=0; i<challenges.length; i++) {
                 _logger.info("Challenge: " + challenges[i]);
-//                if (challenges[i].startsWith("NTLM") && credentials.startsWith("NTLM")) {
-//                    return attemptNegotiation(challenges[i], credentials);
-//                }
+                if (challenges[i].startsWith("NTLM") && credentials.startsWith("NTLM")) {
+                    return attemptNegotiation(challenges[i], credentials);
+                }
                 if (challenges[i].startsWith("Negotiate") && credentials.startsWith("Negotiate")) {
                     _logger.info("Attempting 'Negotiate' Authentication");
                     return attemptNegotiation(challenges[i], credentials);
                 }
-                // _logger.info("Can't do auth for " + challenges[i]);
+                _logger.info("Can't do auth for " + challenges[i]);
             }
         }
         return null;
@@ -532,10 +532,6 @@ public class URLFetcher implements HTTPClient {
         // reconnect();
         if (message == null) {
             message = new Type1Message();
-            // FIXME : We may want to reinstate this?
-//            if (LM_COMPATIBILITY > 2) {
-//                message.setFlag(NtlmFlags.NTLMSSP_REQUEST_TARGET, true);
-//            }
         } else {
             credentials = credentials.substring(authMethod.length()+1); // strip off the "NTLM " or "Negotiate "
             credentials = new String(Base64.decode(credentials)); // decode the base64

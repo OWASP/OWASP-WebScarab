@@ -80,6 +80,7 @@ public class Framework {
     private FrameworkUI _ui = null;
     
     private ScriptManager _scriptManager;
+    private CredentialManager _credentialManager;
     
     private AddConversationHook _allowAddConversation;
     
@@ -97,6 +98,7 @@ public class Framework {
         _allowAddConversation = new AddConversationHook();
         _scriptManager.registerHooks("Framework", new Hook[] { _allowAddConversation });
         extractVersionFromManifest();
+        _credentialManager = new CredentialManager();
         configureHTTPClient();
         _qp = new Framework.QueueProcessor();
         _queueThread = new Thread(_qp, "QueueProcessor");
@@ -107,6 +109,10 @@ public class Framework {
     
     public ScriptManager getScriptManager() {
         return _scriptManager;
+    }
+    
+    public CredentialManager getCredentialManager() {
+        return _credentialManager;
     }
     
     /**
@@ -381,6 +387,7 @@ public class Framework {
         } catch (Exception e) {
             _logger.warning("Error configuring the HTTPClient property " + prop + ": " + e);
         }
+        factory.setAuthenticator(_credentialManager);
     }
     
     private class QueueProcessor implements Runnable {

@@ -32,6 +32,8 @@ import jcifs.Config;
  */
 public class Type1Message extends NtlmMessage {
 
+    private static final int LM_COMPATIBILITY;
+    
     private static final int DEFAULT_FLAGS;
 
     private static final String DEFAULT_DOMAIN;
@@ -43,9 +45,12 @@ public class Type1Message extends NtlmMessage {
     private String suppliedWorkstation;
 
     static {
+        LM_COMPATIBILITY = Config.getInt("jcifs.smb.lmCompatibility", 0);
         DEFAULT_FLAGS = NTLMSSP_NEGOTIATE_NTLM |
                 (Config.getBoolean("jcifs.smb.client.useUnicode", true) ?
-                        NTLMSSP_NEGOTIATE_UNICODE : NTLMSSP_NEGOTIATE_OEM);
+                        NTLMSSP_NEGOTIATE_UNICODE : NTLMSSP_NEGOTIATE_OEM) |
+                (LM_COMPATIBILITY > 2 ? NTLMSSP_REQUEST_TARGET : 0);
+        
         DEFAULT_DOMAIN = Config.getProperty("jcifs.smb.client.domain", null);
         String defaultWorkstation = null;
         // try {

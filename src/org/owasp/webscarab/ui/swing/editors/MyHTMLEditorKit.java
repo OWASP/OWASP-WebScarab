@@ -72,7 +72,6 @@ public class MyHTMLEditorKit extends javax.swing.text.html.HTMLEditorKit {
     private static class MyHTMLFactory extends HTMLEditorKit.HTMLFactory {
         public View create(Element elem) {
             Object o = elem.getAttributes().getAttribute(StyleConstants.NameAttribute);
-            System.err.println("Creating for a " +elem.getClass() + " : " + o);
             if (o instanceof HTML.Tag) {
                 HTML.Tag kind = (HTML.Tag) o;
                 if (kind == HTML.Tag.FRAME || 
