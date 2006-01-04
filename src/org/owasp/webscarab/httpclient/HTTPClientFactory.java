@@ -111,13 +111,20 @@ public class HTTPClientFactory {
                 return creds(challenges);
             }
             private String creds(String[] challenges) {
+                if (challenges == null) 
+                    return null; // no pre-emptive auth!
                 for (int i=0; i<challenges.length; i++) {
-                    _logger.info("Challenge: " + challenges[i]);
+                    // _logger.info("Challenge: " + challenges[i]);
                     if (challenges[i].startsWith("Basic")) {
                         return Preferences.getPreference("HTTPClient.BasicCredentials");
                     }
                     if (challenges[i].startsWith("NTLM")) {
                         return Preferences.getPreference("HTTPClient.NTLMCredentials");
+                    }
+                    if (challenges[i].startsWith("Negotiate")) {
+                        String auth = Preferences.getPreference("HTTPClient.NTLMCredentials");
+                        if (auth != null) 
+                            return "Negotiate " + auth.substring(5);
                     }
                 }
                 return null;
