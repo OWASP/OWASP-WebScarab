@@ -76,6 +76,21 @@ public class CredentialManager implements Authenticator {
         return getAllBasicCredentials()[index];
     }
     
+    public void deleteBasicCredentialAt(int index) {
+        int i = -1;
+        Iterator hosts = _basicCredentials.keySet().iterator();
+        while (hosts.hasNext()) {
+            Map realms = (Map) _basicCredentials.get(hosts.next());
+            Iterator realm = realms.keySet().iterator();
+            while (realm.hasNext()) {
+                Object key = realm.next();
+                i++;
+                if (i == index)
+                    realms.remove(key);
+            }
+        }
+    }
+    
     public int getDomainCredentialCount() {
         return _domainCredentials.entrySet().size();
     }
@@ -88,6 +103,17 @@ public class CredentialManager implements Authenticator {
         return (DomainCredential) all.toArray(new DomainCredential[0])[index];
     }
     
+    public void deleteDomainCredentialAt(int index) {
+        int i = -1;
+        Iterator hosts = _domainCredentials.keySet().iterator();
+        while (hosts.hasNext()) {
+            Object key = hosts.next();
+            i++;
+            if (i == index) 
+                _domainCredentials.remove(key);
+        }
+    }
+    
     private BasicCredential[] getAllBasicCredentials() {
         List all = new ArrayList();
         Iterator hosts = _basicCredentials.keySet().iterator();
@@ -97,8 +123,6 @@ public class CredentialManager implements Authenticator {
             while (realm.hasNext()) 
                 all.add(realms.get(realm.next()));
         }
-        for (int i=0; i<all.size(); i++)
-            System.out.println(i + " : " + all.get(i).getClass());
         return (BasicCredential[]) all.toArray(new BasicCredential[0]);
     }
     

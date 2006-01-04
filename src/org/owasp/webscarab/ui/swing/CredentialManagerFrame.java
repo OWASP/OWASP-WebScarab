@@ -58,6 +58,7 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
+        setTitle("WebScarab Credentials");
         jLabel1.setText("Basic Credentials");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -156,6 +157,14 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_closeButtonActionPerformed
 
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
+        int basicSelection = basicTable.getSelectedRow();
+        int domainSelection = domainTable.getSelectedRow();
+        if (basicSelection > -1 && domainSelection > -1)
+            return;
+        if (basicSelection > -1)
+            _manager.deleteBasicCredentialAt(basicSelection);
+        if (domainSelection> -1)
+            _manager.deleteDomainCredentialAt(domainSelection);
         updateCredentials();
     }//GEN-LAST:event_deleteButtonActionPerformed
 
@@ -179,14 +188,14 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
     
     private class BasicTableModel extends AbstractTableModel {
         
-        private String[] _columnNames = { "Host", "Realm", "Username", "Password"};
+        private String[] _columnNames = { "Host", "Realm", "Username"};
         
         public String getColumnName(int column) {
             return _columnNames[column];
         }
         
         public int getColumnCount() {
-            return 4;
+            return 3;
         }
 
         public int getRowCount() {
@@ -199,7 +208,6 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
                 case 0: return bc.getHost();
                 case 1: return bc.getRealm();
                 case 2: return bc.getUsername();
-                case 3: return bc.getPassword();
             }
             return null;
         }
@@ -208,14 +216,14 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
     
     private class DomainTableModel extends AbstractTableModel {
         
-        private String[] _columnNames = { "Host", "Domain", "Username", "Password"};
+        private String[] _columnNames = { "Host", "Domain", "Username"};
         
         public String getColumnName(int column) {
             return _columnNames[column];
         }
         
         public int getColumnCount() {
-            return 4;
+            return 3;
         }
 
         public int getRowCount() {
@@ -228,7 +236,6 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
                 case 0: return dc.getHost();
                 case 1: return dc.getDomain();
                 case 2: return dc.getUsername();
-                case 3: return dc.getPassword();
             }
             return null;
         }
