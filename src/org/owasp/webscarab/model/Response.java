@@ -58,7 +58,7 @@ public class Response extends Message {
     
     /** Creates a new instance of Response */
     public Response() {
-        setVersion("Http/1.0");
+        setVersion("HTTP/1.0");
     }
     
     /** Creates a new instance of Response, copied from the supplied Response

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import org.owasp.webscarab.util.ReentrantReaderPreferenceReadWriteLock;
 
 /**
  *
@@ -20,6 +21,8 @@ import java.util.logging.Logger;
 public abstract class FilteredConversationModel extends AbstractConversationModel {
     
     private ConversationModel _model;
+    
+    private ReentrantReaderPreferenceReadWriteLock _rwl = new ReentrantReaderPreferenceReadWriteLock();
     
     // contains conversations that should be visible
     private List _conversations = new ArrayList();
@@ -35,9 +38,9 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
     }
     
     protected void updateConversations() {
-        _conversations.clear();
         try {
-            _model.readLock().acquire();
+            _rwl.writeLock().acquire();
+            _conversations.clear();
             int count = _model.getConversationCount();
             for (int i=0 ; i<count; i++) {
                 ConversationID id = _model.getConversationAt(i);
@@ -45,10 +48,12 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
                     _conversations.add(id);
                 }
             }
+            _rwl.readLock().acquire();
+            _rwl.writeLock().release();
+            fireConversationsChanged();
+            _rwl.readLock().release();
         } catch (InterruptedException ie) {
-            //            _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
-        } finally {
-            _model.readLock().release();
+            // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
         }
     }
     
@@ -56,54 +61,54 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
     
     protected boolean isFiltered(ConversationID id) {
         try {
-            _model.readLock().acquire();
+            _rwl.readLock().acquire();
             return _conversations.indexOf(id) == -1;
         } catch (InterruptedException ie) {
             // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
             return false;
         } finally {
-            _model.readLock().release();
+            _rwl.readLock().release();
         }
     }
     
     public ConversationID getConversationAt(int index) {
         try {
-            _model.readLock().acquire();
+            _rwl.readLock().acquire();
             return (ConversationID) _conversations.get(index);
         } catch (InterruptedException ie) {
             // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
             return null;
         } finally {
-            _model.readLock().release();
+            _rwl.readLock().release();
         }
     }
     
     public int getConversationCount() {
         try {
-            _model.readLock().acquire();
+            _rwl.readLock().acquire();
             return _conversations.size();
         } catch (InterruptedException ie) {
             // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
             return 0;
         } finally {
-            _model.readLock().release();
+            _rwl.readLock().release();
         }
     }
     
     public int getIndexOfConversation(ConversationID id) {
         try {
-            _model.readLock().acquire();
+            _rwl.readLock().acquire();
             return Collections.binarySearch(_conversations, id);
         } catch (InterruptedException ie) {
             // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
             return -1;
         } finally {
-            _model.readLock().release();
+            _rwl.readLock().release();
         }
     }
     
     public Sync readLock() {
-        return _model.readLock();
+        return _rwl.readLock();
     }
     
     private class Listener implements ConversationListener {
@@ -111,11 +116,19 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
         public void conversationAdded(ConversationEvent evt) {
             ConversationID id = evt.getConversationID();
             if (! shouldFilter(id)) {
-                int index = getIndexOfConversation(id);
-                if (index < 0) {
-                    index = -index - 1;
-                    _conversations.add(index, id);
+                try {
+                    _rwl.writeLock().acquire();
+                    int index = getIndexOfConversation(id);
+                    if (index < 0) {
+                        index = -index - 1;
+                        _conversations.add(index, id);
+                    }
+                    _rwl.readLock().acquire();
+                    _rwl.writeLock().release();
                     fireConversationAdded(id, index);
+                    _rwl.readLock().release();
+                } catch (InterruptedException ie) {
+                    // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
                 }
             }
         }
@@ -125,14 +138,30 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
             int index = getIndexOfConversation(id);
             if (shouldFilter(id)) {
                 if (index > -1) {
-                    _conversations.remove(index);
-                    fireConversationRemoved(id, index);
+                    try {
+                        _rwl.writeLock().acquire();
+                        _conversations.remove(index);
+                        _rwl.readLock().acquire();
+                        _rwl.writeLock().release();
+                        fireConversationRemoved(id, index);
+                        _rwl.readLock().release();
+                    } catch (InterruptedException ie) {
+                        // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
+                    }
                 }
             } else {
                 if (index < 0) {
                     index = -index -1;
-                    _conversations.add(index, id);
-                    fireConversationAdded(id, index);
+                    try {
+                        _rwl.writeLock().acquire();
+                        _conversations.add(index, id);
+                        _rwl.readLock().acquire();
+                        _rwl.writeLock().release();
+                        fireConversationAdded(id, index);
+                        _rwl.readLock().release();
+                    } catch (InterruptedException ie) {
+                        // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
+                    }
                 }
             }
         }
@@ -140,15 +169,22 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
         public void conversationRemoved(ConversationEvent evt) {
             ConversationID id = evt.getConversationID();
             int index = getIndexOfConversation(id);
-            if (index > 0) {
-                _conversations.remove(index);
-                fireConversationRemoved(id, index);
+            if (index > -1) {
+                try {
+                    _rwl.writeLock().acquire();
+                    _conversations.remove(index);
+                    _rwl.readLock().acquire();
+                    _rwl.writeLock().release();
+                    fireConversationRemoved(id, index);
+                    _rwl.readLock().release();
+                } catch (InterruptedException ie) {
+                    // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
+                }
             }
         }
         
         public void conversationsChanged() {
             updateConversations();
-            fireConversationsChanged();
         }
         
     }

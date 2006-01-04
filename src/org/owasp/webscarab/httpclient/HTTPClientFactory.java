@@ -85,6 +85,7 @@ public class HTTPClientFactory {
     private String _keyPassword = "";
     
     private Authenticator _authenticator = null;
+    private KeyManager[] _keyManagers = null;
     
     // Create a trust manager that does not validate certificate chains
     private static TrustManager[] _trustAllCerts = new TrustManager[]{
@@ -131,7 +132,7 @@ public class HTTPClientFactory {
             }
         };
         
-        initSSLContext(null);
+        initSSLContext();
     }
     
     public static HTTPClientFactory getInstance() {
@@ -187,19 +188,20 @@ public class HTTPClientFactory {
         if (_keyPassword == null) _keyPassword = "";
         
         if (_certFile.equals("")) {
-            initSSLContext(null);
+            setKeyManagers(null);
         } else {
             try {
                 KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
                 KeyStore ks = KeyStore.getInstance("PKCS12");
                 ks.load(new FileInputStream(_certFile), _keystorePassword.toCharArray());
                 kmf.init(ks, _keyPassword.toCharArray());
-                initSSLContext(kmf.getKeyManagers());
+                setKeyManagers(kmf.getKeyManagers());
             } catch (NoSuchAlgorithmException nsae) {
                 _logger.severe("No SunX509 suport: " + nsae);
-                initSSLContext(null);
+                setKeyManagers(null);
             }
         }
+        initSSLContext();
     }
     
     public String getClientCertificateFile() {
@@ -214,10 +216,18 @@ public class HTTPClientFactory {
         return _keyPassword;
     }
     
-    private void initSSLContext(KeyManager[] managers) {
+    private void setKeyManagers(KeyManager[] managers) {
+        _keyManagers = managers;
+    }
+    
+    private KeyManager[] getKeyManagers() {
+        return _keyManagers;
+    }
+    
+    public void initSSLContext() {
         try {
             _sslContext = SSLContext.getInstance("SSL");
-            _sslContext.init(managers, _trustAllCerts, new SecureRandom());
+            _sslContext.init(getKeyManagers(), _trustAllCerts, new SecureRandom());
         } catch (NoSuchAlgorithmException nsae) {
             _sslContext = null;
         } catch (KeyManagementException kme) {
