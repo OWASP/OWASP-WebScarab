@@ -24,6 +24,7 @@ public class CredentialRequestDialog extends javax.swing.JDialog implements Cred
     public CredentialRequestDialog(java.awt.Frame parent, boolean modal, CredentialManager manager) {
         super(parent, modal);
         initComponents();
+        getRootPane().setDefaultButton(okButton);
         _manager = manager;
     }
     
