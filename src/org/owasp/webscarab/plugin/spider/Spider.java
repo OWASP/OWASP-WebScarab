@@ -187,6 +187,7 @@ public class Spider implements Plugin {
             return false;
         }
         if (response.getStatus().startsWith("401")) {
+            _logger.info("Invalid credentials or authentication required for " + request.getURL());
             _model.setAuthRequired(request.getURL());
             return true;
         }
@@ -245,7 +246,7 @@ public class Spider implements Plugin {
         int count = 0;
         List links = new LinkedList();
         // build up a list of links
-        queueLinksUnder(url, links, 100);
+        queueLinksUnder(url, links, 50);
         // queue them
         while (links.size()>0) _model.queueLink((Link) links.remove(0));
     }
@@ -295,7 +296,8 @@ public class Spider implements Plugin {
             req.setHeader("Referer", referer);
         }
         req.setHeader("Host", url.getHost() + ":" + url.getPort());
-        req.setHeader("Connection", "Keep-Alive");
+        if (req.getVersion().equals("HTTP/1.0")) 
+            req.setHeader("Connection", "Keep-Alive");
         NamedValue[] headers = _model.getExtraHeaders();
         if (headers != null && headers.length > 0) {
             for (int i=0; i< headers.length; i++) {
