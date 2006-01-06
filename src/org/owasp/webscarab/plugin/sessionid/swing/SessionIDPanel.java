@@ -131,7 +131,6 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
             }
         });
         _requestPanel = new RequestPanel();
-        _requestPanel.selectPanel("Raw");
         _requestPanel.setBorder(new TitledBorder("Request"));
         _requestPanel.setEditable(true);
         _requestPanel.setRequest(null);
