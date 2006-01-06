@@ -597,7 +597,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
             JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDir"));
             jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             jfc.setDialogTitle("Select a directory to write the session into");
-            int returnVal = jfc.showOpenDialog(this);
+            int returnVal = jfc.showSaveDialog(this);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 final File dir = jfc.getSelectedFile();
                 if (FileSystemStore.isExistingSession(dir)) {
