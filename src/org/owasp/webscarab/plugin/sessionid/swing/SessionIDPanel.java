@@ -451,8 +451,8 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
             return;
         }
         JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDirectory"));
-        jfc.setDialogTitle("Select a directory to write the session into");
-        int returnVal = jfc.showOpenDialog(this);
+        jfc.setDialogTitle("Select a directory to write the sessionids into");
+        int returnVal = jfc.showSaveDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             final File file = jfc.getSelectedFile();
             try {
