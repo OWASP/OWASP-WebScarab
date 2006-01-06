@@ -320,10 +320,12 @@ public class SessionIDAnalysis implements Plugin {
         HttpUrl url = request.getURL();
         String cookie = request.getHeader("Cookie");
         if (cookie != null) _model.addRequestCookie(id, cookie);
-        cookie = response.getHeader("Set-Cookie");
-        if (cookie != null) {
-            Cookie c = new Cookie(new Date(), cookie);
-            _model.addResponseCookie(id, url, c);
+        String[] setCookie = response.getHeaders("Set-Cookie");
+        if (setCookie != null) {
+            for (int i=0; i<setCookie.length; i++) {
+                Cookie c = new Cookie(new Date(), setCookie[i]);
+                _model.addResponseCookie(id, url, c);
+            }
         }
     }
     
