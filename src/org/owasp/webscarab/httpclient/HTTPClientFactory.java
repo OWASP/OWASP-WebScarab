@@ -186,8 +186,13 @@ public class HTTPClientFactory {
         return _keyPassword;
     }
     
-    private void setKeyManagers(KeyManager[] managers) {
+    public void setKeyManager(KeyManager manager) {
+        setKeyManagers(new KeyManager[] { manager });
+    }
+    
+    public void setKeyManagers(KeyManager[] managers) {
         _keyManagers = managers;
+        initSSLContext();
     }
     
     private KeyManager[] getKeyManagers() {
