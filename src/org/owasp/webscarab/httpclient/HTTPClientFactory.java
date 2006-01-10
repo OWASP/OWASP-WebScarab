@@ -49,6 +49,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManager;
@@ -58,10 +60,12 @@ import javax.net.ssl.SSLContext;
 import java.util.logging.Logger;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Preferences;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
 
 /**
  *
- * @author  knoppix
+ * @author  rdawes
  */
 public class HTTPClientFactory {
     
@@ -86,6 +90,9 @@ public class HTTPClientFactory {
     
     private Authenticator _authenticator = null;
     private KeyManager[] _keyManagers = null;
+    
+    private List _clientList = new ArrayList();
+    private List _availableClients = new ArrayList();
     
     // Create a trust manager that does not validate certificate chains
     private static TrustManager[] _trustAllCerts = new TrustManager[]{
@@ -227,6 +234,31 @@ public class HTTPClientFactory {
         uf.setTimeouts(_connectTimeout, _readTimeout);
         uf.setAuthenticator(_authenticator);
         return uf;
+    }
+    
+    public Response fetchResponse(Request request) throws IOException {
+        HTTPClient hc = null;
+        synchronized (_availableClients) {
+            if (_availableClients.size()>0) {
+                hc = (HTTPClient) _availableClients.remove(0);
+            } else {
+                _logger.info("Creating a new Fetcher");
+                hc = HTTPClientFactory.getInstance().getHTTPClient();
+                _clientList.add(hc);
+            }
+        }
+        Response response = null;
+        IOException ioe = null;
+        try {
+            response = hc.fetchResponse(request);
+        } catch (IOException e) {
+            ioe = e;
+        }
+        synchronized (_availableClients) {
+            _availableClients.add(hc);
+        }
+        if (ioe != null) throw ioe;
+        return response;
     }
     
 }
