@@ -27,15 +27,16 @@ public class FetcherQueue {
     private ConversationHandler _handler;
     
     private Fetcher[] _fetchers;
-    private int _requestPerSecond;
+    private int _requestDelay;
+    private long _lastRequest = 0;
     private List _requestQueue = new ArrayList();
     private boolean _running = true;
     
     /** Creates a new instance of FetcherQueue */
-    public FetcherQueue(ConversationHandler handler, int threads, int requestsPerSecond) {
+    public FetcherQueue(ConversationHandler handler, int threads, int requestDelay) {
         _handler = handler;
         _fetchers = new Fetcher[threads];
-        _requestPerSecond = requestsPerSecond;
+        _requestDelay = requestDelay;
         for (int i=0; i<threads; i++) {
             _fetchers[i] = new Fetcher();
         }
@@ -83,6 +84,16 @@ public class FetcherQueue {
                     // check again
                 }
             }
+            if (_requestDelay > 0) {
+                long currentTimeMillis = System.currentTimeMillis();
+                while (currentTimeMillis < _lastRequest + _requestDelay) {
+                    try {
+                        Thread.sleep(_lastRequest + _requestDelay - currentTimeMillis);
+                    } catch (InterruptedException ie) {}
+                    currentTimeMillis = System.currentTimeMillis();
+                }
+                _lastRequest = currentTimeMillis;
+            }
             return (Request) _requestQueue.remove(0);
         }
     }
@@ -97,7 +108,9 @@ public class FetcherQueue {
             while (_running) {
                 Request request = getNextRequest();
                 try {
-                    responseReceived(HTTPClientFactory.getInstance().fetchResponse(request));
+                    Response response = HTTPClientFactory.getInstance().fetchResponse(request);
+                    response.flushContentStream();
+                    responseReceived(response);
                 } catch (IOException ioe) {
                     requestError(request, ioe);
                 }
