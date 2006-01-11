@@ -67,6 +67,12 @@ public class FetcherQueue {
         }
     }
     
+    public void clearRequestQueue() {
+        synchronized (_requestQueue) {
+            _requestQueue.clear();
+        }
+    }
+    
     private void responseReceived(Response response) {
         _handler.responseReceived(response);
     }
