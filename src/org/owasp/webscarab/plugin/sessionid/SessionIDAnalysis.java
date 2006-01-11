@@ -41,7 +41,8 @@ package org.owasp.webscarab.plugin.sessionid;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import org.owasp.webscarab.httpclient.AsyncFetcher;
+import org.owasp.webscarab.httpclient.ConversationHandler;
+import org.owasp.webscarab.httpclient.FetcherQueue;
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
@@ -82,12 +83,12 @@ import javax.swing.event.EventListenerList;
  *
  * @author  rdawes
  */
-public class SessionIDAnalysis implements Plugin {
+public class SessionIDAnalysis implements Plugin, ConversationHandler {
     
     private Framework _framework = null;
     private SessionIDModel _model;
     
-    private AsyncFetcher _fetcher;
+    private FetcherQueue _fetcherQueue;
     private int _threads = 4;
     
     private String _name = null;
@@ -109,6 +110,7 @@ public class SessionIDAnalysis implements Plugin {
     public SessionIDAnalysis(Framework framework) {
         _framework = framework;
         _model = new SessionIDModel(framework.getModel());
+        _fetcherQueue = new FetcherQueue("SessionID", this, _threads, 100);
     }
     
     public SessionIDModel getModel() {
@@ -135,48 +137,41 @@ public class SessionIDAnalysis implements Plugin {
         _model.setStatus("Started");
         _hc = HTTPClientFactory.getInstance().getHTTPClient();
         
-        _fetcher = new AsyncFetcher("SessionID", _threads);
-        
-        Timer requestTimer = new Timer(true);
-        requestTimer.schedule(new TimerTask() {
-            public void run() {
-                queueRequest();
-            }
-        }, 1000, 100); // wait 1 seconds to initialise, then every tenth of a second
-        
         _model.setRunning(true);
         _runThread = Thread.currentThread();
         
         _model.setStopping(false);
         Response response;
         while (! _model.isStopping()) {
-            try {
-                while (_fetcher.hasResponse()) {
-                    response = _fetcher.receive();
-                    if (response != null) {
-                        Map ids = getIDsFromResponse(response, _name, _regex);
-                        Iterator it = ids.keySet().iterator();
-                        while (it.hasNext()) {
-                            String key = (String) it.next();
-                            SessionID id = (SessionID) ids.get(key);
-                            _model.addSessionID(key, id);
-                        }
-                    }
-                }
-            } catch (IOException ioe) {
-                _logger.info("IOException " + ioe.getMessage());
+            while (_request != null && _count > 0 && _fetcherQueue.getRequestsQueued() < _threads) {
+                _fetcherQueue.submit(_request);
             }
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ie) {}
         }
-        requestTimer.cancel();
         _request = null;
         _response = null;
-        _fetcher.stop();
+        _fetcherQueue.clearRequestQueue();
         _hc = null;
         _model.setRunning(false);
         _model.setStatus("Stopped");
+    }
+    
+    public void requestError(Request request, IOException ioe) {
+        _logger.info("Requested " + request.getURL() + " got IOException " + ioe.getMessage());
+    }
+    
+    public void responseReceived(Response response) {
+        if (_count == 0) return;
+        _count--;
+        Map ids = getIDsFromResponse(response, _name, _regex);
+        Iterator it = ids.keySet().iterator();
+        while (it.hasNext()) {
+            String key = (String) it.next();
+            SessionID id = (SessionID) ids.get(key);
+            _model.addSessionID(key, id);
+        }
     }
     
     public Map getIDsFromResponse(Response response, String name, String regex) {
@@ -253,15 +248,6 @@ public class SessionIDAnalysis implements Plugin {
         _name = name;
         _regex = regex;
         _count = count;
-    }
-    
-    private void queueRequest() {
-        if (_request != null && _count > 0) { // if we have a request to fetch, and there are some outstanding
-            if (_fetcher.hasCapacity() && _fetcher.submit(_request)) {
-                _count --;
-                return;
-            }
-        }
     }
     
     public void setRequest(Request request) {
