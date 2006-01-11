@@ -104,7 +104,7 @@ public class Spider implements Plugin, ConversationHandler {
     public Spider(Framework framework) {
         _framework = framework;
         _model = new SpiderModel(_framework.getModel());
-        _fetcherQueue = new FetcherQueue(this, 4, 0);
+        _fetcherQueue = new FetcherQueue("Spider", this, 4, 0);
     }
     
     public SpiderModel getModel() {
@@ -173,10 +173,12 @@ public class Spider implements Plugin, ConversationHandler {
         Request request = response.getRequest();
         if (request == null) {
             _logger.warning("Got a null request from the response!");
+            return;
         }
         if (response.getStatus().startsWith("401")) {
             _logger.info("Invalid credentials or authentication required for " + request.getURL());
             _model.setAuthRequired(request.getURL());
+            return;
         }
         _framework.addConversation(request, response, "Spider");
         if (_model.getCookieSync()) {

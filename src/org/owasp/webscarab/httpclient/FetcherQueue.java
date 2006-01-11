@@ -33,12 +33,12 @@ public class FetcherQueue {
     private boolean _running = true;
     
     /** Creates a new instance of FetcherQueue */
-    public FetcherQueue(ConversationHandler handler, int threads, int requestDelay) {
+    public FetcherQueue(String name, ConversationHandler handler, int threads, int requestDelay) {
         _handler = handler;
         _fetchers = new Fetcher[threads];
         _requestDelay = requestDelay;
         for (int i=0; i<threads; i++) {
-            _fetchers[i] = new Fetcher();
+            _fetchers[i] = new Fetcher(name+"-"+i);
         }
         start();
     }
@@ -105,7 +105,8 @@ public class FetcherQueue {
     }
     
     private class Fetcher extends Thread {
-        public Fetcher() {
+        public Fetcher(String name) {
+            super(name);
             setDaemon(true);
             setPriority(Thread.MIN_PRIORITY);
         }
