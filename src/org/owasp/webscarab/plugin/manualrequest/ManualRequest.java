@@ -37,7 +37,6 @@
 
 package org.owasp.webscarab.plugin.manualrequest;
 
-import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
 import org.owasp.webscarab.model.FrameworkModel;
@@ -62,8 +61,6 @@ public class ManualRequest implements Plugin {
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     private ManualRequestUI _ui = null;
-    
-    private HTTPClient _hc = null;
     
     private Request _request = null;
     private Response _response = null;
@@ -107,7 +104,7 @@ public class ManualRequest implements Plugin {
             try {
                 _model.setBusy(true);
                 _model.setStatus("Started, Fetching response");
-                _response = _hc.fetchResponse(_request);
+                _response = HTTPClientFactory.getInstance().fetchResponse(_request);
                 if (_response != null) {
                     _responseDate = new Date();
                     _framework.addConversation(_request, _response, "Manual Request");
@@ -148,7 +145,6 @@ public class ManualRequest implements Plugin {
     }
     
     public void run() {
-        _hc = HTTPClientFactory.getInstance().getHTTPClient();
         _model.setRunning(true);
         // we do not run in our own thread, so we just return
         if (_ui != null) _ui.setEnabled(_model.isRunning());
@@ -156,7 +152,6 @@ public class ManualRequest implements Plugin {
     }
     
     public boolean stop() {
-        _hc = null;
         _model.setStopping(true);
         _model.setRunning(false);
         _model.setStopping(false);

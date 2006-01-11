@@ -16,7 +16,6 @@ import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.StoreException;
 
 import org.owasp.webscarab.httpclient.FetcherQueue;
-import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
 import org.owasp.webscarab.plugin.Plugin;

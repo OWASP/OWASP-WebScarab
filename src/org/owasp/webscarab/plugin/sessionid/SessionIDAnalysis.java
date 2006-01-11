@@ -43,7 +43,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import org.owasp.webscarab.httpclient.ConversationHandler;
 import org.owasp.webscarab.httpclient.FetcherQueue;
-import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
 import org.owasp.webscarab.model.StoreException;
@@ -100,8 +99,6 @@ public class SessionIDAnalysis implements Plugin, ConversationHandler {
     
     private Thread _runThread = null;
     
-    private HTTPClient _hc = null;
-    
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     private EventListenerList _listenerList = new EventListenerList();
@@ -135,7 +132,6 @@ public class SessionIDAnalysis implements Plugin, ConversationHandler {
     
     public void run() {
         _model.setStatus("Started");
-        _hc = HTTPClientFactory.getInstance().getHTTPClient();
         
         _model.setRunning(true);
         _runThread = Thread.currentThread();
@@ -153,7 +149,6 @@ public class SessionIDAnalysis implements Plugin, ConversationHandler {
         _request = null;
         _response = null;
         _fetcherQueue.clearRequestQueue();
-        _hc = null;
         _model.setRunning(false);
         _model.setStatus("Stopped");
     }
@@ -255,7 +250,7 @@ public class SessionIDAnalysis implements Plugin, ConversationHandler {
     }
     
     public void fetchResponse() throws IOException {
-        _response = _hc.fetchResponse(_request);
+        _response = HTTPClientFactory.getInstance().fetchResponse(_request);
     }
     
     public Response getResponse() {
