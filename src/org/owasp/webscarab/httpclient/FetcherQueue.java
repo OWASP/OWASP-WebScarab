@@ -31,6 +31,7 @@ public class FetcherQueue {
     private long _lastRequest = 0;
     private List _requestQueue = new ArrayList();
     private boolean _running = true;
+    private int _pending = 0;
     
     /** Creates a new instance of FetcherQueue */
     public FetcherQueue(String name, ConversationHandler handler, int threads, int requestDelay) {
@@ -54,6 +55,11 @@ public class FetcherQueue {
         }
         
     }
+    
+    public boolean isBusy() {
+        return _pending > 0 || getRequestsQueued() > 0;
+    }
+    
     public void submit(Request request) {
         synchronized (_requestQueue) {
             _requestQueue.add(request);
@@ -75,10 +81,12 @@ public class FetcherQueue {
     
     private void responseReceived(Response response) {
         _handler.responseReceived(response);
+        _pending--;
     }
     
     private void requestError(Request request, IOException ioe) {
         _handler.requestError(request, ioe);
+        _pending--;
     }
     
     private Request getNextRequest() {
@@ -100,6 +108,7 @@ public class FetcherQueue {
                 }
                 _lastRequest = currentTimeMillis;
             }
+            _pending++;
             return (Request) _requestQueue.remove(0);
         }
     }
