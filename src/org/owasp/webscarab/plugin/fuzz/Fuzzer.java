@@ -37,7 +37,8 @@
 
 package org.owasp.webscarab.plugin.fuzz;
 
-import org.owasp.webscarab.httpclient.AsyncFetcher;
+import org.owasp.webscarab.httpclient.ConversationHandler;
+import org.owasp.webscarab.httpclient.FetcherQueue;
 
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.ConversationID;
@@ -65,7 +66,7 @@ import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.net.MalformedURLException;
 
-public class Fuzzer implements Plugin {
+public class Fuzzer implements Plugin, ConversationHandler {
     
     private static Parameter[] NO_PARAMS = new Parameter[0];
     
@@ -73,7 +74,7 @@ public class Fuzzer implements Plugin {
     private Framework _framework = null;
     private FuzzFactory _fuzzFactory = new FuzzFactory();
     
-    private AsyncFetcher _fetcher = null;
+    private FetcherQueue _fetcherQueue = null;
     private int _threads = 4;
     
     private Thread _runThread = null;
@@ -86,6 +87,7 @@ public class Fuzzer implements Plugin {
         _framework = framework;
         _model = new FuzzerModel(_framework.getModel());
         loadFuzzStrings();
+        _fetcherQueue = new FetcherQueue("Fuzzer", this, _threads, 0);
     }
     
     private void loadFuzzStrings() {
@@ -126,21 +128,17 @@ public class Fuzzer implements Plugin {
         _model.setStopping(false);
         _runThread = Thread.currentThread();
         
-        // start the fetchers
-        _fetcher = new AsyncFetcher("Fuzzer", _threads);
-        
         _model.setRunning(true);
         while (!_model.isStopping()) {
             // queue them as fast as they come, sleep a bit otherwise
             boolean submittedRequest = queueRequests();
-            boolean gotResponse = dequeueResponses();
-            if (!submittedRequest && !gotResponse) {
+            if (!submittedRequest) {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException ie) {}
             }
         }
-        _fetcher.stop();
+        _fetcherQueue.clearRequestQueue();
         _model.setRunning(false);
         _runThread = null;
         _model.setStatus("Stopped");
@@ -251,11 +249,11 @@ public class Fuzzer implements Plugin {
     }
     
     private boolean queueRequests() {
-        if (! _fetcher.hasCapacity()) return false;
         if (!_model.isBusyFuzzing()) return false;
+        if (_fetcherQueue.getRequestsQueued()>=_threads) return false;
         try {
             Request request = constructCurrentFuzzRequest();
-            _fetcher.submit(request);
+            _fetcherQueue.submit(request);
             if (!_model.incrementFuzzer()) {
                 _model.setBusyFuzzing(false);
             }
@@ -267,34 +265,23 @@ public class Fuzzer implements Plugin {
         return true;
     }
     
-    private boolean dequeueResponses() {
-        // see if there are any responses waiting for us
-        if (! _fetcher.hasResponse()) {
-            return false;
-        }
-        Response response = null;
-        try {
-            response = _fetcher.receive();
-            if (response == null) {
-                _logger.warning("No response!");
-                return false;
-            }
-            if (response.getStatus().equals("400")) {
-                _logger.warning("Bad request");
-                _model.setBusyFuzzing(false);
-            }
-        } catch (IOException ioe) {
-            _logger.warning("Caught exception : " + ioe.getMessage());
+    public void requestError(Request request, IOException ioe) {
+        _logger.warning("Caught exception : " + ioe.getMessage());
+        _model.setBusyFuzzing(false);
+    }
+    
+    public void responseReceived(Response response) {
+        if (response.getStatus().equals("400")) {
+            _logger.warning("Bad request");
             _model.setBusyFuzzing(false);
-            return false;
+            return;
         }
         Request request = response.getRequest();
         if (request == null) {
             _logger.warning("Got a null request from the response!");
-            return false;
+            return;
         }
         _framework.addConversation(request, response, "Fuzzer");
-        return true;
     }
     
     public boolean stop() {

@@ -6,14 +6,16 @@
 
 package org.owasp.webscarab.plugin.scripted;
 
+import java.util.ArrayList;
+import java.util.List;
+import org.owasp.webscarab.httpclient.ConversationHandler;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.StoreException;
 
-import org.owasp.webscarab.httpclient.AsyncFetcher;
-import org.owasp.webscarab.httpclient.HTTPClient;
+import org.owasp.webscarab.httpclient.FetcherQueue;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
 import org.owasp.webscarab.plugin.Plugin;
@@ -42,7 +44,7 @@ import java.io.PrintStream;
  *
  * @author  rogan
  */
-public class Scripted implements Plugin {
+public class Scripted implements Plugin, ConversationHandler {
     
     private Framework _framework;
     private ScriptedUI _ui = null;
@@ -67,8 +69,9 @@ public class Scripted implements Plugin {
     
     private ScriptedObjectModel _som;
     
-    private HTTPClient _fetcher = null;
-    private AsyncFetcher _fetchers = null;
+    private int _threads = 4;
+    private FetcherQueue _fetcherQueue = null;
+    private List _responseQueue = new ArrayList();
     
     private PrintStream _out = System.out;
     private PrintStream _err = System.err;
@@ -90,6 +93,7 @@ public class Scripted implements Plugin {
         } catch (IOException ioe) {
             _logger.warning("Error loading default script" + ioe.getMessage());
         }
+        _fetcherQueue = new FetcherQueue("Scripted", this, _threads, 0);
     }
     
     public void setUI(ScriptedUI ui) {
@@ -199,8 +203,6 @@ public class Scripted implements Plugin {
         _pluginThread = Thread.currentThread();
         _running = true;
         _stopping = false;
-        _fetcher = HTTPClientFactory.getInstance().getHTTPClient();
-        _fetchers = new AsyncFetcher("Scripted", 4);
         while (! _stopping) {
             synchronized(_lock) {
                 try {
@@ -222,21 +224,8 @@ public class Scripted implements Plugin {
                 } catch (BSFException bsfe) {
                     if (_ui != null) _ui.scriptError("Unknown reason", bsfe);
                 }
-                while (_fetchers.isBusy()) {
-                    _logger.warning("Flushing abandoned requests");
-                    if (_fetchers.hasResponse()) {
-                        while (_fetchers.hasResponse()) {
-                            try {
-                                _fetchers.receive();
-                            } catch (IOException ioe) {
-                                _logger.warning("Error flushing abandoned request : " + ioe.getMessage());
-                            }
-                        }
-                    } else {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException ie) {}
-                    }
+                synchronized(_responseQueue) {
+                    _responseQueue.clear();
                 }
                 if (_ui != null) _ui.scriptStopped();
             }
@@ -245,27 +234,52 @@ public class Scripted implements Plugin {
     }
     
     Response fetchResponse(Request request) throws IOException {
-        return _fetcher.fetchResponse(request);
+        return HTTPClientFactory.getInstance().fetchResponse(request);
     }
     
     boolean hasAsyncCapacity() {
-        return _fetchers.hasCapacity();
+        return _fetcherQueue.getRequestsQueued() < _threads;
     }
     
     void submitAsyncRequest(Request request) {
-        _fetchers.submit(request);
+        _fetcherQueue.submit(request);
     }
     
     boolean isAsyncBusy() {
-        return _fetchers.isBusy();
+        return _fetcherQueue.isBusy();
     }
     
     boolean hasAsyncResponse() {
-        return _fetchers.hasResponse();
+        synchronized (_responseQueue) {
+            return _responseQueue.size()>0;
+        }
+    }
+    
+    public void requestError(Request request, IOException ioe) {
+        synchronized (_responseQueue) {
+            _responseQueue.add(ioe);
+            _responseQueue.notify();
+        }
+    }
+
+    public void responseReceived(Response response) {
+        synchronized (_responseQueue) {
+            _responseQueue.add(response);
+            _responseQueue.notify();
+        }
     }
     
     Response getAsyncResponse() throws IOException {
-        return _fetchers.receive();
+        synchronized (_responseQueue) {
+            while (_responseQueue.size() == 0) {
+                try {
+                    _responseQueue.wait();
+                } catch (InterruptedException ie) {}
+            }
+            Object obj = _responseQueue.remove(0);
+            if (obj instanceof Response) return (Response) obj;
+            throw (IOException) obj;
+        }
     }
     
     public void setSession(String type, Object store, String session) throws StoreException {
@@ -299,5 +313,5 @@ public class Scripted implements Plugin {
     public Hook[] getScriptingHooks() {
         return new Hook[0];
     }
-    
+
 }

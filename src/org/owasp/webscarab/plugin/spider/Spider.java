@@ -39,6 +39,7 @@
 
 package org.owasp.webscarab.plugin.spider;
 
+import org.owasp.webscarab.httpclient.ConversationHandler;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.ConversationID;
@@ -54,7 +55,7 @@ import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
 import org.owasp.webscarab.plugin.Hook;
 
-import org.owasp.webscarab.httpclient.AsyncFetcher;
+import org.owasp.webscarab.httpclient.FetcherQueue;
 
 import org.htmlparser.Node;
 
@@ -85,14 +86,14 @@ import java.io.IOException;
  * @author  rdawes
  */
 
-public class Spider implements Plugin {
+public class Spider implements Plugin, ConversationHandler {
     
     private SpiderModel _model = null;
     private Framework _framework = null;
     
     private SpiderUI _ui = null;
     
-    private AsyncFetcher _fetcher = null;
+    private FetcherQueue _fetcherQueue = null;
     private int _threads = 4;
     
     private Thread _runThread = null;
@@ -103,6 +104,7 @@ public class Spider implements Plugin {
     public Spider(Framework framework) {
         _framework = framework;
         _model = new SpiderModel(_framework.getModel());
+        _fetcherQueue = new FetcherQueue("Spider", this, 4, 0);
     }
     
     public SpiderModel getModel() {
@@ -122,13 +124,10 @@ public class Spider implements Plugin {
         _model.setStopping(false);
         _runThread = Thread.currentThread();
         
-        // start the fetchers
-        _fetcher = new AsyncFetcher("Spider", _threads);
-        
         _model.setRunning(true);
         while (!_model.isStopping()) {
             // queue them as fast as they come, sleep a bit otherwise
-            if (!queueRequests() && !dequeueResponses()) {
+            if (!queueRequests()) {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException ie) {}
@@ -136,7 +135,7 @@ public class Spider implements Plugin {
                 Thread.yield();
             }
         }
-        _fetcher.stop();
+        _fetcherQueue.clearRequestQueue();
         _model.setRunning(false);
         _runThread = null;
         _model.setStatus("Stopped");
@@ -146,8 +145,8 @@ public class Spider implements Plugin {
         // if the request queue is empty, add the latest cookies etc to the
         // request and submit it
         if (_model.getQueuedLinkCount() == 0) return false;
-        if (! _fetcher.hasCapacity()) return false;
-        while (_model.getQueuedLinkCount() > 0 && _fetcher.hasCapacity()) {
+        if (_fetcherQueue.getRequestsQueued() > _threads) return false;
+        while (_model.getQueuedLinkCount() > 0 && _fetcherQueue.getRequestsQueued() <= _threads) {
             Link link = _model.dequeueLink();
             if (link == null) {
                 _logger.warning("Got a null link from the link queue");
@@ -165,31 +164,21 @@ public class Spider implements Plugin {
                     request.setHeader("Cookie", buff.toString());
                 }
             }
-            _fetcher.submit(request);
+            _fetcherQueue.submit(request);
         }
         return true;
     }
     
-    private boolean dequeueResponses() {
-        // see if there are any responses waiting for us
-        if (! _fetcher.hasResponse()) return false;
-        Response response = null;
-        try {
-            response = _fetcher.receive();
-            if (response == null)
-                return false;
-        } catch (IOException ioe) {
-            return false;
-        }
+    public void responseReceived(Response response) {
         Request request = response.getRequest();
         if (request == null) {
             _logger.warning("Got a null request from the response!");
-            return false;
+            return;
         }
         if (response.getStatus().startsWith("401")) {
             _logger.info("Invalid credentials or authentication required for " + request.getURL());
             _model.setAuthRequired(request.getURL());
-            return true;
+            return;
         }
         _framework.addConversation(request, response, "Spider");
         if (_model.getCookieSync()) {
@@ -201,7 +190,10 @@ public class Spider implements Plugin {
                 }
             }
         }
-        return true;
+    }
+    
+    public void requestError(Request request, IOException ioe) {
+        _logger.info("Requested " + request.getURL() + " got IOException " + ioe.getMessage());
     }
     
     public boolean isBusy() {
