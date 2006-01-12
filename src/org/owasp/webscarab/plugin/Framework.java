@@ -196,7 +196,7 @@ public class Framework {
      * starts all the plugins in the framework
      */
     public void startPlugins() {
-        HTTPClientFactory.getInstance().initSSLContext();
+        HTTPClientFactory.getInstance().getSSLContextManager().invalidateSessions();
         Iterator it = _plugins.iterator();
         while (it.hasNext()) {
             Plugin plugin = (Plugin) it.next();
@@ -355,6 +355,8 @@ public class Framework {
             if (value == null) value = "";
             factory.setNoProxy(value.split(" *, *"));
             
+            prop = "WebScarab.clientCertificate";
+            boolean enabled = Preferences.getPreference(prop, "false").equals("true");
             prop = "WebScarab.clientCertificateFile";
             String file = Preferences.getPreference(prop, "");
             prop = "WebScarab.keystorePassword";
@@ -362,7 +364,8 @@ public class Framework {
             prop = "WebScarab.keyPassword";
             String keyPass = Preferences.getPreference(prop, "");
             
-            factory.setClientCertificateFile(file, keystorePass, keyPass);
+            if (enabled)
+                factory.getSSLContextManager().loadPKCS12Certificate(file, keystorePass, keyPass);
             
             int connectTimeout = 30000;
             prop = "HttpClient.connectTimeout";

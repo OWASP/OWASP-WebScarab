@@ -82,7 +82,7 @@ public class HTTPClientFactory {
     private int _connectTimeout = 30000;
     private int _readTimeout = 0;
     
-    private SSLContext _sslContext = null;
+    private SSLContextManager _sslContextManager = null;
     
     private String _certFile = "";
     private String _keystorePassword = "";
@@ -109,11 +109,15 @@ public class HTTPClientFactory {
     
     /** Creates a new instance of HttpClientFactory */
     protected HTTPClientFactory() {
-        initSSLContext();
+        _sslContextManager = new SSLContextManager();
     }
     
     public static HTTPClientFactory getInstance() {
         return _instance;
+    }
+    
+    public SSLContextManager getSSLContextManager() {
+        return _sslContextManager;
     }
     
     public void setHttpProxy(String proxy, int port) {
@@ -155,68 +159,6 @@ public class HTTPClientFactory {
         return _noProxy;
     }
     
-    public void setClientCertificateFile(String certFile, String keystorePassword, String keyPassword)
-    throws IOException, KeyStoreException, CertificateException, UnrecoverableKeyException {
-        _certFile = certFile;
-        if (_certFile == null) _certFile = "";
-        _keystorePassword = keystorePassword;
-        if (_keystorePassword == null) _keystorePassword = "";
-        _keyPassword = keyPassword;
-        if (_keyPassword == null) _keyPassword = "";
-        
-        if (_certFile.equals("")) {
-            setKeyManagers(null);
-        } else {
-            try {
-                KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-                KeyStore ks = KeyStore.getInstance("PKCS12");
-                ks.load(new FileInputStream(_certFile), _keystorePassword.toCharArray());
-                kmf.init(ks, _keyPassword.toCharArray());
-                setKeyManagers(kmf.getKeyManagers());
-            } catch (NoSuchAlgorithmException nsae) {
-                _logger.severe("No SunX509 suport: " + nsae);
-                setKeyManagers(null);
-            }
-        }
-        initSSLContext();
-    }
-    
-    public String getClientCertificateFile() {
-        return _certFile;
-    }
-    
-    public String getClientKeystorePassword() {
-        return _keystorePassword;
-    }
-    
-    public String getClientKeyPassword() {
-        return _keyPassword;
-    }
-    
-    public void setKeyManager(KeyManager manager) {
-        setKeyManagers(new KeyManager[] { manager });
-    }
-    
-    public void setKeyManagers(KeyManager[] managers) {
-        _keyManagers = managers;
-        initSSLContext();
-    }
-    
-    private KeyManager[] getKeyManagers() {
-        return _keyManagers;
-    }
-    
-    public void initSSLContext() {
-        try {
-            _sslContext = SSLContext.getInstance("SSL");
-            _sslContext.init(getKeyManagers(), _trustAllCerts, new SecureRandom());
-        } catch (NoSuchAlgorithmException nsae) {
-            _sslContext = null;
-        } catch (KeyManagementException kme) {
-            _sslContext = null;
-        }
-    }
-    
     public void setTimeouts(int connectTimeout, int readTimeout) {
         _connectTimeout = connectTimeout;
         _readTimeout = readTimeout;
@@ -235,7 +177,7 @@ public class HTTPClientFactory {
         uf.setHttpProxy(_httpProxy, _httpProxyPort);
         uf.setHttpsProxy(_httpsProxy, _httpsProxyPort);
         uf.setNoProxy(_noProxy);
-        uf.setSSLContext(_sslContext);
+        uf.setSSLContextManager(_sslContextManager);
         uf.setTimeouts(_connectTimeout, _readTimeout);
         uf.setAuthenticator(_authenticator);
         return uf;
@@ -248,7 +190,7 @@ public class HTTPClientFactory {
                 hc = (HTTPClient) _availableClients.remove(0);
             } else {
                 _logger.info("Creating a new Fetcher");
-                hc = HTTPClientFactory.getInstance().getHTTPClient();
+                hc = getHTTPClient();
                 _clientList.add(hc);
             }
         }

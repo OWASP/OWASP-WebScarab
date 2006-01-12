@@ -72,7 +72,8 @@ import org.owasp.webscarab.util.Glob;
 public class URLFetcher implements HTTPClient {
     
     // These represent the SSL classes required to connect to the server.
-    private SSLSocketFactory _factory = null;
+    private String _keyFingerprint = null;
+    private SSLContextManager _sslContextManager = null;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -142,8 +143,8 @@ public class URLFetcher implements HTTPClient {
         }
     }
     
-    public void setSSLContext(SSLContext sslContext) {
-        _factory = (SSLSocketFactory) sslContext.getSocketFactory();
+    public void setSSLContextManager(SSLContextManager sslContextManager) {
+        _sslContextManager = sslContextManager;
     }
     
     public void setTimeouts(int connectTimeout, int readTimeout) {
@@ -189,6 +190,18 @@ public class URLFetcher implements HTTPClient {
         // Get any provided credentials from the request
         _authCreds = request.getHeader("Authorization");
         _proxyAuthCreds = request.getHeader("Proxy-Authorization");
+        
+        String keyFingerprint = request.getHeader("X-SSLClientCertificate");
+        request.deleteHeader("X-SSLClientCertificate");
+        if (keyFingerprint == null && _keyFingerprint == null) {
+            // no problem
+        } else if (keyFingerprint != null && _keyFingerprint != null && keyFingerprint.equals(_keyFingerprint)) {
+            // no problem
+        } else {
+            // force a new connection, and change the fingerprint
+            _keyFingerprint = keyFingerprint;
+            _lastRequestTime = 0;
+        }
         
         String status;
         
@@ -327,6 +340,8 @@ public class URLFetcher implements HTTPClient {
             request.setHeader("Authorization", _authCreds);
         if (_proxyAuthCreds != null) 
             request.setHeader("Proxy-Authorization", _proxyAuthCreds);
+        if (_keyFingerprint != null)
+            request.setHeader("X-SSLClientCertificate", _keyFingerprint);
         
         return _response;
     }
@@ -394,13 +409,18 @@ public class URLFetcher implements HTTPClient {
         }
         
         if (ssl) {
-            if (_factory == null) {
-                throw new IOException("Cannot connect to SSL server. SSLContext did not provide a factory!");
-            }
+            // if no fingerprint is specified, get the default one
+            if (_keyFingerprint == null) 
+                _keyFingerprint = _sslContextManager.getDefaultKey();
+            // get the associated context manager
+            SSLContext sslContext = _sslContextManager.getSSLContext(_keyFingerprint);
+            if (sslContext == null)
+                throw new IOException("No SSL cert found matching fingerprint: " + _keyFingerprint);
             // Use the factory to create a secure socket connected to the
             // HTTPS port of the specified web server.
             try {
-                SSLSocket sslsocket=(SSLSocket)_factory.createSocket(_socket,_socket.getInetAddress().getHostName(),_socket.getPort(),true);
+                SSLSocketFactory factory = (SSLSocketFactory) sslContext.getSocketFactory();
+                SSLSocket sslsocket=(SSLSocket)factory.createSocket(_socket,_socket.getInetAddress().getHostName(),_socket.getPort(),true);
                 sslsocket.setUseClientMode(true);
                 _socket = sslsocket;
                 _socket.setSoTimeout(_timeout);

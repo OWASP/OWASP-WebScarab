@@ -39,6 +39,7 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import org.owasp.webscarab.httpclient.SSLContextManager;
 import org.owasp.webscarab.plugin.Framework;
 
 import javax.swing.JFileChooser;
@@ -64,7 +65,7 @@ public class CertificateDialog extends javax.swing.JDialog {
     
     private Framework _framework;
     
-    private HTTPClientFactory _factory = HTTPClientFactory.getInstance();
+    private SSLContextManager _sslContextManager = HTTPClientFactory.getInstance().getSSLContextManager();
     
     /** Creates new form CertificateDialog */
     public CertificateDialog(java.awt.Frame parent, Framework framework) {
@@ -268,21 +269,13 @@ public class CertificateDialog extends javax.swing.JDialog {
             JOptionPane.showMessageDialog(null, new String[] {"Provide a file to read the certificate from!"}, "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        boolean running = _framework.isRunning();
-        if (running) {
-            if (_framework.isBusy()) {
-                String[] status = _framework.getStatus();
-                JOptionPane.showMessageDialog(this, status, "Error - plugins are busy", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            _framework.stopPlugins();
-        }
         boolean error = false;
         try {
             if (useCert) {
-                _factory.setClientCertificateFile(file, keystorePass, keyPass);
+                String fingerprint = _sslContextManager.loadPKCS12Certificate(file, keystorePass, keyPass);
+                _sslContextManager.setDefaultKey(fingerprint);
             } else {
-                _factory.setClientCertificateFile(null, null, null);
+                _sslContextManager.setDefaultKey(null);
             }
         } catch (FileNotFoundException fnfe) {
             JOptionPane.showMessageDialog(null, new String[] {"File not found!", fnfe.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
@@ -292,10 +285,8 @@ public class CertificateDialog extends javax.swing.JDialog {
             error = true;
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, new String[] {"Unable to load client cert from " + file, e.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
             error = true;
-        }
-        if (running) {
-            _framework.startPlugins();
         }
         if (error) return;
         
