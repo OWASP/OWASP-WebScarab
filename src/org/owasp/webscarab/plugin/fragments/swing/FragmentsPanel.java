@@ -306,7 +306,7 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
                 FragmentsFrame ff = new FragmentsFrame();
                 ff.setFragments(fragments);
                 ff.setTitle(_type + " in " + _where + " " + getValue(_where));
-                ff.show();
+                ff.setVisible(true);
             }
         }
         

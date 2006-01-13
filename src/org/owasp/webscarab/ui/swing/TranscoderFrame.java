@@ -397,7 +397,7 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
                 System.exit(0);
             }
         });
-        tf.show();
+        tf.setVisible(true);
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

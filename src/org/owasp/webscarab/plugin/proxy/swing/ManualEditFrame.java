@@ -96,7 +96,7 @@ public class ManualEditFrame extends javax.swing.JFrame {
                     _requestPanel.setRequest(_request);
                     _responsePanel.setEditable(false);
                     _responsePanel.setResponse(null);
-                    show();
+                    setVisible(true);
                     toFront();
                     requestFocus();
                     contentSplitPane.setDividerLocation(1.0);
@@ -130,7 +130,7 @@ public class ManualEditFrame extends javax.swing.JFrame {
                     _requestPanel.setRequest(request);
                     _responsePanel.setEditable(true);
                     _responsePanel.setResponse(_response);
-                    show();
+                    setVisible(true);
                     toFront();
                     requestFocus();
                     contentSplitPane.setDividerLocation(0.3);

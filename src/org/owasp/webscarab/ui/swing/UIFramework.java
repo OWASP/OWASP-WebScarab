@@ -651,7 +651,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     
     private void scriptMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_scriptMenuItemActionPerformed
         if (_scriptManagerFrame == null) _scriptManagerFrame = new ScriptManagerFrame(_framework.getScriptManager());
-        _scriptManagerFrame.show();
+        _scriptManagerFrame.setVisible(true);
     }//GEN-LAST:event_scriptMenuItemActionPerformed
     
     private void wrapTextCheckBoxMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_wrapTextCheckBoxMenuItemActionPerformed
@@ -784,17 +784,17 @@ public class UIFramework extends JFrame implements FrameworkUI {
         if (_transcoder == null) {
             _transcoder = new TranscoderFrame();
         }
-        _transcoder.show();
+        _transcoder.setVisible(true);
     }//GEN-LAST:event_transcoderMenuItemActionPerformed
     
     private void cookieJarMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cookieJarMenuItemActionPerformed
-        _cookieJarViewer.show();
+        _cookieJarViewer.setVisible(true);
         _cookieJarViewer.toFront();
         _cookieJarViewer.requestFocus();
     }//GEN-LAST:event_cookieJarMenuItemActionPerformed
     
     private void proxyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_proxyMenuItemActionPerformed
-        new ProxyConfig(this, _framework).show();
+        new ProxyConfig(this, _framework).setVisible(true);
     }//GEN-LAST:event_proxyMenuItemActionPerformed
     
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed

@@ -30,7 +30,7 @@ public class CredentialRequestDialog extends javax.swing.JDialog implements Cred
     
     public void requestCredentials(final String host, final String[] challenges) {
         setup(host, challenges);
-        show();
+        setVisible(true);
     }
     
     private void setup(String host, String[] challenges) {
@@ -286,11 +286,11 @@ public class CredentialRequestDialog extends javax.swing.JDialog implements Cred
             DomainCredential dc = new DomainCredential(host, domain, username, password);
             _manager.addDomainCredentials(dc);
         }
-        hide();
+        setVisible(false);
     }
     
     private void cancel() {
-        hide();
+        setVisible(false);
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

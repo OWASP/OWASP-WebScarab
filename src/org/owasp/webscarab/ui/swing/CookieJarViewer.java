@@ -345,7 +345,7 @@ public class CookieJarViewer extends javax.swing.JFrame {
         Cookie cookie = new Cookie(new Date(), name + "=" + value + "; domain=" + domain + "; path="+path);
         _logger.info("Cookie is " + cookie);
         _model.addCookie(cookie);
-        addDialog.hide();
+        addDialog.setVisible(false);
     }//GEN-LAST:event_okButtonActionPerformed
     
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
@@ -357,7 +357,7 @@ public class CookieJarViewer extends javax.swing.JFrame {
     }//GEN-LAST:event_deleteButtonActionPerformed
     
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        addDialog.show();
+        addDialog.setVisible(true);
     }//GEN-LAST:event_addButtonActionPerformed
     
     private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed

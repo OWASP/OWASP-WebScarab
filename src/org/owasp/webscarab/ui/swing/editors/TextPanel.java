@@ -90,7 +90,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
                         return;
                     }
                 }
-                _searchDialog.show();
+                _searchDialog.setVisible(true);
             }
         });
         // Ctrl-G to search again
@@ -219,7 +219,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         try {
             // tp.setBytes("ABCDEFGHIJKLMNOP\nABCDEFGHIJKLMNOP".getBytes());
             tp.setEditable(true);
-            top.show();
+            top.setVisible(true);
         } catch (Exception e) {
             e.printStackTrace();
         }

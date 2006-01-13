@@ -291,7 +291,7 @@ public class ContentPanel extends javax.swing.JPanel {
         top.pack();
         // top.setSize(cp.getPreferredSize());
         // top.setBounds(100,100,600,400);
-        top.show();
+        top.setVisible(true);
         try {
             cp.setContentType(response.getHeader("Content-Type"));
             cp.setEditable(false);

@@ -370,7 +370,7 @@ public class ObjectPanel extends javax.swing.JPanel {
             }
         });
         top.setBounds(100,100,600,400);
-        top.show();
+        top.setVisible(true);
         try {
             op.setEditable(false);
             op.setObject(a);

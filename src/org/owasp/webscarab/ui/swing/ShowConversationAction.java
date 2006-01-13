@@ -71,7 +71,7 @@ public class ShowConversationAction extends AbstractAction {
         ConversationPanel cp = new ConversationPanel(_model);
         cp.setSelectedConversation(id);
         JFrame frame = cp.inFrame();
-        frame.show();
+        frame.setVisible(true);
         frame.toFront();
         frame.requestFocus();
     }

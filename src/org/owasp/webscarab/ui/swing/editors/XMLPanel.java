@@ -229,7 +229,7 @@ public class XMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
         try {
             xp.setBytes("text/xml",bytes);
             xp.setEditable(true);
-            top.show();
+            top.setVisible(true);
         } catch (Exception e) {
             e.printStackTrace();
         }
