@@ -39,6 +39,7 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import java.security.KeyStore;
 import org.owasp.webscarab.httpclient.SSLContextManager;
 import org.owasp.webscarab.plugin.Framework;
 
@@ -272,8 +273,9 @@ public class CertificateDialog extends javax.swing.JDialog {
         boolean error = false;
         try {
             if (useCert) {
-                String fingerprint = _sslContextManager.loadPKCS12Certificate(file, keystorePass, keyPass);
-                _sslContextManager.setDefaultKey(fingerprint);
+                int ks = _sslContextManager.loadPKCS12Certificate(file, keystorePass);
+                _sslContextManager.unlockKey(ks, 0, keyPass);
+                _sslContextManager.setDefaultKey(_sslContextManager.getFingerPrint(_sslContextManager.getCertificate(ks, 0)));
             } else {
                 _sslContextManager.setDefaultKey(null);
             }

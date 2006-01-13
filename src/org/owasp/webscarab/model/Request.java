@@ -106,6 +106,9 @@ public class Request extends Message {
         }
         if (line == null || line.equals("")) {
             // System.err.println("Client closed connection!");
+            setMethod(null);
+            setURL(null);
+            setVersion(null);
             return;
         }
         String[] parts = line.split(" ");

@@ -242,7 +242,8 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
                     if (obj != null) {
                         Exception e = (Exception) obj;
                         JOptionPane.showMessageDialog(null, new String[] {"Error fetching response: ", e.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
-                        _logger.severe("IOException fetching response: " + obj);
+                        _logger.severe("IOException fetching response: " + e);
+                        e.printStackTrace();
                     }
                     fetchResponseButton.setEnabled(true);
                     updateCookiesButton.setEnabled(true);

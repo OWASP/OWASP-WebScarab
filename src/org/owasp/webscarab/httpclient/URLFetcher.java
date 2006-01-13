@@ -412,6 +412,7 @@ public class URLFetcher implements HTTPClient {
             // if no fingerprint is specified, get the default one
             if (_keyFingerprint == null) 
                 _keyFingerprint = _sslContextManager.getDefaultKey();
+            _logger.info("Key fingerprint is " + _keyFingerprint);
             // get the associated context manager
             SSLContext sslContext = _sslContextManager.getSSLContext(_keyFingerprint);
             if (sslContext == null)

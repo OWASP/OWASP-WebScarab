@@ -56,9 +56,9 @@ public class AliasKeyManager implements X509KeyManager {
     public X509Certificate[] getCertificateChain(String alias) {
         try {
             Certificate[] certs = _ks.getCertificateChain(alias);
+            if (certs == null) return null;
             X509Certificate[] x509certs = new X509Certificate[certs.length];
             for (int i=0; i<certs.length; i++) {
-                System.err.println(certs[i].getClass().getName());
                 x509certs[i]=(X509Certificate) certs[i];
             }
             return x509certs;

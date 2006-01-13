@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -55,6 +56,7 @@ import java.util.logging.Logger;
 import java.util.Vector;
 
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
+import org.owasp.webscarab.httpclient.SSLContextManager;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
@@ -354,18 +356,6 @@ public class Framework {
             value = Preferences.getPreference(prop, "");
             if (value == null) value = "";
             factory.setNoProxy(value.split(" *, *"));
-            
-            prop = "WebScarab.clientCertificate";
-            boolean enabled = Preferences.getPreference(prop, "false").equals("true");
-            prop = "WebScarab.clientCertificateFile";
-            String file = Preferences.getPreference(prop, "");
-            prop = "WebScarab.keystorePassword";
-            String keystorePass = Preferences.getPreference(prop, "");
-            prop = "WebScarab.keyPassword";
-            String keyPass = Preferences.getPreference(prop, "");
-            
-            if (enabled)
-                factory.getSSLContextManager().loadPKCS12Certificate(file, keystorePass, keyPass);
             
             int connectTimeout = 30000;
             prop = "HttpClient.connectTimeout";

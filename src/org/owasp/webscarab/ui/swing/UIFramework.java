@@ -96,7 +96,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private ArrayList _plugins;
     
     private CookieJarViewer _cookieJarViewer;
-    private CertificateDialog _certDialog;
+    private CertificateManager _certificateManager;
     private SummaryPanel _summaryPanel;
     
     private TranscoderFrame _transcoder = null;
@@ -137,7 +137,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
         } catch (Exception e) {}
         
         _cookieJarViewer = new CookieJarViewer(_model);
-        _certDialog = new CertificateDialog(this, _framework);
+        _certificateManager = new CertificateManager();
         
         CredentialManager cm = _framework.getCredentialManager();
         _credentialManagerFrame = new CredentialManagerFrame(cm);
@@ -777,7 +777,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     }//GEN-LAST:event_logLevelActionPerformed
     
     private void certsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_certsMenuItemActionPerformed
-        _certDialog.show();
+        _certificateManager.setVisible(true);
     }//GEN-LAST:event_certsMenuItemActionPerformed
     
     private void transcoderMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_transcoderMenuItemActionPerformed
