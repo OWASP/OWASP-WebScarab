@@ -11,6 +11,9 @@
 package org.owasp.webscarab.plugin.extensions;
 
 import java.util.logging.Logger;
+import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.FilteredConversationModel;
@@ -18,6 +21,7 @@ import org.owasp.webscarab.model.FilteredUrlModel;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.UrlModel;
+import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.plugin.AbstractPluginModel;
 
 /**
@@ -31,8 +35,10 @@ public class ExtensionsModel extends AbstractPluginModel {
     private ConversationModel _conversationModel;
     private UrlModel _urlModel;
     
-    private String[] _directoryExtensions = { ".zip", ".arj", ".tar", ".tar.gz", ".tar.bz2"};
-    private String[] _fileExtensions = { ".bak", "~" };
+    private String[] _directoryExtensions = { ".zip", ".arj", ".tar", ".tar.gz", ".tar.bz2", ".tgz", ".exe", ".rar", ".tbz"};
+    private String[] _fileExtensions = { ".bak", "~", ".old", ".rej", ".orig", ".inc"};
+        
+    private LinkedList toBeAnalyzedQueue = new LinkedList();
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -55,11 +61,16 @@ public class ExtensionsModel extends AbstractPluginModel {
     public void setDirectoryExtensions(String[] extensions) {
         _directoryExtensions = extensions;
     }
+    public String[] getDirectoryExtensions() {
+        return _directoryExtensions;
+    }
     
     public void setFileExtensions(String[] extensions) {
         _fileExtensions = extensions;
     }
-    
+    public String[] getFileExtensions() {
+        return _fileExtensions;
+    }
     public ConversationModel getConversationModel() {
         return _conversationModel;
     }
@@ -71,6 +82,7 @@ public class ExtensionsModel extends AbstractPluginModel {
     public int getExtensionsTested(HttpUrl url) {
         String checked = _model.getUrlProperty(url, "EXTENSIONS");
         if (checked == null) 
+            // to let caller know that URL hasn't been seen yet
             return 0;
         try {
             int count = Integer.parseInt(checked);
@@ -83,7 +95,7 @@ public class ExtensionsModel extends AbstractPluginModel {
     
     public void incrementExtensionsTested(HttpUrl url) {
         int count = getExtensionsTested(url);
-        _model.setUrlProperty(url, "EXTENSIONS", Integer.toString(count++));
+        _model.setUrlProperty(url, "EXTENSIONS", Integer.toString(++count));
     }
     
     public int getExtensionCount(HttpUrl url) {
@@ -105,5 +117,31 @@ public class ExtensionsModel extends AbstractPluginModel {
     public boolean isTested(HttpUrl url) {
         return getExtensionsTested(url) >= getExtensionCount(url);
     }
+
+    public void enqueueURL(HttpUrl url) {
+        synchronized(toBeAnalyzedQueue) {
+            if (!isTested(url)) {
+                toBeAnalyzedQueue.addLast(url);
+                toBeAnalyzedQueue.notifyAll();
+            }
+        }
+    }
     
+    public HttpUrl dequeueURL() {
+
+        synchronized (toBeAnalyzedQueue) {
+            try {
+                while (toBeAnalyzedQueue.isEmpty()) {
+                    toBeAnalyzedQueue.wait();
+                }
+                return (HttpUrl)toBeAnalyzedQueue.removeFirst();
+            }
+            catch (InterruptedException e) {
+                return null;
+            }
+            catch(NoSuchElementException e) {
+                return null;
+            }
+        }
+    }       
 }

@@ -84,6 +84,7 @@
             listfiles="no" 
             optimize="on" 
             srcdir="${src.dir}"
+			debug="on"
         >
         </javac>
     </target>

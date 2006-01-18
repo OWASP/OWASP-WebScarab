@@ -182,8 +182,8 @@ public class ExtensionsPanel extends javax.swing.JPanel implements SwingPluginUI
     // </editor-fold>//GEN-END:initComponents
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
-        _extensions.setDirectoryExtensions(stringToArray(directoryTextArea.getText()));
-        _extensions.setFileExtensions(stringToArray(fileTextArea.getText()));
+        _model.setDirectoryExtensions(stringToArray(directoryTextArea.getText()));
+        _model.setFileExtensions(stringToArray(fileTextArea.getText()));
         editDialog.hide();
     }//GEN-LAST:event_okButtonActionPerformed
 
@@ -221,12 +221,12 @@ public class ExtensionsPanel extends javax.swing.JPanel implements SwingPluginUI
     }
     
     private String[] stringToArray(String string) {
-        return string.split("\\n");
+        return string.split("\n");
     }
     
     private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editButtonActionPerformed
-        fileTextArea.setText(arrayToString(_extensions.getFileExtensions()));
-        directoryTextArea.setText(arrayToString(_extensions.getDirectoryExtensions()));
+        fileTextArea.setText(arrayToString(_model.getFileExtensions()));
+        directoryTextArea.setText(arrayToString(_model.getDirectoryExtensions()));
         editDialog.show();
     }//GEN-LAST:event_editButtonActionPerformed
     
