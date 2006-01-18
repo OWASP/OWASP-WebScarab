@@ -79,6 +79,9 @@ import org.owasp.webscarab.plugin.proxy.swing.BeanShellPanel;
 import org.owasp.webscarab.plugin.proxy.swing.ManualEditPanel;
 import org.owasp.webscarab.plugin.proxy.swing.MiscPanel;
 
+import org.owasp.webscarab.plugin.extensions.Extensions;
+import org.owasp.webscarab.plugin.extensions.swing.ExtensionsPanel;
+
 import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysis;
 import org.owasp.webscarab.plugin.sessionid.swing.SessionIDPanel;
 
@@ -182,6 +185,10 @@ public class Main {
         Spider spider = new Spider(_framework);
         _framework.addPlugin(spider);
         _uif.addPlugin(new SpiderPanel(spider));
+        
+        Extensions extensions = new Extensions(_framework);
+        _framework.addPlugin(extensions);
+        _uif.addPlugin(new ExtensionsPanel(extensions));
         
         SessionIDAnalysis sessionIDAnalysis = new SessionIDAnalysis(_framework);
         _framework.addPlugin(sessionIDAnalysis);
