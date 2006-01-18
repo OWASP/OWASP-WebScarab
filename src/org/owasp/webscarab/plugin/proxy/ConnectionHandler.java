@@ -221,25 +221,30 @@ public class ConnectionHandler implements Runnable {
                 connection.setResponse(null);
                 _proxy.interceptRequest(connection);
                 request = connection.getRequest();
+                Response response = connection.getResponse();
                 
                 if (request == null) throw new IOException("Request was cancelled");
-                
-                // pass the request through the plugins, and return the response
-                Response response = null;
-                try {
-                    response = hc.fetchResponse(request);
-                    if (response.getRequest() != null) request = response.getRequest();
-                } catch (IOException ioe) {
-                    _logger.severe("IOException retrieving the response for " + request.getURL() + " : " + ioe);
-                    response = errorResponse(request, "IOException retrieving the response: " + ioe);
-                    // prevent the conversation from being submitted/recorded
-                    _proxy.failedResponse(id, ioe.toString());
+                if (response != null) {
+                    _proxy.failedResponse(id, "Response provided by script");
                     _proxy = null;
-                }
-                if (response == null) {
-                    _logger.severe("Got a null response from the fetcher");
-                    _proxy.failedResponse(id, "Null response");
-                    return;
+                } else {
+
+                    // pass the request through the plugins, and return the response
+                    try {
+                        response = hc.fetchResponse(request);
+                        if (response.getRequest() != null) request = response.getRequest();
+                    } catch (IOException ioe) {
+                        _logger.severe("IOException retrieving the response for " + request.getURL() + " : " + ioe);
+                        response = errorResponse(request, "IOException retrieving the response: " + ioe);
+                        // prevent the conversation from being submitted/recorded
+                        _proxy.failedResponse(id, ioe.toString());
+                        _proxy = null;
+                    }
+                    if (response == null) {
+                        _logger.severe("Got a null response from the fetcher");
+                        _proxy.failedResponse(id, "Null response");
+                        return;
+                    }
                 }
                 
                 if (_proxy != null) {
