@@ -140,7 +140,7 @@ public class SerializedObjectPanel extends ObjectPanel implements ByteArrayEdito
             }
         });
         top.setBounds(100,100,600,400);
-        top.show();
+        top.setVisible(true);
         try {
             sop.setEditable(false);
             sop.setBytes(null, response.getContent());

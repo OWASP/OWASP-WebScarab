@@ -367,7 +367,7 @@ public class RequestPanel extends javax.swing.JPanel {
         });
         // top.setBounds(100,100,600,400);
         top.pack();
-        top.show();
+        top.setVisible(true);
         
         Request request = new Request();
         try {

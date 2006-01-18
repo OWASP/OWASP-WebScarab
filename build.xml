@@ -25,7 +25,7 @@
         <property name="javadoc.dir" location="${basedir}/doc/api"/>
         <property 
             name="javahelpstyle" 
-            value="${docbook.location}/stylesheet/nwalsh/javahelp/javahelp.xsl"
+            value="${docbook.location}/javahelp/javahelp.xsl"
         />
 
         <property name="mainclass" value="org.owasp.webscarab.ui.swing.Main"/>
@@ -89,8 +89,8 @@
         </javac>
     </target>
     <target depends="prepare" description="JavaHelp" name="javahelp">
-        <!-- Commented out until I can get Ant working properly
-            Using xsltproc in the meantime
+        <!-- Commented out until I can get Ant working properly 
+            Using xsltproc in the meantime 
         <xmlcatalog id="docbook_catalogs">
             <catalogpath>
                 <fileset dir="${docbook.location}" includes="**/catalog.xml"/>
@@ -106,6 +106,9 @@
             <xmlcatalog refid="docbook_catalogs"/>
         </xslt>
         -->
+        <exec executable="xsltproc">
+            <arg line="-stringparam base.dir build/help/ -stringparam use.id.as.filename 1 ${docbook.location}/javahelp/javahelp.xsl doc/userguide/swing.xml"/>
+        </exec>
         <copy todir="${build.dir}/help/">
             <fileset dir="doc/userguide/javahelp/"/>
         </copy>

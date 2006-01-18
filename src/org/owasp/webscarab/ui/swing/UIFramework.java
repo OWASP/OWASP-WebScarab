@@ -71,6 +71,7 @@ import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.FileSystemStore;
 import org.owasp.webscarab.model.StoreException;
+import org.owasp.webscarab.plugin.CredentialManager;
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.FrameworkUI;
 import org.owasp.webscarab.util.TempDir;
@@ -95,11 +96,13 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private ArrayList _plugins;
     
     private CookieJarViewer _cookieJarViewer;
-    private CertificateDialog _certDialog;
+    private CertificateManager _certificateManager;
     private SummaryPanel _summaryPanel;
     
     private TranscoderFrame _transcoder = null;
     private ScriptManagerFrame _scriptManagerFrame = null;
+    private CredentialManagerFrame _credentialManagerFrame = null;
+    private CredentialRequestDialog _credentialRequestDialog = null;
     
     private Logger _logger = Logger.getLogger("org.owasp.webscarab");
     
@@ -134,7 +137,12 @@ public class UIFramework extends JFrame implements FrameworkUI {
         } catch (Exception e) {}
         
         _cookieJarViewer = new CookieJarViewer(_model);
-        _certDialog = new CertificateDialog(this, _framework);
+        _certificateManager = new CertificateManager();
+        
+        CredentialManager cm = _framework.getCredentialManager();
+        _credentialManagerFrame = new CredentialManagerFrame(cm);
+        _credentialRequestDialog = new CredentialRequestDialog(this, true, cm);
+        cm.setUI(_credentialRequestDialog);
         
         initLogging();
         initEditorViews();
@@ -222,16 +230,16 @@ public class UIFramework extends JFrame implements FrameworkUI {
         doc.addDocumentListener(new TextScroller(logTextArea));
         
         String level = Preferences.getPreference("UI.logLevel","INFO");
-        if (level.equals("SEVERE")) { 
-            severeLogRadioButtonMenuItem.setSelected(true); 
-        } else if (level.equals("INFO")) { 
-            infoLogRadioButtonMenuItem.setSelected(true); 
-        } else if (level.equals("FINE")) { 
-            fineLogRadioButtonMenuItem.setSelected(true); 
-        } else if (level.equals("FINER")) { 
-            finerLogRadioButtonMenuItem.setSelected(true); 
-        } else if (level.equals("FINEST")) { 
-            finestLogRadioButtonMenuItem.setSelected(true); 
+        if (level.equals("SEVERE")) {
+            severeLogRadioButtonMenuItem.setSelected(true);
+        } else if (level.equals("INFO")) {
+            infoLogRadioButtonMenuItem.setSelected(true);
+        } else if (level.equals("FINE")) {
+            fineLogRadioButtonMenuItem.setSelected(true);
+        } else if (level.equals("FINER")) {
+            finerLogRadioButtonMenuItem.setSelected(true);
+        } else if (level.equals("FINEST")) {
+            finestLogRadioButtonMenuItem.setSelected(true);
         }
     }
     
@@ -299,10 +307,12 @@ public class UIFramework extends JFrame implements FrameworkUI {
         wrapTextCheckBoxMenuItem = new javax.swing.JCheckBoxMenuItem();
         toolsMenu = new javax.swing.JMenu();
         proxyMenuItem = new javax.swing.JMenuItem();
+        credentialsMenuItem = new javax.swing.JMenuItem();
         certsMenuItem = new javax.swing.JMenuItem();
         cookieJarMenuItem = new javax.swing.JMenuItem();
         transcoderMenuItem = new javax.swing.JMenuItem();
         scriptMenuItem = new javax.swing.JMenuItem();
+        restartMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         contentsMenuItem = new javax.swing.JMenuItem();
         logMenu = new javax.swing.JMenu();
@@ -432,6 +442,15 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         toolsMenu.add(proxyMenuItem);
 
+        credentialsMenuItem.setText("Credentials");
+        credentialsMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                credentialsMenuItemActionPerformed(evt);
+            }
+        });
+
+        toolsMenu.add(credentialsMenuItem);
+
         certsMenuItem.setMnemonic('C');
         certsMenuItem.setText("Certificates");
         certsMenuItem.setToolTipText("Allows configuration of client certificates");
@@ -471,6 +490,15 @@ public class UIFramework extends JFrame implements FrameworkUI {
         });
 
         toolsMenu.add(scriptMenuItem);
+
+        restartMenuItem.setText("Restart Plugins");
+        restartMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                restartMenuItemActionPerformed(evt);
+            }
+        });
+
+        toolsMenu.add(restartMenuItem);
 
         mainMenuBar.add(toolsMenu);
 
@@ -550,13 +578,26 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
     }
     // </editor-fold>//GEN-END:initComponents
+
+    private void credentialsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_credentialsMenuItemActionPerformed
+        _credentialManagerFrame.setVisible(true);
+    }//GEN-LAST:event_credentialsMenuItemActionPerformed
+    
+    private void restartMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_restartMenuItemActionPerformed
+        if (!_framework.isRunning()) return;
+        if (!_framework.stopPlugins()) {
+            String[] status = _framework.getStatus();
+            JOptionPane.showMessageDialog(this, status, "Error - Plugins are busy", JOptionPane.ERROR_MESSAGE);
+        }
+        _framework.startPlugins();
+    }//GEN-LAST:event_restartMenuItemActionPerformed
     
     private void saveMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveMenuItemActionPerformed
         if (_tempDir != null) {
             JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDir"));
             jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             jfc.setDialogTitle("Select a directory to write the session into");
-            int returnVal = jfc.showOpenDialog(this);
+            int returnVal = jfc.showSaveDialog(this);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 final File dir = jfc.getSelectedFile();
                 if (FileSystemStore.isExistingSession(dir)) {
@@ -610,7 +651,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     
     private void scriptMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_scriptMenuItemActionPerformed
         if (_scriptManagerFrame == null) _scriptManagerFrame = new ScriptManagerFrame(_framework.getScriptManager());
-        _scriptManagerFrame.show();
+        _scriptManagerFrame.setVisible(true);
     }//GEN-LAST:event_scriptMenuItemActionPerformed
     
     private void wrapTextCheckBoxMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_wrapTextCheckBoxMenuItemActionPerformed
@@ -718,16 +759,16 @@ public class UIFramework extends JFrame implements FrameworkUI {
     
     private void logLevelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logLevelActionPerformed
         String cmd = evt.getActionCommand().toUpperCase();
-        if (cmd.equals("SEVERE")) { 
-            _dh.setLevel(Level.SEVERE); 
-        } else if (cmd.equals("INFO")) { 
-            _dh.setLevel(Level.INFO); 
-        } else if (cmd.equals("FINE")) { 
-            _dh.setLevel(Level.FINE); 
-        } else if (cmd.equals("FINER")) { 
-            _dh.setLevel(Level.FINER); 
-        } else if (cmd.equals("FINEST")) { 
-            _dh.setLevel(Level.FINEST); 
+        if (cmd.equals("SEVERE")) {
+            _dh.setLevel(Level.SEVERE);
+        } else if (cmd.equals("INFO")) {
+            _dh.setLevel(Level.INFO);
+        } else if (cmd.equals("FINE")) {
+            _dh.setLevel(Level.FINE);
+        } else if (cmd.equals("FINER")) {
+            _dh.setLevel(Level.FINER);
+        } else if (cmd.equals("FINEST")) {
+            _dh.setLevel(Level.FINEST);
         } else {
             System.err.println("Unknown log level: '" + cmd + "'");
             return;
@@ -736,24 +777,24 @@ public class UIFramework extends JFrame implements FrameworkUI {
     }//GEN-LAST:event_logLevelActionPerformed
     
     private void certsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_certsMenuItemActionPerformed
-        _certDialog.show();
+        _certificateManager.setVisible(true);
     }//GEN-LAST:event_certsMenuItemActionPerformed
     
     private void transcoderMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_transcoderMenuItemActionPerformed
         if (_transcoder == null) {
             _transcoder = new TranscoderFrame();
         }
-        _transcoder.show();
+        _transcoder.setVisible(true);
     }//GEN-LAST:event_transcoderMenuItemActionPerformed
     
     private void cookieJarMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cookieJarMenuItemActionPerformed
-        _cookieJarViewer.show();
+        _cookieJarViewer.setVisible(true);
         _cookieJarViewer.toFront();
         _cookieJarViewer.requestFocus();
     }//GEN-LAST:event_cookieJarMenuItemActionPerformed
     
     private void proxyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_proxyMenuItemActionPerformed
-        new ProxyConfig(this, _framework).show();
+        new ProxyConfig(this, _framework).setVisible(true);
     }//GEN-LAST:event_proxyMenuItemActionPerformed
     
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
@@ -807,6 +848,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private javax.swing.JMenuItem certsMenuItem;
     private javax.swing.JMenuItem contentsMenuItem;
     private javax.swing.JMenuItem cookieJarMenuItem;
+    private javax.swing.JMenuItem credentialsMenuItem;
     private javax.swing.JDesktopPane desktopPane;
     private javax.swing.JMenu editorMenu;
     private javax.swing.JMenuItem exitMenuItem;
@@ -825,6 +867,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private javax.swing.JMenuItem newMenuItem;
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem proxyMenuItem;
+    private javax.swing.JMenuItem restartMenuItem;
     private javax.swing.JMenuItem saveMenuItem;
     private javax.swing.JMenuItem scriptMenuItem;
     private javax.swing.JRadioButtonMenuItem severeLogRadioButtonMenuItem;

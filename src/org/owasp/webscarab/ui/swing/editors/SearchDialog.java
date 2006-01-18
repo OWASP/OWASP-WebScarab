@@ -302,7 +302,7 @@ public class SearchDialog extends javax.swing.JDialog {
     public static void main(String args[]) {
         JTextComponent text = new javax.swing.JTextArea();
         text.setEditable(true);
-        new SearchDialog(new javax.swing.JFrame(), text).show();
+        new SearchDialog(new javax.swing.JFrame(), text).setVisible(true);
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

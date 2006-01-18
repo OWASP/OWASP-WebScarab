@@ -201,7 +201,7 @@ public class MessagePanel extends javax.swing.JPanel {
         });
         // top.setBounds(100,100,600,400);
         top.pack();
-        top.show();
+        top.setVisible(true);
         try {
             mp.setEditable(true);
             mp.setMessage(response);

@@ -226,7 +226,7 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
         _scripted.setScript(scriptLanguageTextField.getText(), scriptTextPane.getText());
         JFileChooser jfc = new JFileChooser(Preferences.getPreference("Scripted.DefaultDir"));
         jfc.setDialogTitle("Save as");
-        int returnVal = jfc.showOpenDialog(this);
+        int returnVal = jfc.showSaveDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File script = jfc.getSelectedFile();
             try {

@@ -148,21 +148,23 @@ public class Message {
             for (int i=0; i<_headers.size(); i++) {
                 NamedValue nv = (NamedValue) _headers.get(i);
                 os.write(new String(nv.getName() + ": " + nv.getValue() + crlf).getBytes());
+                _logger.finest("Header: " + nv);
             }
         }
         os.write(crlf.getBytes());
-        _logger.finest("wrote headers");
+        _logger.finer("wrote headers");
         if (_chunked) {
             os = new ChunkedOutputStream(os);
         }
         if (_contentStream != null) {
-            _logger.finest("Flushing contentStream");
+            _logger.finer("Flushing contentStream");
             flushContentStream(os);
-            _logger.finest("Done flushing contentStream");
-        } else if (_content != null ) {
-            _logger.finest("Writing content bytes");
+            _logger.finer("Done flushing contentStream");
+        } else if (_content != null && _content.size() > 0) {
+            _logger.finer("Writing content bytes");
             os.write(_content.toByteArray());
-            _logger.finest("Done writing content bytes");
+            _logger.finest("Content: \n" + new String(_content.toByteArray()));
+            _logger.finer("Done writing content bytes");
         }
         if (_chunked) {
             ((ChunkedOutputStream) os).writeTrailer();
@@ -367,6 +369,26 @@ public class Message {
             }
         }
         return null;
+    }
+    
+    /**
+     * Returns all the values of the requested header, if there are multiple items
+     * @param name the name of the header (without a colon)
+     * @return the values of the header in question (null if the header did not exist)
+     */
+    public String[] getHeaders(String name) {
+        if (_headers == null) 
+            return null;
+        ArrayList values = new ArrayList();
+        for (int i=0; i<_headers.size(); i++) {
+            NamedValue nv = (NamedValue) _headers.get(i);
+            if (nv.getName().equalsIgnoreCase(name)) {
+                values.add(nv.getValue());
+            }
+        }
+        if (values.size() == 0) 
+            return null;
+        return (String[]) values.toArray(new String[0]);
     }
     
     /**

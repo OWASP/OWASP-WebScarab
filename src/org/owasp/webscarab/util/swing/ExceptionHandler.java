@@ -45,7 +45,7 @@ public class ExceptionHandler extends javax.swing.JDialog {
         t.printStackTrace(new PrintStream(dos));
         exceptionTextArea.setDocument(dos.getDocument());
         
-        show();
+        setVisible(true);
         
         if (!disableCheckBox.isSelected()) {
             System.setProperty("sun.awt.exception.handler", this.getClass().getName());

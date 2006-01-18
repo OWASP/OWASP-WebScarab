@@ -60,7 +60,6 @@ public class Request extends Message {
     
     /** Creates a new instance of Request */
     public Request() {
-        _logger.setLevel(Level.INFO);
         setMethod("GET");
         setVersion("HTTP/1.0");
     }
@@ -97,16 +96,19 @@ public class Request extends Message {
      */    
     public void read(InputStream is, HttpUrl base) throws IOException {
         String line = null;
-        _logger.fine("Base: " + base);
+        _logger.finer("Base: " + base);
         try {
             line = readLine(is);
-            _logger.fine("Request: " + line);
+            _logger.finest("Request: " + line);
         } catch (SocketTimeoutException ste) {
             // System.err.println("Read timed out. Closing connection");
             return;
         }
         if (line == null || line.equals("")) {
             // System.err.println("Client closed connection!");
+            setMethod(null);
+            setURL(null);
+            setVersion(null);
             return;
         }
         String[] parts = line.split(" ");
@@ -202,7 +204,9 @@ public class Request extends Message {
             return;
         }
         os = new BufferedOutputStream(os);
-        os.write(new String(_method+" "+_url+" " + _version + crlf).getBytes());
+        String requestLine = _method+" "+_url+" " + _version + crlf;
+        os.write(requestLine.getBytes());
+        _logger.finer("Request: " + requestLine);
         super.write(os, crlf);
         os.flush();
     }
@@ -228,9 +232,9 @@ public class Request extends Message {
             return;
         }
         os = new BufferedOutputStream(os);
-        os.write((_method+" ").getBytes());
-        os.write(_url.direct().getBytes());
-        os.write(new String(" " + _version + crlf).getBytes());
+        String requestLine = _method + " " + _url.direct() + " " + _version;
+        os.write((requestLine+crlf).getBytes());
+        _logger.finer("Request: " + requestLine);
         super.write(os, crlf);
         os.flush();
     }

@@ -137,7 +137,7 @@ public class Main {
         try {
             SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    _uif.show();
+                    _uif.setVisible(true);
                     _uif.toFront();
                     _uif.requestFocus();
                 }

@@ -101,7 +101,7 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
             public void actionPerformed(ActionEvent evt) {
                 JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDir"));
                 jfc.setDialogTitle("Select a file to write the message content to");
-                int returnVal = jfc.showOpenDialog(HexPanel.this);
+                int returnVal = jfc.showSaveDialog(HexPanel.this);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     try {
                         FileOutputStream fos = new FileOutputStream(jfc.getSelectedFile());
@@ -246,7 +246,7 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
                 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
             });
             hp.setEditable(true);
-            top.show();
+            top.setVisible(true);
         } catch (Exception e) {
             e.printStackTrace();
         }

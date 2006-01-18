@@ -165,7 +165,7 @@ public class ListComboBoxModel extends AbstractListModel implements ComboBoxMode
         });
         // top.setBounds(100,100,600,400);
         top.pack();
-        top.show();
+        top.setVisible(true);
         
     }
     

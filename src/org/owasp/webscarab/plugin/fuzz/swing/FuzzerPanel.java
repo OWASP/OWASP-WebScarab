@@ -644,7 +644,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     }//GEN-END:initComponents
     
     private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed
-        fuzzDialog.hide();
+        fuzzDialog.setVisible(false);
     }//GEN-LAST:event_closeButtonActionPerformed
     
     private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseButtonActionPerformed
@@ -685,7 +685,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     }//GEN-LAST:event_loadButtonActionPerformed
     
     private void sourcesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sourcesButtonActionPerformed
-        fuzzDialog.show();
+        fuzzDialog.setVisible(true);
     }//GEN-LAST:event_sourcesButtonActionPerformed
     
     private void versionTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_versionTextFieldActionPerformed

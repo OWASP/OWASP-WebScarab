@@ -68,6 +68,7 @@ public class SpiderModel extends AbstractPluginModel {
     }
     
     public void queueLink(Link link) {
+        // _logger.info("Queueing " + link);
         try {
             _model.readLock().acquire();
             _linkQueue.add(link);
@@ -76,24 +77,28 @@ public class SpiderModel extends AbstractPluginModel {
         } finally {
             _model.readLock().release();
         }
+        // _logger.info("Done queuing " + link);
     }
     
     public Link dequeueLink() {
+        // _logger.info("Dequeueing a link");
+        Link link = null;
         try {
             _model.readLock().acquire();
+            if (_linkQueue.size() > 0) 
+                link = (Link) _linkQueue.remove(0);
             if (_linkQueue.size() == 0) {
                 setStatus("Idle");
-                return null;
+            } else {
+                setStatus(_linkQueue.size() + " links remaining");
             }
-            Link link = (Link) _linkQueue.remove(0);
-            setStatus(_linkQueue.size() + " links remaining");
-            return link;
         } catch (InterruptedException ie) {
             _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
         } finally {
             _model.readLock().release();
+            // _logger.info("Done dequeuing a link " + link);
         }
-        return null;
+        return link;
     }
     
     public void clearLinkQueue() {

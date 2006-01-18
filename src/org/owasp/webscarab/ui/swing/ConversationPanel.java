@@ -339,7 +339,7 @@ public class ConversationPanel extends javax.swing.JPanel {
                 }
             });
             
-            frame.show();
+            frame.setVisible(true);
             cp.setSelectedConversation(new ConversationID(1));
         } catch (org.owasp.webscarab.model.StoreException se) {
             se.printStackTrace();

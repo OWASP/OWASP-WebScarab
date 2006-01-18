@@ -155,7 +155,7 @@ public class ImagePanel extends javax.swing.JPanel implements ByteArrayEditor {
         try {
             ip.setBytes(null, content);
             ip.setEditable(false);
-            top.show();
+            top.setVisible(true);
         } catch (Exception e) {
             e.printStackTrace();
         }

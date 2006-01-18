@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -55,6 +56,7 @@ import java.util.logging.Logger;
 import java.util.Vector;
 
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
+import org.owasp.webscarab.httpclient.SSLContextManager;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
@@ -80,6 +82,7 @@ public class Framework {
     private FrameworkUI _ui = null;
     
     private ScriptManager _scriptManager;
+    private CredentialManager _credentialManager;
     
     private AddConversationHook _allowAddConversation;
     
@@ -97,6 +100,7 @@ public class Framework {
         _allowAddConversation = new AddConversationHook();
         _scriptManager.registerHooks("Framework", new Hook[] { _allowAddConversation });
         extractVersionFromManifest();
+        _credentialManager = new CredentialManager();
         configureHTTPClient();
         _qp = new Framework.QueueProcessor();
         _queueThread = new Thread(_qp, "QueueProcessor");
@@ -107,6 +111,10 @@ public class Framework {
     
     public ScriptManager getScriptManager() {
         return _scriptManager;
+    }
+    
+    public CredentialManager getCredentialManager() {
+        return _credentialManager;
     }
     
     /**
@@ -190,6 +198,7 @@ public class Framework {
      * starts all the plugins in the framework
      */
     public void startPlugins() {
+        HTTPClientFactory.getInstance().getSSLContextManager().invalidateSessions();
         Iterator it = _plugins.iterator();
         while (it.hasNext()) {
             Plugin plugin = (Plugin) it.next();
@@ -348,15 +357,6 @@ public class Framework {
             if (value == null) value = "";
             factory.setNoProxy(value.split(" *, *"));
             
-            prop = "WebScarab.clientCertificateFile";
-            String file = Preferences.getPreference(prop, "");
-            prop = "WebScarab.keystorePassword";
-            String keystorePass = Preferences.getPreference(prop, "");
-            prop = "WebScarab.keyPassword";
-            String keyPass = Preferences.getPreference(prop, "");
-            
-            factory.setClientCertificateFile(file, keystorePass, keyPass);
-            
             int connectTimeout = 30000;
             prop = "HttpClient.connectTimeout";
             value = Preferences.getPreference(prop,"");
@@ -380,6 +380,7 @@ public class Framework {
         } catch (Exception e) {
             _logger.warning("Error configuring the HTTPClient property " + prop + ": " + e);
         }
+        factory.setAuthenticator(_credentialManager);
     }
     
     private class QueueProcessor implements Runnable {

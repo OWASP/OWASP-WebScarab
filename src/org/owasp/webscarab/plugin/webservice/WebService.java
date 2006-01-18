@@ -48,7 +48,6 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
@@ -87,7 +86,6 @@ public class WebService implements Plugin {
     
     private Framework _framework;
     private WebServiceModel _model;
-    private HTTPClient _client = null;
     
     private Request _request = null;
     private Response _response = null;
@@ -111,8 +109,7 @@ public class WebService implements Plugin {
             request.setMethod("GET");
             request.setVersion("HTTP/1.0");
             request.setURL(new HttpUrl(location));
-            HTTPClient client = HTTPClientFactory.getInstance().getHTTPClient();
-            Response response = client.fetchResponse(request);
+            Response response = HTTPClientFactory.getInstance().fetchResponse(request);
             byte[] wsdl = response.getContent();
             Definition definition = parseWSDL(location, parseXML(wsdl));
             if (definition != null) {
@@ -291,8 +288,7 @@ public class WebService implements Plugin {
         String body = sw.toString();
         request.addHeader("Content-Length", String.valueOf(body.length()));
         request.setContent(body.getBytes());
-        HTTPClient client = HTTPClientFactory.getInstance().getHTTPClient();
-        Response response = client.fetchResponse(request);
+        Response response = HTTPClientFactory.getInstance().fetchResponse(request);
         if (response != null) {
             _framework.addConversation(request, response, getPluginName());
         }

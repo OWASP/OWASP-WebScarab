@@ -347,7 +347,7 @@ public class ResponsePanel extends javax.swing.JPanel {
         rp.setEditable(false);
         top.getContentPane().add(rp);
         top.setBounds(100,100,800,600);
-        top.show();
+        top.setVisible(true);
         if (args.length == 0) {
             JButton button = new JButton("NEXT");
             final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));

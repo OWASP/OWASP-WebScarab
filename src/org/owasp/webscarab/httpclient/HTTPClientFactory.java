@@ -49,6 +49,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManager;
@@ -56,10 +58,14 @@ import javax.net.ssl.X509TrustManager;
 import javax.net.ssl.SSLContext;
 
 import java.util.logging.Logger;
+import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.Preferences;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
 
 /**
  *
- * @author  knoppix
+ * @author  rdawes
  */
 public class HTTPClientFactory {
     
@@ -76,11 +82,17 @@ public class HTTPClientFactory {
     private int _connectTimeout = 30000;
     private int _readTimeout = 0;
     
-    private SSLContext _sslContext = null;
+    private SSLContextManager _sslContextManager = null;
     
     private String _certFile = "";
     private String _keystorePassword = "";
     private String _keyPassword = "";
+    
+    private Authenticator _authenticator = null;
+    private KeyManager[] _keyManagers = null;
+    
+    private List _clientList = new ArrayList();
+    private List _availableClients = new ArrayList();
     
     // Create a trust manager that does not validate certificate chains
     private static TrustManager[] _trustAllCerts = new TrustManager[]{
@@ -97,11 +109,15 @@ public class HTTPClientFactory {
     
     /** Creates a new instance of HttpClientFactory */
     protected HTTPClientFactory() {
-        initSSLContext(null);
+        _sslContextManager = new SSLContextManager();
     }
     
     public static HTTPClientFactory getInstance() {
         return _instance;
+    }
+    
+    public SSLContextManager getSSLContextManager() {
+        return _sslContextManager;
     }
     
     public void setHttpProxy(String proxy, int port) {
@@ -143,57 +159,17 @@ public class HTTPClientFactory {
         return _noProxy;
     }
     
-    public void setClientCertificateFile(String certFile, String keystorePassword, String keyPassword)
-    throws IOException, KeyStoreException, CertificateException, UnrecoverableKeyException {
-        _certFile = certFile;
-        if (_certFile == null) _certFile = "";
-        _keystorePassword = keystorePassword;
-        if (_keystorePassword == null) _keystorePassword = "";
-        _keyPassword = keyPassword;
-        if (_keyPassword == null) _keyPassword = "";
-        
-        if (_certFile.equals("")) {
-            initSSLContext(null);
-        } else {
-            try {
-                KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-                KeyStore ks = KeyStore.getInstance("PKCS12");
-                ks.load(new FileInputStream(_certFile), _keystorePassword.toCharArray());
-                kmf.init(ks, _keyPassword.toCharArray());
-                initSSLContext(kmf.getKeyManagers());
-            } catch (NoSuchAlgorithmException nsae) {
-                _logger.severe("No SunX509 suport: " + nsae);
-                initSSLContext(null);
-            }
-        }
-    }
-    
-    public String getClientCertificateFile() {
-        return _certFile;
-    }
-    
-    public String getClientKeystorePassword() {
-        return _keystorePassword;
-    }
-    
-    public String getClientKeyPassword() {
-        return _keyPassword;
-    }
-    
-    private void initSSLContext(KeyManager[] managers) {
-        try {
-            _sslContext = SSLContext.getInstance("SSL");
-            _sslContext.init(managers, _trustAllCerts, new SecureRandom());
-        } catch (NoSuchAlgorithmException nsae) {
-            _sslContext = null;
-        } catch (KeyManagementException kme) {
-            _sslContext = null;
-        }
-    }
-    
     public void setTimeouts(int connectTimeout, int readTimeout) {
         _connectTimeout = connectTimeout;
         _readTimeout = readTimeout;
+    }
+    
+    public void setAuthenticator(Authenticator authenticator) {
+        _authenticator = authenticator;
+    }
+    
+    public Authenticator getAuthenticator() {
+        return _authenticator;
     }
     
     public HTTPClient getHTTPClient() {
@@ -201,9 +177,35 @@ public class HTTPClientFactory {
         uf.setHttpProxy(_httpProxy, _httpProxyPort);
         uf.setHttpsProxy(_httpsProxy, _httpsProxyPort);
         uf.setNoProxy(_noProxy);
-        uf.setSSLContext(_sslContext);
+        uf.setSSLContextManager(_sslContextManager);
         uf.setTimeouts(_connectTimeout, _readTimeout);
+        uf.setAuthenticator(_authenticator);
         return uf;
+    }
+    
+    public Response fetchResponse(Request request) throws IOException {
+        HTTPClient hc = null;
+        synchronized (_availableClients) {
+            if (_availableClients.size()>0) {
+                hc = (HTTPClient) _availableClients.remove(0);
+            } else {
+                _logger.info("Creating a new Fetcher");
+                hc = getHTTPClient();
+                _clientList.add(hc);
+            }
+        }
+        Response response = null;
+        IOException ioe = null;
+        try {
+            response = hc.fetchResponse(request);
+        } catch (IOException e) {
+            ioe = e;
+        }
+        synchronized (_availableClients) {
+            _availableClients.add(hc);
+        }
+        if (ioe != null) throw ioe;
+        return response;
     }
     
 }

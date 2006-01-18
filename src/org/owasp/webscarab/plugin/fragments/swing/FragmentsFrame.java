@@ -122,7 +122,7 @@ public class FragmentsFrame extends javax.swing.JFrame {
         FragmentsFrame ff = new FragmentsFrame();
         ff.setFragments(new String[] { "a\nb\ncdef\n", "abc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\nabc def ghi jkl mno pqr stu vwx yz\n", 
         "0123456789 0123456789 0123456789 0123456789 0123456789 0123456789 0123456789 0123456789 "});
-        ff.show();
+        ff.setVisible(true);
     }
     
     

@@ -81,6 +81,7 @@ public class SummaryPanel extends JPanel {
     private JTreeTable _urlTreeTable;
     private ArrayList _urlActions = new ArrayList();
     private HttpUrl _treeURL = null;
+    private TableSorter _conversationTableSorter;
     private ConversationTableModel _conversationTableModel;
     private UrlTreeTableModelAdapter _urlTreeTableModel;
     private ArrayList _conversationActions = new ArrayList();
@@ -210,8 +211,8 @@ public class SummaryPanel extends JPanel {
         _conversationTableModel = new ConversationTableModel(_conversationModel);
         ColumnWidthTracker.getTracker("ConversationTable").addTable(conversationTable);
         
-        TableSorter ts = new TableSorter(_conversationTableModel, conversationTable.getTableHeader());
-        conversationTable.setModel(ts);
+        _conversationTableSorter = new TableSorter(_conversationTableModel, conversationTable.getTableHeader());
+        conversationTable.setModel(_conversationTableSorter);
         
         conversationTable.setDefaultRenderer(Date.class, new DateRenderer());
     }
@@ -277,6 +278,7 @@ public class SummaryPanel extends JPanel {
         for (int i=0; i<columns.length; i++) {
             _conversationTableModel.addColumn(columns[i]);
         }
+        _conversationTableSorter.setSortingStatus(0, TableSorter.DESCENDING);
     }
     
     /** This method is called from within the constructor to
