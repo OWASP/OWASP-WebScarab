@@ -55,6 +55,9 @@ public class ExtensionsPanel extends javax.swing.JPanel implements SwingPluginUI
         conversationTable.setModel(ts);
         ColumnWidthTracker.getTracker("ConversationTable").addTable(conversationTable);
         conversationTable.setDefaultRenderer(Date.class, new DateRenderer());
+        
+        java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        editDialog.setBounds((screenSize.width-300)/2, (screenSize.height-150)/2, 300, 150);
     }
     
     /** This method is called from within the constructor to

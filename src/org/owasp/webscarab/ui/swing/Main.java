@@ -216,11 +216,6 @@ public class Main {
         _framework.addPlugin(search);
         SearchPanel searchPanel = new SearchPanel(search);
         _uif.addPlugin(searchPanel);
-        
-        Extensions extensions = new Extensions(_framework);
-        _framework.addPlugin(extensions);
-        ExtensionsPanel extensionsPanel = new ExtensionsPanel(extensions);
-        _uif.addPlugin(extensionsPanel);
     }
     
     public static void loadProxyPlugins(Proxy proxy, ProxyPanel proxyPanel) {
