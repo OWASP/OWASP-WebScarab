@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.net.MalformedURLException;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.StoreException;
@@ -43,7 +44,6 @@ import org.owasp.webscarab.model.UrlModel;
  */
 public class Extensions implements Plugin, ConversationHandler {
     
-    public static final int NUMBEROFTHREADS = 10;
     public static final int MAXLINKS = 100;
     
     private Framework _framework;
@@ -51,12 +51,24 @@ public class Extensions implements Plugin, ConversationHandler {
     private Logger _logger = Logger.getLogger(getClass().getName());
     private Thread _runThread;
     private FetcherQueue _fetcherQueue = null;
-
+    private int _threads = 4;
+    private int _delay = 100;
     
     /** Creates a new instance of Extensions */
     public Extensions(Framework framework) {
         _framework = framework;
         _model = new ExtensionsModel(framework.getModel());
+        try {
+            String property = "WebScarab.extensions.threads";
+            String threads = Preferences.getPreference(property, "4");
+            _threads = Integer.parseInt(threads);
+            property = "WebScarab.extensions.delay";
+            String delay = Preferences.getPreference(property, "100");
+            _delay = Integer.parseInt(delay);
+        } catch (NumberFormatException nfe) {
+            _threads = 4;
+            _delay = 100;
+        }
     }
 
     public void analyse(ConversationID id, Request request, Response response, String origin) {              
@@ -95,11 +107,6 @@ public class Extensions implements Plugin, ConversationHandler {
     }
 
     public void run() {
-        // I actually suggest that you not make this plugin run in its
-        // own thread. I'd like to move towards a caller-threaded approach
-        // i.e. the caller provides a thread to run the checkExtensions* methods
-        // and blocks until it returns (i.e. after the various URL's have been
-        // checked, or we are interrupted somehow)
         _model.setRunning(true);
         Request newReq;
         HttpUrl origUrl;
@@ -111,7 +118,7 @@ public class Extensions implements Plugin, ConversationHandler {
         _runThread = Thread.currentThread();
 
         // start the fetchers
-        _fetcherQueue = new FetcherQueue(getPluginName(), this, 10, 0);
+        _fetcherQueue = new FetcherQueue(getPluginName(), this, _threads, _delay);
 
         //try {
             _model.setRunning(true);
@@ -138,6 +145,7 @@ public class Extensions implements Plugin, ConversationHandler {
             }          
         //}
         _fetcherQueue.clearRequestQueue();
+        _fetcherQueue.stop();
         _model.setRunning(false);
         _runThread = null;
         _model.setStatus("Stopped");
