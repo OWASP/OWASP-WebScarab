@@ -306,7 +306,7 @@ public class ConnectionHandler implements Runnable {
         SSLContext sslcontext = null;
         try {
             ks = KeyStore.getInstance("PKCS12");
-            InputStream is = ClassLoader.getSystemResourceAsStream(_keystore);
+            InputStream is = getClass().getClassLoader().getResourceAsStream(_keystore);
             if (is == null) throw new NullPointerException("No keystore found!!");
             ks.load(is, _keystorepass);
             kmf = KeyManagerFactory.getInstance("SunX509");
