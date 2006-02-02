@@ -209,7 +209,7 @@ public class Spider implements Plugin, ConversationHandler {
         // Yes, this is effectively the classifier from websphinx, we can use that if it fits nicely
         
         // OK if the URL matches the domain
-        if (isAllowedDomain(url) && !isForbiddenPath(url)) {
+        if (isAllowedDomain(url) && !_model.isForbidden(url)) {
             return true;
         }
         return false;
@@ -221,16 +221,6 @@ public class Spider implements Plugin, ConversationHandler {
             return allowedDomains != null && !allowedDomains.equals("") && url.getHost().matches(allowedDomains);
         } catch (Exception e) {
             return false;
-        }
-    }
-    
-    private boolean isForbiddenPath(HttpUrl url) {
-        String forbiddenPaths = _model.getForbiddenPaths();
-        try {
-            return forbiddenPaths != null && !forbiddenPaths.equals("") && url.toString().matches(forbiddenPaths);
-        } catch (Exception e) {
-            _logger.warning(e.getMessage());
-            return true;
         }
     }
     
@@ -247,7 +237,7 @@ public class Spider implements Plugin, ConversationHandler {
         Link link;
         String referer;
         if (_model.isUnseen(url)) {
-            if (! isForbiddenPath(url)) {
+            if (! _model.isForbidden(url)) {
                 referer = _model.getReferer(url);
                 links.add(new Link(url, referer));
             } else {
@@ -333,12 +323,7 @@ public class Spider implements Plugin, ConversationHandler {
             String location = response.getHeader("Location");
             if (location != null) {
                 try {
-                    HttpUrl url;
-                    if (location.startsWith("/")) {
-                        url = new HttpUrl(base, location);
-                    } else {
-                        url = new HttpUrl(location);
-                    }
+                    HttpUrl url = new HttpUrl(base, location);
                     _model.addUnseenLink(url, base);
                 } catch (MalformedURLException mue) {
                     _logger.warning("Badly formed Location header : " + location);
@@ -396,11 +381,11 @@ public class Spider implements Plugin, ConversationHandler {
             } catch (MalformedURLException mue) {
                 _logger.warning("Malformed link : " + link);
             }
-        } else if (link.startsWith("mailto:")) {
+        } else if (link.toLowerCase().startsWith("mailto:")) {
             // do nothing
-        } else if (link.startsWith("javascript:")) {
+        } else if (link.toLowerCase().startsWith("javascript:")) {
             processScript(base, link.substring(10));
-        } else if (link.matches("[a-zA-Z]+://.*")) {
+        } else if (link.matches("^[a-zA-Z]+://.*")) {
             _logger.info("Encountered an unhandled url scheme " + link);
         } else {
             _logger.fine("Creating a new relative URL with " + base + " and " + link + " '");
