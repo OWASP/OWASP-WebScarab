@@ -55,6 +55,16 @@ public class SpiderModel extends AbstractPluginModel {
         return _model.getUrlProperty(url, "METHODS") == null;
     }
     
+    public boolean isForbidden(HttpUrl url) {
+        if (_forbiddenPaths != null && !_forbiddenPaths.equals("")) {
+            try {
+                return url.toString().matches(getForbiddenPaths());
+            } catch (Exception e) {
+            }
+        }
+        return false;
+    }
+    
     public void addUnseenLink(HttpUrl url, HttpUrl referer) {
         if (url == null) {
             return;
@@ -196,6 +206,7 @@ public class SpiderModel extends AbstractPluginModel {
         _forbiddenPaths = regex;
         String prop = "Spider.excludePaths";
         Preferences.setPreference(prop,regex);
+        _urlModel.reset();
     }
     
     public String getForbiddenPaths() {
@@ -213,7 +224,7 @@ public class SpiderModel extends AbstractPluginModel {
         }
         
         public boolean shouldFilter(HttpUrl url) {
-            return ! isUnseen(url);
+            return ! isUnseen(url) || isForbidden(url);
         }
         
     }
