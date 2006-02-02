@@ -89,6 +89,9 @@ public class HttpUrl implements Comparable {
             _path = relativePath(url.getPath(), relative);
         }
         splitFragQuery();
+        _path = _path.replaceAll(" ", "%20");
+        if (_query != null) _query = _query.replace(' ', '+');
+        if (_fragment != null) _fragment = _fragment.replaceAll(" ", "%20");
         _hashcode = this.toString().hashCode();
     }
     
