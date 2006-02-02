@@ -333,7 +333,12 @@ public class Spider implements Plugin, ConversationHandler {
             String location = response.getHeader("Location");
             if (location != null) {
                 try {
-                    HttpUrl url = new HttpUrl(location);
+                    HttpUrl url;
+                    if (location.startsWith("/")) {
+                        url = new HttpUrl(base, location);
+                    } else {
+                        url = new HttpUrl(location);
+                    }
                     _model.addUnseenLink(url, base);
                 } catch (MalformedURLException mue) {
                     _logger.warning("Badly formed Location header : " + location);
