@@ -201,17 +201,21 @@ public abstract class FilteredUrlModel extends AbstractUrlModel {
         }
     }
     
+    public void reset() {
+        _cache.clear();
+        _updating = true;
+        updateFilteredUrls();
+        _updating = false;
+        fireUrlsChanged();
+    }
+    
     private class Listener implements UrlListener {
         
         public Listener() {
         }
         
         public void urlsChanged() {
-            _cache.clear();
-            _updating = true;
-            updateFilteredUrls();
-            _updating = false;
-            fireUrlsChanged();
+            reset();
         }
         
         public void urlAdded(UrlEvent evt) {
