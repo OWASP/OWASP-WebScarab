@@ -299,9 +299,9 @@ public class URLFetcher implements HTTPClient {
                 String[] challenges = _response.getHeaders("WWW-Authenticate");
                 if (_authCreds == null && _authenticator != null)
                     _authCreds = _authenticator.getCredentials(url, challenges);
-                _logger.info("Auth creds are " + _authCreds);
+                _logger.finer("Auth creds are " + _authCreds);
                 authHeader = constructAuthenticationHeader(challenges, _authCreds);
-                _logger.info("Auth header is " + authHeader);
+                _logger.finer("Auth header is " + authHeader);
                 if (authHeader != null && oldAuthHeader != null && oldAuthHeader.equals(authHeader)) {
                     _logger.info("No possible authentication");
                     authHeader = null;
@@ -412,7 +412,7 @@ public class URLFetcher implements HTTPClient {
             // if no fingerprint is specified, get the default one
             if (_keyFingerprint == null) 
                 _keyFingerprint = _sslContextManager.getDefaultKey();
-            _logger.info("Key fingerprint is " + _keyFingerprint);
+            _logger.fine("Key fingerprint is " + _keyFingerprint);
             // get the associated context manager
             SSLContext sslContext = _sslContextManager.getSSLContext(_keyFingerprint);
             if (sslContext == null)
@@ -505,12 +505,12 @@ public class URLFetcher implements HTTPClient {
         }
         if (challenges != null) {
             for (int i=0; i<challenges.length; i++) {
-                _logger.info("Challenge: " + challenges[i]);
+                _logger.fine("Challenge: " + challenges[i]);
                 if (challenges[i].startsWith("NTLM") && credentials.startsWith("NTLM")) {
                     return attemptNegotiation(challenges[i], credentials);
                 }
                 if (challenges[i].startsWith("Negotiate") && credentials.startsWith("Negotiate")) {
-                    _logger.info("Attempting 'Negotiate' Authentication");
+                    _logger.fine("Attempting 'Negotiate' Authentication");
                     return attemptNegotiation(challenges[i], credentials);
                 }
                 _logger.info("Can't do auth for " + challenges[i]);
@@ -559,7 +559,7 @@ public class URLFetcher implements HTTPClient {
             String domain = credentials.substring(0, credentials.indexOf("\\"));
             String user = credentials.substring(domain.length()+1, credentials.indexOf(":"));
             String password = credentials.substring(domain.length()+user.length()+2);
-            _logger.info("Domain : '" + domain + "' username : '" + user + "' password length : " + password.length());
+            _logger.fine("Domain : '" + domain + "' username : '" + user + "' password length : " + password.length());
             Type2Message type2 = (Type2Message) message;
             message = new Type3Message(type2, password, domain, user, Type3Message.getDefaultWorkstation());
         }
