@@ -151,36 +151,9 @@ public class Framework {
     }
     
     private void extractVersionFromManifest() {
-        String myClass = "/" + getClass().getName().replaceAll("\\.", "/") + ".class";
-        try {
-            URL url = getClass().getResource(myClass);
-            if(url.getProtocol().equals("jar")) {
-                // _logger.info("URL is " + url);
-                String path = url.toString();
-                path = path.substring(0, path.lastIndexOf("!")+1) + "/META-INF/MANIFEST.MF";
-                // _logger.info("Path is " + path);
-                url = new URL(path);
-                InputStream is = url.openStream();
-                // _logger.info("IS is " + is);
-                if (is != null) {
-                    Manifest manifest = new Manifest(is);
-                    Attributes common = manifest.getAttributes("common");
-                    if (common != null) {
-                        _version = common.getValue(Name.IMPLEMENTATION_VERSION);
-                    } else {
-                        _logger.severe("No common section in manifest");
-                    }
-                } else {
-                    _logger.warning("Could not read the manifest in the JAR");
-                }
-            } else {
-                // _logger.info("WebScarab is not packaged in a JAR");
-            }
-        } catch (MalformedURLException mue) {
-            _logger.warning("Error creating Manifest URL: " + mue);
-        } catch (IOException ioe) {
-            _logger.warning("Error reading the manifest: " + ioe);
-        }
+        Package pkg = Package.getPackage("org.owasp.webscarab");
+        if (pkg != null) _version = pkg.getImplementationVersion();
+        else _logger.severe("PKG is null");
         if (_version == null) _version = "unknown (local build?)";
     }
     

@@ -28,7 +28,7 @@
             value="${docbook.location}/javahelp/javahelp.xsl"
         />
 
-        <property name="mainclass" value="org.owasp.webscarab.ui.swing.Main"/>
+        <property name="mainclass" value="org.owasp.webscarab.WebScarab"/>
         
      	<property name="concurrentjar" value="lib/concurrent.jar"/>
      	<property name="htmlparserjar" value="lib/htmlparser.jar"/>
@@ -124,11 +124,11 @@
                     name="Class-Path" 
                     value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar} ${wsdljar}"
                 />
-                <!-- <attribute name="Built-By" value="${user.name}"/> -->
-                <section name="common">
-                    <attribute name="Implementation-Title" value="common"/>
-                    <attribute name="Implementation-Version" value="${project.version}"/>
+                <attribute name="Built-By" value="${user.name}"/>
+                <section name="org/owasp/webscarab/">
+                    <attribute name="Implementation-Title" value="org.owasp.webscarab"/>
                     <attribute name="Implementation-Vendor" value="OWASP Foundation."/>
+                    <attribute name="Implementation-Version" value="${project.version}"/>
                 </section>
             </manifest>
         </jar>
