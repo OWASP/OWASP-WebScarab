@@ -94,19 +94,7 @@ public class HTMLPanel extends JPanel implements ByteArrayEditor {
         // htmlEditorPane.setEditable(editable);
         // we could do things like make buttons visible and invisible here
     }
-    
-    public void setBytes(final String contentType, final byte[] bytes) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            loadBytes(contentType, bytes);
-        } else {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    loadBytes(contentType, bytes);
-                }
-            });
-        }
-    }
-    
+
     private String getCharset(String contentType, byte[] bytes) {
         String[] charsets;
         nsDetector det = new nsDetector(nsPSMDetector.ALL);
@@ -124,8 +112,8 @@ public class HTMLPanel extends JPanel implements ByteArrayEditor {
         
         return charsets[0];
     }
-    
-    private void loadBytes(String contentType, byte[] bytes) {
+
+    public void setBytes(String contentType, byte[] bytes) {
         _bytes = bytes;
         // htmlEditorPane.getDocument().putProperty("base","");
         if (bytes != null) {

@@ -78,6 +78,9 @@ public class MyHTMLEditorKit extends javax.swing.text.html.HTMLEditorKit {
                     kind == HTML.Tag.FRAMESET || 
                     kind == HTML.Tag.OBJECT || 
                     kind == HTML.Tag.MAP ||
+                    kind == HTML.Tag.IMG ||
+                    kind == HTML.Tag.LINK ||
+                    kind == HTML.Tag.SCRIPT ||
                     kind == HTML.Tag.APPLET) {
                     return new NoView(elem);
                 }
