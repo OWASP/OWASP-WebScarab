@@ -37,7 +37,7 @@ public class ScriptManager {
     public ScriptManager(Framework framework) {
         try {
             _bsfManager = new BSFManager();
-            // _bsfManager.declareBean("framework", framework, framework.getClass());
+            _bsfManager.declareBean("framework", framework, framework.getClass());
             _bsfManager.declareBean("out", System.out, System.out.getClass());
             _bsfManager.declareBean("err", System.err, System.out.getClass());
         } catch (BSFException bsfe) {

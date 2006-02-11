@@ -172,7 +172,7 @@ public class Main {
         ProxyPanel proxyPanel = new ProxyPanel(proxy);
         _uif.addPlugin(proxyPanel);
         
-        loadProxyPlugins(proxy, proxyPanel);
+        loadProxyPlugins(_framework, proxy, proxyPanel);
         
         ManualRequest manualRequest = new ManualRequest(_framework);
         _framework.addPlugin(manualRequest);
@@ -218,12 +218,12 @@ public class Main {
         _uif.addPlugin(searchPanel);
     }
     
-    public static void loadProxyPlugins(Proxy proxy, ProxyPanel proxyPanel) {
+    public static void loadProxyPlugins(Framework framework, Proxy proxy, ProxyPanel proxyPanel) {
         ManualEdit me = new ManualEdit();
         proxy.addPlugin(me);
         proxyPanel.addPlugin(new ManualEditPanel(me));
         
-        BeanShell bs = new BeanShell();
+        BeanShell bs = new BeanShell(framework);
         proxy.addPlugin(bs);
         proxyPanel.addPlugin(new BeanShellPanel(bs));
         
