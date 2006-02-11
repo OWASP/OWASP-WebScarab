@@ -161,31 +161,45 @@
     <section id="clientcerts">
       <title>Client-side Certificates</title>
       <para>WebScarab has support for client side SSL
-        certificates.  At the moment, it can only access keys
-        and certificates
-        stored in PKCS#12 format files. Simply provide the
-        location  of the PKCS#12 file and the relevant
-        passwords, and any
-        requests for SSL URLs that pass through WebScarab will
-        be  made using that client certificate.
+        certificates. It can access keys and certificates
+        stored in PKCS#12 format files, as well as using PKCS#11 tokens
+        on the Java 1.5 platform. 
+        This functionality is accessed via the Tools-&gt;Certificates menu.
+        Simply choose the "Add Keystore" button, and select the type of keystore to
+        add. If it is a PKCS#12 store, provide the file location, and the keystore
+        password. If it is a PKCS#11 keystore, you need to give the store an arbitrary name,
+        as well as specifying the location of the PKCS#11 library that Java should use to access the token.
+        You also need to provide the password for accessing the token.
       </para>
-      <para>
-        <emphasis>Note:</emphasis>WebScarab can't use 
-        client-side
-        certificates on smart cards yet. There should be 
-        nothing fundamental preventing WebScarab from
-        using client  certificates. In fact, Sun's JRE 1.5 has
-        basic support
-        for  PKCS#11-accessible devices. It would probably be
-        easy  for
-        anyone who actually has access to a smart-card reader, 
-        and
-        the desire to implement this feature to do this. For 
-        some
-        ideas, see
-        
-        
-        http://java.sun.com/j2se/1.5.0/docs/guide/security/p11guide.html            
+      <para>Once keystores have been configured, you can see the details of the certificates
+        in the keystores. Clicking on the certificate alias will display the details of the certificate.
+      </para>
+      <para>To activate a particular certificate, select "Activate selected Alias". 
+        You may be prompted for a password to use to access the key. 
+        To stop using any client certificate, make sure that no alias is selected (Ctrl-Click if necessary),
+        and select "Activate selected Alias".
+      </para>
+      <para>You can see which alias is currently active in the "Active key" text field.
+      </para>
+      <para><emphasis>Note:</emphasis> The fingerprint of the client certificate will be included as
+        a fake header in the request when the conversation is archived. This is intended to allow
+        for automatic replay of a request using the client certificate that was selected at the time the request was issued.
+        If you wish to replay the request with a different (or no) certificate, make sure to 
+        delete the &quot;X-SSLClientCertificate&quot; header from the request.
+      </para>
+    </section>
+    <section id="authentication">
+      <title>server and Proxy authentication</title>
+      <para>WebScarab has support for authenticating against proxy and web servers, using
+        Basic, NTLM and Negotiate (not Kerberos) authentication. The first time a server requests 
+        authentication, WebScarab will prompt for credentials. These credentials will be reused for 
+        subsequent requests when required by the web server or proxy.
+      </para>
+      <para><emphasis>Note:</emphasis> The credentials used will be included as
+        a fake header in the request when the conversation is archived. This is intended to allow
+        for automatic replay of a request using the credentials that were active at the time the request was issued.
+        If you wish to replay the request with different (or no) credentials, make sure to 
+        delete the &quot;Authorization&quot; or &quot;Proxy-Authorization&quot; header from the request.
       </para>
     </section>
   </chapter>
