@@ -43,6 +43,7 @@ import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.plugin.Framework;
 
 import org.owasp.webscarab.plugin.proxy.ProxyPlugin;
 
@@ -81,14 +82,21 @@ public class BeanShell extends ProxyPlugin {
     "}\n";
     
     private Interpreter _interpreter;
+    private Framework _framework = null;
     
     private boolean _enabled = false;
     
     private BeanShellUI _ui = null;
     
     /** Creates a new instance of ManualEdit */
-    public BeanShell() {
+    public BeanShell(Framework framework) {
         _interpreter = new Interpreter();
+        _framework = framework;
+        try {
+            _interpreter.set("framework", _framework);
+        } catch (EvalError ee) {
+            _logger.severe("Couldn't set framework: " + ee);
+        }
         parseProperties();
     }
     
@@ -100,7 +108,7 @@ public class BeanShell extends ProxyPlugin {
         if (ps != null) _interpreter.setErr(ps); // when err does seem to be working??
     }
     
-    public void parseProperties() {
+    private void parseProperties() {
         String prop = "BeanShell.scriptFile";
         String value = Preferences.getPreference(prop, "");
         _scriptFile = value;

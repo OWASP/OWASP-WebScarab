@@ -167,6 +167,21 @@ public class Framework {
         _scriptManager.registerHooks(plugin.getPluginName(), hooks);
     }
     
+    /** 
+     * retrieves the named plugin, if it exists
+     * @param name the name of the plugin
+     * @return the plugin if it exists, or null
+     */
+    public Plugin getPlugin(String name) {
+        Plugin plugin = null;
+        Iterator it = _plugins.iterator();
+        while (it.hasNext()) {
+            plugin = (Plugin) it.next();
+            if (plugin.getPluginName().equals(name)) return plugin;
+        }
+        return null;
+    }
+    
     /**
      * starts all the plugins in the framework
      */

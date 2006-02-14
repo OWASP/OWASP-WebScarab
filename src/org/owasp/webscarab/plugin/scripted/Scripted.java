@@ -217,6 +217,7 @@ public class Scripted implements Plugin, ConversationHandler {
                 if (_ui != null) _ui.scriptStarted();
                 _status = "Running";
                 try {
+                    _bsfManager.declareBean("framework", _framework, _framework.getClass());
                     _bsfManager.declareBean("scripted", _som, _som.getClass());
                     _bsfManager.declareBean("out", _out, _out.getClass());
                     _bsfManager.declareBean("err", _err, _err.getClass());

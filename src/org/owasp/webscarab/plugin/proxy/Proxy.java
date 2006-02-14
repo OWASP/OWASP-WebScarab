@@ -155,6 +155,21 @@ public class Proxy implements Plugin {
         _plugins.add(plugin);
     }
     
+    /** 
+     * retrieves the named plugin, if it exists
+     * @param name the name of the plugin
+     * @return the plugin if it exists, or null
+     */
+    public ProxyPlugin getPlugin(String name) {
+        ProxyPlugin plugin = null;
+        Iterator it = _plugins.iterator();
+        while (it.hasNext()) {
+            plugin = (ProxyPlugin) it.next();
+            if (plugin.getPluginName().equals(name)) return plugin;
+        }
+        return null;
+    }
+    
     /** The plugin name
      * @return The name of the plugin
      *
