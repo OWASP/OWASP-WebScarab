@@ -6,8 +6,11 @@
 
 package org.owasp.webscarab.plugin.fuzz;
 
+import EDU.oswego.cs.dl.util.concurrent.Sync;
 import java.beans.PropertyChangeSupport;
 import java.net.MalformedURLException;
+import org.owasp.webscarab.model.AbstractConversationModel;
+import org.owasp.webscarab.model.ConversationModel;
 
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.FrameworkModel;
@@ -52,6 +55,9 @@ public class FuzzerModel extends AbstractPluginModel {
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     private EventListenerList _listenerList = new EventListenerList();
+    private ReentrantReaderPreferenceReadWriteLock _rwl = new ReentrantReaderPreferenceReadWriteLock();
+    
+    private FuzzConversationModel _conversationModel;
     
     private String _fuzzMethod = "GET";
     private String _fuzzUrl = "http://localhost:8080/test";
@@ -72,6 +78,15 @@ public class FuzzerModel extends AbstractPluginModel {
     /** Creates a new instance of FuzzerModel */
     public FuzzerModel(FrameworkModel model) {
         _model = model;
+        _conversationModel = new FuzzConversationModel(model);
+    }
+    
+    public ConversationModel getConversationModel() {
+        return _conversationModel;
+    }
+    
+    public void addConversation(ConversationID id) {
+        _conversationModel.addConversation(id);
     }
     
     public void setFuzzMethod(String method) {
@@ -229,6 +244,7 @@ public class FuzzerModel extends AbstractPluginModel {
         }
         setRequestIndex(0);
         setTotalRequests(totalsize);
+        _conversationModel.clear();
     }
     
     public boolean incrementFuzzer() {
@@ -465,4 +481,57 @@ public class FuzzerModel extends AbstractPluginModel {
         }
     }
     
+    private class FuzzConversationModel extends AbstractConversationModel {
+        
+        private List _conversations = new ArrayList();
+        
+        public FuzzConversationModel(FrameworkModel model) {
+            super(model);
+        }
+        
+        void addConversation(ConversationID id) {
+            try {
+                _rwl.writeLock().acquire();
+                int index = _conversations.size();
+                _conversations.add(id);
+                _rwl.readLock().acquire();
+                _rwl.writeLock().release();
+                fireConversationAdded(id, index);
+                _rwl.readLock().release();
+            } catch (InterruptedException ie) {
+                _logger.severe("Interrupted! " + ie);
+            }
+        }
+        
+        void clear() {
+            try {
+                _rwl.writeLock().acquire();
+                int index = _conversations.size();
+                _conversations.clear();
+                _rwl.readLock().acquire();
+                _rwl.writeLock().release();
+                fireConversationsChanged();
+                _rwl.readLock().release();
+            } catch (InterruptedException ie) {
+                _logger.severe("Interrupted! " + ie);
+            }
+        }
+        
+        public ConversationID getConversationAt(int index) {
+            return (ConversationID) _conversations.get(index);
+        }
+
+        public int getIndexOfConversation(ConversationID id) {
+            return _conversations.indexOf(id);
+        }
+
+        public Sync readLock() {
+            return _rwl.readLock();
+        }
+
+        public int getConversationCount() {
+            return _conversations.size();
+        }
+        
+    }
 }

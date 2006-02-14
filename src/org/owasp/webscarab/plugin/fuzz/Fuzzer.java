@@ -281,7 +281,8 @@ public class Fuzzer implements Plugin, ConversationHandler {
             _logger.warning("Got a null request from the response!");
             return;
         }
-        _framework.addConversation(request, response, "Fuzzer");
+        ConversationID id = _framework.addConversation(request, response, "Fuzzer");
+        _model.addConversation(id);
     }
     
     public boolean stop() {
