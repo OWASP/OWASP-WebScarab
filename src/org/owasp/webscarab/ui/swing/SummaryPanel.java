@@ -184,6 +184,8 @@ public class SummaryPanel extends JPanel {
             }
             private void maybeShowPopup(MouseEvent e) {
                 if (e.isPopupTrigger() && _urlActions.size() > 0) {
+                    int row = _urlTreeTable.rowAtPoint(e.getPoint());
+                    _urlTreeTable.getSelectionModel().setSelectionInterval(row,row);
                     urlPopupMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
@@ -224,13 +226,13 @@ public class SummaryPanel extends JPanel {
                 if (e.getValueIsAdjusting()) return;
                 int row = conversationTable.getSelectedRow();
                 TableModel tm = conversationTable.getModel();
-                if (row >-1) {
-                    ConversationID id = (ConversationID) tm.getValueAt(row, 0); // UGLY hack! FIXME!!!!
-                    synchronized (_conversationActions) {
-                        for (int i=0; i<_conversationActions.size(); i++) {
-                            Action action = (Action) _conversationActions.get(i);
-                            action.putValue("CONVERSATION", id);
-                        }
+                ConversationID id = null;
+                if (row >-1)
+                    id = (ConversationID) tm.getValueAt(row, 0); // UGLY hack! FIXME!!!!
+                synchronized (_conversationActions) {
+                    for (int i=0; i<_conversationActions.size(); i++) {
+                        Action action = (Action) _conversationActions.get(i);
+                        action.putValue("CONVERSATION", id);
                     }
                 }
             }
@@ -244,6 +246,8 @@ public class SummaryPanel extends JPanel {
                 maybeShowPopup(e);
             }
             private void maybeShowPopup(MouseEvent e) {
+                int row = conversationTable.rowAtPoint(e.getPoint());
+                conversationTable.getSelectionModel().setSelectionInterval(row,row);
                 if (e.isPopupTrigger() && _conversationActions.size() > 0) {
                     conversationPopupMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
