@@ -182,18 +182,17 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         nameList.setModel(_fuzzSources);
         nameList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent evt) {
+                _fuzzItems.clear();
+                itemsLabel.setText("Items : ");
                 Object value = nameList.getSelectedValue();
                 if (value != null && !"".equals(value)) {
                     FuzzSource source = _fuzzFactory.getSource((String)value);
-                    _fuzzItems.clear();
                     if (source != null) {
                         itemsLabel.setText("Items : " + source.size());
                         while (source.hasNext()) {
                             _fuzzItems.addElement(source.current());
                             source.increment();
                         }
-                    } else {
-                        itemsLabel.setText("Items : ");
                     }
                 }
             }
@@ -760,7 +759,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
             }
             _fuzzFactory.loadFuzzStrings(description, file);
         } catch (IOException ioe) {
-            JOptionPane.showMessageDialog(null, new String[] {"Error load fuzz strings!", ioe.getMessage() }, "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, new String[] {"Error loading fuzz strings!", ioe.getMessage() }, "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_loadButtonActionPerformed
     
