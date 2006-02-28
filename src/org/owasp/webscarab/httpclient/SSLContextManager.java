@@ -26,6 +26,7 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
+import org.owasp.webscarab.util.Encoding;
 import org.owasp.webscarab.util.NullComparator;
 
 /**
@@ -152,16 +154,20 @@ public class SSLContextManager {
         }
     }
     
-    public String getFingerPrint(Certificate cert) {
+    public String getFingerPrint(Certificate cert) throws KeyStoreException {
         if (!(cert instanceof X509Certificate)) return null;
         StringBuffer buff = new StringBuffer();
         X509Certificate x509 = (X509Certificate) cert;
-        byte[] value = x509.getExtensionValue("2.5.29.14");
-        for (int i=4; i<Math.min(24,value.length); i++) {
-            buff.append(Integer.toHexString((value[i] & 0xFF)|0x100).substring(1,3)).append(":");
+        try {
+            String fingerprint = Encoding.hashMD5(cert.getEncoded());
+            for (int i=0; i<fingerprint.length(); i+=2) {
+                buff.append(fingerprint.substring(i, i+1)).append(":");
+            }
+            buff.deleteCharAt(buff.length()-1);
+        } catch (CertificateEncodingException e) {
+            throw new KeyStoreException(e.getMessage());
         }
         String dn = x509.getSubjectDN().getName();
-        buff.deleteCharAt(buff.length()-1);
         _logger.info("Fingerprint is " + buff.toString().toUpperCase());
         return buff.toString().toUpperCase() + " " + dn;
     }
