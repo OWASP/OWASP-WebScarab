@@ -397,7 +397,12 @@ public class CertificateManager extends javax.swing.JFrame {
                 }
             }
             Certificate cert = _sslcm.getCertificate(ks, alias);
-            fingerprint = _sslcm.getFingerPrint(cert);
+            try {
+                fingerprint = _sslcm.getFingerPrint(cert);
+            } catch (KeyStoreException kse) {
+                JOptionPane.showMessageDialog(null, new String[] {"Error calculating key fingerprint: ", kse.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+                fingerprint = "";
+            }
         }
         currentCertTextField.setText(fingerprint);
         _sslcm.setDefaultKey(fingerprint);
