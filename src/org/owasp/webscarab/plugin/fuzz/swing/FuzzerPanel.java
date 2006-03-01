@@ -43,6 +43,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Date;
+import java.util.regex.PatternSyntaxException;
 import javax.swing.AbstractAction;
 import javax.swing.table.TableModel;
 import org.owasp.webscarab.model.ConversationID;
@@ -167,7 +168,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
                 conversationTable.getSelectionModel().setSelectionInterval(row,row);
                 if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
                     ActionEvent evt = new ActionEvent(conversationTable, 0, (String) _showAction.getValue(Action.ACTION_COMMAND_KEY));
-                    if (_showAction.isEnabled()) 
+                    if (_showAction.isEnabled())
                         _showAction.actionPerformed(evt);
                 }
             }
@@ -252,11 +253,13 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         valueList = new javax.swing.JList();
         itemsLabel = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
         descriptionTextField = new javax.swing.JTextField();
+        regexTextField = new javax.swing.JTextField();
         fileNameTextField = new javax.swing.JTextField();
         browseButton = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
-        loadButton = new javax.swing.JButton();
+        addButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
         closeButton = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
@@ -358,8 +361,17 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         fuzzDialog.getContentPane().add(jLabel9, gridBagConstraints);
+
+        jLabel11.setText("RegEx : ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        fuzzDialog.getContentPane().add(jLabel11, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -371,6 +383,14 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        fuzzDialog.getContentPane().add(regexTextField, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
@@ -385,20 +405,20 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         fuzzDialog.getContentPane().add(browseButton, gridBagConstraints);
 
         jPanel3.setLayout(new java.awt.GridLayout(1, 2));
 
-        loadButton.setText("Load");
-        loadButton.addActionListener(new java.awt.event.ActionListener() {
+        addButton.setText("Add");
+        addButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                loadButtonActionPerformed(evt);
+                addButtonActionPerformed(evt);
             }
         });
 
-        jPanel3.add(loadButton);
+        jPanel3.add(addButton);
 
         deleteButton.setText("Remove");
         deleteButton.addActionListener(new java.awt.event.ActionListener() {
@@ -420,14 +440,14 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         fuzzDialog.getContentPane().add(jPanel3, gridBagConstraints);
 
         jLabel4.setText("File : ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         fuzzDialog.getContentPane().add(jLabel4, gridBagConstraints);
@@ -745,23 +765,44 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         }
     }//GEN-LAST:event_deleteButtonActionPerformed
     
-    private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
-        try {
-            String description = descriptionTextField.getText();
-            if (description.equals("")) {
-                JOptionPane.showMessageDialog(null, new String[] {"Description cannot be empty", }, "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            File file = new File(fileNameTextField.getText());
-            if (file.isDirectory()) {
-                JOptionPane.showMessageDialog(null, new String[] {file.toString() + " is a directory", }, "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            _fuzzFactory.loadFuzzStrings(description, file);
-        } catch (IOException ioe) {
-            JOptionPane.showMessageDialog(null, new String[] {"Error loading fuzz strings!", ioe.getMessage() }, "Error", JOptionPane.ERROR_MESSAGE);
+    private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
+        String description = descriptionTextField.getText();
+        String fileName = fileNameTextField.getText();
+        String regex = regexTextField.getText();
+        if (description.equals("")) {
+            JOptionPane.showMessageDialog(null, new String[] {"Description cannot be empty", }, "Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
-    }//GEN-LAST:event_loadButtonActionPerformed
+        if (!regex.equals("") && !fileName.equals("")) {
+            JOptionPane.showMessageDialog(null, new String[] {"Please enter EITHER a Regular Expression OR a File name"}, "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (regex.equals("") && fileName.equals("")) {
+            JOptionPane.showMessageDialog(null, new String[] {"Please enter EITHER a Regular Expression OR a File name"}, "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (!fileName.equals("")) {
+            try {
+                File file = new File(fileName);
+                if (file.isDirectory()) {
+                    JOptionPane.showMessageDialog(null, new String[] {file.toString() + " is a directory", }, "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                _fuzzFactory.loadFuzzStrings(description, file);
+            } catch (IOException ioe) {
+                JOptionPane.showMessageDialog(null, new String[] {"Error loading fuzz strings!", ioe.getMessage() }, "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            return;
+        }
+        if (!regex.equals("")) {
+            try {
+                _fuzzFactory.addRegexSource(description, regex);
+            } catch (PatternSyntaxException pse) {
+                JOptionPane.showMessageDialog(null, new String[] {"Invalid regular expression!", pse.getMessage() }, "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            return;
+        }
+    }//GEN-LAST:event_addButtonActionPerformed
     
     private void sourcesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sourcesButtonActionPerformed
         fuzzDialog.setVisible(true);
@@ -850,6 +891,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel actionPanel;
+    private javax.swing.JButton addButton;
     private javax.swing.JButton addHeaderButton;
     private javax.swing.JButton addParameterButton;
     private javax.swing.JButton browseButton;
@@ -868,6 +910,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     private javax.swing.JLabel itemsLabel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -885,11 +928,11 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
-    private javax.swing.JButton loadButton;
     private javax.swing.JTextField methodTextField;
     private javax.swing.JList nameList;
     private javax.swing.JTable paramTable;
     private javax.swing.JPanel parameterPanel;
+    private javax.swing.JTextField regexTextField;
     private javax.swing.JPanel requestPanel;
     private javax.swing.JButton sourcesButton;
     private javax.swing.JButton startButton;

@@ -22,6 +22,7 @@ import java.util.TreeMap;
 
 import java.beans.PropertyChangeSupport;
 import java.beans.PropertyChangeListener;
+import java.util.regex.PatternSyntaxException;
 
 /**
  *
@@ -59,6 +60,10 @@ public class FuzzFactory {
         boolean success = (_sources.remove(name) != null);
         _changeSupport.firePropertyChange(SOURCES, null, null);
         return success;
+    }
+    
+    public void addRegexSource(String description, String regex) throws PatternSyntaxException {
+        addSource(new RegexSource(description, regex));
     }
     
     public FuzzSource getSource(String name) {
