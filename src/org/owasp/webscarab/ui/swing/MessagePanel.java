@@ -111,13 +111,8 @@ public class MessagePanel extends javax.swing.JPanel {
         if (message != null) {
             _hp.setHeaders(_message.getHeaders());
             byte[] content = message.getContent();
-            if (_editable || (content.length > 0)) {
-                _cp.setContentType(message.getHeader("Content-Type"));
-                _cp.setContent(content);
-                _cp.setVisible(true);
-            } else {
-                _cp.setVisible(false);
-            }
+            _cp.setContentType(message.getHeader("Content-Type"));
+            _cp.setContent(content);
         } else {
             _hp.setHeaders(null);
             _cp.setContentType(null);
