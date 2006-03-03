@@ -183,10 +183,10 @@ public class XMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
                         if (nnm.getLength()>0) {
                             StringBuffer buff = new StringBuffer();
                             Node attr = nnm.item(0);
-                            buff.append(attr.getNodeName()).append("=").append(attr.getNodeValue());
+                            buff.append(attr.getNodeName()).append("=\"").append(attr.getNodeValue()).append("\"");
                             for (int i=1; i<nnm.getLength();i++) {
                                 attr = nnm.item(i);
-                                buff.append(" ").append(attr.getNodeName()).append("=").append(attr.getNodeValue());
+                                buff.append(" ").append(attr.getNodeName()).append("=\"").append(attr.getNodeValue()).append("\"");
                             }
                             text = text + " " + buff.toString();
                         }
@@ -221,7 +221,9 @@ public class XMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
             }
             bytes = baos.toByteArray();
         } else {
-            bytes = "<xml><abc>def</abc></xml>".getBytes();
+            bytes = ("<b>NOTE: For security reasons, using the administration webapp\n" +
+            "        is restricted to users with role \"admin\". The manager webapp\n" + 
+            "is restricted to users with role \"manager\".</b>").getBytes();
         }
         XMLPanel xp = new XMLPanel();
         top.getContentPane().add(xp);

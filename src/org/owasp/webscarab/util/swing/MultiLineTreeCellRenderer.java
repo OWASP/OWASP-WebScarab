@@ -52,6 +52,7 @@ public class MultiLineTreeCellRenderer extends JPanel implements TreeCellRendere
         add(_icon);
         add(Box.createHorizontalStrut(4));
         add(_text  = new TreeTextArea());
+        _text.setFont(new Font("Monospaced", 0, 12));
     }
     
     public Component getTreeCellRendererComponent(JTree tree, Object value,
@@ -91,8 +92,8 @@ public class MultiLineTreeCellRenderer extends JPanel implements TreeCellRendere
         Dimension preferredSize;
         
         TreeTextArea() {
-            setLineWrap(true);
-            setWrapStyleWord(true);
+            setLineWrap(false);
+            setWrapStyleWord(false);
             setOpaque(true);
         }
         
@@ -100,16 +101,6 @@ public class MultiLineTreeCellRenderer extends JPanel implements TreeCellRendere
             if(color instanceof ColorUIResource)
                 color = null;
             super.setBackground(color);
-        }
-        
-        public void setPreferredSize(Dimension d) {
-            if (d != null) {
-                preferredSize = d;
-            }
-        }
-        
-        public Dimension getPreferredSize() {
-            return preferredSize;
         }
         
         public void setText(String str) {
@@ -135,8 +126,8 @@ public class MultiLineTreeCellRenderer extends JPanel implements TreeCellRendere
                 ex.printStackTrace();
             }
             lines = (lines < 1) ? 1: lines;
-            int height = (int)(maxHeight * lines);
-            int width = (int)(maxWidth + 9); // ?
+            int height = (int)(maxHeight * lines * 1.35); // interline space?
+            int width = (int)(maxWidth + 200); // ?
             setPreferredSize(new Dimension(width, height));
             super.setText(str);
         }
