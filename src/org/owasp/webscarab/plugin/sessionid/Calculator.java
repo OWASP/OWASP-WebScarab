@@ -53,4 +53,8 @@ public interface Calculator {
     
     BigInteger calculate(SessionID id);
     
+    BigInteger min();
+    
+    BigInteger max();
+    
 }

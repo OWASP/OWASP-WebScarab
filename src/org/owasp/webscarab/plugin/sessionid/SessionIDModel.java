@@ -118,6 +118,18 @@ public class SessionIDModel extends AbstractPluginModel {
         return calc.calculate(id);
     }
     
+    public BigInteger getMinimumValue(String key) {
+        Calculator calc = (Calculator) _calculators.get(key);
+        if (calc == null) return null;
+        return calc.min();
+    }
+    
+    public BigInteger getMaximumValue(String key) {
+        Calculator calc = (Calculator) _calculators.get(key);
+        if (calc == null) return null;
+        return calc.max();
+    }
+    
     public Request getRequest(ConversationID id) {
         return _model.getRequest(id);
     }

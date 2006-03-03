@@ -240,14 +240,22 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
         requestComboBox = new javax.swing.JComboBox();
         jLabel9 = new javax.swing.JLabel();
         analysisPanel = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        idTable = new javax.swing.JTable();
         jPanel1 = new javax.swing.JPanel();
         jLabel8 = new javax.swing.JLabel();
         nameComboBox = new javax.swing.JComboBox();
         jPanel2 = new javax.swing.JPanel();
         clearButton = new javax.swing.JButton();
         exportButton = new javax.swing.JButton();
+        jPanel3 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        idTable = new javax.swing.JTable();
+        jPanel4 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        minTextField = new javax.swing.JTextField();
+        maxTextField = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        rangeTextField = new javax.swing.JTextField();
         visualisationPanel = new javax.swing.JPanel();
 
         setLayout(new java.awt.BorderLayout());
@@ -389,18 +397,6 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
 
         analysisPanel.setLayout(new java.awt.BorderLayout());
 
-        idTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-
-            }
-        ));
-        jScrollPane1.setViewportView(idTable);
-
-        analysisPanel.add(jScrollPane1, java.awt.BorderLayout.CENTER);
-
         jPanel1.setLayout(new java.awt.BorderLayout());
 
         jLabel8.setText("Session Identifier : ");
@@ -435,6 +431,64 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
         jPanel2.add(exportButton);
 
         analysisPanel.add(jPanel2, java.awt.BorderLayout.SOUTH);
+
+        jPanel3.setLayout(new java.awt.BorderLayout());
+
+        idTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+
+            }
+        ));
+        jScrollPane1.setViewportView(idTable);
+
+        jPanel3.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+
+        jPanel4.setLayout(new java.awt.GridBagLayout());
+
+        jLabel1.setText("Minimum : ");
+        jPanel4.add(jLabel1, new java.awt.GridBagConstraints());
+
+        jLabel4.setText("Maximum : ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        jPanel4.add(jLabel4, gridBagConstraints);
+
+        minTextField.setEditable(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        jPanel4.add(minTextField, gridBagConstraints);
+
+        maxTextField.setEditable(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        jPanel4.add(maxTextField, gridBagConstraints);
+
+        jLabel5.setText("Range : ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanel4.add(jLabel5, gridBagConstraints);
+
+        rangeTextField.setEditable(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        jPanel4.add(rangeTextField, gridBagConstraints);
+
+        jPanel3.add(jPanel4, java.awt.BorderLayout.SOUTH);
+
+        analysisPanel.add(jPanel3, java.awt.BorderLayout.CENTER);
 
         mainTabbedPane.addTab("Analysis", analysisPanel);
 
@@ -512,7 +566,7 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
                             String[] keys = (String[]) ids.keySet().toArray(new String[0]);
                             for (int i=0; i<keys.length; i++) {
                                 SessionID id = (SessionID) ids.get(keys[i]);
-                                keys[i] = id.getDate() + " : " + keys[i] + " = " + id.getValue();
+                                keys[i] = keys[i] + " = " + id.getValue();
                             }
                             if (keys.length == 0) keys = new String[] { "No session identifiers found!" };
                             JOptionPane.showMessageDialog(parent, keys, "Extracted Sessionids", JOptionPane.INFORMATION_MESSAGE);
@@ -569,6 +623,7 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
         _key = (String)nameComboBox.getSelectedItem();
         _tableModel.fireTableDataChanged();
         _sidd.fireDatasetChanged();
+        updateStats();
     }//GEN-LAST:event_nameComboBoxActionPerformed
     
     private void fetchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fetchButtonActionPerformed
@@ -615,6 +670,7 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
             }
             _sidd.fireDatasetChanged();
             _tableModel.fireTableDataChanged();
+            updateStats();
         } else {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
@@ -624,11 +680,39 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
         }
     }
     
+    private void updateStats() {
+        if (_key == null) {
+            maxTextField.setText("");
+            minTextField.setText("");
+            rangeTextField.setText("");
+            return;
+        }
+        BigInteger min = _model.getMinimumValue(_key);
+        BigInteger max = _model.getMaximumValue(_key);
+        if (min != null) {
+            minTextField.setText(min.toString());
+        } else {
+            minTextField.setText("");
+        }
+        if (max != null) {
+            maxTextField.setText(max.toString());
+        } else {
+            maxTextField.setText("");
+        }
+        if (min != null && max != null) {
+            BigInteger range = max.subtract(min);
+            rangeTextField.setText(Float.toString(range.floatValue()));
+        } else {
+            rangeTextField.setText("");
+        }
+    }
+    
     public void calculatorChanged(final String key) {
         if (key.equals(_key)) {
             if (SwingUtilities.isEventDispatchThread()) {
                 _sidd.fireDatasetChanged();
                 _tableModel.fireTableDataChanged();
+                updateStats();
             } else {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
@@ -690,18 +774,26 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
     private javax.swing.JButton fetchButton;
     private javax.swing.JPanel historyPanel;
     private javax.swing.JTable idTable;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.ButtonGroup locationButtonGroup;
     private javax.swing.JTabbedPane mainTabbedPane;
+    private javax.swing.JTextField maxTextField;
+    private javax.swing.JTextField minTextField;
     private javax.swing.JComboBox nameComboBox;
     private javax.swing.JLabel nameLabel;
     private javax.swing.JTextField nameTextField;
+    private javax.swing.JTextField rangeTextField;
     private javax.swing.JTextField regexTextField;
     private javax.swing.JComboBox requestComboBox;
     private javax.swing.JSpinner sampleSpinner;

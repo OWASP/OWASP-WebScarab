@@ -63,6 +63,9 @@ public class DefaultCalculator implements Calculator {
     
     private ArrayList _chars = new ArrayList();
     
+    private BigInteger _min = null;
+    private BigInteger _max = null;
+    
     /** Creates a new instance of DefaultCalculator */
     public DefaultCalculator() {
         this("^(.+)$");
@@ -143,12 +146,22 @@ public class DefaultCalculator implements Calculator {
             total = total.add(val.multiply(max));
             max = max.multiply(new BigInteger(Integer.toString(charset.length())));
         }
+        if (_max == null || _max.compareTo(total)<0) _max = total;
+        if (_min == null || _min.compareTo(total)>0) _min = total;
         _cache.put(id, total);
         return total;
     }
     
     public void reset() {
         _cache.clear();
+    }
+
+    public BigInteger max() {
+        return _max;
+    }
+
+    public BigInteger min() {
+        return _min;
     }
     
 }

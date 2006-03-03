@@ -185,12 +185,10 @@ public class SessionIDAnalysis implements Plugin, ConversationHandler {
                 Pattern pattern = Pattern.compile(regex);
                 Matcher matcher = pattern.matcher(location);
                 if (matcher.matches() && matcher.groupCount() > 0) {
-                    StringBuffer match = new StringBuffer();
-                    for (int j=0; j<matcher.groupCount(); j++) {
-                        match.append(matcher.group(j+1));
+                    for (int j=1; j<=matcher.groupCount(); j++) {
+                        SessionID id = new SessionID(date, matcher.group(j));
+                        ids.put(name + " " + j, id);
                     }
-                    SessionID id = new SessionID(date, match.toString());
-                    ids.put(name, id);
                 }
             }
             String type = response.getHeader("Content-Type");
@@ -206,12 +204,10 @@ public class SessionIDAnalysis implements Plugin, ConversationHandler {
                 Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE | Pattern.DOTALL);
                 Matcher matcher = pattern.matcher(body);
                 if (matcher.matches() && matcher.groupCount() > 0) {
-                    StringBuffer match = new StringBuffer();
-                    for (int j=0; j<matcher.groupCount(); j++) {
-                        match.append(matcher.group(j+1));
+                    for (int j=1; j<=matcher.groupCount(); j++) {
+                        SessionID id = new SessionID(date, matcher.group(j));
+                        ids.put(name + " " + j, id);
                     }
-                    SessionID id = new SessionID(date, match.toString());
-                    ids.put(name, id);
                 }
             }
         } else {
@@ -221,13 +217,18 @@ public class SessionIDAnalysis implements Plugin, ConversationHandler {
                 if (headers[i].getName().equalsIgnoreCase("Set-Cookie") || headers[i].getName().equalsIgnoreCase("Set-Cookie2")) {
                     Cookie cookie = new Cookie(date, url, headers[i].getValue());
                     Matcher matcher = pattern.matcher(cookie.getValue());
-                    if (matcher.matches() && matcher.groupCount() > 0) {
-                        StringBuffer match = new StringBuffer();
-                        for (int j=0; j<matcher.groupCount(); j++) {
-                            match.append(matcher.group(j+1));
+                    name = cookie.getKey();
+                    if (matcher.matches()) {
+                        SessionID id = new SessionID(date, matcher.group(0));
+                        ids.put(name, id);
+                        if (matcher.groupCount() > 0) {
+                            for (int j=1; j<=matcher.groupCount(); j++) {
+                                if (!matcher.group(j).equals(matcher.group(0))) {
+                                    id = new SessionID(date, matcher.group(j));
+                                    ids.put(name + " " + j, id);
+                                }
+                            }
                         }
-                        SessionID id = new SessionID(date, match.toString());
-                        ids.put(cookie.getKey(), id);
                     }
                 }
             }
