@@ -47,6 +47,9 @@ import java.net.InetSocketAddress;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -70,6 +73,8 @@ import org.owasp.webscarab.util.Glob;
  * @author rdawes
  */
 public class URLFetcher implements HTTPClient {
+    
+    private static SocketWatcher watcher = new SocketWatcher();
     
     // These represent the SSL classes required to connect to the server.
     private String _keyFingerprint = null;
@@ -565,6 +570,27 @@ public class URLFetcher implements HTTPClient {
         return authMethod + " " + Base64.encode(message.toByteArray());
     }
     
-    
+    private static class SocketWatcher {
+        
+        private Map sockets = new HashMap();
+        
+        public SocketWatcher() {}
+        
+        public synchronized void add(Socket socket) {
+            Iterator it = sockets.keySet().iterator();
+            while (it.hasNext()) {
+                Socket sock = (Socket) it.next();
+                Thread thread = (Thread) sockets.get(sock);
+                if (!thread.isAlive() && sock.isConnected()) {
+                    try {
+                        sock.close();
+                    } catch (Exception e) {}
+                    it.remove();
+                }
+            }
+            sockets.put(socket, Thread.currentThread());
+        }
+        
+    }
     
 }

@@ -293,7 +293,11 @@ public class ConnectionHandler implements Runnable {
             try {
                 if (_clientIn != null) _clientIn.close();
                 if (_clientOut != null) _clientOut.close();
-                if (_sock != null) _sock.close();
+                if (_sock != null) {
+                    _sock.shutdownInput();
+                    _sock.shutdownOutput();
+                    _sock.close();
+                }
             } catch (IOException ioe) {
                 _logger.warning("Error closing client socket : " + ioe);
             }
