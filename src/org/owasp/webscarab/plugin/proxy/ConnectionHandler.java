@@ -201,7 +201,7 @@ public class ConnectionHandler implements Runnable {
                     request = new Request();
                     _logger.fine("Reading request from the browser");
                     request.read(_clientIn, _base);
-                    if (request.getMethod() == null) {
+                    if (request.getMethod() == null || request.getURL() == null) {
                         return;
                     }
                     if (proxyAuth != null) {
@@ -293,9 +293,7 @@ public class ConnectionHandler implements Runnable {
             try {
                 if (_clientIn != null) _clientIn.close();
                 if (_clientOut != null) _clientOut.close();
-                if (_sock != null) {
-                    _sock.shutdownInput();
-                    _sock.shutdownOutput();
+                if (_sock != null && !_sock.isClosed()) {
                     _sock.close();
                 }
             } catch (IOException ioe) {
