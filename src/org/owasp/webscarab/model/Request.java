@@ -54,14 +54,12 @@ import java.util.logging.Level;
  */
 public class Request extends Message {
     
-    private String _method = null;
+    private String _method = "GET";
     private HttpUrl _url = null;
-    private String _version = null;
+    private String _version = "HTTP/1.0";
     
     /** Creates a new instance of Request */
     public Request() {
-        setMethod("GET");
-        setVersion("HTTP/1.0");
     }
     
     /**
@@ -106,9 +104,6 @@ public class Request extends Message {
         }
         if (line == null || line.equals("")) {
             // System.err.println("Client closed connection!");
-            setMethod(null);
-            setURL(null);
-            setVersion(null);
             return;
         }
         String[] parts = line.split(" ");
