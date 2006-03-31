@@ -48,6 +48,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
+import no.geosoft.cc.ui.SplashScreen;
 
 import org.owasp.webscarab.model.FileSystemStore;
 import org.owasp.webscarab.model.StoreException;
@@ -118,6 +119,8 @@ public class Main {
     public static void main(String[] args) {
         System.setProperty("sun.awt.exception.handler", ExceptionHandler.class.getName());
         
+        final SplashScreen splash = new SplashScreen("/org/owasp/webscarab/webscarab.jpg");
+        splash.open(10000);
         initLogging();
         
         try {
@@ -140,6 +143,7 @@ public class Main {
                     _uif.setVisible(true);
                     _uif.toFront();
                     _uif.requestFocus();
+                    splash.close();
                 }
             });
         } catch (Exception e) {

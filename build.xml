@@ -74,6 +74,10 @@
             file="src/org/owasp/webscarab/plugin/scripted/script.bsh" 
             todir="${build.dir}/org/owasp/webscarab/plugin/scripted/"
         />
+        <copy 
+            file="src/org/owasp/webscarab/webscarab.jpg" 
+            todir="${build.dir}/org/owasp/webscarab/"
+        />
     </target>
     <target depends="prepare" description="Compile the sources" name="compile">
         <javac 
