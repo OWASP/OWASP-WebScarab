@@ -42,20 +42,33 @@ public class CredentialManager implements Authenticator {
     public synchronized String getCredentials(HttpUrl url, String[] challenges) {
         String creds = getPreferredCredentials(url.getHost(), challenges);
         if (creds != null) return creds;
-        if (_ui != null && challenges != null && challenges.length > 0)
-            _ui.requestCredentials(url.getHost(), challenges);
+        if (_ui != null && challenges != null && challenges.length > 0) {
+            boolean ask = false;
+            for (int i=0; i<challenges.length; i++)
+                if (challenges[i].startsWith("Basic") || challenges[i].startsWith("NTLM") || challenges[i].startsWith("Negotiate"))
+                    ask = true;
+            if (ask)
+                _ui.requestCredentials(url.getHost(), challenges);
+        }
         return getPreferredCredentials(url.getHost(), challenges);
     }
-
+    
     public synchronized String getProxyCredentials(String hostname, String[] challenges) {
         String creds = getPreferredCredentials(hostname, challenges);
         if (creds != null) return creds;
-        if (_ui != null && challenges != null && challenges.length > 0)
-            _ui.requestCredentials(hostname, challenges);
+        if (_ui != null && challenges != null && challenges.length > 0) {
+            boolean ask = false;
+            for (int i=0; i<challenges.length; i++)
+                if (challenges[i].startsWith("Basic") || challenges[i].startsWith("NTLM") || challenges[i].startsWith("Negotiate"))
+                    ask = true;
+            if (ask)
+                _ui.requestCredentials(hostname, challenges);
+        }
         return getPreferredCredentials(hostname, challenges);
     }
     
     public void addBasicCredentials(BasicCredential cred) {
+        if ((cred.getUsername() == null || cred.getUsername().equals("")) && (cred.getPassword() == null || cred.getPassword().equals(""))) return;
         Map realms = (Map) _basicCredentials.get(cred.getHost());
         if (realms == null) {
             realms = new TreeMap();
@@ -65,6 +78,7 @@ public class CredentialManager implements Authenticator {
     }
     
     public void addDomainCredentials(DomainCredential cred) {
+        if ((cred.getUsername() == null || cred.getUsername().equals("")) && (cred.getPassword() == null || cred.getPassword().equals(""))) return;
         _domainCredentials.put(cred.getHost(), cred);
     }
     
@@ -109,7 +123,7 @@ public class CredentialManager implements Authenticator {
         while (hosts.hasNext()) {
             Object key = hosts.next();
             i++;
-            if (i == index) 
+            if (i == index)
                 _domainCredentials.remove(key);
         }
     }
@@ -120,7 +134,7 @@ public class CredentialManager implements Authenticator {
         while (hosts.hasNext()) {
             Map realms = (Map) _basicCredentials.get(hosts.next());
             Iterator realm = realms.keySet().iterator();
-            while (realm.hasNext()) 
+            while (realm.hasNext())
                 all.add(realms.get(realm.next()));
         }
         return (BasicCredential[]) all.toArray(new BasicCredential[0]);

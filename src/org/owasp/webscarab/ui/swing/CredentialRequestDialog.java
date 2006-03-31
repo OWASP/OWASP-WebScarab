@@ -31,6 +31,7 @@ public class CredentialRequestDialog extends javax.swing.JDialog implements Cred
     public void requestCredentials(final String host, final String[] challenges) {
         setup(host, challenges);
         setVisible(true);
+        toFront();
     }
     
     private void setup(String host, String[] challenges) {
@@ -279,12 +280,14 @@ public class CredentialRequestDialog extends javax.swing.JDialog implements Cred
         String realm = realmTextArea.getText();
         String username = usernameTextField.getText();
         String password = new String(passwordTextField.getPassword());
-        if (basicRadioButton.isSelected()) {
-            BasicCredential bc = new BasicCredential(host, realm, username, password);
-            _manager.addBasicCredentials(bc);
-        } else if (domainRadioButton.isSelected()) {
-            DomainCredential dc = new DomainCredential(host, domain, username, password);
-            _manager.addDomainCredentials(dc);
+        if (!(username.equals("") || password.equals(""))) {
+            if (basicRadioButton.isSelected()) {
+                BasicCredential bc = new BasicCredential(host, realm, username, password);
+                _manager.addBasicCredentials(bc);
+            } else if (domainRadioButton.isSelected()) {
+                DomainCredential dc = new DomainCredential(host, domain, username, password);
+                _manager.addDomainCredentials(dc);
+            }
         }
         setVisible(false);
     }
