@@ -119,7 +119,7 @@ public class Main {
     public static void main(String[] args) {
         System.setProperty("sun.awt.exception.handler", ExceptionHandler.class.getName());
         
-        final SplashScreen splash = new SplashScreen("/org/owasp/webscarab/webscarab.jpg");
+        final SplashScreen splash = new SplashScreen("/org/owasp/webscarab/webscarab_logo.gif");
         splash.open(10000);
         initLogging();
         
