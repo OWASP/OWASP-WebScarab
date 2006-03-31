@@ -30,6 +30,7 @@ public class CredentialRequestDialog extends javax.swing.JDialog implements Cred
     
     public void requestCredentials(final String host, final String[] challenges) {
         setup(host, challenges);
+        getOwner().setVisible(true);
         setVisible(true);
         toFront();
     }
