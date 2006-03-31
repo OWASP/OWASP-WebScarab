@@ -75,7 +75,7 @@
             todir="${build.dir}/org/owasp/webscarab/plugin/scripted/"
         />
         <copy 
-            file="src/org/owasp/webscarab/webscarab.jpg" 
+            file="src/org/owasp/webscarab/webscarab_logo.gif" 
             todir="${build.dir}/org/owasp/webscarab/"
         />
     </target>
