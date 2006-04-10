@@ -73,7 +73,6 @@ import org.owasp.webscarab.plugin.proxy.BeanShell;
 import org.owasp.webscarab.plugin.proxy.BrowserCache;
 import org.owasp.webscarab.plugin.proxy.CookieTracker;
 import org.owasp.webscarab.plugin.proxy.ManualEdit;
-import org.owasp.webscarab.plugin.proxy.NTLMFilter;
 import org.owasp.webscarab.plugin.proxy.RevealHidden;
 import org.owasp.webscarab.plugin.proxy.swing.ProxyPanel;
 import org.owasp.webscarab.plugin.proxy.swing.BeanShellPanel;
@@ -237,9 +236,7 @@ public class Main {
         proxy.addPlugin(bc);
         CookieTracker ct = new CookieTracker(_framework);
         proxy.addPlugin(ct);
-        NTLMFilter nf = new NTLMFilter();
-        proxy.addPlugin(nf);
-        proxyPanel.addPlugin(new MiscPanel(rh, bc, ct, nf));
+        proxyPanel.addPlugin(new MiscPanel(rh, bc, ct));
     }
     
 }
