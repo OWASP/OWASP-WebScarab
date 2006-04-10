@@ -27,7 +27,22 @@ public class WebScarab {
      * of user interfaces
      */
     public static void main(String[] args) {
-        org.owasp.webscarab.ui.swing.Main.main(args);
+        if (args != null && args.length > 0) {
+            if (args[0].equalsIgnoreCase("lite")) {
+                if (args.length>1) {
+                    String[] trim = new String[args.length-1];
+                    System.arraycopy(args, 1, trim, 0, args.length-1);
+                    args = trim;
+                } else {
+                    args = null;
+                }
+                org.owasp.webscarab.ui.swing.Lite.main(args);
+            } else {
+                org.owasp.webscarab.ui.swing.Main.main(args);
+            }
+        } else {
+            org.owasp.webscarab.ui.swing.Main.main(args);
+        }
     }
     
 }
