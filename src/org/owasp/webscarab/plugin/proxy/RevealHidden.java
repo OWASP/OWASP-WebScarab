@@ -116,7 +116,7 @@ public class RevealHidden extends ProxyPlugin {
              * Then it is simple to concatenate part 1 + "text" + part 2 to get an
              * "unhidden" input tag 
              */
-            Pattern inputPattern = Pattern.compile("(<input.+?type=[\"']{0,1})hidden([\"']{0,1}.+?>)", Pattern.CASE_INSENSITIVE);
+            Pattern inputPattern = Pattern.compile("(<input.+?type\\s*=\\s*[\"']{0,1})hidden([\"']{0,1}.+?>)", Pattern.CASE_INSENSITIVE);
             Matcher inputMatcher = inputPattern.matcher(new String(content));
             StringBuffer outbuf = new StringBuffer();
             
