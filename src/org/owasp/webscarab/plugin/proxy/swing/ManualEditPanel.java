@@ -107,16 +107,18 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         
         sensitiveCheckBox.setSelected(_manualEdit.isCaseSensitive());
         
-        interceptIncludeRegexTextField.setEnabled(enabled);
+        interceptIncludeRegexTextField.setEnabled(isEnabled() && enabled);
         interceptIncludeRegexTextField.setText(_manualEdit.getIncludeRegex());
         
-        interceptExcludeRegexTextField.setEnabled(enabled);
+        interceptExcludeRegexTextField.setEnabled(isEnabled() && enabled);
         interceptExcludeRegexTextField.setText(_manualEdit.getExcludeRegex());
         
-        interceptMethodList.setEnabled(enabled);
+        interceptMethodList.setEnabled(isEnabled() && enabled);
         String[] interceptMethods = _manualEdit.getInterceptMethods();
         interceptMethodList.setSelectedIndices(getIndices(interceptMethods,interceptMethodList.getModel()));
         
+        enabled = _manualEdit.getInterceptResponse();
+        interceptResponseTextField.setEnabled(isEnabled() && enabled);
         interceptResponseCheckBox.setSelected(_manualEdit.getInterceptResponse());
         interceptResponseTextField.setText(_manualEdit.getInterceptResponseRegex());
     }
