@@ -73,7 +73,6 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         _requestButtonModel = interceptRequestCheckBox.getModel();
         _requestButtonModel.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                System.out.println("Request ActionPerformed");
                 boolean enabled = interceptRequestCheckBox.isSelected();
                 interceptIncludeRegexTextField.setEnabled(isEnabled() && enabled);
                 interceptExcludeRegexTextField.setEnabled(isEnabled() && enabled);
@@ -84,7 +83,6 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         _responseButtonModel = interceptResponseCheckBox.getModel();
         _responseButtonModel.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                System.out.println("Response ActionPerformed");
                 boolean enabled = interceptResponseCheckBox.isSelected();
                 interceptResponseTextField.setEnabled(isEnabled() && enabled);
                 _manualEdit.setInterceptResponse(enabled);
