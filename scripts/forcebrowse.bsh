@@ -1,0 +1,63 @@
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import javax.swing.JOptionPane;
+
+// We ask for a template that already has the appropriate method, version, 
+// headers, etc defined
+// All we'll do is replace the URL, and send it off
+String templ = JOptionPane.showInputDialog("Which request shall I use for the template?");
+String urlfile = JOptionPane.showInputDialog("Where is the list of URLs to try?");
+
+Request template = scripted.getRequest(Integer.parseInt(templ));
+
+BufferedReader urls = new BufferedReader(new FileReader(urlfile));
+
+// This will hold the name of the next file to try
+// getNextRequest() will update this when we construct the request
+String url = urls.readLine();
+
+// modify this routine to determine when we are finished
+// NB: This can be called multiple times between requests, so it
+// should not have any side effects
+boolean hasMoreRequests() {
+    return url != null;
+}
+
+// modify this routine to construct the next request, and update the
+// position in the list
+Request getNextRequest() {
+    // create a copy of the template
+    Request request = new Request(template);
+    request.setURL(new HttpUrl(url));
+    out.println("Trying " + url);
+    url = urls.readLine(); // get the next one to try
+    return request;
+}
+
+void gotResponse(Response response) {
+    scripted.addConversation(response);
+}
+
+// call this to fetch them in parallel
+// the number of simultaneous connections is controlled by the Scripted plugin 
+// It is currently hardcoded in the source at 4 simultaneous requests
+
+void fetchParallel() {
+    while (scripted.isAsyncBusy() || hasMoreRequests()) {
+        while (scripted.hasAsyncCapacity() && hasMoreRequests()) {
+            scripted.submitAsyncRequest(getNextRequest());
+        }
+        Thread.sleep(100);
+        while (scripted.hasAsyncResponse()) {
+            gotResponse(scripted.getAsyncResponse());
+        }
+    }
+}
+
+fetchParallel();
+
+
