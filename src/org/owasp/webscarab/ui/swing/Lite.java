@@ -244,7 +244,7 @@ public class Lite extends JFrame implements FrameworkUI {
         summaryInternalFrame.setVisible(true);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
-        setTitle("WebScarab LITE");
+        setTitle("WebScarab Lite");
         addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentMoved(java.awt.event.ComponentEvent evt) {
                 formComponentMoved(evt);
@@ -454,7 +454,7 @@ public class Lite extends JFrame implements FrameworkUI {
     
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
         String[] message = new String[] {
-            "OWASP WebScarab LITE - version " + _framework.getVersion(),
+            "OWASP WebScarab Lite - version " + _framework.getVersion(),
             " - part of the Open Web Application Security Project",
             "See http://www.owasp.org/software/webscarab.html",
             "", "Primary Developer : ",
