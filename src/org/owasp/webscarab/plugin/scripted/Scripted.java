@@ -93,7 +93,6 @@ public class Scripted implements Plugin, ConversationHandler {
         } catch (IOException ioe) {
             _logger.warning("Error loading default script" + ioe.getMessage());
         }
-        _fetcherQueue = new FetcherQueue("Scripted", this, _threads, 0);
     }
     
     public void setUI(ScriptedUI ui) {
@@ -216,6 +215,7 @@ public class Scripted implements Plugin, ConversationHandler {
                 _runScript = false;
                 if (_ui != null) _ui.scriptStarted();
                 _status = "Running";
+                _fetcherQueue = new FetcherQueue("Scripted", this, _threads, 0);
                 try {
                     _bsfManager.declareBean("framework", _framework, _framework.getClass());
                     _bsfManager.declareBean("scripted", _som, _som.getClass());
@@ -225,6 +225,8 @@ public class Scripted implements Plugin, ConversationHandler {
                 } catch (BSFException bsfe) {
                     if (_ui != null) _ui.scriptError("Unknown reason", bsfe);
                 }
+		_fetcherQueue.stop();
+		_fetcherQueue = null;
                 synchronized(_responseQueue) {
                     _responseQueue.clear();
                 }
