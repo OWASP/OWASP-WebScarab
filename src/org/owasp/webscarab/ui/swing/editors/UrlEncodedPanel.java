@@ -91,7 +91,7 @@ public class UrlEncodedPanel extends JPanel implements ByteArrayEditor {
             NamedValue[] values = NamedValue.splitNamedValues(_data, "&", "=");
             String name, value;
             for (int i=0; i<values.length; i++) {
-                name = Encoding.urlDecode(value[i].getName());
+                name = Encoding.urlDecode(values[i].getName());
                 value = Encoding.urlDecode(values[i].getValue());
                 values[i] = new NamedValue(name, value);
                 _values.add(values[i]);
