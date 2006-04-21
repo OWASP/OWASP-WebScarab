@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
+import javax.swing.JFileChooser;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -56,6 +57,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
 import no.geosoft.cc.ui.SplashScreen;
+import org.owasp.webscarab.model.FileSystemStore;
 
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.FrameworkModel;
@@ -224,6 +226,9 @@ public class Lite extends JFrame implements FrameworkUI {
         tabbedPane = new javax.swing.JTabbedPane();
         mainMenuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
+        newMenuItem = new javax.swing.JMenuItem();
+        openMenuItem = new javax.swing.JMenuItem();
+        saveMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
         viewMenu = new javax.swing.JMenu();
         editorMenu = new javax.swing.JMenu();
@@ -263,6 +268,36 @@ public class Lite extends JFrame implements FrameworkUI {
 
         fileMenu.setMnemonic('F');
         fileMenu.setText("File");
+        newMenuItem.setMnemonic('N');
+        newMenuItem.setText("New");
+        newMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                newMenuItemActionPerformed(evt);
+            }
+        });
+
+        fileMenu.add(newMenuItem);
+
+        openMenuItem.setMnemonic('O');
+        openMenuItem.setText("Open");
+        openMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                openMenuItemActionPerformed(evt);
+            }
+        });
+
+        fileMenu.add(openMenuItem);
+
+        saveMenuItem.setMnemonic('S');
+        saveMenuItem.setText("Save");
+        saveMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveMenuItemActionPerformed(evt);
+            }
+        });
+
+        fileMenu.add(saveMenuItem);
+
         exitMenuItem.setMnemonic('X');
         exitMenuItem.setText("Exit");
         exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -357,6 +392,105 @@ public class Lite extends JFrame implements FrameworkUI {
         setJMenuBar(mainMenuBar);
 
     }// </editor-fold>//GEN-END:initComponents
+
+    private void saveMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveMenuItemActionPerformed
+        if (_tempDir != null) {
+            JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDir"));
+            jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            jfc.setDialogTitle("Select a directory to write the session into");
+            int returnVal = jfc.showSaveDialog(this);
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                final File dir = jfc.getSelectedFile();
+                if (FileSystemStore.isExistingSession(dir)) {
+                    JOptionPane.showMessageDialog(null, new String[] {dir + " already contains a session ", }, "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                } else {
+                    new SwingWorker() {
+                        public Object construct() {
+                            try {
+                                closeSession();
+                                TempDir.recursiveCopy(_tempDir, dir);
+                                TempDir.recursiveDelete(_tempDir);
+                                _tempDir = null;
+                                _framework.setSession("FileSystem", dir, "");
+                                _framework.startPlugins();
+                                return null;
+                            } catch (StoreException se) {
+                                return se;
+                            } catch (IOException ioe) {
+                                return ioe;
+                            }
+                        }
+                        
+                        public void finished() {
+                            Object result = getValue();
+                            if (result == null) return;
+                            if (result instanceof Exception) {
+                                Exception e = (Exception) result;
+                                JOptionPane.showMessageDialog(null, new String[] {"Error saving Session : ", e.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    }.start();
+                }
+                Preferences.setPreference("WebScarab.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
+            }
+        } else {
+            try {
+                if (_framework.isModified()) {
+                    boolean running = _framework.isRunning();
+                    if (running)
+                        _framework.stopPlugins();
+                    _framework.saveSessionData();
+                    if (running)
+                        _framework.startPlugins();
+                }
+            } catch (StoreException se) {
+                JOptionPane.showMessageDialog(null, new String[] {"Error saving Session : ", se.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_saveMenuItemActionPerformed
+    
+    private void openExistingSession() {
+        JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDir"));
+        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        jfc.setDialogTitle("Choose a directory that contains a previous session");
+        int returnVal = jfc.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            final File dir = jfc.getSelectedFile();
+            if (!FileSystemStore.isExistingSession(dir)) {
+                // FIXME to change this to prompt to create it if it does not already exist
+                JOptionPane.showMessageDialog(null, new String[] {dir + " does not contain a session ", }, "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                loadSession(dir);
+            }
+            Preferences.setPreference("WebScarab.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
+        }
+    }
+    
+    private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
+        openExistingSession();
+    }//GEN-LAST:event_openMenuItemActionPerformed
+    
+    private void createNewSession() {
+        JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDir"));
+        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        jfc.setDialogTitle("Select a directory to write the session into");
+        int returnVal = jfc.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            final File dir = jfc.getSelectedFile();
+            if (FileSystemStore.isExistingSession(dir)) {
+                // FIXME to change this to prompt to open it if it already exists
+                JOptionPane.showMessageDialog(null, new String[] {dir + " already contains a session ", }, "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                loadSession(dir);
+            }
+            Preferences.setPreference("WebScarab.defaultDirectory", jfc.getCurrentDirectory().getAbsolutePath());
+        }
+    }
+    
+    private void newMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newMenuItemActionPerformed
+        createNewSession();
+    }//GEN-LAST:event_newMenuItemActionPerformed
 
     private void hiddenCheckBoxMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hiddenCheckBoxMenuItemActionPerformed
         _revealHidden.setEnabled(hiddenCheckBoxMenuItem.isSelected());
@@ -504,7 +638,10 @@ public class Lite extends JFrame implements FrameworkUI {
     private javax.swing.JMenu helpMenu;
     private javax.swing.JCheckBoxMenuItem hiddenCheckBoxMenuItem;
     private javax.swing.JMenuBar mainMenuBar;
+    private javax.swing.JMenuItem newMenuItem;
+    private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem proxyMenuItem;
+    private javax.swing.JMenuItem saveMenuItem;
     private javax.swing.JInternalFrame summaryInternalFrame;
     private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JMenu toolsMenu;
