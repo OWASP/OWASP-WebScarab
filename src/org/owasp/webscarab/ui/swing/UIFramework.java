@@ -39,6 +39,7 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import java.awt.BorderLayout;
 import java.awt.Rectangle;
 
 import java.io.File;
@@ -77,6 +78,7 @@ import org.owasp.webscarab.plugin.FrameworkUI;
 import org.owasp.webscarab.util.TempDir;
 import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.swing.DocumentHandler;
+import org.owasp.webscarab.util.swing.HeapMonitor;
 import org.owasp.webscarab.util.swing.SwingWorker;
 
 import javax.help.HelpSet;
@@ -119,6 +121,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
         _model = framework.getModel();
         
         initComponents();
+        getContentPane().add(new HeapMonitor(), BorderLayout.SOUTH);
         setPreferredSize();
         
         framework.setUI(this);
@@ -361,11 +364,12 @@ public class UIFramework extends JFrame implements FrameworkUI {
             }
         });
 
+        taskToolBar.setFloatable(false);
         getContentPane().add(taskToolBar, java.awt.BorderLayout.NORTH);
 
+        desktopPane.setAutoscrolls(true);
         desktopPane.setPreferredSize(null);
         desktopPane.setSelectedFrame(summaryInternalFrame);
-        desktopPane.setAutoscrolls(true);
         getContentPane().add(desktopPane, java.awt.BorderLayout.CENTER);
 
         fileMenu.setMnemonic('F');
@@ -576,8 +580,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         setJMenuBar(mainMenuBar);
 
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
     private void credentialsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_credentialsMenuItemActionPerformed
         _credentialManagerFrame.setVisible(true);

@@ -40,6 +40,7 @@
 package org.owasp.webscarab.ui.swing;
 
 
+import java.awt.BorderLayout;
 import java.io.File;
 import java.io.IOException;
 
@@ -76,6 +77,7 @@ import org.owasp.webscarab.plugin.sessionid.swing.SessionIDPanel;
 import org.owasp.webscarab.util.TempDir;
 import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.swing.ExceptionHandler;
+import org.owasp.webscarab.util.swing.HeapMonitor;
 import org.owasp.webscarab.util.swing.SwingWorker;
 
 import javax.help.HelpSet;
@@ -114,6 +116,7 @@ public class Lite extends JFrame implements FrameworkUI {
         _model = framework.getModel();
         
         initComponents();
+        getContentPane().add(new HeapMonitor(), BorderLayout.SOUTH);
         setPreferredSize();
         
         framework.setUI(this);
