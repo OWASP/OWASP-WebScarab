@@ -6,6 +6,8 @@
 
 package org.owasp.webscarab.plugin.compare.swing;
 
+import java.util.List;
+import javax.swing.JOptionPane;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.HttpUrl;
@@ -18,10 +20,13 @@ import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.ui.swing.ConversationListModel;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;
 import org.owasp.webscarab.ui.swing.ContentPanel;
+import org.owasp.webscarab.util.Diff;
 
 import org.owasp.webscarab.util.swing.ColumnDataModel;
+import org.owasp.webscarab.util.swing.SwingWorker;
 import org.owasp.webscarab.util.swing.TableSorter;
 import org.owasp.webscarab.util.swing.ListComboBoxModel;
+import org.owasp.webscarab.util.swing.DiffPanel;
 import org.owasp.webscarab.ui.swing.ConversationRenderer;
 import org.owasp.webscarab.ui.swing.DateRenderer;
 
@@ -47,11 +52,11 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
     private Compare _compare;
     private CompareModel _model;
     private ConversationTableModel _tableModel;
-    private ContentPanel _baseContent;
-    private ContentPanel _selectedContent;
     private TableSorter _conversationSorter;
-    
+    private DiffPanel _diffPanel;
     private Logger _logger = Logger.getLogger(getClass().getName());
+    
+    private String _base = null;
     
     /** Creates new form ComparePanel */
     public ComparePanel(Compare compare) {
@@ -73,22 +78,28 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
         conversationTable.setDefaultRenderer(Date.class, new DateRenderer());
         _conversationSorter = new TableSorter(_tableModel, conversationTable.getTableHeader());
         conversationTable.setModel(_conversationSorter);
-        _baseContent = new ContentPanel();
-        _selectedContent = new ContentPanel();
-        contentsSplitPane.setLeftComponent(_baseContent);
-        contentsSplitPane.setRightComponent(_selectedContent);
+        _diffPanel = new DiffPanel();
+        compareSplitPane.setBottomComponent(_diffPanel);
     
         baseComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Object o = baseComboBox.getSelectedItem();
                 if (o instanceof ConversationID) {
                     ConversationID id = (ConversationID) o;
+                    ConversationModel cModel = _model.getConversationModel();
+                    Response response = cModel.getResponse(id);
+                    String cType = response.getHeader("Content-Type");
+                    if (cType == null || !cType.startsWith("text")) {
+                        JOptionPane.showMessageDialog(ComparePanel.this, "Selected conversation is not text", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    byte[] content = response.getContent();
+                    if (content == null || content.length == 0) {
+                        JOptionPane.showMessageDialog(ComparePanel.this, "Selected conversation has no content", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
                     _compare.setBaseConversation(null, id);
-                    ConversationModel cmodel = _model.getConversationModel();
-                    Response response = cmodel.getResponse(id);
-                    String contentType = response.getHeader("Content-Type");
-                    _baseContent.setContentType(contentType);
-                    _baseContent.setContent(response.getContent());
+                    _base = new String(content);
                 }
             }
         });
@@ -96,17 +107,35 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
         conversationTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent evt) {
                 int selected = conversationTable.getSelectedRow();
+                _diffPanel.clear();
                 if (selected == -1) {
-                    _selectedContent.setContent(null);
                     return;
                 }
                 selected = _conversationSorter.modelIndex(selected);
                 ConversationModel cmodel = _model.getComparisonModel();
+                
                 ConversationID id = cmodel.getConversationAt(selected);
                 Response response = cmodel.getResponse(id);
                 String contentType = response.getHeader("Content-Type");
-                _selectedContent.setContentType(contentType);
-                _selectedContent.setContent(response.getContent());
+                if (contentType == null || !contentType.startsWith("text")) {
+                    JOptionPane.showMessageDialog(ComparePanel.this, "Selected conversation is not text", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                byte[] content = response.getContent();
+                if (content == null || content.length == 0) {
+                    JOptionPane.showMessageDialog(ComparePanel.this, "Selected conversation has no content", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                final String dst = new String(content);
+                new SwingWorker() {
+                    public Object construct() {
+                        return Diff.getEdits(_base, dst);
+                    }
+                    public void finished() {
+                        List edits = (List) get();
+                        _diffPanel.showDifferences(_base, dst, edits);
+                    }
+                }.start();
             }
         });
     }
@@ -116,21 +145,21 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    private void initComponents() {//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+    private void initComponents() {
         baseComboBox = new javax.swing.JComboBox();
-        jSplitPane1 = new javax.swing.JSplitPane();
+        compareSplitPane = new javax.swing.JSplitPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         conversationTable = new javax.swing.JTable();
-        contentsSplitPane = new javax.swing.JSplitPane();
 
         setLayout(new java.awt.BorderLayout());
 
         baseComboBox.setMaximumSize(null);
         add(baseComboBox, java.awt.BorderLayout.NORTH);
 
-        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        jSplitPane1.setResizeWeight(0.3);
-        jSplitPane1.setOneTouchExpandable(true);
+        compareSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        compareSplitPane.setResizeWeight(0.3);
+        compareSplitPane.setOneTouchExpandable(true);
         conversationTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -141,15 +170,11 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
         ));
         jScrollPane1.setViewportView(conversationTable);
 
-        jSplitPane1.setLeftComponent(jScrollPane1);
+        compareSplitPane.setLeftComponent(jScrollPane1);
 
-        contentsSplitPane.setResizeWeight(0.5);
-        contentsSplitPane.setOneTouchExpandable(true);
-        jSplitPane1.setRightComponent(contentsSplitPane);
+        add(compareSplitPane, java.awt.BorderLayout.CENTER);
 
-        add(jSplitPane1, java.awt.BorderLayout.CENTER);
-
-    }//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
     public Action[] getConversationActions() {
         return new Action[0];
@@ -177,10 +202,9 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox baseComboBox;
-    private javax.swing.JSplitPane contentsSplitPane;
+    private javax.swing.JSplitPane compareSplitPane;
     private javax.swing.JTable conversationTable;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JSplitPane jSplitPane1;
     // End of variables declaration//GEN-END:variables
     
 }
