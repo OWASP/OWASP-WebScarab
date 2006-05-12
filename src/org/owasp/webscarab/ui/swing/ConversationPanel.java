@@ -39,7 +39,14 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import java.awt.Event;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.net.MalformedURLException;
+import javax.swing.AbstractAction;
+import javax.swing.InputMap;
+import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
@@ -86,7 +93,7 @@ public class ConversationPanel extends javax.swing.JPanel {
      * This form displays a tool bar with previous, next and a dropdown selector
      * to allow for stepping through the conversations in the supplied ConversationModel
      * @param model the conversations to step through
-     */    
+     */
     public ConversationPanel(ConversationModel model) {
         _model = model;
         initComponents();
@@ -95,6 +102,20 @@ public class ConversationPanel extends javax.swing.JPanel {
         conversationComboBox.setModel(new ListComboBoxModel(clm));
         conversationComboBox.setRenderer(new ConversationRenderer(model));
         add(toolBar, BorderLayout.NORTH);
+        getActionMap().put("TOGGLELAYOUT", new AbstractAction() {
+            private static final long serialVersionUID = 1558804946998494321L;
+            
+            public void actionPerformed(ActionEvent event) {
+                if (conversationSplitPane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT) {
+                    conversationSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+                } else {
+                    conversationSplitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
+                }
+            }
+        });
+        InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, Event.CTRL_MASK),
+                "TOGGLELAYOUT");
     }
     
     private void addPanels() {
@@ -106,6 +127,12 @@ public class ConversationPanel extends javax.swing.JPanel {
         // _responsePanel.setBorder(new TitledBorder("Response"));
         conversationSplitPane.setBottomComponent(_responsePanel);
         
+        String orientation = Preferences.getPreference("ConversationPanel.orientation");
+        if (orientation != null) {
+            try {
+                conversationSplitPane.setOrientation(Integer.parseInt(orientation));
+            } catch (NumberFormatException nfe) {}
+        }
         String dividerLocation = Preferences.getPreference("ConversationPanel.dividerLocation");
         if (dividerLocation != null) {
             try {
@@ -114,8 +141,10 @@ public class ConversationPanel extends javax.swing.JPanel {
         }
         conversationSplitPane.addPropertyChangeListener(new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent e) {
-                if (e.getPropertyName().equals("dividerLocation")) {
+                if (e.getPropertyName().equals(JSplitPane.DIVIDER_LOCATION_PROPERTY)) {
                     Preferences.setPreference("ConversationPanel.dividerLocation", e.getNewValue().toString());
+                } else if (e.getPropertyName().equals(JSplitPane.ORIENTATION_PROPERTY)) {
+                    Preferences.setPreference("ConversationPanel.orientation", e.getNewValue().toString());
                 }
             }
         });
@@ -166,7 +195,7 @@ public class ConversationPanel extends javax.swing.JPanel {
      * Sets the request to display.
      * @param request The request to display (can be null)
      * @param editable whether the request should be editable or not
-     */    
+     */
     public void setRequest(Request request, boolean editable) {
         _requestPanel.setEditable(editable);
         _requestPanel.setRequest(request);
@@ -175,7 +204,7 @@ public class ConversationPanel extends javax.swing.JPanel {
     /**
      * indicates whether the request has been modified
      * @return true if the request has been modified, false otherwise
-     */    
+     */
     public boolean isRequestModified() {
         return _requestPanel.isModified();
     }
@@ -183,7 +212,7 @@ public class ConversationPanel extends javax.swing.JPanel {
     /**
      * returns the request currently displayed
      * @return the request currently displayed
-     */    
+     */
     public Request getRequest() throws MalformedURLException {
         return _requestPanel.getRequest();
     }
@@ -205,7 +234,7 @@ public class ConversationPanel extends javax.swing.JPanel {
      * Sets the conversation to be displayed in the form.
      * This only makes sense if the ConversationModel constructor was used!
      * @param id the conversation to display
-     */    
+     */
     public void setSelectedConversation(ConversationID id) {
         _selected = id;
         conversationComboBox.setSelectedItem(_selected);
@@ -218,7 +247,7 @@ public class ConversationPanel extends javax.swing.JPanel {
     /**
      * constructs a JFrame around the ConversationPanel
      * @return the frame
-     */    
+     */
     public JFrame inFrame() {
         ConversationID selected = getSelectedConversation();
         if (selected != null) {
@@ -231,7 +260,7 @@ public class ConversationPanel extends javax.swing.JPanel {
      * constructs a JFrame around the ConversationPanel
      * @param title the title of the Frame
      * @return the frame
-     */    
+     */
     public JFrame inFrame(String title) {
         _title = title;
         _frame = new JFrame();
@@ -308,7 +337,7 @@ public class ConversationPanel extends javax.swing.JPanel {
             Response response = _model.getResponse(id);
             setRequest(request, false);
             setResponse(response, false);
-            if (_frame != null) 
+            if (_frame != null)
                 _frame.setTitle("WebScarab - conversation " + id);
         }
     }//GEN-LAST:event_conversationComboBoxActionPerformed
