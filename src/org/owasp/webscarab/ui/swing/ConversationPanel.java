@@ -114,7 +114,7 @@ public class ConversationPanel extends javax.swing.JPanel {
             }
         });
         InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, Event.CTRL_MASK),
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_T, Event.CTRL_MASK),
                 "TOGGLELAYOUT");
     }
     
