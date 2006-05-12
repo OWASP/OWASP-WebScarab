@@ -63,6 +63,8 @@ public class HttpUrl implements Comparable {
      * @throws MalformedURLException if the url is not well-formed
      */    
     public HttpUrl(String url) throws MalformedURLException {
+        if (url.indexOf('\n') > -1 || url.indexOf(' ') > -1)
+            throw new MalformedURLException("Illegal characters in url: " + url);
         parseUrl(url);
         _hashcode = this.toString().hashCode();
     }
@@ -74,6 +76,8 @@ public class HttpUrl implements Comparable {
      * @throws MalformedURLException if the url is malformed
      */    
     public HttpUrl(HttpUrl url, String relative) throws MalformedURLException {
+        if (relative.indexOf('\n') > -1 || relative.indexOf(' ') > -1)
+            throw new MalformedURLException("Illegal characters in relative : " + relative);
         // relative could be a fully qualified URL
         if (url == null || relative.startsWith("http://") || relative.startsWith("https://")) { 
             parseUrl(relative);
