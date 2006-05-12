@@ -25,7 +25,7 @@ public class Diff {
 	private Diff() {
 	}
 
-	public static List<Edit> getEdits(CharSequence src, CharSequence dst) {
+	public static List getEdits(CharSequence src, CharSequence dst) {
 		return getEdits(0, src.length(), src, 0, dst.length(), dst);
 	}
 
@@ -33,13 +33,13 @@ public class Diff {
 	 * Calculates the edits that will transform the src CharSequence to the
 	 * destination.
 	 */
-	private static List<Edit> getEdits(int srcStart, int srcEnd,
+	private static List getEdits(int srcStart, int srcEnd,
 			CharSequence src, int dstStart, int dstEnd, CharSequence dst) {
 		// System.out.println("Called with src (" + srcStart + "," + srcEnd +
 		// ")'" + src.subSequence(srcStart, srcEnd) + "'");
 		// System.out.println("Called with dst (" + dstStart + "," + dstEnd +
 		// ")'" + dst.subSequence(dstStart, dstEnd) + "'");
-		List<Edit> edits = new LinkedList<Edit>();
+		List edits = new LinkedList();
 
 		// check for common prefix and suffix
 		while (srcStart < srcEnd && dstStart < dstEnd
@@ -94,7 +94,7 @@ public class Diff {
 	}
 
 	public static CharSequence[] split(CharSequence orig, char boundary) {
-		List<CharSequence> list = new LinkedList<CharSequence>();
+		List list = new LinkedList();
 		int previous = 0, index = 0;
 		while (index < orig.length()) {
 			if (orig.charAt(index) == boundary) {
@@ -105,23 +105,23 @@ public class Diff {
 		}
 		if (index > previous)
 			list.add(orig.subSequence(previous, index));
-		return list.toArray(new CharSequence[list.size()]);
+		return (CharSequence[]) list.toArray(new CharSequence[list.size()]);
 	}
 	
-	public static List<Edit> getEdits(CharSequence src, CharSequence dst, char boundary) {
+	public static List getEdits(CharSequence src, CharSequence dst, char boundary) {
 		CharSequence[] srcArray = split(src, boundary);
 		CharSequence[] dstArray = split(dst, boundary);
-		List<ArrayEdit> edits = getEdits(srcArray, dstArray);
+		List edits = getEdits(srcArray, dstArray);
 		return convertArrayToOriginal(srcArray, dstArray, edits);
 	}
 	
-	public static List<Edit> convertArrayToOriginal(CharSequence[] src, CharSequence[] dst, List<ArrayEdit> arrayEdits) {
-		List<Edit> edits = new LinkedList<Edit>();
-		Iterator<ArrayEdit> it = arrayEdits.iterator();
+	public static List convertArrayToOriginal(CharSequence[] src, CharSequence[] dst, List arrayEdits) {
+		List edits = new LinkedList();
+		Iterator it = arrayEdits.iterator();
 		int srcLast = 0, dstLast = 0;
 		int srcOffset = 0, dstOffset = 0;
 		while (it.hasNext()) {
-			ArrayEdit edit = it.next();
+			ArrayEdit edit = (ArrayEdit) it.next();
 			// catch up things in between edits
 			while(srcLast<edit.getSrcStart())
 				srcOffset += src[srcLast++].length();
@@ -142,7 +142,7 @@ public class Diff {
 		return edits;
 	}
 	
-	public static List<ArrayEdit> getEdits(CharSequence src[], CharSequence dst[]) {
+	public static List getEdits(CharSequence src[], CharSequence dst[]) {
 		return getEdits(0, src.length, src, 0, dst.length, dst);
 	}
 
@@ -154,9 +154,9 @@ public class Diff {
 	 * Calculates the edits that will transform the src CharSequence to the
 	 * destination.
 	 */
-	private static List<ArrayEdit> getEdits(int srcStart, int srcEnd,
+	private static List getEdits(int srcStart, int srcEnd,
 			CharSequence[] src, int dstStart, int dstEnd, CharSequence[] dst) {
-		List<ArrayEdit> edits = new LinkedList<ArrayEdit>();
+		List edits = new LinkedList();
 
 		// check for common prefix and suffix
 		while (srcStart < srcEnd && dstStart < dstEnd
@@ -203,11 +203,11 @@ public class Diff {
 		return edits;
 	}
 
-	public static List<Edit> refine(CharSequence src, CharSequence dst, List<Edit> edits) {
-		List<Edit> refined = new LinkedList<Edit>();
-		Iterator<Edit> it = edits.iterator();
+	public static List refine(CharSequence src, CharSequence dst, List edits) {
+		List refined = new LinkedList();
+		Iterator it = edits.iterator();
 		while(it.hasNext()) {
-			Edit edit = it.next();
+			Edit edit = (Edit) it.next();
 			int srcStart = edit.getSrcLocation();
 			int srcEnd = srcStart + edit.getSrc().length();
 			int dstStart = edit.getDstLocation();
@@ -217,10 +217,10 @@ public class Diff {
 		return refined;
 	}
 	
-	public static int getDistance(List<Edit> edits) {
+	public static int getDistance(List edits) {
 		int distance = 0;
 		for (int i = 0; i < edits.size(); i++) {
-			Edit edit = edits.get(i);
+			Edit edit = (Edit) edits.get(i);
 			distance += edit.getSrc().length() + edit.getDst().length();
 		}
 		return distance;
@@ -229,12 +229,12 @@ public class Diff {
 	/*
 	 * This method is useful for ensuring that the edits are properly calculated
 	 */
-	public static String apply(CharSequence src, List<Edit> edits) {
-		Iterator<Edit> it = edits.iterator();
+	public static String apply(CharSequence src, List edits) {
+		Iterator it = edits.iterator();
 		StringBuffer buff = new StringBuffer();
 		int last = 0;
 		while (it.hasNext()) {
-			Edit edit = it.next();
+			Edit edit = (Edit) it.next();
 			// System.out.println(edit);
 			if (edit.getSrcLocation() > last) {
 				// catch up things in between edits
@@ -254,12 +254,12 @@ public class Diff {
 	/*
 	 * This method is useful for ensuring that the edits are properly calculated
 	 */
-	public static String revert(CharSequence dst, List<Edit> edits) {
-		Iterator<Edit> it = edits.iterator();
+	public static String revert(CharSequence dst, List edits) {
+		Iterator it = edits.iterator();
 		StringBuffer buff = new StringBuffer();
 		int last = 0;
 		while (it.hasNext()) {
-			Edit edit = it.next();
+			Edit edit = (Edit) it.next();
 			if (edit.getDstLocation() > last) {
 				// catch up things in between edits
 				buff.append(dst.subSequence(last, edit.getDstLocation()));
@@ -487,7 +487,7 @@ public class Diff {
 	}
 
 	private static void test(String src, String dst) {
-		List<Edit> edits = getEdits(src, dst, ' ');
+		List edits = getEdits(src, dst, ' ');
 		String result = apply(src, edits);
 		if (!result.equals(dst)) {
 			System.err.println("Failed applying edits! '" + result + "' != '"

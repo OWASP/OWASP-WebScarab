@@ -63,7 +63,7 @@ public class DiffPanel extends JPanel {
     
     private CharSequence src = null, dst = null;
     
-    private List<Edit> edits = null;
+    private List edits = null;
     
     private Color changedColor, addedColor, deletedColor;
     
@@ -102,10 +102,6 @@ public class DiffPanel extends JPanel {
             int colorSpec = prefs.getInt("deleted", Color.PINK.getRGB());
             deletedColor = new Color(colorSpec);
         }
-        System.out.println("changed : " + changedColor.getRGB());
-        System.out.println("added : " + addedColor.getRGB());
-        System.out.println("deleted : " + deletedColor.getRGB());
-        prefs.putInt("changed", changedColor.getRGB());
     }
     
     private void addKeyMappings() {
@@ -200,7 +196,7 @@ public class DiffPanel extends JPanel {
     }
     
     public void showDifferences(CharSequence src, CharSequence dst,
-            List<Edit> edits) {
+            List edits) {
         this.src = src;
         this.dst = dst;
         this.edits = edits;
@@ -223,12 +219,12 @@ public class DiffPanel extends JPanel {
         combinedDoc = new DefaultStyledDocument();
         srcDoc = new DefaultStyledDocument();
         dstDoc = new DefaultStyledDocument();
-        Iterator<Edit> it = edits.iterator();
+        Iterator it = edits.iterator();
         int srcLast = 0;
         int dstLast = 0;
         try {
             while (it.hasNext()) {
-                Edit edit = it.next();
+                Edit edit = (Edit) it.next();
                 if (edit.getSrcLocation() > srcLast) {
                     // catch up common items in between edits
                     String s = src.subSequence(srcLast, edit.getSrcLocation())
@@ -329,7 +325,7 @@ public class DiffPanel extends JPanel {
             reader.close();
             dst = buff.toString();
         }
-        List<Edit> edits = Diff.getEdits(src, dst, '\n');
+        List edits = Diff.getEdits(src, dst, '\n');
         System.out.println("Distance: " + Diff.getDistance(edits));
         edits = Diff.refine(src, dst, edits);
         System.out.println("Distance: " + Diff.getDistance(edits));
