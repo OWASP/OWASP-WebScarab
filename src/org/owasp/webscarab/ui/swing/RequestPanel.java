@@ -39,6 +39,8 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import java.net.MalformedURLException;
+import javax.swing.JOptionPane;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.SwingUtilities;
@@ -69,6 +71,7 @@ public class RequestPanel extends javax.swing.JPanel {
     private TextPanel _textPanel;
     
     private static int _preferred = -1;
+    private boolean _reverting = false;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -78,11 +81,20 @@ public class RequestPanel extends javax.swing.JPanel {
         
         displayTabbedPane.getModel().addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                updateRequest(_selected);
-                _selected = displayTabbedPane.getSelectedIndex();
-                _preferred = _selected;
-                if (_selected >= 0) {
-                    updatePanel(_selected);
+                try {
+                    updateRequest(_selected);
+                    _selected = displayTabbedPane.getSelectedIndex();
+                    _preferred = _selected;
+                    if (_selected >= 0) {
+                        updatePanel(_selected);
+                    }
+                } catch (MalformedURLException mue) {
+                    if (!_reverting) {
+                        JOptionPane.showMessageDialog(RequestPanel.this, new String[] {"The URL requested is malformed", mue.getMessage()}, "Malformed URL", JOptionPane.ERROR_MESSAGE);
+                        _reverting = true;
+                        displayTabbedPane.setSelectedIndex(_selected);
+                        _reverting = false;
+                    }
                 }
             }
         });
@@ -116,7 +128,7 @@ public class RequestPanel extends javax.swing.JPanel {
         }
     }
     
-    private void updateRequest(int panel) {
+    private void updateRequest(int panel) throws MalformedURLException {
         if (! _editable || panel < 0) {
             return;
         }
@@ -124,37 +136,35 @@ public class RequestPanel extends javax.swing.JPanel {
             if (_messagePanel.isModified()) {
                 _request = (Request) _messagePanel.getMessage();
                 _modified = true;
-                invalidatePanels();
             }
             if (_request == null) {
                 _request = new Request();
             }
-            // if _modified
             _request.setMethod(methodTextField.getText());
-            try {
-                _request.setURL(new HttpUrl(urlTextField.getText()));
-            } catch (Exception e) {
-                HttpUrl url = _request.getURL();
-                if (url != null) {
-                    urlTextField.setText(url.toString());
-                } else {
-                    urlTextField.setText("");
-                }
-            }
+            String url = urlTextField.getText();
+            if (!"".equals(url))
+                _request.setURL(new HttpUrl(url));
             _request.setVersion(versionTextField.getText());
+            // this is a bit of a hack. What we should really do is add a listener
+            // to the text fields, so we know when a change has been made. Until then
+            // this will do
+            _modified = true;
         } else if (displayTabbedPane.getTitleAt(panel).equals("Raw")) { // raw text
             if (_textPanel.isModified()) {
                 try {
                     Request r = new Request();
-                    r.parse(_textPanel.getText());
+                    String text = _textPanel.getText();
+                    if (!"".equals(text))
+                        r.parse(_textPanel.getText());
                     _request = r;
                 } catch (Exception e) {
                     _logger.severe("Error parsing the rawTextArea, abandoning changes : " + e);
                 }
                 _modified = true;
-                invalidatePanels();
             }
         }
+        if (_modified)
+            invalidatePanels();
         _upToDate[panel] = true;
     }
     
@@ -231,7 +241,7 @@ public class RequestPanel extends javax.swing.JPanel {
         }
     }
     
-    public Request getRequest() {
+    public Request getRequest() throws MalformedURLException {
         if (_editable) {
             int panel = displayTabbedPane.getSelectedIndex();
             updateRequest(panel);
@@ -362,7 +372,11 @@ public class RequestPanel extends javax.swing.JPanel {
         top.getContentPane().add(button, java.awt.BorderLayout.SOUTH);
         button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                System.out.println(panel.getRequest());
+                try {
+                    System.out.println(panel.getRequest());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         // top.setBounds(100,100,600,400);

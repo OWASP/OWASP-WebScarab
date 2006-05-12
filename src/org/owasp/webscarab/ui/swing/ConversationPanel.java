@@ -39,6 +39,7 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import java.net.MalformedURLException;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
@@ -183,7 +184,7 @@ public class ConversationPanel extends javax.swing.JPanel {
      * returns the request currently displayed
      * @return the request currently displayed
      */    
-    public Request getRequest() {
+    public Request getRequest() throws MalformedURLException {
         return _requestPanel.getRequest();
     }
     

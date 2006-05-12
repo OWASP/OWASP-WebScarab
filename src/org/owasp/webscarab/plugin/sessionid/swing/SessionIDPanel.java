@@ -45,6 +45,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
@@ -535,52 +536,57 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
     }//GEN-LAST:event_bodyCheckBoxActionPerformed
     
     private void testButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testButtonActionPerformed
-        final Request request = _requestPanel.getRequest();
-        if (request == null) {
-            return;
-        }
-        testButton.setEnabled(false);
-        final Component parent = this;
-        new SwingWorker() {
-            public Object construct() {
-                try {
-                    _sa.setRequest(request);
-                    _sa.fetchResponse();
-                    return _sa.getResponse();
-                } catch (IOException ioe) {
-                    return ioe;
-                }
+        try {
+            final Request request = _requestPanel.getRequest();
+            if (request == null) {
+                return;
             }
-            
-            //Runs on the event-dispatching thread.
-            public void finished() {
-                Object obj = getValue();
-                if (obj instanceof Response) {
-                    Response response = (Response) getValue();
-                    if (response != null) {
-                        _responsePanel.setResponse(response);
-                        String name = nameTextField.getText();
-                        String regex = regexTextField.getText();
-                        try {
-                            Map ids = _sa.getIDsFromResponse(response, name, regex);
-                            String[] keys = (String[]) ids.keySet().toArray(new String[0]);
-                            for (int i=0; i<keys.length; i++) {
-                                SessionID id = (SessionID) ids.get(keys[i]);
-                                keys[i] = keys[i] + " = " + id.getValue();
-                            }
-                            if (keys.length == 0) keys = new String[] { "No session identifiers found!" };
-                            JOptionPane.showMessageDialog(parent, keys, "Extracted Sessionids", JOptionPane.INFORMATION_MESSAGE);
-                        } catch (PatternSyntaxException pse) {
-                            JOptionPane.showMessageDialog(parent, pse.getMessage(), "Patter Syntax Exception", JOptionPane.WARNING_MESSAGE);
-                        }
+            testButton.setEnabled(false);
+            final Component parent = this;
+            new SwingWorker() {
+                public Object construct() {
+                    try {
+                        _sa.setRequest(request);
+                        _sa.fetchResponse();
+                        return _sa.getResponse();
+                    } catch (IOException ioe) {
+                        return ioe;
                     }
-                } else if (obj instanceof Exception) {
-                    JOptionPane.showMessageDialog(null, new String[] {"Error fetching response: ", obj.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
-                    _logger.severe("Exception fetching response: " + obj);
                 }
-                testButton.setEnabled(true);
-            }
-        }.start();
+
+                //Runs on the event-dispatching thread.
+                public void finished() {
+                    Object obj = getValue();
+                    if (obj instanceof Response) {
+                        Response response = (Response) getValue();
+                        if (response != null) {
+                            _responsePanel.setResponse(response);
+                            String name = nameTextField.getText();
+                            String regex = regexTextField.getText();
+                            try {
+                                Map ids = _sa.getIDsFromResponse(response, name, regex);
+                                String[] keys = (String[]) ids.keySet().toArray(new String[0]);
+                                for (int i=0; i<keys.length; i++) {
+                                    SessionID id = (SessionID) ids.get(keys[i]);
+                                    keys[i] = keys[i] + " = " + id.getValue();
+                                }
+                                if (keys.length == 0) keys = new String[] { "No session identifiers found!" };
+                                JOptionPane.showMessageDialog(parent, keys, "Extracted Sessionids", JOptionPane.INFORMATION_MESSAGE);
+                            } catch (PatternSyntaxException pse) {
+                                JOptionPane.showMessageDialog(parent, pse.getMessage(), "Patter Syntax Exception", JOptionPane.WARNING_MESSAGE);
+                            }
+                        }
+                    } else if (obj instanceof Exception) {
+                        JOptionPane.showMessageDialog(null, new String[] {"Error fetching response: ", obj.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+                        _logger.severe("Exception fetching response: " + obj);
+                    }
+                    testButton.setEnabled(true);
+                }
+            }.start();
+        } catch (MalformedURLException mue) {
+            JOptionPane.showMessageDialog(this, new String[] {"The URL requested is malformed", mue.getMessage()}, "Malformed URL", JOptionPane.ERROR_MESSAGE);
+        } 
+
     }//GEN-LAST:event_testButtonActionPerformed
     
     private void mainTabbedPaneStateChanged(ChangeEvent evt) {
@@ -627,19 +633,24 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
     }//GEN-LAST:event_nameComboBoxActionPerformed
     
     private void fetchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fetchButtonActionPerformed
-        Request request = _requestPanel.getRequest();
-        if (request == null) {
-            _logger.warning("Request was null in fetch request");
-            return;
-        }
-        String name = nameTextField.getText();
-        String regex = regexTextField.getText();
-        int count = ((Integer)sampleSpinner.getValue()).intValue();
         try {
-            _sa.fetch(request, name, regex, count);
-        } catch (PatternSyntaxException pse) {
-            JOptionPane.showMessageDialog(this, pse.getMessage(), "Patter Syntax Exception", JOptionPane.WARNING_MESSAGE);
-        }
+            Request request = _requestPanel.getRequest();
+            if (request == null) {
+                _logger.warning("Request was null in fetch request");
+                return;
+            }
+            String name = nameTextField.getText();
+            String regex = regexTextField.getText();
+            int count = ((Integer)sampleSpinner.getValue()).intValue();
+            try {
+                _sa.fetch(request, name, regex, count);
+            } catch (PatternSyntaxException pse) {
+                JOptionPane.showMessageDialog(this, pse.getMessage(), "Pattern Syntax Exception", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (MalformedURLException mue) {
+            JOptionPane.showMessageDialog(this, new String[] {"The URL requested is malformed", mue.getMessage()}, "Malformed URL", JOptionPane.ERROR_MESSAGE);
+        } 
+
     }//GEN-LAST:event_fetchButtonActionPerformed
     
     public void sessionIDAdded(final String key, final int index) {
