@@ -127,6 +127,10 @@ public class HttpUrl implements Comparable {
                 throw new MalformedURLException("Error parsing the port number: " + nfe);
             }
         }
+        if ("".equals(_host))
+            throw new MalformedURLException("Host cannot be empty");
+        if (_port < 1 || _port > 65535)
+            throw new MalformedURLException("Port out of range: " + _port);
         if (pos == url.length()) {
             _path = "/";
         } else {
