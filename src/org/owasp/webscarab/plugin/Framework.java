@@ -54,6 +54,8 @@ import java.util.jar.Manifest;
 import java.util.jar.Attributes.Name;
 import java.util.logging.Logger;
 import java.util.Vector;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 import org.owasp.webscarab.httpclient.SSLContextManager;
@@ -91,6 +93,8 @@ public class Framework {
     private Thread _queueThread = null;
     private QueueProcessor _qp = null;
     
+    private Pattern dropPattern = null;
+    
     /**
      * Creates a new instance of Framework
      */
@@ -102,6 +106,14 @@ public class Framework {
         extractVersionFromManifest();
         _credentialManager = new CredentialManager();
         configureHTTPClient();
+        String dropRegex = Preferences.getPreference("WebScarab.dropRegex", null);
+        if (dropRegex != null) {
+            try {
+                dropPattern = Pattern.compile(dropRegex);
+            } catch (PatternSyntaxException pse) {
+                _logger.warning("Got an invalid regular expression for conversations to ignore: " + dropRegex + " results in " + pse.toString());
+            }
+        }
         _qp = new Framework.QueueProcessor();
         _queueThread = new Thread(_qp, "QueueProcessor");
         _queueThread.setDaemon(true);
@@ -307,6 +319,9 @@ public class Framework {
         ScriptableConversation conversation = new ScriptableConversation(request, response, origin);
         _allowAddConversation.runScripts(conversation);
         if (conversation.isCancelled()) return;
+        if (dropPattern != null && dropPattern.matcher(request.getURL().toString()).matches()) {
+            return;
+        }
         _model.addConversation(id, when, request, response, origin);
         if (!conversation.shouldAnalyse()) return;
         synchronized(_analysisQueue) {
