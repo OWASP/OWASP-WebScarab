@@ -127,7 +127,6 @@ public class SplashScreen extends JWindow {
      * @param graphics  The graphics instance.
      */
     public void paint(Graphics graphics) {
-        System.out.println("paint");
         if (image_ == null) return;
         graphics.drawImage(image_, 0, 0, width_, height_, this);
     }
