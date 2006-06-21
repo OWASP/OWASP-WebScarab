@@ -51,10 +51,10 @@ import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 import javax.swing.JButton;
-import javax.swing.JInternalFrame;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -127,17 +127,8 @@ public class UIFramework extends JFrame implements FrameworkUI {
         framework.setUI(this);
         
         _summaryPanel = new SummaryPanel(_model);
-        summaryInternalFrame.getContentPane().add(_summaryPanel);
-        addInternalFrame(summaryInternalFrame);
-        addInternalFrame(logInternalFrame);
-        taskToolBar.addSeparator();
-        
-        logInternalFrame.setBounds(0,400,800,200);
-        summaryInternalFrame.setBounds(0,0,800,600);
-        try {
-            summaryInternalFrame.setMaximum(true);
-            desktopPane.setSelectedFrame(summaryInternalFrame);
-        } catch (Exception e) {}
+        tabbedPane.addTab("Summary", _summaryPanel);
+        tabbedPane.addTab("Messages", new JScrollPane(logTextArea));
         
         _cookieJarViewer = new CookieJarViewer(_model);
         _certificateManager = new CertificateManager();
@@ -151,24 +142,6 @@ public class UIFramework extends JFrame implements FrameworkUI {
         initEditorViews();
         initHelp();
         
-    }
-    
-    private void addInternalFrame(final JInternalFrame iFrame) {
-        desktopPane.add(iFrame);
-        JButton button = new JButton(iFrame.getTitle());
-        button.addActionListener(new AbstractAction() {
-            public void actionPerformed(ActionEvent evt) {
-                try {
-                    if (iFrame.isIcon())
-                        iFrame.setIcon(false);
-                    iFrame.toFront();
-                    iFrame.setSelected(true);
-                } catch (Exception e) {
-                    iFrame.toFront();
-                }
-            }
-        });
-        taskToolBar.add(button);
     }
     
     private void initHelp() {
@@ -267,15 +240,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
             public void run() {
                 JPanel panel = plugin.getPanel();
                 if (panel != null) {
-                    JInternalFrame iFrame = new JInternalFrame(plugin.getPluginName(), true, false, true, true);
-                    iFrame.getContentPane().add(panel);
-                    addInternalFrame(iFrame);
-                    iFrame.setVisible(true);
-                    try {
-                        iFrame.setBounds(0,0,800,600);
-                        iFrame.setMaximum(true);
-                        iFrame.setIcon(true);
-                    } catch (Exception e) {}
+                    tabbedPane.addTab(plugin.getPluginName(), panel);
                 }
                 _summaryPanel.addUrlActions(plugin.getUrlActions());
                 _summaryPanel.addUrlColumns(plugin.getUrlColumns());
@@ -293,12 +258,8 @@ public class UIFramework extends JFrame implements FrameworkUI {
     // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
     private void initComponents() {
         logLevelButtonGroup = new javax.swing.ButtonGroup();
-        summaryInternalFrame = new javax.swing.JInternalFrame();
-        logInternalFrame = new javax.swing.JInternalFrame();
-        jScrollPane1 = new javax.swing.JScrollPane();
         logTextArea = new javax.swing.JTextArea();
-        taskToolBar = new javax.swing.JToolBar();
-        desktopPane = new javax.swing.JDesktopPane();
+        tabbedPane = new javax.swing.JTabbedPane();
         mainMenuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         newMenuItem = new javax.swing.JMenuItem();
@@ -326,27 +287,9 @@ public class UIFramework extends JFrame implements FrameworkUI {
         finestLogRadioButtonMenuItem = new javax.swing.JRadioButtonMenuItem();
         aboutMenuItem = new javax.swing.JMenuItem();
 
-        summaryInternalFrame.setIconifiable(true);
-        summaryInternalFrame.setMaximizable(true);
-        summaryInternalFrame.setResizable(true);
-        summaryInternalFrame.setTitle("Summary");
-        summaryInternalFrame.setVisible(true);
-        logInternalFrame.setIconifiable(true);
-        logInternalFrame.setMaximizable(true);
-        logInternalFrame.setResizable(true);
-        logInternalFrame.setTitle("Message log");
-        logInternalFrame.setVisible(true);
-        jScrollPane1.setToolTipText("");
-        jScrollPane1.setMinimumSize(new java.awt.Dimension(22, 40));
-        jScrollPane1.setPreferredSize(new java.awt.Dimension(3, 64));
-        jScrollPane1.setAutoscrolls(true);
-        jScrollPane1.setOpaque(false);
         logTextArea.setBackground(new java.awt.Color(204, 204, 204));
         logTextArea.setEditable(false);
         logTextArea.setToolTipText("");
-        jScrollPane1.setViewportView(logTextArea);
-
-        logInternalFrame.getContentPane().add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("WebScarab");
@@ -364,13 +307,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
             }
         });
 
-        taskToolBar.setFloatable(false);
-        getContentPane().add(taskToolBar, java.awt.BorderLayout.NORTH);
-
-        desktopPane.setAutoscrolls(true);
-        desktopPane.setPreferredSize(null);
-        desktopPane.setSelectedFrame(summaryInternalFrame);
-        getContentPane().add(desktopPane, java.awt.BorderLayout.CENTER);
+        getContentPane().add(tabbedPane, java.awt.BorderLayout.CENTER);
 
         fileMenu.setMnemonic('F');
         fileMenu.setText("File");
@@ -852,7 +789,6 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private javax.swing.JMenuItem contentsMenuItem;
     private javax.swing.JMenuItem cookieJarMenuItem;
     private javax.swing.JMenuItem credentialsMenuItem;
-    private javax.swing.JDesktopPane desktopPane;
     private javax.swing.JMenu editorMenu;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu fileMenu;
@@ -861,8 +797,6 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private javax.swing.JRadioButtonMenuItem finestLogRadioButtonMenuItem;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JRadioButtonMenuItem infoLogRadioButtonMenuItem;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JInternalFrame logInternalFrame;
     private javax.swing.ButtonGroup logLevelButtonGroup;
     private javax.swing.JMenu logMenu;
     private javax.swing.JTextArea logTextArea;
@@ -874,8 +808,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private javax.swing.JMenuItem saveMenuItem;
     private javax.swing.JMenuItem scriptMenuItem;
     private javax.swing.JRadioButtonMenuItem severeLogRadioButtonMenuItem;
-    private javax.swing.JInternalFrame summaryInternalFrame;
-    private javax.swing.JToolBar taskToolBar;
+    private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JMenu toolsMenu;
     private javax.swing.JMenuItem transcoderMenuItem;
     private javax.swing.JMenu viewMenu;
