@@ -99,6 +99,10 @@ import org.owasp.webscarab.plugin.search.swing.SearchPanel;
 import org.owasp.webscarab.plugin.webservice.WebService;
 import org.owasp.webscarab.plugin.webservice.swing.WebServicePanel;
 
+import org.owasp.webscarab.plugin.xsscrlf.XSSCRLF;
+import org.owasp.webscarab.plugin.xsscrlf.swing.XSSCRLFPanel;
+
+
 import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.swing.ExceptionHandler;
 
@@ -192,6 +196,10 @@ public class Main {
         Extensions extensions = new Extensions(_framework);
         _framework.addPlugin(extensions);
         _uif.addPlugin(new ExtensionsPanel(extensions));
+        
+        XSSCRLF xsscrlf = new XSSCRLF(_framework);
+        _framework.addPlugin(xsscrlf);
+        _uif.addPlugin(new XSSCRLFPanel(xsscrlf));
         
         SessionIDAnalysis sessionIDAnalysis = new SessionIDAnalysis(_framework);
         _framework.addPlugin(sessionIDAnalysis);
