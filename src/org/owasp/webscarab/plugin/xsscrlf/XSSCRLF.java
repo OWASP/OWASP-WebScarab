@@ -302,11 +302,9 @@ public class XSSCRLF implements Plugin, ConversationHandler {
         /* XXX meder: ugly reconstruction code, can be done better !?
          * HttpUrl should provide easier way
          */
-        String querystring = req.getURL().getParameters();        
+        String querystring = req.getURL().getQuery();        
         if (querystring==null) return null;        
         
-        // get rid of '?'        
-        querystring = querystring.substring(1, querystring.length());        
         NamedValue[] params = NamedValue.splitNamedValues(querystring, "&", "=");        
         for (int i=0; i < params.length; i++) {
             if (i==0) buf.append("?");            
