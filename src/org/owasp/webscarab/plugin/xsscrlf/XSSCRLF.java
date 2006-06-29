@@ -120,6 +120,7 @@ public class XSSCRLF implements Plugin, ConversationHandler {
                     }
             }
         }
+        
         return retval;
     }
 
@@ -127,10 +128,8 @@ public class XSSCRLF implements Plugin, ConversationHandler {
         boolean retval=false;
         
         // Check GET parameters only
-        String querystring = request.getURL().getParameters();        
+        String querystring = request.getURL().getQuery();        
         if (querystring==null) return false;        
-        // get rid of '?'
-        querystring = querystring.substring(1, querystring.length());        
         NamedValue[] params = NamedValue.splitNamedValues(querystring, "&", "=");
         
         String body = new String(response.getContent()).toUpperCase();
