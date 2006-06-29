@@ -41,26 +41,85 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
-    /** Creates new form ExtensionsPanel */
+    private ColumnDataModel[] _vulnerableConversationColumns;
+    
+    private ColumnDataModel[] _vulnerableUrlColumns;
+    
+    /** Creates new form XSSCRLFPanel */
     public XSSCRLFPanel(XSSCRLF xsscrlf) {
         _xsscrlf = xsscrlf;
         _model = xsscrlf.getModel();
         initComponents();
         
-        /*
-        urlTree.setModel(new UrlTreeModelAdapter(_model.getUrlModel()));
-        urlTree.setRootVisible(false);
-        urlTree.setShowsRootHandles(true);
-        urlTree.setCellRenderer(new UrlTreeRenderer());
-         */
+        _vulnerableConversationColumns = new ColumnDataModel[2];
+        ConversationTableModel vtm = new ConversationTableModel(_model.getVulnerableConversationModel());
+        _vulnerableConversationColumns = new ColumnDataModel[] {
+            new ColumnDataModel() {
+                public String getColumnName() {
+                    return "Possible Injection";
+                }
+                public Object getValue(Object key) {
+                    ConversationID id = (ConversationID) key;
+                    return _model.isXSSSuspected(id) || _model.isCRLFSuspected(id)? Boolean.TRUE : Boolean.FALSE;
+                }
+                public Class getColumnClass() {
+                    return Boolean.class;
+                }
+            }, 
+            new ColumnDataModel() {
+                public String getColumnName() {
+                    return "XSS";
+                }
+                public Object getValue(Object key) {
+                    return _model.isXSSVulnerable((ConversationID) key) ? Boolean.TRUE : Boolean.FALSE;
+                }
+                public Class getColumnClass() {
+                    return Boolean.class;
+                }
+            }, 
+            new ColumnDataModel() {
+                public String getColumnName() {
+                    return "CRLF";
+                }
+                public Object getValue(Object key) {
+                    return _model.isCRLFVulnerable((ConversationID) key) ? Boolean.TRUE : Boolean.FALSE;
+                }
+                public Class getColumnClass() {
+                    return Boolean.class;
+                }
+            }
+        };
+        vtm.addColumn(_vulnerableConversationColumns[0]);
+        vtm.addColumn(_vulnerableConversationColumns[1]);
         
-        TableModel tm = new XSSCRLFConversationTableModel(_model.getConversationModel());
-        TableModel stm = new XSSCRLFConversationTableModel(_model.getSuspectedConversationModel());
+        ConversationTableModel stm = new ConversationTableModel(_model.getSuspectedConversationModel());
+        stm.addColumn(new ColumnDataModel() {
+            public String getColumnName() {
+                return "XSS";
+            }
+            public Object getValue(Object key) {
+                return _model.isXSSSuspected((ConversationID) key) ? Boolean.TRUE : Boolean.FALSE;
+            }
+            public Class getColumnClass() {
+                return Boolean.class;
+            }
+        });
+        stm.addColumn(new ColumnDataModel() {
+            public String getColumnName() {
+                return "CRLF";
+            }
+            public Object getValue(Object key) {
+                return _model.isCRLFSuspected((ConversationID) key) ? Boolean.TRUE : Boolean.FALSE;
+            }
+            public Class getColumnClass() {
+                return Boolean.class;
+            }
+        });
         
-        TableSorter ts = new TableSorter(tm, conversationTable.getTableHeader());
+        TableSorter vts = new TableSorter(vtm, conversationTable.getTableHeader());
         TableSorter sts = new TableSorter(stm, suspectedTable.getTableHeader());
         
-        conversationTable.setModel(ts);
+        conversationTable.setModel(vts);
         suspectedTable.setModel(sts);        
         
         ColumnWidthTracker.getTracker("ConversationTable").addTable(conversationTable);
@@ -69,6 +128,33 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         conversationTable.setDefaultRenderer(Date.class, new DateRenderer());
         suspectedTable.setDefaultRenderer(Date.class, new DateRenderer());
         
+        _vulnerableUrlColumns = new ColumnDataModel[] { 
+            new ColumnDataModel() {
+                public String getColumnName() {
+                    return "Possible Injection";
+                }
+                public Object getValue(Object key) {
+                    HttpUrl url = (HttpUrl) key;
+                    return _model.isSuspected(url) ? Boolean.TRUE :  Boolean.FALSE;
+                }
+                public Class getColumnClass() {
+                    return Boolean.class;
+                }
+            }, 
+            new ColumnDataModel() {
+                public String getColumnName() {
+                    return "Injection";
+                }
+                public Object getValue(Object key) {
+                    HttpUrl url = (HttpUrl) key;
+                    return _model.isXSSVulnerable(url) || _model.isCRLFVulnerable(url)? Boolean.TRUE :  Boolean.FALSE;
+                }
+                public Class getColumnClass() {
+                    return Boolean.class;
+                }
+            }
+
+        };
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         editDialog.setBounds((screenSize.width-300)/2, (screenSize.height-150)/2, 300, 150);
     }
@@ -220,7 +306,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
-        JFileChooser jfc = new JFileChooser(Preferences.getPreference("Extensions.DefaultDir"));
+        JFileChooser jfc = new JFileChooser(Preferences.getPreference("XSSCRLF.DefaultDir"));
         jfc.setDialogTitle("Open test string file");
         int returnVal = jfc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -236,7 +322,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
                 JOptionPane.showMessageDialog(null, new String[] {"Error loading test string: ", ioe.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-        Preferences.setPreference("Scripted.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
+        Preferences.setPreference("XSSCRLF.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
     }//GEN-LAST:event_loadButtonActionPerformed
     
     private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editButtonActionPerformed
@@ -252,14 +338,14 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
             _xsscrlf.stopChecks();
             return;
         }
-        /*
+
         final int[] selection = suspectedTable.getSelectedRows();
-         * XXX meder: selection in tables is buggy for now assume that all URLs were selected
-        */
-        final int[] selection = new int[suspectedTable.getRowCount()];
-        for(int k=0; k < selection.length; k++) selection[k]=k;
+         // XXX meder: selection in tables is buggy for now assume that all URLs were selected
+
+//      final int[] selection = new int[suspectedTable.getRowCount()];
+//      for(int k=0; k < selection.length; k++) selection[k]=k;
         
-        //if (selection == null || selection.length == 0) return;
+        if (selection == null || selection.length == 0) return;
         if (_xsscrlf.isBusy()) {
             showBusyMessage();
             return;
@@ -295,12 +381,13 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         _logger.warning("Plugin is still busy, please wait");
         // FIXME show a message dialog
     }
+    
     public Action[] getConversationActions() {
         return null;
     }
 
     public ColumnDataModel[] getConversationColumns() {
-        return null;
+        return _vulnerableConversationColumns;
     }
 
     public javax.swing.JPanel getPanel() {
@@ -316,7 +403,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
     }
 
     public ColumnDataModel[] getUrlColumns() {
-        return null;
+        return _vulnerableUrlColumns;
     }
 
     

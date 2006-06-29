@@ -36,7 +36,6 @@ public class XSSCRLFModel extends AbstractPluginModel {
     private FrameworkModel _model;
     
     private ConversationModel _conversationModel, _suspectedConversationModel;
-    
         
     private LinkedList toBeAnalyzedQueue = new LinkedList();
     
@@ -45,30 +44,30 @@ public class XSSCRLFModel extends AbstractPluginModel {
     private String xssTestString = "><script>a=/XSS BUG/; alert(a.source)</script>";
     private String crlfTestString = "%0d%0aWebscarabXSSCRLFTest:%20OK%0d%0a";
     private String crlfInjectedHeader="WebscarabXSSCRLFTest";
-    private HashMap testedURLandParameterpairs = new HashMap();
     
     /** Creates a new instance of ExtensionsModel */
     public XSSCRLFModel(FrameworkModel model) {
         _model = model;
+        /*
+         * lower table with possibly vulnerable URLs
+         */
         _conversationModel = new FilteredConversationModel(model, model.getConversationModel()) {
-            /*
-             * lower table with possibly vulnerable URLs
-             */
             public boolean shouldFilter(ConversationID id) {
-                return !getConversationOrigin(id).equals("XSS/CRLF");
+                return !isXSSVulnerable(id) && !isCRLFVulnerable(id);                
             }
         };
         
-            /*
-             * upper table with suspected URLs             
-             */
+        /*
+         * upper table with suspected URLs             
+         */
         _suspectedConversationModel = new FilteredConversationModel(model, model.getConversationModel()) {
             public boolean shouldFilter(ConversationID id) {
-                return getConversationOrigin(id).equals("XSS/CRLF") || !isSuspected(getRequestUrl(id));                
+                return !isCRLFSuspected(id) && !isXSSSuspected(id);
             }
         };
     }
-    public ConversationModel getConversationModel() {
+    
+    public ConversationModel getVulnerableConversationModel() {
         return _conversationModel;
     }
     
@@ -76,16 +75,71 @@ public class XSSCRLFModel extends AbstractPluginModel {
         return _suspectedConversationModel;
     }           
     
-    public void markAsXSSSuspicious(HttpUrl url) {
-        _model.setUrlProperty(url, "XSS/CRLF", "XSS");
+    public void markAsXSSSuspicious(ConversationID id, HttpUrl url, String location, String parameter) {
+        _model.addConversationProperty(id, "XSS-" + location, parameter);
+        _model.addUrlProperty(url, "XSS-" + location, parameter);
     }
     
-    public void markAsCRLFSuspicious(HttpUrl url) {
-        _model.setUrlProperty(url, "XSS/CRLF", "CRLF");
+    public void markAsCRLFSuspicious(ConversationID id, HttpUrl url, String location, String parameter) {
+        _model.addConversationProperty(id, "CRLF-" + location, parameter);
+        _model.addUrlProperty(url, "CRLF-" + location, parameter);
     }
     
-    private boolean isSuspected(HttpUrl url) {
-        return _model.getUrlProperty(url, "XSS/CRLF") != null;
+    public boolean isXSSSuspected(ConversationID id) {
+        boolean suspect = false;
+        suspect |= (_model.getConversationProperty(id, "XSS-GET") != null);
+        suspect |= (_model.getConversationProperty(id, "XSS-POST") != null);
+        return suspect;
+    }
+    
+    public boolean isCRLFSuspected(ConversationID id) {
+        boolean suspect = false;
+        suspect |= (_model.getConversationProperty(id, "CRLF-GET") != null);
+        suspect |= (_model.getConversationProperty(id, "CRLF-POST") != null);
+        return suspect;
+    }
+    
+    public boolean isSuspected(HttpUrl url) {
+        boolean suspect = false;
+        suspect |= (_model.getUrlProperty(url, "XSS-GET") != null);
+        suspect |= (_model.getUrlProperty(url, "XSS-POST") != null);
+        suspect |= (_model.getUrlProperty(url, "CRLF-GET") != null);
+        suspect |= (_model.getUrlProperty(url, "CRLF-POST") != null);
+        return suspect;
+    }
+    
+    public void setCRLFVulnerable(ConversationID id, HttpUrl url) {
+        _model.setUrlProperty(url, "CRLF", "TRUE");
+        _model.setConversationProperty(id, "CRLF", "TRUE");
+    }
+    
+    public boolean isCRLFVulnerable(ConversationID id) {
+        return "TRUE".equals(_model.getConversationProperty(id, "CRLF"));
+    }
+    
+    public boolean isCRLFVulnerable(HttpUrl url) {
+        return "TRUE".equals(_model.getUrlProperty(url, "CRLF"));
+    }
+    
+    public void setXSSVulnerable(ConversationID id, HttpUrl url) {
+        _model.setUrlProperty(url, "XSS", "TRUE");
+        _model.setConversationProperty(id, "XSS", "TRUE");
+    }
+    
+    public boolean isXSSVulnerable(ConversationID id) {
+        return "TRUE".equals(_model.getConversationProperty(id, "XSS"));
+    }
+    
+    public boolean isXSSVulnerable(HttpUrl url) {
+        return "TRUE".equals(_model.getUrlProperty(url, "XSS"));
+    }
+    
+    public String[] getCRLFSuspiciousParameters(ConversationID id, String where) {
+        return _model.getConversationProperties(id, "CRLF-"+where);
+    }
+    
+    public String[] getXSSSuspiciousParameters(ConversationID id, String where) {
+        return _model.getConversationProperties(id, "XSS-"+where);
     }
     
     public String getXSSTestString() {
@@ -120,19 +174,11 @@ public class XSSCRLFModel extends AbstractPluginModel {
         return _model.getResponse(id);
     }
 
-    public void enqueueRequest(Request req, NamedValue vulnParam) {
+    public void enqueueRequest(Request req) {
         synchronized(toBeAnalyzedQueue) {
-            if (!isTested(req, vulnParam)) {
-                toBeAnalyzedQueue.addLast(req);
-                toBeAnalyzedQueue.notifyAll();
-                testedURLandParameterpairs.put(req.getURL().getSHPP()+vulnParam.getName(), null);
-            }
+            toBeAnalyzedQueue.addLast(req);
+            toBeAnalyzedQueue.notifyAll();
         }
-    }
-    
-    private boolean isTested(Request req, NamedValue vulnParam) {
-        HttpUrl url = req.getURL();        
-        return testedURLandParameterpairs.containsKey(url.getSHPP()+vulnParam.getName());
     }
     
     public Request dequeueRequest() {
@@ -152,5 +198,5 @@ public class XSSCRLFModel extends AbstractPluginModel {
             }
         }
     }   
-    
+
 }

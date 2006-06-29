@@ -67,11 +67,6 @@ public abstract class AbstractConversationModel implements ConversationModel {
         return _model.getResponse(id);
     }
     
-    public String getUrlProperty(ConversationID id, String property) {
-        return _model.getUrlProperty(_model.getRequestUrl(id), property);
-    }
-    
-    
     /**
      * adds a listener to the model
      * @param listener the listener to add
