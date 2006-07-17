@@ -32,7 +32,7 @@ public class HeapMonitor extends JLabel implements ActionListener {
 		max = Runtime.getRuntime().maxMemory();
 		update();
 		
-		timer = new Timer(1000, this);
+		timer = new Timer(15000, this);
 		timer.start();
 
 		addMouseListener(new MouseAdapter() {
@@ -56,7 +56,7 @@ public class HeapMonitor extends JLabel implements ActionListener {
 	private void update() {
 		free = max + Runtime.getRuntime().freeMemory()
 				- Runtime.getRuntime().totalMemory();
-		String label = toMB(max - free) + " / " + toMB(max);
+		String label = "Used " + toMB(max - free) + " of " + toMB(max) + "MB";
 		setOpaque(true);
 		double ratio = (double) (max - free) / (double) max;
 		if (ratio > 0.9f) {
