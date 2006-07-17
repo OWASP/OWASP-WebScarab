@@ -284,6 +284,7 @@ public class FuzzerModel extends AbstractPluginModel {
             }
         }
         // we have gone through all the permutations, no more to do
+        setRequestIndex(getTotalRequests());
         return false;
     }
     
