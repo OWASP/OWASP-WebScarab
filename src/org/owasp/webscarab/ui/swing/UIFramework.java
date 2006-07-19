@@ -135,8 +135,11 @@ public class UIFramework extends JFrame implements FrameworkUI {
         
         CredentialManager cm = _framework.getCredentialManager();
         _credentialManagerFrame = new CredentialManagerFrame(cm);
-        _credentialRequestDialog = new CredentialRequestDialog(this, true, cm);
-        cm.setUI(_credentialRequestDialog);
+        String ask = Preferences.getPreference("WebScarab.promptForCredentials", "true");
+        if (Boolean.valueOf(ask).booleanValue()) {
+            _credentialRequestDialog = new CredentialRequestDialog(this, true, cm);
+            cm.setUI(_credentialRequestDialog);
+        }
         
         initLogging();
         initEditorViews();
