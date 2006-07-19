@@ -142,7 +142,6 @@ public class Lite extends JFrame implements FrameworkUI {
             contentsMenuItem.addActionListener(new CSH.DisplayHelpFromSource(helpBroker));
             helpBroker.enableHelpKey(getRootPane(), "about", helpSet);        // for F1
         } catch (Throwable e) {
-            e.printStackTrace();
             final String[] message;
             if (e instanceof NullPointerException) {
                 message = new String[] { "Help set not found" };
