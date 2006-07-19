@@ -80,7 +80,7 @@ public class Preferences {
         }
         
         try {
-            Properties props = new Properties();
+            Properties props = new Properties(System.getProperties());
             InputStream is = new FileInputStream(_location);
             props.load(is);
             _props = props;
