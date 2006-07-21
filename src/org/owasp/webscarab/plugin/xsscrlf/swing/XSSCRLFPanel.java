@@ -19,7 +19,6 @@ import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.plugin.xsscrlf.XSSCRLF;
 import org.owasp.webscarab.plugin.xsscrlf.XSSCRLFModel;
-import org.owasp.webscarab.plugin.xsscrlf.XSSCRLFConversationTableModel;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;
 import org.owasp.webscarab.ui.swing.DateRenderer;
