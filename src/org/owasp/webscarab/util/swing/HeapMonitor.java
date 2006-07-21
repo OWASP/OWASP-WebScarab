@@ -6,17 +6,16 @@ package org.owasp.webscarab.util.swing;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
-import javax.swing.JLabel;
+import javax.swing.JButton;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 /**
  * @author rdawes
  * 
  */
-public class HeapMonitor extends JLabel implements ActionListener {
+public class HeapMonitor extends JButton implements ActionListener {
 
 	private long free;
 
@@ -32,16 +31,14 @@ public class HeapMonitor extends JLabel implements ActionListener {
 		max = Runtime.getRuntime().maxMemory();
 		update();
 		
-		timer = new Timer(1000, this);
+		timer = new Timer(15000, this);
 		timer.start();
 
-		addMouseListener(new MouseAdapter() {
-			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount() == 2) {
-					gc();
-				}
-			}
-		});
+                addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        gc();
+                    }
+                });
 	}
 
 	private void gc() {
@@ -49,6 +46,11 @@ public class HeapMonitor extends JLabel implements ActionListener {
 			public void run() {
 				System.out.println("Running gc");
 				System.gc();
+                                SwingUtilities.invokeLater(new Runnable() {
+                                    public void run() {
+                                        update();
+                                    }
+                                });
 			}
 		}.start();
 	}
@@ -56,7 +58,7 @@ public class HeapMonitor extends JLabel implements ActionListener {
 	private void update() {
 		free = max + Runtime.getRuntime().freeMemory()
 				- Runtime.getRuntime().totalMemory();
-		String label = toMB(max - free) + " / " + toMB(max);
+		String label = "Used " + toMB(max - free) + " of " + toMB(max) + "MB";
 		setOpaque(true);
 		double ratio = (double) (max - free) / (double) max;
 		if (ratio > 0.9f) {

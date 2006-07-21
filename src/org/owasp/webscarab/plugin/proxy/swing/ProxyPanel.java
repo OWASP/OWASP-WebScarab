@@ -133,6 +133,8 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         _plugins.add(plugin);
         _pluginArray = (ProxyPluginUI[]) _plugins.toArray(_pluginArray);
         mainTabbedPane.add(plugin.getPanel(), plugin.getPluginName());
+        if (plugin instanceof ManualEditPanel)
+            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount()-1);
     }
     
     /** This method is called from within the constructor to

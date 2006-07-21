@@ -55,6 +55,7 @@ import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.util.HtmlEncoder;
 
 public class ConnectionHandler implements Runnable {
     
@@ -346,8 +347,8 @@ public class ConnectionHandler implements Runnable {
         response.setHeader("Content-Type","text/html");
         response.setHeader("Connection","Close");
         String template = "<HTML><HEAD><TITLE>WebScarab Error</TITLE></HEAD>";
-        template = template + "<BODY>WebScarab encountered an error trying to retrieve <P><pre>" + request.toString() + "</pre><P>";
-        template = template + "The error was : <P><pre>" + message + "</pre><P></HTML>";
+        template = template + "<BODY>WebScarab encountered an error trying to retrieve <P><pre>" + HtmlEncoder.encode(request.toString()) + "</pre><P>";
+        template = template + "The error was : <P><pre>" + HtmlEncoder.encode(message) + "</pre><P></HTML>";
         response.setContent(template.getBytes());
         return response;
     }

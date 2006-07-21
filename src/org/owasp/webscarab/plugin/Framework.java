@@ -210,6 +210,7 @@ public class Framework {
                 _logger.warning(plugin.getPluginName() + " was already running");
             }
         }
+        _scriptManager.loadScripts();
     }
     
     public boolean isBusy() {
@@ -266,6 +267,7 @@ public class Framework {
                 _logger.warning(plugin.getPluginName() + " was not running");
             }
         }
+        _scriptManager.saveScripts();
         return true;
     }
     
