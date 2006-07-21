@@ -190,7 +190,7 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
                     FuzzSource source = _fuzzFactory.getSource((String)value);
                     if (source != null) {
                         itemsLabel.setText("Items : " + source.size());
-                        while (source.hasNext()) {
+                        while (source.hasNext() && _fuzzItems.size() < 100) {
                             _fuzzItems.addElement(source.current());
                             source.increment();
                         }
