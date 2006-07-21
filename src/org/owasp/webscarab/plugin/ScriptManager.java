@@ -6,6 +6,8 @@
 
 package org.owasp.webscarab.plugin;
 
+import java.io.File;
+import java.io.IOException;
 import org.apache.bsf.BSFManager;
 import org.apache.bsf.BSFException;
 import org.apache.bsf.BSFEngine;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import javax.swing.event.EventListenerList;
+import org.owasp.webscarab.model.Preferences;
 
 /**
  *
@@ -116,6 +119,60 @@ public class ScriptManager {
                 hook.removeScript(i);
                 fireScriptRemoved(plugin, hook, script);
                 return;
+            }
+        }
+    }
+    
+    public void loadScripts() {
+        Iterator hookIt = _hooks.entrySet().iterator();
+        while (hookIt.hasNext()) {
+            Map.Entry entry = (Map.Entry) hookIt.next();
+            String plugin = (String) entry.getKey();
+            Hook[] hooks = (Hook[]) entry.getValue();
+            if (hooks != null) {
+                for (int i=0; i<hooks.length; i++) {
+                    for (int j=0; j<hooks[i].getScriptCount(); j++)
+                        hooks[i].removeScript(j);
+                    int j=0;
+                    String scriptName = Preferences.getPreference(hooks[i].getName()+"."+j+".name");
+                    while (scriptName != null) {
+                        File f = new File(scriptName);
+                        if (f.canRead()) {
+                            try {
+                                Script script = new Script(f);
+                                String enabled = Preferences.getPreference(hooks[i].getName()+"."+j+".enabled", "false");
+                                addScript(plugin, hooks[i], script);
+                                setEnabled(plugin, hooks[i], script, Boolean.valueOf(enabled).booleanValue());
+                            } catch (IOException ioe) {
+                                _logger.warning("Error loading script '" + scriptName + "' : " + ioe.getLocalizedMessage());
+                            } catch (BSFException bsfe) {
+                                _logger.warning("Error loading script '" + scriptName + "' : " + bsfe.getLocalizedMessage());
+                            }
+                        }
+                        j++;
+                        scriptName = Preferences.getPreference(hooks[i].getName()+"."+j+".name");
+                    }
+                }
+            }
+        }
+    }
+    
+    public void saveScripts() {
+        Iterator hookIt = _hooks.entrySet().iterator();
+        while (hookIt.hasNext()) {
+            Map.Entry entry = (Map.Entry) hookIt.next();
+            String plugin = (String) entry.getKey();
+            Hook[] hooks = (Hook[]) entry.getValue();
+            if (hooks != null) {
+                for (int i=0; i<hooks.length; i++) {
+                    for (int j=0; j<hooks[i].getScriptCount(); j++) {
+                        Script script = hooks[i].getScript(j);
+                        Preferences.setPreference(hooks[i].getName()+"."+j+".name", script.getFile().getAbsolutePath());
+                        Preferences.setPreference(hooks[i].getName()+"."+j+".enabled", Boolean.toString(script.isEnabled()));
+                    }
+                    Preferences.remove(hooks[i].getName()+"."+hooks[i].getScriptCount()+".name");
+                    Preferences.remove(hooks[i].getName()+"."+hooks[i].getScriptCount()+".enabled");
+                }
             }
         }
     }
