@@ -181,6 +181,7 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
         scriptTextArea = new javax.swing.JTextArea();
 
         setTitle("Scripted Events");
+        scriptToolBar.setFloatable(false);
         newButton.setText("New");
         newButton.setEnabled(false);
         scriptToolBar.add(newButton);
@@ -289,8 +290,7 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
 
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width-600)/2, (screenSize.height-400)/2, 600, 400);
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
     
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
         // TODO add your handling code here:
