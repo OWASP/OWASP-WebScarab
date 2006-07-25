@@ -282,6 +282,8 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
     }//GEN-LAST:event_headerButtonActionPerformed
     
     private void executeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_executeButtonActionPerformed
+        if (_inputTreeTable.isEditing())
+            _inputTreeTable.getCellEditor().stopCellEditing();
         _responsePanel.setResponse(null);
         executeButton.setEnabled(false);
         final OperationInfo operInfo = (OperationInfo) operationComboBox.getSelectedItem();
