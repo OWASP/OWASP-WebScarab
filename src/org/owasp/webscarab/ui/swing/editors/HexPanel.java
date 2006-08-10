@@ -39,6 +39,7 @@
 
 package org.owasp.webscarab.ui.swing.editors;
 
+import javax.swing.table.DefaultTableCellRenderer;
 import org.owasp.webscarab.model.Preferences;
 
 import javax.swing.table.AbstractTableModel;
@@ -86,6 +87,9 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
         hexTable.setModel(_tableModel);
         hexTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
         hexTable.getTableHeader().setReorderingAllowed(false);
+        DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+        renderer.putClientProperty("html.disable", Boolean.TRUE);
+        hexTable.setDefaultRenderer(Object.class, renderer);
         TableColumnModel colModel = hexTable.getColumnModel();
         // FIXME : use FontMetrics to get the real width of the font
         for (int i=0; i<_columns+2; i++) {

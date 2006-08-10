@@ -63,6 +63,7 @@ import java.awt.Container;
 import javax.swing.JFrame;
 
 import java.io.UnsupportedEncodingException;
+import org.owasp.webscarab.util.CharsetUtils;
 
 /**
  *
@@ -78,6 +79,8 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     private boolean _editable = false;
     private boolean _modified = false;
     
+    private byte[] _bytes = null;
+    private String _charset = null;
     private String _text = null;
     
     private DocumentChangeListener _dcl = new DocumentChangeListener();
@@ -140,11 +143,19 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     public void setBytes(String contentType, byte[] bytes) {
+        _bytes = bytes;
         if (bytes == null) {
             setText(contentType, "");
         } else {
+            _charset = null;
+            int ci = contentType.indexOf("charset");
+            if ( ci == -1) {
+                _charset = CharsetUtils.getCharset(bytes);
+            } else {
+                _charset = contentType.substring(ci+8);
+            }
             try {
-                setText(contentType, new String(bytes, "UTF-8"));
+                setText(contentType, new String(bytes, _charset));
             } catch (UnsupportedEncodingException e) {
                 setText(contentType, e.getMessage());
             }
@@ -177,12 +188,14 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     public byte[] getBytes() {
-        try {
-            return getText().getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            System.err.println("This should never happen!");
-            return null;
+        if (isModified()) {
+            try {
+                _bytes = getText().getBytes(_charset);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         }
+        return _bytes;
     }
     
     private int doFind(String pattern, int start, boolean caseSensitive) {
