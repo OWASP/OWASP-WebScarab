@@ -80,14 +80,12 @@ public class ConnectionHandler implements Runnable {
     private InputStream _serverIn = null;
     private OutputStream _serverOut = null;
     
-    public ConnectionHandler(Proxy proxy, Socket sock, HttpUrl base, NetworkSimulator simulator, boolean usePlugins) {
+    public ConnectionHandler(Proxy proxy, Socket sock, HttpUrl base, NetworkSimulator simulator) {
         _proxy = proxy;
         _sock = sock;
         _base = base;
         _simulator = simulator;
-        if (usePlugins) {
-            _plugins = _proxy.getPlugins();
-        }
+        _plugins = _proxy.getPlugins();
         try {
             _sock.setTcpNoDelay(true);
             _sock.setSoTimeout(30 * 1000);

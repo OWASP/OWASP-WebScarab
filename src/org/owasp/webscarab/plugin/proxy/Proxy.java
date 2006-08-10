@@ -244,20 +244,6 @@ public class Proxy implements Plugin {
         }
     }
     
-    /**
-     *
-     * @param key
-     * @return
-     */
-    public boolean usesPlugins(String key) {
-        Listener l = (Listener) _listeners.get(key);
-        if (l != null) {
-            return l.usesPlugins();
-        } else {
-            return false;
-        }
-    }
-    
     public boolean isPrimaryProxy(String key) {
         Listener l = (Listener) _listeners.get(key);
         if (l != null) {
@@ -293,13 +279,12 @@ public class Proxy implements Plugin {
      * @throws IOException if there are any problems starting the Listener
      */
     
-    public void addListener(String address, int port, HttpUrl base, String simulator, boolean usePlugins, boolean primary) throws IOException {
-        Listener l = createListener(address, port, base, simulator, usePlugins, primary);
+    public void addListener(String address, int port, HttpUrl base, String simulator, boolean primary) throws IOException {
+        Listener l = createListener(address, port, base, simulator, primary);
         startListener(l);
         
         String key = l.getKey();
         Preferences.setPreference("Proxy.listener." + key + ".base", base == null ? "" : base.toString());
-        Preferences.setPreference("Proxy.listener." + key + ".useplugins", usePlugins == true ? "yes" : "no");
         Preferences.setPreference("Proxy.listener." + key + ".simulator", simulator);
         Preferences.setPreference("Proxy.listener." + key + ".primary", primary == true ? "yes" : "no");
         
@@ -341,7 +326,6 @@ public class Proxy implements Plugin {
             _listeners.remove(key);
             if (_ui != null) _ui.proxyRemoved(key);
             Preferences.remove("Proxy.listener." + key + ".base");
-            Preferences.remove("Proxy.listener." + key + ".useplugins");
             Preferences.remove("Proxy.listener." + key + ".simulator");
             Preferences.remove("Proxy.listener." + key + ".primary");
             String value = null;
@@ -460,7 +444,6 @@ public class Proxy implements Plugin {
         String addr;
         int port = 0;
         HttpUrl base;
-        boolean usePlugins = false;
         String simulator = null;
         boolean primary = false;
         
@@ -485,15 +468,6 @@ public class Proxy implements Plugin {
                 }
             }
             
-            prop = "Proxy.listener." + listeners[i] + ".useplugins";
-            value = Preferences.getPreference(prop, "true");
-            
-            if (value == null || value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes")) {
-                usePlugins = true;
-            } else {
-                usePlugins = false;
-            }
-            
             prop = "Proxy.listener." + listeners[i] + ".simulator";
             value = Preferences.getPreference(prop, "Unlimited");
             
@@ -508,14 +482,14 @@ public class Proxy implements Plugin {
             primary = value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes");
             
             try {
-                Listener l = createListener(addr, port, base, simulator, usePlugins, primary);
+                Listener l = createListener(addr, port, base, simulator, primary);
             } catch (IOException ioe) {
                 _logger.severe("Error starting proxy (" + addr + ":" + port + " " + base + " " + ioe);
             }
         }
     }
     
-    private Listener createListener(String address, int port, HttpUrl base, String simulator, boolean usePlugins, boolean primaryProxy) throws IOException {
+    private Listener createListener(String address, int port, HttpUrl base, String simulator, boolean primaryProxy) throws IOException {
         if (base != null && base.equals("")) {
             base = null;
         }
@@ -527,7 +501,6 @@ public class Proxy implements Plugin {
         Listener l = new Listener(this, address, port);
         l.setBase(base);
         l.setSimulator(netsim);
-        l.usePlugins(usePlugins);
         l.setPrimaryProxy(primaryProxy);
         
         String key = l.getKey();
