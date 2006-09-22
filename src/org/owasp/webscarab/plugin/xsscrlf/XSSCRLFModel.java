@@ -12,7 +12,8 @@ package org.owasp.webscarab.plugin.xsscrlf;
 
 import java.util.logging.Logger;
 import java.util.Hashtable;
-import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import org.owasp.webscarab.model.ConversationID;
@@ -40,6 +41,8 @@ public class XSSCRLFModel extends AbstractPluginModel {
     private LinkedList toBeAnalyzedQueue = new LinkedList();
     
     private Logger _logger = Logger.getLogger(getClass().getName());
+
+    private Set testedURLandParameterpairs = new HashSet();
     
     private String xssTestString = "><script>a=/XSS BUG/; alert(a.source)</script>";
     private String crlfTestString = "%0d%0aWebscarabXSSCRLFTest:%20OK%0d%0a";
@@ -174,10 +177,18 @@ public class XSSCRLFModel extends AbstractPluginModel {
         return _model.getResponse(id);
     }
 
-    public void enqueueRequest(Request req) {
+    private boolean isTested(Request req, String vulnParam) {
+        HttpUrl url = req.getURL();
+        return testedURLandParameterpairs.contains(url.getSHPP()+vulnParam);
+    }
+
+    public void enqueueRequest(Request req, String paramName) {
         synchronized(toBeAnalyzedQueue) {
-            toBeAnalyzedQueue.addLast(req);
-            toBeAnalyzedQueue.notifyAll();
+            if (!isTested(req, paramName)) {
+                toBeAnalyzedQueue.addLast(req);
+                toBeAnalyzedQueue.notifyAll();
+                testedURLandParameterpairs.add(req.getURL().getSHPP()+paramName);
+            }
         }
     }
     

@@ -73,7 +73,7 @@ public class XSSCRLF implements Plugin, ConversationHandler {
         if (contentType == null) return;
         if (!contentType.matches("text/.*") && !contentType.equals("application/x-javascript")) return;
         byte[] responseContent = response.getContent();
-        if (responseContent == null || responseContent.length == 0) return;
+        if ((responseContent == null || responseContent.length == 0) && !response.getStatus().startsWith("3")) return;
         
         // prepare the response body, and headers
         String responseBody = new String(responseContent).toUpperCase();
@@ -110,7 +110,7 @@ public class XSSCRLF implements Plugin, ConversationHandler {
                 if (isInHeaders(value, headers)) {
                     _model.markAsCRLFSuspicious(id, url, paramLocation, params[i].getName());
                 }
-                if (body.indexOf(value) > -1) {
+                if (body != null && body.indexOf(value) > -1) {
                     _model.markAsXSSSuspicious(id, url, paramLocation, params[i].getName());
                 }
             }
@@ -272,14 +272,14 @@ public class XSSCRLF implements Plugin, ConversationHandler {
         String testString = Encoding.urlEncode(_model.getXSSTestString());
         Request req = new Request(origReq);        
         req.setURL(getURLwithTestString(req.getURL(), param, testString));
-        _model.enqueueRequest(req);               
+        _model.enqueueRequest(req, param);
     }
     
     private void submitCRLFTest(Request origReq, String where, String param) {
         String testString = _model.getCRLFTestString();
         Request req = new Request(origReq);
         req.setURL(getURLwithTestString(req.getURL(), param, testString));
-        _model.enqueueRequest(req);
+        _model.enqueueRequest(req, param);
     }
 
     private HttpUrl getURLwithTestString(HttpUrl url, String name, String value) {
