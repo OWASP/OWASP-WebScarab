@@ -76,7 +76,9 @@ public class XSSCRLF implements Plugin, ConversationHandler {
         if ((responseContent == null || responseContent.length == 0) && !response.getStatus().startsWith("3")) return;
         
         // prepare the response body, and headers
-        String responseBody = new String(responseContent).toUpperCase();
+        String responseBody = null;
+        if (responseContent != null)
+            responseBody = new String(responseContent).toUpperCase();
         NamedValue[] headers = response.getHeaders();
         NamedValue[] ucHeaders = new NamedValue[headers.length];
         for (int i=0; i<headers.length; i++) {
