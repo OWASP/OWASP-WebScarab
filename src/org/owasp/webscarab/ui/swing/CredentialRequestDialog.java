@@ -99,6 +99,7 @@ public class CredentialRequestDialog extends javax.swing.JDialog implements Cred
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+        setTitle("Enter your credentials to access this web site");
         setResizable(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosed(java.awt.event.WindowEvent evt) {
@@ -246,8 +247,7 @@ public class CredentialRequestDialog extends javax.swing.JDialog implements Cred
 
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width-419)/2, (screenSize.height-206)/2, 419, 206);
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
     private void domainRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_domainRadioButtonActionPerformed
         domainLabel.setVisible(true);

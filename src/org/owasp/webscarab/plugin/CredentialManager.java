@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import org.owasp.webscarab.httpclient.Authenticator;
 import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.util.Encoding;
 
 /**
@@ -42,7 +43,8 @@ public class CredentialManager implements Authenticator {
     public synchronized String getCredentials(HttpUrl url, String[] challenges) {
         String creds = getPreferredCredentials(url.getHost(), challenges);
         if (creds != null) return creds;
-        if (_ui != null && challenges != null && challenges.length > 0) {
+        boolean prompt = Boolean.valueOf(Preferences.getPreference("WebScarab.promptForCredentials", "false")).booleanValue();
+        if (prompt && _ui != null && challenges != null && challenges.length > 0) {
             boolean ask = false;
             for (int i=0; i<challenges.length; i++)
                 if (challenges[i].startsWith("Basic") || challenges[i].startsWith("NTLM") || challenges[i].startsWith("Negotiate"))
@@ -56,7 +58,8 @@ public class CredentialManager implements Authenticator {
     public synchronized String getProxyCredentials(String hostname, String[] challenges) {
         String creds = getPreferredCredentials(hostname, challenges);
         if (creds != null) return creds;
-        if (_ui != null && challenges != null && challenges.length > 0) {
+        boolean prompt = Boolean.valueOf(Preferences.getPreference("WebScarab.promptForCredentials", "false")).booleanValue();
+        if (prompt && _ui != null && challenges != null && challenges.length > 0) {
             boolean ask = false;
             for (int i=0; i<challenges.length; i++)
                 if (challenges[i].startsWith("Basic") || challenges[i].startsWith("NTLM") || challenges[i].startsWith("Negotiate"))
