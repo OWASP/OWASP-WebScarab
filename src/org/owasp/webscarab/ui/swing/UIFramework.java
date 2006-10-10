@@ -276,6 +276,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
         transcoderMenuItem = new javax.swing.JMenuItem();
         scriptMenuItem = new javax.swing.JMenuItem();
         restartMenuItem = new javax.swing.JMenuItem();
+        liteMenuItem = new javax.swing.JCheckBoxMenuItem();
         helpMenu = new javax.swing.JMenu();
         contentsMenuItem = new javax.swing.JMenuItem();
         logMenu = new javax.swing.JMenu();
@@ -440,6 +441,15 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         toolsMenu.add(restartMenuItem);
 
+        liteMenuItem.setText("Use Lite interface");
+        liteMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                liteMenuItemActionPerformed(evt);
+            }
+        });
+
+        toolsMenu.add(liteMenuItem);
+
         mainMenuBar.add(toolsMenu);
 
         helpMenu.setMnemonic('H');
@@ -517,6 +527,13 @@ public class UIFramework extends JFrame implements FrameworkUI {
         setJMenuBar(mainMenuBar);
 
     }// </editor-fold>//GEN-END:initComponents
+
+    private void liteMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_liteMenuItemActionPerformed
+        Preferences.setPreference("WebScarab.lite", Boolean.toString(liteMenuItem.isSelected()));
+        if (liteMenuItem.isSelected()) {
+            JOptionPane.showMessageDialog(this, "Restart WebScarab in order to switch interfaces", "Restart required", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }//GEN-LAST:event_liteMenuItemActionPerformed
 
     private void credentialsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_credentialsMenuItemActionPerformed
         _credentialManagerFrame.setVisible(true);
@@ -796,6 +813,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private javax.swing.JRadioButtonMenuItem finestLogRadioButtonMenuItem;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JRadioButtonMenuItem infoLogRadioButtonMenuItem;
+    private javax.swing.JCheckBoxMenuItem liteMenuItem;
     private javax.swing.ButtonGroup logLevelButtonGroup;
     private javax.swing.JMenu logMenu;
     private javax.swing.JTextArea logTextArea;

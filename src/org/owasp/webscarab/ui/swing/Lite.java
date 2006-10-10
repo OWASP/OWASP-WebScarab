@@ -240,6 +240,7 @@ public class Lite extends JFrame implements FrameworkUI {
         credentialsMenuItem = new javax.swing.JMenuItem();
         transcoderMenuItem = new javax.swing.JMenuItem();
         hiddenCheckBoxMenuItem = new javax.swing.JCheckBoxMenuItem();
+        fullMenuItem = new javax.swing.JCheckBoxMenuItem();
         helpMenu = new javax.swing.JMenu();
         contentsMenuItem = new javax.swing.JMenuItem();
         aboutMenuItem = new javax.swing.JMenuItem();
@@ -372,6 +373,15 @@ public class Lite extends JFrame implements FrameworkUI {
 
         toolsMenu.add(hiddenCheckBoxMenuItem);
 
+        fullMenuItem.setText("Use full-featured interface");
+        fullMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fullMenuItemActionPerformed(evt);
+            }
+        });
+
+        toolsMenu.add(fullMenuItem);
+
         mainMenuBar.add(toolsMenu);
 
         helpMenu.setMnemonic('H');
@@ -394,6 +404,13 @@ public class Lite extends JFrame implements FrameworkUI {
         setJMenuBar(mainMenuBar);
 
     }// </editor-fold>//GEN-END:initComponents
+
+    private void fullMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fullMenuItemActionPerformed
+        Preferences.setPreference("WebScarab.lite", Boolean.toString(!fullMenuItem.isSelected()));
+        if (fullMenuItem.isSelected()) {
+            JOptionPane.showMessageDialog(this, "Restart WebScarab in order to switch interfaces", "Restart required", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }//GEN-LAST:event_fullMenuItemActionPerformed
 
     private void saveMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveMenuItemActionPerformed
         if (_tempDir != null) {
@@ -637,6 +654,7 @@ public class Lite extends JFrame implements FrameworkUI {
     private javax.swing.JMenu editorMenu;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu fileMenu;
+    private javax.swing.JCheckBoxMenuItem fullMenuItem;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JCheckBoxMenuItem hiddenCheckBoxMenuItem;
     private javax.swing.JMenuBar mainMenuBar;
