@@ -178,8 +178,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     public String getText() {
-        if (_text == null)
-            _text = textTextArea.getText();
+        _text = textTextArea.getText();
         return _text;
     }
     
@@ -190,7 +189,14 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     public byte[] getBytes() {
         if (isModified()) {
             try {
-                _bytes = getText().getBytes(_charset);
+                String text = getText();
+                if (_charset == null)
+                    _charset = CharsetUtils.getCharset(text.getBytes());
+                if (_charset != null) {
+                    _bytes = text.getBytes(_charset);
+                } else {
+                    _bytes = text.getBytes();
+                }
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
