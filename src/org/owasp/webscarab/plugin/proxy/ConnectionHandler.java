@@ -26,7 +26,7 @@
  *
  * Source for this application is maintained at Sourceforge.net, a
  * repository for free software projects.
- * 
+ *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
@@ -58,28 +58,28 @@ import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.util.HtmlEncoder;
 
 public class ConnectionHandler implements Runnable {
-    
+
     private static SSLSocketFactory _factory = null;
-    
+
     private static String _keystore = "server.p12";
     private static char[] _keystorepass = "password".toCharArray();
     private static char[] _keypassword = "password".toCharArray();
-    
+
     private ProxyPlugin[] _plugins = null;
     private Proxy _proxy;
     private Socket _sock = null;
     private HttpUrl _base;
     private NetworkSimulator _simulator;
-    
+
     private HTTPClient _httpClient = null;
-    
+
     private Logger _logger = Logger.getLogger(getClass().getName());
-    
+
     private InputStream _clientIn = null;
     private OutputStream _clientOut = null;
     private InputStream _serverIn = null;
     private OutputStream _serverOut = null;
-    
+
     public ConnectionHandler(Proxy proxy, Socket sock, HttpUrl base, NetworkSimulator simulator) {
         _proxy = proxy;
         _sock = sock;
@@ -93,12 +93,12 @@ public class ConnectionHandler implements Runnable {
             _logger.warning("Error setting socket parameters");
         }
     }
-    
+
     public void run() {
         ScriptableConnection connection = new ScriptableConnection(_sock);
         _proxy.allowClientConnection(connection);
         if (_sock.isClosed()) return;
-        
+
         try {
             _clientIn = _sock.getInputStream();
             _clientOut = _sock.getOutputStream();
@@ -164,15 +164,15 @@ public class ConnectionHandler implements Runnable {
                     }
                 }
             }
-            
+
             if (_httpClient == null) _httpClient = HTTPClientFactory.getInstance().getHTTPClient();
-            
+
             HTTPClient hc = _httpClient;
-            
+
             // Maybe set SSL ProxyAuthorization here at a connection level?
             // I prefer it in the Request itself, since it gets archived, and
             // can be replayed trivially using netcat
-            
+
             // layer the proxy plugins onto the recorder. We do this
             // in reverse order so that they operate intuitively
             // the first plugin in the array gets the first chance to modify
@@ -182,15 +182,15 @@ public class ConnectionHandler implements Runnable {
                     hc = _plugins[i].getProxyPlugin(hc);
                 }
             }
-            
+
             // do we add an X-Forwarded-For header?
             String from = _sock.getInetAddress().getHostAddress();
             if (from.equals("127.0.0.1")) from = null;
-            
+
             // do we keep-alive?
             String keepAlive = null;
             String version = null;
-            
+
             do {
                 id = null;
                 // if we are reading the first from a reverse proxy, or the
@@ -211,17 +211,17 @@ public class ConnectionHandler implements Runnable {
                     request.addHeader("X-Forwarded-For", from);
                 }
                 _logger.fine("Browser requested : " + request.getMethod() + " " + request.getURL().toString());
-                
+
                 // report the request to the listener, and get the allocated ID
                 id = _proxy.gotRequest(request);
-                
+
                 // pass the request for possible modification or analysis
                 connection.setRequest(request);
                 connection.setResponse(null);
                 _proxy.interceptRequest(connection);
                 request = connection.getRequest();
                 Response response = connection.getResponse();
-                
+
                 if (request == null) throw new IOException("Request was cancelled");
                 if (response != null) {
                     _proxy.failedResponse(id, "Response provided by script");
@@ -234,7 +234,8 @@ public class ConnectionHandler implements Runnable {
                         if (response.getRequest() != null) request = response.getRequest();
                     } catch (IOException ioe) {
                         _logger.severe("IOException retrieving the response for " + request.getURL() + " : " + ioe);
-                        response = errorResponse(request, "IOException retrieving the response: " + ioe);
+                        ioe.printStackTrace();
+                        response = errorResponse(request, ioe);
                         // prevent the conversation from being submitted/recorded
                         _proxy.failedResponse(id, ioe.toString());
                         _proxy = null;
@@ -245,16 +246,16 @@ public class ConnectionHandler implements Runnable {
                         return;
                     }
                 }
-                
+
                 if (_proxy != null) {
                     // pass the response for analysis or modification by the scripts
                     connection.setResponse(response);
                     _proxy.interceptResponse(connection);
                     response = connection.getResponse();
                 }
-                
+
                 if (response == null) throw new IOException("Response was cancelled");
-                
+
                 try {
                     if (_clientOut != null) {
                         _logger.fine("Writing the response to the browser");
@@ -274,12 +275,12 @@ public class ConnectionHandler implements Runnable {
                 if (_proxy != null && !request.getMethod().equals("CONNECT")) {
                     _proxy.gotResponse(id, response);
                 }
-                
+
                 keepAlive = response.getHeader("Connection");
                 version = response.getVersion();
-                
+
                 request = null;
-                
+
                 _logger.fine("Version: " + version + " Connection: " + connection);
             } while ((version.equals("HTTP/1.0") && "keep-alive".equalsIgnoreCase(keepAlive)) ||
             (version.equals("HTTP/1.1") && !"close".equalsIgnoreCase(keepAlive)));
@@ -300,7 +301,7 @@ public class ConnectionHandler implements Runnable {
             }
         }
     }
-    
+
     private void initSSL() {
         KeyStore ks = null;
         KeyManagerFactory kmf = null;
@@ -321,7 +322,7 @@ public class ConnectionHandler implements Runnable {
             _factory = null;
         }
     }
-    
+
     private Socket negotiateSSL(Socket sock) throws Exception {
         if (_factory == null) initSSL();
         SSLSocket sslsock;
@@ -335,8 +336,8 @@ public class ConnectionHandler implements Runnable {
             throw e;
         }
     }
-    
-    private Response errorResponse(Request request, String message) {
+
+    private Response errorResponse(Request request, Exception e) {
         Response response = new Response();
         response.setRequest(request);
         response.setVersion("HTTP/1.0");
@@ -346,9 +347,24 @@ public class ConnectionHandler implements Runnable {
         response.setHeader("Connection","Close");
         String template = "<HTML><HEAD><TITLE>WebScarab Error</TITLE></HEAD>";
         template = template + "<BODY>WebScarab encountered an error trying to retrieve <P><pre>" + HtmlEncoder.encode(request.toString()) + "</pre><P>";
-        template = template + "The error was : <P><pre>" + HtmlEncoder.encode(message) + "</pre><P></HTML>";
+        template = template + "The error was : <P><pre>" + HtmlEncoder.encode(e.getLocalizedMessage()) + "\n";
+        StackTraceElement[] trace = e.getStackTrace();
+        if (trace != null) {
+            for (int i=0; i<trace.length; i++) {
+                template = template + "\tat " + trace[i].getClassName() + "." + trace[i].getMethodName() + "(";
+                if (trace[i].getLineNumber() == -2) {
+                    template = template + "Native Method";
+                } else if (trace[i].getLineNumber() == -1) {
+                    template = template + "Unknown Source";
+                } else {
+                    template = template + trace[i].getFileName() + ":" + trace[i].getLineNumber();
+                }
+                template = template + ")\n";
+            }
+        }
+        template = template + "</pre><P></HTML>";
         response.setContent(template.getBytes());
         return response;
     }
-    
+
 }
