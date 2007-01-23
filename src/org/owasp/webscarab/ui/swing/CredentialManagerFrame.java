@@ -6,7 +6,10 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import javax.swing.table.AbstractTableModel;
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.plugin.BasicCredential;
 import org.owasp.webscarab.plugin.CredentialManager;
 import org.owasp.webscarab.plugin.DomainCredential;
@@ -24,6 +27,9 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
     /** Creates new form CredentialManagerFrame */
     public CredentialManagerFrame(CredentialManager manager) {
         initComponents();
+        boolean prompt = Boolean.valueOf(Preferences.getPreference("WebScarab.promptForCredentials", "false")).booleanValue();
+        promptCheckBox.setSelected(prompt);
+        addComponentListener(new Updater());
         _manager = manager;
         _btm = new BasicTableModel();
         _dtm = new DomainTableModel();
@@ -54,7 +60,9 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         addButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
+        clearButton = new javax.swing.JButton();
         closeButton = new javax.swing.JButton();
+        promptCheckBox = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -133,6 +141,15 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
 
         jPanel1.add(deleteButton);
 
+        clearButton.setText("Clear all");
+        clearButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearButtonActionPerformed(evt);
+            }
+        });
+
+        jPanel1.add(clearButton);
+
         closeButton.setText("Close");
         closeButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -144,13 +161,42 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         getContentPane().add(jPanel1, gridBagConstraints);
+
+        promptCheckBox.setText("Ask when required");
+        promptCheckBox.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        promptCheckBox.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        promptCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                promptCheckBoxActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(promptCheckBox, gridBagConstraints);
 
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width-400)/2, (screenSize.height-300)/2, 400, 300);
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void promptCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_promptCheckBoxActionPerformed
+        Preferences.setPreference("WebScarab.promptForCredentials", Boolean.toString(promptCheckBox.isSelected()));
+    }//GEN-LAST:event_promptCheckBoxActionPerformed
+
+    private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
+        for (int i=_manager.getBasicCredentialCount()-1; i>=0; i--) {
+            _manager.deleteBasicCredentialAt(i);
+        }
+        for (int i=_manager.getDomainCredentialCount()-1; i>=0; i--) {
+            _manager.deleteDomainCredentialAt(i);
+        }
+        updateCredentials();
+    }//GEN-LAST:event_clearButtonActionPerformed
 
     private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed
         setVisible(false);
@@ -176,6 +222,7 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
     private javax.swing.JTable basicTable;
+    private javax.swing.JButton clearButton;
     private javax.swing.JButton closeButton;
     private javax.swing.JButton deleteButton;
     private javax.swing.JTable domainTable;
@@ -184,6 +231,7 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JCheckBox promptCheckBox;
     // End of variables declaration//GEN-END:variables
     
     private class BasicTableModel extends AbstractTableModel {
@@ -241,4 +289,11 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
         }
         
     }
+    
+    private class Updater extends ComponentAdapter {
+        public void componentShown(ComponentEvent e) {
+            updateCredentials();
+        }
+    }
+    
 }
