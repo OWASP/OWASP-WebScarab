@@ -43,6 +43,7 @@ public class EditorFactory {
         registerEditor("text/.*","org.owasp.webscarab.ui.swing.editors.TextPanel");
         registerEditor("application/x-javascript","org.owasp.webscarab.ui.swing.editors.TextPanel");
         registerEditor("application/x-www-form-urlencoded","org.owasp.webscarab.ui.swing.editors.TextPanel");
+        registerEditor("application/x-amf","org.owasp.webscarab.ui.swing.editors.AMFPanel");
         registerEditor(".*", "org.owasp.webscarab.ui.swing.editors.HexPanel");
         // registerEditor(".*","org.owasp.webscarab.ui.swing.editors.CompressedTextPanel");
     }

@@ -46,6 +46,8 @@
             <file src="lib/chardet.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/tagsoup-1.0rc2.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/wsdl4j.jar" targetdir="$INSTALL_PATH/lib/"/>
+            <file src="lib/openamf.jar" targetdir="$INSTALL_PATH/lib/"/>
+            <file src="lib/commons-logging-1.0.4.jar" targetdir="$INSTALL_PATH/lib/"/>
             <file src="lib/W32WinInet.dll" targetdir="$INSTALL_PATH/" os="windows"/>
             <file src="doc/WebScarab-Howto.txt" targetdir="$INSTALL_PATH/doc/"/>
             <fileset dir="scripts" targetdir="$INSTALL_PATH/scripts/">
