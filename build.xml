@@ -60,7 +60,7 @@
         </path>
     </target>
     <target depends="init" description="clean up the build area" name="clean">
-        <delete dir="${build.dir}"/>
+        <!-- delete dir="${build.dir}"/ -->
         <delete dir="${dist.dir}"/>
         <delete>
             <fileset dir="${src.dir}" includes="**/*.class"/>
@@ -154,7 +154,7 @@
         </javadoc>
     </target>
     <target 
-        depends="clean,javahelp,build" 
+        depends="clean,build" 
         description="Build a self contained installer package" 
         name="izpack"
     >
@@ -172,7 +172,7 @@
         />
     </target>
     <target 
-        depends="clean,javahelp,build" 
+        depends="clean,build" 
         description="Build a standalone self-contained jar" 
         name="proguard"
     >
