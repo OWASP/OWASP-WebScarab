@@ -88,8 +88,7 @@ public class HtmlEncoder
 	};
 	
 	
-	public HtmlEncoder()
-	{
+	static {
 		for(int i=0; i<entities.length; i++)
 			e2i.put(entities[i][0], entities[i][1]);
 		for(int i=0; i<entities.length; i++)
