@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+ <jnlp spec="1.0+" codebase="http://dawes.za.net/rogan/webscarab/lib/" href="help.jnlp">
+ <information>
+   <title>JavaHelp</title>
+   <vendor>Sun Microsystems, Inc.</vendor>
+ </information>
+ <resources>
+   <jar href="jhall-2.0_02.jar"/>
+ </resources>
+ <component-desc/>
+</jnlp>

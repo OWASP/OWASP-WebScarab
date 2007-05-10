@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- where the jnlp file lives on the web -->
+<jnlp spec="1.5+" codebase="http://dawes.za.net/rogan/webscarab" href="WebScarab.jnlp">
+<information>
+  <title>WebScarab</title>
+
+  <vendor>Rogan Dawes</vendor>
+  <homepage href="http://dawes.za.net/rogan/webscarab/" />
+
+  <description>A web application testing tool.</description>
+  <description kind="short">A web application testing tool.</description>
+
+  <!-- hover help for this app. -->
+  <description kind="tooltip">WebScarab</description>
+
+  <!-- gif or jpg only, no pngs. transparency does not work. Rectangular icons will be badly stretched. -->
+  <icon href="http://dawes.za.net/rogan/webscarab/icon.gif" width="64" height="64" />
+  <icon href="http://dawes.za.net/rogan/webscarab/splash.gif" kind="splash" />
+  <!-- allow app to run without Internet access -->
+  <offline-allowed/>
+
+  <!-- hints for setting up shortcuts -->
+  <!-- Prefer a shortcut for online operation -->
+  <shortcut online="true">
+    <!-- create desktop shortcut -->
+    <desktop/>
+    <!-- create menu item for this app under the major heading WebScarab -->
+    <menu submenu="WebScarab"/>
+  </shortcut>
+
+</information>
+
+<security>
+  <all-permissions />
+</security>
+
+<resources>
+  <!-- Acceptable JVMs in preferred order, best first -->
+  <j2se version="1.6.0"    href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.6+"     href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.5.0_06" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.5.0_05" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.5.0_04" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.5.0_03" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.5.0_02" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.5.0"    href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.5+"     href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.4.2_10" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.4.2_09" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.4.2_08" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.4.2_07" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.4.2_06" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.4.2_05" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.4.2_04" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="128m" max-heap-size="512m" />
+  <j2se version="1.4.2_03" href="http://java.sun.com/products/autodl/j2se" />
+  <j2se version="1.4.2_02" href="http://java.sun.com/products/autodl/j2se" />
+  <j2se version="1.4.2_01" href="http://java.sun.com/products/autodl/j2se" />
+  <!-- 1.4.2+ means any 1.4.2 version not containing a dash e.g. not 1.4.2-beta -->
+  <j2se version="1.4.2+"   href="http://java.sun.com/products/autodl/j2se" />
+
+  <!-- application code, load before launch -->
+  <jar href="webscarab.jar"  download="eager"/>
+  <jar href="lib/bsf-2.3.0.jar"  download="eager"/>
+  <jar href="lib/bsh-2.0b1.jar"  download="eager"/>
+  <jar href="lib/chardet.jar"  download="eager"/>
+  <jar href="lib/concurrent.jar"  download="eager"/>
+  <jar href="lib/htmlparser.jar"  download="eager"/>
+  <jar href="lib/jcommon-0.8.7.jar"  download="eager"/>
+  <jar href="lib/jfreechart-0.9.12.jar"  download="eager"/>
+  <jar href="lib/tagsoup-1.0rc2.jar"  download="eager"/>
+  <jar href="lib/wsdl4j.jar"  download="eager"/>
+  <jar href="lib/commons-logging-1.0.4.jar"  download="eager"/>
+  <jar href="lib/openamf.jar"  download="eager"/>
+  <extension name="Java Help" href="lib/help.jnlp"/>
+</resources>
+
+<!-- JNI native Windows .dll code -->
+<resources os="Windows" arch="x86">
+  <nativelib href="lib/windows_x86.jar" download="eager"/>
+</resources>
+
+<!-- application class with main method -->
+<application-desc main-class="org.owasp.webscarab.WebScarab">
+</application-desc>
+
+</jnlp>
