@@ -34,7 +34,7 @@ public class HeaderPanel extends javax.swing.JPanel {
     public HeaderPanel() {
         _htm = new HeaderTableModel();
         initComponents();
-        
+        headerTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         _cwt.addTable(headerTable);
     }
     
