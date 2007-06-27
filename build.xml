@@ -247,15 +247,15 @@
                 excludes="**/.*" 
                 prefix="webscarab-${project.version}/src"
             />
-            <zipfileset 
+            <!-- zipfileset 
                 dir="${javadoc.dir}" 
                 excludes="**/.*" 
                 prefix="webscarab-${project.version}/doc/api"
-            />
+            /-->
         </zip>
     </target>
     <target 
-        depends="clean,source,javadoc,proguard,izpack" 
+        depends="clean,source,proguard,izpack" 
         description="Build all distributables" 
         name="dist"
     />
