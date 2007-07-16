@@ -141,6 +141,26 @@
             </manifest>
         </jar>
     </target>
+    <target depends="build" description="Sign the jar" name="sign">
+		<signjar 
+			keystore="${keystore}"
+			storetype="${storetype}"
+			alias="${alias}"
+			storepass="${password}"
+			preservelastmodified="true"
+			jar="${jar}">
+		</signjar>
+		<signjar 
+			keystore="${keystore}"
+			storetype="${storetype}"
+			alias="${alias}"
+			storepass="${password}"
+			preserveLastModified="true"
+			lazy="true"
+			destDir="${dist.dir}">
+			<fileset dir="${basedir}/lib" includes="*.jar" />
+		</signjar>
+    </target>
     <target depends="build" description="run the program" name="run">
         <java jar="${jar}" fork="on">
         </java>
