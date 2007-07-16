@@ -277,7 +277,7 @@ public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI
 
     private void headerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_headerButtonActionPerformed
         _hp.setHeaders(_model.getExtraHeaders());
-        JOptionPane.showMessageDialog(this, _hp, "Spider Extra Headers", JOptionPane.PLAIN_MESSAGE);
+        JOptionPane.showMessageDialog(this, _hp, "Extra Headers", JOptionPane.PLAIN_MESSAGE);
         _model.setExtraHeaders(_hp.getHeaders());
     }//GEN-LAST:event_headerButtonActionPerformed
     
