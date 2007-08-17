@@ -50,6 +50,7 @@ import org.owasp.webscarab.plugin.proxy.ProxyUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.W32WinInet;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -108,8 +109,8 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         networkComboBox.setModel(new DefaultComboBoxModel(new String[] { "Unlimited" }));
         networkComboBox.setSelectedItem("Unlimited");
         
-        String[] keys = _proxy.getProxies();
-        for (int i=0; i<keys.length; i++) _ltm.proxyAdded(keys[i]);
+        ListenerSpec[] proxies = _proxy.getProxies();
+        for (int i=0; i<proxies.length; i++) _ltm.proxyAdded(proxies[i]);
         
         proxy.setUI(this);
         
@@ -378,21 +379,17 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
     }//GEN-LAST:event_startButtonActionPerformed
     
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
-        String[] keys = _proxy.getProxies();
+        ListenerSpec[] keys = _proxy.getProxies();
         int row = listenerTable.getSelectedRow();
         if (row<0) return;
-        String key = _ltm.getKey(row);
-        String address = _proxy.getAddress(key);
-        String port = Integer.toString(_proxy.getPort(key));
-        HttpUrl base = _proxy.getBase(key);
-        boolean primary = _proxy.isPrimaryProxy(key);
-        if (!_proxy.removeListener(key)) {
-            _logger.severe("Failed to stop " + key);
+        ListenerSpec spec = _ltm.getListener(row);
+        if (!_proxy.removeListener(spec)) {
+            _logger.severe("Failed to stop " + spec);
         } else {
-            addressTextField.setText(address);
-            portTextField.setText(port);
-            baseTextField.setText(base == null ? "" : base.toString());
-            primaryCheckBox.setSelected(primary);
+            addressTextField.setText(spec.getAddress());
+            portTextField.setText(Integer.toString(spec.getPort()));
+            baseTextField.setText(spec.getBase() == null ? "" : spec.getBase().toString());
+            primaryCheckBox.setSelected(spec.isPrimaryProxy());
         }
     }//GEN-LAST:event_stopButtonActionPerformed
     
@@ -404,34 +401,47 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         return null;
     }
     
-    public void proxyAdded(final String key) {
+    public void proxyAdded(final ListenerSpec spec) {
         if (SwingUtilities.isEventDispatchThread()) {
-            _ltm.proxyAdded(key);
+            _ltm.proxyAdded(spec);
         } else {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    proxyAdded(key);
+                    proxyAdded(spec);
                 }
             });
         }
     }
     
-    public void proxyRemoved(final String key) {
+    public void proxyRemoved(final ListenerSpec spec) {
         if (SwingUtilities.isEventDispatchThread()) {
-            _ltm.proxyRemoved(key);
+            _ltm.proxyRemoved(spec);
         } else {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    proxyRemoved(key);
+                    proxyRemoved(spec);
                 }
             });
         }
     }
     
-    public void proxyStarted(String key) {
+    public void proxyStarted(ListenerSpec spec) {
     }
     
-    public void proxyStopped(String key) {
+    public void proxyStartError(final ListenerSpec spec, final IOException ioe) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            JOptionPane.showMessageDialog(null, new String[] {"Error starting proxy listener: ", spec.toString(), ioe.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    proxyStartError(spec, ioe);
+                }
+            });
+        }
+
+    }
+    
+    public void proxyStopped(ListenerSpec spec) {
     }
     
     public void requested(final ConversationID id, final String method, final HttpUrl url) {

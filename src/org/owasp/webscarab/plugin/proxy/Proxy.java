@@ -180,53 +180,13 @@ public class Proxy implements Plugin {
      * returns a list of keys describing the configured Listeners
      * @return the list of keys
      */
-    public String[] getProxies() {
+    public ListenerSpec[] getProxies() {
         if (_listeners.size()==0) {
-            return new String[0];
+            return new ListenerSpec[0];
         }
-        return (String[]) _listeners.keySet().toArray(new String[0]);
+        return (ListenerSpec[]) _listeners.keySet().toArray(new ListenerSpec[0]);
     }
     
-    /**
-     * used to obtain the address that the referenced Listener is bound to
-     * @param key the key referring to a configured Listener
-     * @return the address that the Listener is listening to
-     */
-    public String getAddress(String key) {
-        Listener l = (Listener) _listeners.get(key);
-        if (l != null) {
-            return l.getListenerSpec().getAddress();
-        } else {
-            return null;
-        }
-    }
-    
-    public int getPort(String key) {
-        Listener l = (Listener) _listeners.get(key);
-        if (l != null) {
-            return l.getListenerSpec().getPort();
-        } else {
-            return -1;
-        }
-    }
-    
-    public HttpUrl getBase(String key) {
-        Listener l = (Listener) _listeners.get(key);
-        if (l != null) {
-            return l.getListenerSpec().getBase();
-        } else {
-            return null;
-        }
-    }
-    
-    public boolean isPrimaryProxy(String key) {
-        Listener l = (Listener) _listeners.get(key);
-        if (l != null) {
-            return l.getListenerSpec().isPrimaryProxy();
-        } else {
-            return false;
-        }
-    }
     
     /**
      * called by ConnectionHandler to see which plugins have been configured.
@@ -243,14 +203,7 @@ public class Proxy implements Plugin {
     /**
      * used by the User Interface to start a new proxy listening with the specified
      * parameters
-     * @param address the address to listen to, null or "" implies localhost, "*" implies all
-     * interfaces
-     * @param port the port to listen on
-     * @param base a string such as "http://site:port/" which is used by reverse proxies to
-     * indicate the address that it is acting as.
-     * @param simulator a String referring to a network simulator
-     * @param usePlugins indicates whether the ConnectionHandlers spawned by this Listener should pass
-     * Requests and Responses through the defined proxy plugins
+     * @param spec the details of the Listener
      * @throws IOException if there are any problems starting the Listener
      */
     
@@ -265,7 +218,7 @@ public class Proxy implements Plugin {
         String value = null;
         Iterator i = _listeners.keySet().iterator();
         while (i.hasNext()) {
-            key = (String) i.next();
+            key = getKey( (ListenerSpec) i.next());
             if (value == null) {
                 value = key;
             } else {
@@ -283,12 +236,12 @@ public class Proxy implements Plugin {
         Thread t = new Thread(l, "Listener-"+getKey(l.getListenerSpec()));
         t.setDaemon(true);
         t.start();
-        if (_ui != null) _ui.proxyStarted(getKey(l.getListenerSpec()));
+        if (_ui != null) _ui.proxyStarted(l.getListenerSpec());
     }
     
     private boolean stopListener(Listener l) {
         boolean stopped = l.stop();
-        if (stopped && _ui != null) _ui.proxyStopped(getKey(l.getListenerSpec()));
+        if (stopped && _ui != null) _ui.proxyStopped(l.getListenerSpec());
         return stopped;
     }
     
@@ -297,19 +250,20 @@ public class Proxy implements Plugin {
      * @param key the Listener to stop
      * @return true if the proxy was successfully stopped, false otherwise
      */
-    public boolean removeListener(String key) {
-        Listener l = (Listener) _listeners.get(key);
+    public boolean removeListener(ListenerSpec spec) {
+        Listener l = (Listener) _listeners.get(spec);
         if (l == null) return false;
         if (stopListener(l)) {
-            _listeners.remove(key);
-            if (_ui != null) _ui.proxyRemoved(key);
+            _listeners.remove(spec);
+            if (_ui != null) _ui.proxyRemoved(spec);
+            String key = getKey(spec);
             Preferences.remove("Proxy.listener." + key + ".base");
             Preferences.remove("Proxy.listener." + key + ".simulator");
             Preferences.remove("Proxy.listener." + key + ".primary");
             String value = null;
             Iterator i = _listeners.keySet().iterator();
             while (i.hasNext()) {
-                key = (String) i.next();
+                key = getKey( (ListenerSpec) i.next());
                 if (value == null) {
                     value = key;
                 } else {
@@ -330,10 +284,19 @@ public class Proxy implements Plugin {
      * Starts the Listeners
      */
     public void run() {
+        System.out.println(_listeners);
         Iterator it = _listeners.keySet().iterator();
         while (it.hasNext()) {
-            String key = (String) it.next();
-            Listener l = (Listener) _listeners.get(key);
+            ListenerSpec spec = (ListenerSpec) it.next();
+            Listener l = (Listener) _listeners.get(spec);
+            try {
+                spec.verifyAvailable();
+            } catch (IOException ioe) {
+                _logger.warning("Unable to start listener " + spec);
+                if (_ui != null) 
+                    _ui.proxyStartError(spec, ioe);
+                removeListener(spec);
+            }
             startListener(l);
         }
         _running = true;
@@ -349,10 +312,10 @@ public class Proxy implements Plugin {
         _running = false;
         Iterator it = _listeners.keySet().iterator();
         while (it.hasNext()) {
-            String key = (String) it.next();
-            Listener l = (Listener) _listeners.get(key);
+            ListenerSpec spec = (ListenerSpec) it.next();
+            Listener l = (Listener) _listeners.get(spec);
             if (!stopListener(l)) {
-                _logger.severe("Failed to stop Listener-" + getKey(l.getListenerSpec()));
+                _logger.severe("Failed to stop Listener-" + l.getListenerSpec());
                 _running = true;
             }
         }
@@ -450,11 +413,10 @@ public class Proxy implements Plugin {
     
     private Listener createListener(ListenerSpec spec) throws IOException {
         Listener l = new Listener(this, spec);
-        String key = getKey(spec);
         
-        _listeners.put(key, l);
+        _listeners.put(spec, l);
         
-        if (_ui != null) _ui.proxyAdded(key);
+        if (_ui != null) _ui.proxyAdded(spec);
         
         return l;
     }

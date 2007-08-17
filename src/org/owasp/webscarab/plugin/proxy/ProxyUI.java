@@ -39,6 +39,8 @@
 
 package org.owasp.webscarab.plugin.proxy;
 
+import java.io.IOException;
+
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 
@@ -50,13 +52,15 @@ import org.owasp.webscarab.plugin.PluginUI;
  */
 public interface ProxyUI extends PluginUI {
     
-    void proxyAdded(String key);
+    void proxyAdded(ListenerSpec spec);
     
-    void proxyStarted(String key);
+    void proxyStarted(ListenerSpec spec);
     
-    void proxyStopped(String key);
+    void proxyStartError(ListenerSpec spec, IOException ioe);
     
-    void proxyRemoved(String key);
+    void proxyStopped(ListenerSpec spec);
+    
+    void proxyRemoved(ListenerSpec spec);
     
     void requested(ConversationID id, String method, HttpUrl url);
     

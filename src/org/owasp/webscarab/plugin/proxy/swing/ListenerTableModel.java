@@ -43,6 +43,7 @@ import java.util.ArrayList;
 
 import javax.swing.table.AbstractTableModel;
 
+import org.owasp.webscarab.plugin.proxy.ListenerSpec;
 import org.owasp.webscarab.plugin.proxy.Proxy;
 
 /**
@@ -51,7 +52,6 @@ import org.owasp.webscarab.plugin.proxy.Proxy;
  */
 public class ListenerTableModel extends AbstractTableModel {
 
-    private Proxy _proxy;
     private ArrayList _listeners = new ArrayList();
     
     protected String [] columnNames = {
@@ -63,7 +63,6 @@ public class ListenerTableModel extends AbstractTableModel {
     };
     
     public ListenerTableModel(Proxy proxy) {
-        _proxy = proxy;
     }
 
     public String getColumnName(int column) {
@@ -90,13 +89,13 @@ public class ListenerTableModel extends AbstractTableModel {
             System.err.println("Attempt to get row " + row + ", column " + column + " : row does not exist!");
             return null;
         }
-        String key = (String) _listeners.get(row);
+        ListenerSpec spec = getListener(row);
         if (column <= columnNames.length) {
             switch (column) {
-                case 0: return _proxy.getAddress(key);
-                case 1: return new Integer(_proxy.getPort(key));
-                case 2: return _proxy.getBase(key);
-                case 3: return new Boolean(_proxy.isPrimaryProxy(key));
+                case 0: return spec.getAddress();
+                case 1: return new Integer(spec.getPort());
+                case 2: return spec.getBase();
+                case 3: return new Boolean(spec.isPrimaryProxy());
                 default: return null;
             }
         } else {
@@ -105,22 +104,22 @@ public class ListenerTableModel extends AbstractTableModel {
         }
     }
     
-    public String getKey(int index) {
-        return (String) _listeners.get(index);
+    public ListenerSpec getListener(int index) {
+        return (ListenerSpec) _listeners.get(index);
     }
     
-    public void proxyRemoved(String key) {
-        int index = _listeners.indexOf(key);
+    public void proxyRemoved(ListenerSpec spec) {
+        int index = _listeners.indexOf(spec);
         if (index > -1) {
             _listeners.remove(index);
             fireTableRowsDeleted(index, index);
         }
     }
     
-    public void proxyAdded(String key) {
-        int index = _listeners.indexOf(key);
+    public void proxyAdded(ListenerSpec spec) {
+        int index = _listeners.indexOf(spec);
         if (index == -1) {
-            _listeners.add(key);
+            _listeners.add(spec);
             fireTableRowsInserted(_listeners.size(), _listeners.size());
         }
     }

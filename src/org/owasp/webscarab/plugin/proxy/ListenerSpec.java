@@ -14,7 +14,7 @@ import org.owasp.webscarab.model.HttpUrl;
  * @author rdawes
  *
  */
-public class ListenerSpec {
+public class ListenerSpec implements Comparable {
 
     private String _address;
     private int _port;
@@ -81,4 +81,13 @@ public class ListenerSpec {
         ServerSocket serversocket = new ServerSocket(sa.getPort(), 5, sa.getAddress());
         serversocket.close();
     }
+
+    /* (non-Javadoc)
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    public int compareTo(Object o) {
+        return toString().compareTo(o.toString());
+    }
+    
+    
 }
