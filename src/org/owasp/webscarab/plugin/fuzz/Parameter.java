@@ -10,6 +10,7 @@ import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.util.Encoding;
 
 import java.util.Date;
 import java.util.List;
@@ -93,13 +94,13 @@ public class Parameter {
         if (fragments != null) {
             NamedValue[] values = NamedValue.splitNamedValues(fragments, "&", "=");
             for (int i=0; i<values.length; i++) {
-                parameters.add(new Parameter(Parameter.LOCATION_FRAGMENT, values[i].getName(), "STRING", values[i].getValue()));
+                parameters.add(new Parameter(Parameter.LOCATION_FRAGMENT, values[i].getName(), "STRING", Encoding.urlDecode(values[i].getValue())));
             }
         }
         if (query != null) {
             NamedValue[] values = NamedValue.splitNamedValues(query, "&", "=");
             for (int i=0; i<values.length; i++) {
-                parameters.add(new Parameter(Parameter.LOCATION_QUERY, values[i].getName(), "STRING", values[i].getValue()));
+                parameters.add(new Parameter(Parameter.LOCATION_QUERY, values[i].getName(), "STRING", Encoding.urlDecode(values[i].getValue())));
             }
         }
         NamedValue[] headers = request.getHeaders();
@@ -128,7 +129,7 @@ public class Parameter {
             NamedValue[] nv = NamedValue.splitNamedValues(body, "&", "=");
             Parameter[] params = new Parameter[nv.length];
             for (int i=0; i< nv.length; i++) {
-                params[i] = new Parameter(Parameter.LOCATION_BODY, nv[i].getName(), "STRING", nv[i].getValue());
+                params[i] = new Parameter(Parameter.LOCATION_BODY, nv[i].getName(), "STRING", Encoding.urlDecode(nv[i].getValue()));
             }
             return params;
         }
