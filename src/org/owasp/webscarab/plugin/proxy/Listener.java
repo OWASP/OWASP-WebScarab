@@ -41,6 +41,7 @@ package org.owasp.webscarab.plugin.proxy;
 
 import java.lang.Runnable;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -63,41 +64,21 @@ import org.owasp.webscarab.util.W32WinInet;
 public class Listener implements Runnable {
     
     private Proxy _proxy;
-    private String _address;
-    private int _port;
-    private HttpUrl _base = null;
-    private boolean _primaryProxy = false;
+    private ListenerSpec _spec;
     
     private ServerSocket _serversocket = null;
 
     private boolean _stop = false;
     private boolean _stopped = true;
     
-    private InetAddress _addr;
-    
     private int _count = 1;
     
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     /** Creates a new instance of Listener */
-    public Listener(Proxy proxy, String address, int port) throws IOException {
+    public Listener(Proxy proxy, ListenerSpec spec) throws IOException {
         _proxy = proxy;
-        if (address == null) {
-            address = "*";
-        }
-        _address = address;
-        if (port < 1 || port > 65535) {
-            throw new IllegalArgumentException("port must be between 0 and 65536");
-        }
-        _port = port;
-        if (_address.equals("") || _address.equals("*")) {
-            _addr = null;
-        } else {
-            _addr = InetAddress.getByName(_address);
-        }
-        // make sure we can listen on the port
-        _serversocket = new ServerSocket(_port, 5, _addr);
-        _serversocket.close();
+        _spec = spec;
     }
 
     public void run() {
@@ -110,18 +91,18 @@ public class Listener implements Runnable {
             try {
                 listen();
             } catch (IOException ioe) {
-                _logger.severe("Can't listen at " + getKey() + ": " + ioe);
+                _logger.severe("Can't listen at " + _spec + ": " + ioe);
                 _stopped = true;
                 return;
             }
         }
-        if (W32WinInet.isAvailable() && _primaryProxy) 
-            W32WinInet.interceptProxy("localhost", _port);
+        if (W32WinInet.isAvailable() && _spec.isPrimaryProxy()) 
+            W32WinInet.interceptProxy("localhost", _spec.getPort());
         while (! _stop) {
             try {
                 sock = _serversocket.accept();
                 InetAddress address = sock.getInetAddress();
-                ch = new ConnectionHandler(_proxy, sock, _base);
+                ch = new ConnectionHandler(_proxy, sock, _spec.getBase());
                 thread = new Thread(ch, Thread.currentThread().getName()+"-"+Integer.toString(_count++));
                 thread.setDaemon(true);
                 thread.start();
@@ -137,15 +118,16 @@ public class Listener implements Runnable {
         } catch (IOException ioe) {
             System.err.println("Error closing socket : " + ioe);
         }
-        if (W32WinInet.isAvailable() && _primaryProxy) 
+        if (W32WinInet.isAvailable() && _spec.isPrimaryProxy()) 
             W32WinInet.revertProxy();
-        _logger.info("Not listening on " + getKey());
+        _logger.info("Not listening on " + _spec);
     }
     
     private void listen() throws IOException {
-        _serversocket = new ServerSocket(_port, 5, _addr);
+        InetSocketAddress sa = _spec.getInetSocketAddress();
+        _serversocket = new ServerSocket(sa.getPort(), 5, sa.getAddress());
         
-        _logger.info("Proxy listening on " + getKey());
+        _logger.info("Proxy listening on " + _spec);
         
         try {
             _serversocket.setSoTimeout(100);
@@ -172,32 +154,8 @@ public class Listener implements Runnable {
         }
     }
 
-    public String getAddress() {
-        return _address;
-    }
-    
-    public int getPort() {
-        return _port;
-    }
-    
-    public void setBase(HttpUrl base) {
-        _base = base;
-    }
-    
-    public HttpUrl getBase() {
-        return _base;
-    }
-    
-    public void setPrimaryProxy(boolean primary) {
-        _primaryProxy = primary;
-    }
-    
-    public boolean isPrimaryProxy() {
-        return _primaryProxy;
-    }
-    
-    public String getKey() {
-        return _address + ":" + _port;
+    public ListenerSpec getListenerSpec() {
+        return _spec;
     }
     
 }

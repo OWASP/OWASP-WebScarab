@@ -44,6 +44,7 @@ import org.owasp.webscarab.model.HttpUrl;
 
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 
+import org.owasp.webscarab.plugin.proxy.ListenerSpec;
 import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.proxy.ProxyUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
@@ -364,7 +365,9 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
                 base = new HttpUrl(baseTextField.getText());
             }
             boolean primary = primaryCheckBox.isSelected();
-            _proxy.addListener(address, port, base, primary);
+            ListenerSpec spec = new ListenerSpec(address, port, base, primary);
+            spec.verifyAvailable();
+            _proxy.addListener(spec);
             addressTextField.setText("");
             portTextField.setText("");
             baseTextField.setText("");

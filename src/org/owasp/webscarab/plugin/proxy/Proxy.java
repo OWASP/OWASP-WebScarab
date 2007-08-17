@@ -195,7 +195,7 @@ public class Proxy implements Plugin {
     public String getAddress(String key) {
         Listener l = (Listener) _listeners.get(key);
         if (l != null) {
-            return l.getAddress();
+            return l.getListenerSpec().getAddress();
         } else {
             return null;
         }
@@ -204,7 +204,7 @@ public class Proxy implements Plugin {
     public int getPort(String key) {
         Listener l = (Listener) _listeners.get(key);
         if (l != null) {
-            return l.getPort();
+            return l.getListenerSpec().getPort();
         } else {
             return -1;
         }
@@ -213,7 +213,7 @@ public class Proxy implements Plugin {
     public HttpUrl getBase(String key) {
         Listener l = (Listener) _listeners.get(key);
         if (l != null) {
-            return l.getBase();
+            return l.getListenerSpec().getBase();
         } else {
             return null;
         }
@@ -222,7 +222,7 @@ public class Proxy implements Plugin {
     public boolean isPrimaryProxy(String key) {
         Listener l = (Listener) _listeners.get(key);
         if (l != null) {
-            return l.isPrimaryProxy();
+            return l.getListenerSpec().isPrimaryProxy();
         } else {
             return false;
         }
@@ -254,13 +254,13 @@ public class Proxy implements Plugin {
      * @throws IOException if there are any problems starting the Listener
      */
     
-    public void addListener(String address, int port, HttpUrl base, boolean primary) throws IOException {
-        Listener l = createListener(address, port, base, primary);
+    public void addListener(ListenerSpec spec) throws IOException {
+        Listener l = createListener(spec);
         startListener(l);
         
-        String key = l.getKey();
-        Preferences.setPreference("Proxy.listener." + key + ".base", base == null ? "" : base.toString());
-        Preferences.setPreference("Proxy.listener." + key + ".primary", primary == true ? "yes" : "no");
+        String key = getKey(spec);
+        Preferences.setPreference("Proxy.listener." + key + ".base", spec.getBase() == null ? "" : spec.getBase().toString());
+        Preferences.setPreference("Proxy.listener." + key + ".primary", spec.isPrimaryProxy() == true ? "yes" : "no");
         
         String value = null;
         Iterator i = _listeners.keySet().iterator();
@@ -275,16 +275,20 @@ public class Proxy implements Plugin {
         Preferences.setPreference("Proxy.listeners", value);
     }
     
+    private String getKey(ListenerSpec spec) {
+        return spec.getAddress() + ":" + spec.getPort();
+    }
+    
     private void startListener(Listener l) {
-        Thread t = new Thread(l, "Listener-"+l.getKey());
+        Thread t = new Thread(l, "Listener-"+getKey(l.getListenerSpec()));
         t.setDaemon(true);
         t.start();
-        if (_ui != null) _ui.proxyStarted(l.getKey());
+        if (_ui != null) _ui.proxyStarted(getKey(l.getListenerSpec()));
     }
     
     private boolean stopListener(Listener l) {
         boolean stopped = l.stop();
-        if (stopped && _ui != null) _ui.proxyStopped(l.getKey());
+        if (stopped && _ui != null) _ui.proxyStopped(getKey(l.getListenerSpec()));
         return stopped;
     }
     
@@ -348,7 +352,7 @@ public class Proxy implements Plugin {
             String key = (String) it.next();
             Listener l = (Listener) _listeners.get(key);
             if (!stopListener(l)) {
-                _logger.severe("Failed to stop Listener-" + l.getKey());
+                _logger.severe("Failed to stop Listener-" + getKey(l.getListenerSpec()));
                 _running = true;
             }
         }
@@ -431,30 +435,23 @@ public class Proxy implements Plugin {
                 }
             }
             
-            prop = "Proxy.listener." + listeners[i] + ".simulator";
-            value = Preferences.getPreference(prop, "Unlimited");
-            
             prop = "Proxy.listener." + listeners[i] + ".primary";
             value = Preferences.getPreference(prop, "false");
             primary = value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes");
             
             try {
-                Listener l = createListener(addr, port, base, primary);
+                ListenerSpec spec = new ListenerSpec(addr, port, base, primary);
+                Listener l = createListener(spec);
             } catch (IOException ioe) {
                 _logger.severe("Error starting proxy (" + addr + ":" + port + " " + base + " " + ioe);
             }
         }
     }
     
-    private Listener createListener(String address, int port, HttpUrl base, boolean primaryProxy) throws IOException {
-        if (base != null && base.equals("")) {
-            base = null;
-        }
-        Listener l = new Listener(this, address, port);
-        l.setBase(base);
-        l.setPrimaryProxy(primaryProxy);
+    private Listener createListener(ListenerSpec spec) throws IOException {
+        Listener l = new Listener(this, spec);
+        String key = getKey(spec);
         
-        String key = l.getKey();
         _listeners.put(key, l);
         
         if (_ui != null) _ui.proxyAdded(key);
