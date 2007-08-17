@@ -69,7 +69,6 @@ public class ConnectionHandler implements Runnable {
     private Proxy _proxy;
     private Socket _sock = null;
     private HttpUrl _base;
-    private NetworkSimulator _simulator;
 
     private HTTPClient _httpClient = null;
 
@@ -80,11 +79,10 @@ public class ConnectionHandler implements Runnable {
     private InputStream _serverIn = null;
     private OutputStream _serverOut = null;
 
-    public ConnectionHandler(Proxy proxy, Socket sock, HttpUrl base, NetworkSimulator simulator) {
+    public ConnectionHandler(Proxy proxy, Socket sock, HttpUrl base) {
         _proxy = proxy;
         _sock = sock;
         _base = base;
-        _simulator = simulator;
         _plugins = _proxy.getPlugins();
         try {
             _sock.setTcpNoDelay(true);
@@ -102,10 +100,6 @@ public class ConnectionHandler implements Runnable {
         try {
             _clientIn = _sock.getInputStream();
             _clientOut = _sock.getOutputStream();
-            if (_simulator != null) {
-                _clientIn = _simulator.wrapInputStream(_clientIn);
-                _clientOut = _simulator.wrapOutputStream(_clientOut);
-            }
         } catch (IOException ioe) {
             _logger.severe("Error getting socket input and output streams! " + ioe);
             return;
@@ -158,10 +152,6 @@ public class ConnectionHandler implements Runnable {
                     _sock = negotiateSSL(_sock);
                     _clientIn = _sock.getInputStream();
                     _clientOut = _sock.getOutputStream();
-                    if (_simulator != null) {
-                        _clientIn = _simulator.wrapInputStream(_clientIn);
-                        _clientOut = _simulator.wrapOutputStream(_clientOut);
-                    }
                 }
             }
 

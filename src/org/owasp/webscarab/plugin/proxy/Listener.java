@@ -66,7 +66,6 @@ public class Listener implements Runnable {
     private String _address;
     private int _port;
     private HttpUrl _base = null;
-    private NetworkSimulator _simulator = null;
     private boolean _primaryProxy = false;
     
     private ServerSocket _serversocket = null;
@@ -122,7 +121,7 @@ public class Listener implements Runnable {
             try {
                 sock = _serversocket.accept();
                 InetAddress address = sock.getInetAddress();
-                ch = new ConnectionHandler(_proxy, sock, _base, _simulator);
+                ch = new ConnectionHandler(_proxy, sock, _base);
                 thread = new Thread(ch, Thread.currentThread().getName()+"-"+Integer.toString(_count++));
                 thread.setDaemon(true);
                 thread.start();
@@ -187,14 +186,6 @@ public class Listener implements Runnable {
     
     public HttpUrl getBase() {
         return _base;
-    }
-    
-    public void setSimulator(NetworkSimulator simulator) {
-        _simulator = simulator;
-    }
-    
-    public NetworkSimulator getSimulator() {
-        return _simulator;
     }
     
     public void setPrimaryProxy(boolean primary) {

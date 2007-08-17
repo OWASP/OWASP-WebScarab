@@ -104,7 +104,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
             columnModel.getColumn(i).setPreferredWidth(columnWidths[i][2]);
         }
         
-        networkComboBox.setModel(new DefaultComboBoxModel(_proxy.getSimulators()));
+        networkComboBox.setModel(new DefaultComboBoxModel(new String[] { "Unlimited" }));
         networkComboBox.setSelectedItem("Unlimited");
         
         String[] keys = _proxy.getProxies();
@@ -363,9 +363,8 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
             if (!baseTextField.getText().equals("")) {
                 base = new HttpUrl(baseTextField.getText());
             }
-            String simulator = (String) networkComboBox.getSelectedItem();
             boolean primary = primaryCheckBox.isSelected();
-            _proxy.addListener(address, port, base, simulator, primary);
+            _proxy.addListener(address, port, base, primary);
             addressTextField.setText("");
             portTextField.setText("");
             baseTextField.setText("");
@@ -383,7 +382,6 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         String address = _proxy.getAddress(key);
         String port = Integer.toString(_proxy.getPort(key));
         HttpUrl base = _proxy.getBase(key);
-        String simulator = _proxy.getSimulator(key);
         boolean primary = _proxy.isPrimaryProxy(key);
         if (!_proxy.removeListener(key)) {
             _logger.severe("Failed to stop " + key);
@@ -391,11 +389,6 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
             addressTextField.setText(address);
             portTextField.setText(port);
             baseTextField.setText(base == null ? "" : base.toString());
-            if (simulator != null) {
-                networkComboBox.setSelectedItem(simulator);
-            } else {
-                networkComboBox.setSelectedItem("Unlimited");
-            }
             primaryCheckBox.setSelected(primary);
         }
     }//GEN-LAST:event_stopButtonActionPerformed

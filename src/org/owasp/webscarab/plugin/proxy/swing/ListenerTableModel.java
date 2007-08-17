@@ -55,11 +55,11 @@ public class ListenerTableModel extends AbstractTableModel {
     private ArrayList _listeners = new ArrayList();
     
     protected String [] columnNames = {
-        "Address", "Port", "Base URL", "Simulated network", "Primary"
+        "Address", "Port", "Base URL", "Primary"
     };
     
     protected Class[] columnClass = {
-        String.class, Integer.class, String.class, String.class, Boolean.class
+        String.class, Integer.class, String.class, Boolean.class
     };
     
     public ListenerTableModel(Proxy proxy) {
@@ -96,8 +96,7 @@ public class ListenerTableModel extends AbstractTableModel {
                 case 0: return _proxy.getAddress(key);
                 case 1: return new Integer(_proxy.getPort(key));
                 case 2: return _proxy.getBase(key);
-                case 3: return _proxy.getSimulator(key);
-                case 4: return new Boolean(_proxy.isPrimaryProxy(key));
+                case 3: return new Boolean(_proxy.isPrimaryProxy(key));
                 default: return null;
             }
         } else {

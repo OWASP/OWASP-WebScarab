@@ -78,7 +78,6 @@ public class Proxy implements Plugin {
     
     private ArrayList _plugins = new ArrayList();
     private TreeMap _listeners = new TreeMap();
-    private TreeMap _simulators = new TreeMap();
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -111,7 +110,6 @@ public class Proxy implements Plugin {
      */
     public Proxy(Framework framework) {
         _framework = framework;
-        createSimulators();
         createListeners();
     }
     
@@ -221,29 +219,6 @@ public class Proxy implements Plugin {
         }
     }
     
-    /**
-     * Used to obtain a list of known network simulators, which can be used to simulate
-     * a modem or other bandwidth limited connection
-     * @return an array of Simulator keys
-     */
-    public String[] getSimulators() {
-        return (String[])_simulators.keySet().toArray(new String[0]);
-    }
-    
-    public String getSimulator(String key) {
-        Listener l = (Listener) _listeners.get(key);
-        if (l != null) {
-            NetworkSimulator netsim = l.getSimulator();
-            if (netsim != null) {
-                return netsim.getName();
-            } else {
-                return "Unlimited";
-            }
-        } else {
-            return "Unlimited";
-        }
-    }
-    
     public boolean isPrimaryProxy(String key) {
         Listener l = (Listener) _listeners.get(key);
         if (l != null) {
@@ -279,13 +254,12 @@ public class Proxy implements Plugin {
      * @throws IOException if there are any problems starting the Listener
      */
     
-    public void addListener(String address, int port, HttpUrl base, String simulator, boolean primary) throws IOException {
-        Listener l = createListener(address, port, base, simulator, primary);
+    public void addListener(String address, int port, HttpUrl base, boolean primary) throws IOException {
+        Listener l = createListener(address, port, base, primary);
         startListener(l);
         
         String key = l.getKey();
         Preferences.setPreference("Proxy.listener." + key + ".base", base == null ? "" : base.toString());
-        Preferences.setPreference("Proxy.listener." + key + ".simulator", simulator);
         Preferences.setPreference("Proxy.listener." + key + ".primary", primary == true ? "yes" : "no");
         
         String value = null;
@@ -422,16 +396,6 @@ public class Proxy implements Plugin {
         _status = "Started, " + (_pending>0? (_pending + " in progress") : "Idle");
     }
     
-    private void createSimulators() {
-        _simulators.put("Unlimited", null);
-        _simulators.put("T1", new NetworkSimulator("T1", 3, 1544000/10, 1544000/10));
-        _simulators.put("DSL (384k down, 128k up)", new NetworkSimulator("DSL (384k down, 128k up)", 10, 128*1024/10, 384*1024/10));
-        _simulators.put("Bonded ISDN", new NetworkSimulator("Bonded ISDN", 20, 128*1024/10, 128*1024/10));
-        _simulators.put("ISDN", new NetworkSimulator("ISDN", 20, 64*1024/10, 64*1024/10));
-        _simulators.put("56k modem", new NetworkSimulator("56k modem", 200, 33600/10, 56000/10));
-        _simulators.put("28k modem", new NetworkSimulator("28k modem", 200, 28800/10));
-    }
-    
     private void createListeners() {
         String prop = "Proxy.listeners";
         String value = Preferences.getPreference(prop);
@@ -444,7 +408,6 @@ public class Proxy implements Plugin {
         String addr;
         int port = 0;
         HttpUrl base;
-        String simulator = null;
         boolean primary = false;
         
         for (int i=0; i<listeners.length; i++) {
@@ -471,36 +434,24 @@ public class Proxy implements Plugin {
             prop = "Proxy.listener." + listeners[i] + ".simulator";
             value = Preferences.getPreference(prop, "Unlimited");
             
-            if (!value.trim().equals("") && _simulators.containsKey(value)) {
-                simulator = value;
-            } else {
-                _logger.warning("Unknown network simulator '" + value + "'");
-            }
-            
             prop = "Proxy.listener." + listeners[i] + ".primary";
             value = Preferences.getPreference(prop, "false");
             primary = value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes");
             
             try {
-                Listener l = createListener(addr, port, base, simulator, primary);
+                Listener l = createListener(addr, port, base, primary);
             } catch (IOException ioe) {
                 _logger.severe("Error starting proxy (" + addr + ":" + port + " " + base + " " + ioe);
             }
         }
     }
     
-    private Listener createListener(String address, int port, HttpUrl base, String simulator, boolean primaryProxy) throws IOException {
+    private Listener createListener(String address, int port, HttpUrl base, boolean primaryProxy) throws IOException {
         if (base != null && base.equals("")) {
             base = null;
         }
-        if (simulator == null || simulator.trim().equals("") || !_simulators.containsKey(simulator)) {
-            simulator = "Unlimited";
-        }
-        NetworkSimulator netsim = (NetworkSimulator) _simulators.get(simulator);
-        
         Listener l = new Listener(this, address, port);
         l.setBase(base);
-        l.setSimulator(netsim);
         l.setPrimaryProxy(primaryProxy);
         
         String key = l.getKey();
