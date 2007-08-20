@@ -265,7 +265,7 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
         try { 
             if (textPane.getSelectionEnd() == textPane.getSelectionStart())
                 textPane.select(0,textPane.getText().length());
-            textPane.replaceSelection(new String(Encoding.base64decode(textPane.getSelectedText())));
+            textPane.replaceSelection(new String(Encoding.base64decode(textPane.getSelectedText(), false)));
         } catch (Throwable t) {
             Runtime.getRuntime().gc();
             t.printStackTrace();
@@ -289,7 +289,7 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
         try { 
             if (textPane.getSelectionEnd() == textPane.getSelectionStart())
                 textPane.select(0,textPane.getText().length());
-            textPane.replaceSelection(Encoding.base64encode(textPane.getSelectedText().getBytes()));
+            textPane.replaceSelection(Encoding.base64encode(textPane.getSelectedText().getBytes(), false));
         } catch (Throwable t) {
             Runtime.getRuntime().gc();
             t.printStackTrace();

@@ -119,6 +119,10 @@ public final class Encoding {
      * @return the Base64 encoded String representing the plain bytecode
      */
     public static String base64encode( byte[] code ) {
+        return base64encode(code, true);
+    }
+    
+    public static String base64encode( byte[] code, boolean crlf) {
         if ( null == code )
             return null;
         if ( 0 == code.length )
@@ -127,7 +131,7 @@ public final class Encoding {
         // remainder of the encoding process
         int rem = len % 3;
         // size of the destination byte array
-        byte[] dst = new byte[4 + (((len - 1) / 3) << 2) + (len / 57)];
+        byte[] dst = new byte[4 + (((len - 1) / 3) << 2) + (crlf ? len / 57 : 0)];
         // actual column of the destination string;
         // RFC 1341 requires a linefeed every 58 data bytes
         int column = 0;
@@ -148,7 +152,7 @@ public final class Encoding {
             dst[ dpos++ ] = _base64en[ 0x3f & b2 ];
             spos += 3;
             column += 3;
-            if ( 57 == column ) {
+            if ( crlf && 57 == column ) {
                 dst[ dpos++ ] = 10;
                 column = 0;
             }
@@ -186,11 +190,15 @@ public final class Encoding {
      * @return the plain bytecode represented by the Base64 encoded String
      */
     public static byte[] base64decode( String coded ) {
+        return base64decode(coded, true);
+    }
+    
+    public static byte[] base64decode( String coded, boolean crlf ) {
         if ( null == coded )
             return null;
         byte[] src = coded.getBytes();
         int len = src.length;
-        int dlen = len - (len/77);
+        int dlen = len - (crlf ? len/77 : 0);
         dlen = (dlen >>> 2) + (dlen >>> 1);
         int rem = 0;
         if ( 61 == src[ len - 1 ] )
@@ -222,7 +230,7 @@ public final class Encoding {
             // skip linefeed which is only allowed here; if at that pos is any
             // other char then the input is goofed and we throw an
             // exception
-            if ( 76 == col ) {
+            if ( crlf && 76 == col ) {
                 if ( 10 != src[ pos++ ] )
                     throw new RuntimeException( "No linefeed found at position " + (pos - 1 ) );
                 col = 0;

@@ -175,14 +175,14 @@ public class CredentialManager implements Authenticator {
         BasicCredential cred = (BasicCredential) realms.get(realm);
         if (cred == null) return null;
         String encoded = cred.getUsername() + ":" + cred.getPassword();
-        return Encoding.base64encode(encoded.getBytes());
+        return Encoding.base64encode(encoded.getBytes(), false);
     }
     
     private String getDomainCredentials(String host) {
         DomainCredential cred = (DomainCredential) _domainCredentials.get(host);
         if (cred == null) return null;
         String encoded = cred.getDomain() + "\\" + cred.getUsername() + ":" + cred.getPassword();
-        return Encoding.base64encode(encoded.getBytes());
+        return Encoding.base64encode(encoded.getBytes(), false);
     }
     
 }
