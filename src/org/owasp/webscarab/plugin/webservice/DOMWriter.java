@@ -28,8 +28,6 @@ import org.w3c.dom.NodeList;
  */
 public class DOMWriter {
     
-    private Map namespaces = new HashMap();
-    
     /** Creates a new instance of DOMWriter */
     public DOMWriter() {
     }

@@ -23,7 +23,6 @@ public class Hook {
     private String _description;
     private List _scripts = new ArrayList();
     protected BSFManager _bsfManager = null;
-    private ScriptManager _scriptManager = null;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -35,10 +34,6 @@ public class Hook {
     
     public void setBSFManager(BSFManager bsfManager) {
         _bsfManager = bsfManager;
-    }
-    
-    public void setScriptManager(ScriptManager scriptManager) {
-        _scriptManager = scriptManager;
     }
     
     protected void runScripts() {

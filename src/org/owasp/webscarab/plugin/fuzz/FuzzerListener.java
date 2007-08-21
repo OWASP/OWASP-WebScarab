@@ -8,8 +8,6 @@ package org.owasp.webscarab.plugin.fuzz;
 
 import java.util.EventListener;
 
-import org.owasp.webscarab.model.HttpUrl;
-
 /**
  *
  * @author  rogan

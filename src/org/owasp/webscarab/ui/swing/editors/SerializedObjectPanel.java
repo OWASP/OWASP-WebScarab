@@ -107,46 +107,4 @@ public class SerializedObjectPanel extends ObjectPanel implements ByteArrayEdito
         return _data;
     }
     
-    public static void main(String[] args) {
-        org.owasp.webscarab.model.Response response = new org.owasp.webscarab.model.Response();
-        try {
-            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-            String filename = "c:/temp/2-response";
-            if (args.length == 1) {
-                filename = args[0];
-            }
-            java.io.FileInputStream fis = new java.io.FileInputStream(filename);
-            response.read(fis);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
-        }
-        
-        javax.swing.JFrame top = new javax.swing.JFrame("Serialized Object Panel");
-        top.getContentPane().setLayout(new java.awt.BorderLayout());
-        top.addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                System.exit(0);
-            }
-        });
-        
-        javax.swing.JButton button = new javax.swing.JButton("GET");
-        final SerializedObjectPanel sop = new SerializedObjectPanel();
-        top.getContentPane().add(sop);
-        top.getContentPane().add(button, java.awt.BorderLayout.SOUTH);
-        button.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                System.out.println(new String(sop.getBytes()));
-            }
-        });
-        top.setBounds(100,100,600,400);
-        top.setVisible(true);
-        try {
-            sop.setEditable(false);
-            sop.setBytes(null, response.getContent());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    
 }

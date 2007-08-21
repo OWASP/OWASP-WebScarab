@@ -49,8 +49,6 @@ import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.ui.swing.editors.TextPanel;
 
-import java.awt.Component;
-
 import java.util.logging.Logger;
 
 /**

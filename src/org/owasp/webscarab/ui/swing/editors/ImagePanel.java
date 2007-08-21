@@ -53,8 +53,6 @@ import java.io.FileInputStream;
  */
 public class ImagePanel extends javax.swing.JPanel implements ByteArrayEditor {
     
-    
-    private boolean _editable = false;
     private byte[] _data = new byte[0];
     
     /** Creates new form HexEditor */
@@ -68,7 +66,7 @@ public class ImagePanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     public void setEditable(boolean editable) {
-        _editable = editable;
+        throw new UnsupportedOperationException("ImagePanels are not editable!");
     }
     
     public byte[] getBytes() {

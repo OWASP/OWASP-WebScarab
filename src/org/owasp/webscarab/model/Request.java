@@ -47,7 +47,6 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 
 import java.text.ParseException;
-import java.util.logging.Level;
 
 /** This class represents a request that can be sent to an HTTP server.
  * @author rdawes

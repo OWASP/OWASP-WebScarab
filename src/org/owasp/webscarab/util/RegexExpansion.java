@@ -131,7 +131,7 @@ public class RegexExpansion {
      * @param re the RegexExpansion to copy
      */
     protected RegexExpansion(RegexExpansion re) {
-        this.regex = regex;
+        this.regex = re.regex;
         this.charsets = re.charsets;
         this.size = re.size;
         this.index = 0;

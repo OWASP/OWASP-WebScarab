@@ -6,8 +6,6 @@
 
 package org.owasp.webscarab.plugin.fuzz;
 
-import org.owasp.webscarab.model.HttpUrl;
-
 /**
  *
  * @author  rogan

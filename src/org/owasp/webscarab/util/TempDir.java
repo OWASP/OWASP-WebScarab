@@ -32,8 +32,7 @@ public class TempDir {
     
     private static int counter = -1; /* Protected by tmpFileLock */
     
-    private static File generateFile(String prefix, String suffix, File dir)
-    throws IOException {
+    private static File generateFile(String prefix, String suffix, File dir) {
         if (counter == -1) {
             counter = new Random().nextInt() & 0xffff;
         }
@@ -51,8 +50,7 @@ public class TempDir {
         return tmpdir;
     }
     
-    private static boolean checkAndCreate(File file, SecurityManager sm)
-    throws IOException {
+    private static boolean checkAndCreate(File file, SecurityManager sm) {
         if (sm != null) {
             try {
                 sm.checkWrite(file.getPath());
@@ -137,8 +135,7 @@ public class TempDir {
      * @since 1.2
      */
     public static File createTempDir(String prefix, String suffix,
-            File directory)
-            throws IOException {
+            File directory) {
         if (prefix == null) throw new NullPointerException();
         if (prefix.length() < 3)
             throw new IllegalArgumentException("Prefix string too short");

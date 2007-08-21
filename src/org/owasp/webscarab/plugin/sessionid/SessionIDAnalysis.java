@@ -49,7 +49,6 @@ import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.NamedValue;
-import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
@@ -62,21 +61,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-import java.math.BigInteger;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.TreeMap;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import java.util.logging.Logger;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-
-import javax.swing.event.EventListenerList;
 
 /**
  *
@@ -84,7 +77,6 @@ import javax.swing.event.EventListenerList;
  */
 public class SessionIDAnalysis implements Plugin, ConversationHandler {
     
-    private Framework _framework = null;
     private SessionIDModel _model;
     
     private FetcherQueue _fetcherQueue;
@@ -101,11 +93,8 @@ public class SessionIDAnalysis implements Plugin, ConversationHandler {
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
-    private EventListenerList _listenerList = new EventListenerList();
-    
     /** Creates a new instance of SessionidAnalysis */
     public SessionIDAnalysis(Framework framework) {
-        _framework = framework;
         _model = new SessionIDModel(framework.getModel());
         _fetcherQueue = new FetcherQueue("SessionID", this, _threads, 100);
     }
@@ -137,7 +126,6 @@ public class SessionIDAnalysis implements Plugin, ConversationHandler {
         _runThread = Thread.currentThread();
         
         _model.setStopping(false);
-        Response response;
         while (! _model.isStopping()) {
             while (_request != null && _count > 0 && _fetcherQueue.getRequestsQueued() < _threads) {
                 _fetcherQueue.submit(_request);
@@ -147,7 +135,6 @@ public class SessionIDAnalysis implements Plugin, ConversationHandler {
             } catch (InterruptedException ie) {}
         }
         _request = null;
-        _response = null;
         _fetcherQueue.clearRequestQueue();
         _model.setRunning(false);
         _model.setStatus("Stopped");

@@ -10,8 +10,6 @@
 
 package org.owasp.webscarab.plugin;
 
-import org.owasp.webscarab.model.HttpUrl;
-
 /**
  *
  * @author rdawes

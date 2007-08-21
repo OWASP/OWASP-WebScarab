@@ -117,7 +117,7 @@ public final class NtlmPasswordAuthentication implements Principal, Serializable
         try {
             uni = password.getBytes( "UnicodeLittleUnmarked" );
         } catch( UnsupportedEncodingException uee ) {
-            if( log.level > 0 )
+            if( LogStream.level > 0 )
                 uee.printStackTrace( log );
         }
         MD4 md4 = new MD4();
@@ -125,7 +125,7 @@ public final class NtlmPasswordAuthentication implements Principal, Serializable
         try {
             md4.digest(p21, 0, 16);
         } catch (Exception ex) {
-            if( log.level > 0 )
+            if( LogStream.level > 0 )
                 ex.printStackTrace( log );
         }
         E( p21, challenge, p24 );
@@ -144,7 +144,6 @@ public final class NtlmPasswordAuthentication implements Principal, Serializable
     public static byte[] getLMv2Response(String domain, String user,
             String password, byte[] challenge, byte[] clientChallenge) {
         try {
-            byte[] hash = new byte[16];
             byte[] response = new byte[24];
             MD4 md4 = new MD4();
             md4.update(password.getBytes("UnicodeLittleUnmarked"));
@@ -158,7 +157,7 @@ public final class NtlmPasswordAuthentication implements Principal, Serializable
             System.arraycopy(clientChallenge, 0, response, 16, 8);
             return response;
         } catch (Exception ex) {
-            if( log.level > 0 )
+            if( LogStream.level > 0 )
                 ex.printStackTrace( log );
             return null;
         }
@@ -350,7 +349,7 @@ public final class NtlmPasswordAuthentication implements Principal, Serializable
         try {
             getUserSessionKey(challenge, key, 0); 
         } catch (Exception ex) {
-            if( log.level > 0 )
+            if( LogStream.level > 0 )
                 ex.printStackTrace( log );
         }
         return key; 

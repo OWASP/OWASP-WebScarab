@@ -91,8 +91,6 @@ public class Spider implements Plugin, ConversationHandler {
     private SpiderModel _model = null;
     private Framework _framework = null;
     
-    private SpiderUI _ui = null;
-    
     private FetcherQueue _fetcherQueue = null;
     private int _threads = 4;
     
@@ -109,10 +107,6 @@ public class Spider implements Plugin, ConversationHandler {
     
     public SpiderModel getModel() {
         return _model;
-    }
-    
-    public void setUI(SpiderUI ui) {
-        _ui = ui;
     }
     
     public String getPluginName() {
@@ -225,7 +219,6 @@ public class Spider implements Plugin, ConversationHandler {
     }
     
     public void requestLinksUnder(HttpUrl url) {
-        int count = 0;
         List links = new LinkedList();
         // build up a list of links
         queueLinksUnder(url, links, 50);
@@ -234,7 +227,6 @@ public class Spider implements Plugin, ConversationHandler {
     }
     
     private void queueLinksUnder(HttpUrl url, List links, int max) {
-        Link link;
         String referer;
         if (_model.isUnseen(url)) {
             if (! _model.isForbidden(url)) {

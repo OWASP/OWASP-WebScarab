@@ -55,8 +55,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 
-import java.util.logging.Logger;
-
 /**
  *
  * @author  knoppix
@@ -67,21 +65,13 @@ public class FileSystemStore implements SessionIDStore {
     
     private File _dir;
     
-    private Logger _logger = Logger.getLogger(getClass().getName());
-    
     /** Creates a new instance of FileSystemStore */
     public FileSystemStore(File dir) throws StoreException {
         _dir = dir;
         File f = new File(_dir, "sessionids");
         if (f.exists()) {
             load();
-        } else {
-            create();
         }
-    }
-    
-    private void create() throws StoreException {
-        // we create our files when we save
     }
     
     private void load() throws StoreException {

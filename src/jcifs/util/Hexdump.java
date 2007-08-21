@@ -19,7 +19,6 @@
 
 package jcifs.util;
 
-import java.io.OutputStream;
 import java.io.PrintStream;
 
 /**

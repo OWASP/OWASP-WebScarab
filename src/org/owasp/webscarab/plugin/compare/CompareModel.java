@@ -7,30 +7,18 @@
 package org.owasp.webscarab.plugin.compare;
 
 import EDU.oswego.cs.dl.util.concurrent.Sync;
-import EDU.oswego.cs.dl.util.concurrent.ReadWriteLock;
-
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.AbstractConversationModel;
 import org.owasp.webscarab.model.ConversationID;
-import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.model.Request;
-import org.owasp.webscarab.model.Response;
-
 import org.owasp.webscarab.plugin.AbstractPluginModel;
 
-import org.owasp.webscarab.util.LevenshteinDistance;
-import org.owasp.webscarab.util.ReentrantReaderPreferenceReadWriteLock;
-
 import java.util.Collections;
-import java.util.List;
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 
 import java.util.logging.Logger;
-import java.util.logging.Level;
 
 /**
  *
@@ -39,8 +27,6 @@ import java.util.logging.Level;
 public class CompareModel extends AbstractPluginModel {
     
     private FrameworkModel _model = null;
-    
-    private LevenshteinDistance _diff = null;
     
     private Map _distances = new HashMap();
     private ArrayList _compared = new ArrayList();

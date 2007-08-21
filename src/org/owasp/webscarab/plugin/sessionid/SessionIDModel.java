@@ -32,7 +32,6 @@ public class SessionIDModel extends AbstractPluginModel {
     private FrameworkModel _model;
     private SessionIDStore _store = null;
     
-    private Map _sessionIDs = new TreeMap();
     private Map _calculators = new TreeMap();
     
     private Logger _logger = Logger.getLogger(getClass().getName());
@@ -48,7 +47,7 @@ public class SessionIDModel extends AbstractPluginModel {
         return _model.getConversationModel();
     }
     
-    public void setStore(SessionIDStore store) throws StoreException {
+    public void setStore(SessionIDStore store) {
         _calculators.clear();
         _store = store;
         for (int i=0; i<_store.getSessionIDNameCount(); i++) {

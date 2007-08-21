@@ -20,9 +20,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.logging.Logger;
-import java.util.logging.Level;
-import java.net.MalformedURLException;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Preferences;
@@ -33,7 +30,6 @@ import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Hook;
 import org.owasp.webscarab.plugin.Plugin;
 import org.owasp.webscarab.plugin.extensions.ExtensionsModel;
-import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.httpclient.FetcherQueue;
 import org.owasp.webscarab.httpclient.ConversationHandler;
 import org.owasp.webscarab.model.UrlModel;
@@ -48,8 +44,6 @@ public class Extensions implements Plugin, ConversationHandler {
     
     private Framework _framework;
     private ExtensionsModel _model;
-    private Logger _logger = Logger.getLogger(getClass().getName());
-    private Thread _runThread;
     private FetcherQueue _fetcherQueue = null;
     private int _threads = 4;
     private int _delay = 100;
@@ -110,12 +104,9 @@ public class Extensions implements Plugin, ConversationHandler {
         _model.setRunning(true);
         Request newReq;
         HttpUrl origUrl;
-        Response resp;
-        HttpUrl url;
 
         _model.setStatus("Started");
         _model.setStopping(false);
-        _runThread = Thread.currentThread();
 
         // start the fetchers
         _fetcherQueue = new FetcherQueue(getPluginName(), this, _threads, _delay);
@@ -147,7 +138,6 @@ public class Extensions implements Plugin, ConversationHandler {
         _fetcherQueue.clearRequestQueue();
         _fetcherQueue.stop();
         _model.setRunning(false);
-        _runThread = null;
         _model.setStatus("Stopped");
     }
     
@@ -187,7 +177,7 @@ public class Extensions implements Plugin, ConversationHandler {
         return _model;
     }
     
-    public void checkExtensionsUnder(HttpUrl url) throws IOException {
+    public void checkExtensionsUnder(HttpUrl url) {
         List links = new LinkedList();        
         
         queueLinksUnder(url, links, MAXLINKS);        
@@ -211,7 +201,7 @@ public class Extensions implements Plugin, ConversationHandler {
     }
         
     
-    public void checkExtensionsFor(HttpUrl urls[]) throws IOException {
+    public void checkExtensionsFor(HttpUrl urls[]) {
         // I select a bunch of URL's, click check THESE
         for (int ix=0; ix < urls.length; ix++) {
                 _model.enqueueURL(urls[ix]);

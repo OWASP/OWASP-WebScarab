@@ -10,8 +10,6 @@ import EDU.oswego.cs.dl.util.concurrent.Sync;
 
 import org.owasp.webscarab.model.*;
 import org.owasp.webscarab.plugin.*;
-import org.owasp.webscarab.util.ReentrantReaderPreferenceReadWriteLock;
-
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.List;
@@ -31,7 +29,6 @@ public class SearchModel extends AbstractPluginModel {
     
     private FrameworkModel _model;
     private SearchConversationModel _conversationModel;
-    private UrlModel _urlModel;
     
     private Map _searches = new TreeMap();
     

@@ -11,7 +11,6 @@
 package org.owasp.webscarab.plugin.extensions;
 
 import java.util.logging.Logger;
-import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import org.owasp.webscarab.model.ConversationID;
@@ -21,7 +20,6 @@ import org.owasp.webscarab.model.FilteredUrlModel;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.UrlModel;
-import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.plugin.AbstractPluginModel;
 
 /**

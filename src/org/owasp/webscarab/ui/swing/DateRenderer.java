@@ -9,9 +9,6 @@ package org.owasp.webscarab.ui.swing;
 import org.owasp.webscarab.model.Preferences;
 
 import java.util.Date;
-import javax.swing.JLabel;
-import javax.swing.JTable;
-import java.awt.Component;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import java.text.SimpleDateFormat;

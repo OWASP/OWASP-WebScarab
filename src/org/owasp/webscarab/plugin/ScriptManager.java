@@ -10,15 +10,9 @@ import java.io.File;
 import java.io.IOException;
 import org.apache.bsf.BSFManager;
 import org.apache.bsf.BSFException;
-import org.apache.bsf.BSFEngine;
-
-import java.util.Vector;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import javax.swing.event.EventListenerList;
@@ -65,7 +59,6 @@ public class ScriptManager {
             _hooks.put(pluginName, hooks);
             for (int i=0; i<hooks.length; i++) {
                 hooks[i].setBSFManager(_bsfManager);
-                hooks[i].setScriptManager(this);
             }
             fireHooksChanged();
         }

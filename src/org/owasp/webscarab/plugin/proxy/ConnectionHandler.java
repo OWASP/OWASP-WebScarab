@@ -76,8 +76,6 @@ public class ConnectionHandler implements Runnable {
 
     private InputStream _clientIn = null;
     private OutputStream _clientOut = null;
-    private InputStream _serverIn = null;
-    private OutputStream _serverOut = null;
 
     public ConnectionHandler(Proxy proxy, Socket sock, HttpUrl base) {
         _proxy = proxy;

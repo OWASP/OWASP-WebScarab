@@ -19,7 +19,6 @@ import org.owasp.webscarab.model.FilteredConversationModel;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.NamedValue;
-import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.AbstractPluginModel;
 

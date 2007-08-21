@@ -39,26 +39,16 @@
 
 package org.owasp.webscarab.plugin;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
-import java.util.jar.Attributes.Name;
 import java.util.logging.Logger;
-import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
-import org.owasp.webscarab.httpclient.SSLContextManager;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;

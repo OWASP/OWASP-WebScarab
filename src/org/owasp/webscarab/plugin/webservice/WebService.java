@@ -15,12 +15,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +25,6 @@ import java.util.logging.Logger;
 import javax.wsdl.Binding;
 import javax.wsdl.BindingInput;
 import javax.wsdl.BindingOperation;
-import javax.wsdl.BindingOutput;
 import javax.wsdl.Definition;
 import javax.wsdl.Input;
 import javax.wsdl.Message;
@@ -86,10 +82,6 @@ public class WebService implements Plugin {
     
     private Framework _framework;
     private WebServiceModel _model;
-    
-    private Request _request = null;
-    private Response _response = null;
-    private Date _responseDate = null;
     
     private Logger _logger = Logger.getLogger(getClass().toString());
     
@@ -198,7 +190,7 @@ public class WebService implements Plugin {
         return null;
     }
     
-    public void selectWSDL(Definition definition) throws WSDLException {
+    public void selectWSDL(Definition definition) {
         _model.setDefinition(definition);
         Schema schema = createSchemaFromTypes(_model.getDefinition());
         if (schema != null) {
@@ -640,7 +632,6 @@ public class WebService implements Plugin {
             
             // For each binding operation, create a new OperationInfo
             Iterator opIter = operations.iterator();
-            int i = 0;
             
             while(opIter.hasNext()) {
                 BindingOperation oper = (BindingOperation)opIter.next();
@@ -690,9 +681,6 @@ public class WebService implements Plugin {
         
         // Get the Binding Input
         BindingInput bindingInput = bindingOper.getBindingInput();
-        
-        // Get the Binding Output
-        BindingOutput bindingOutput = bindingOper.getBindingOutput();
         
         // Get the SOAP Body
         ExtensibilityElement bodyElem = findExtensibilityElement(bindingInput.getExtensibilityElements(), "body");

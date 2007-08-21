@@ -42,20 +42,15 @@ package org.owasp.webscarab.ui.swing.editors;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
 import org.owasp.webscarab.util.swing.TreeUtil;
 
 import org.w3c.dom.*;
 import javax.xml.parsers.*;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 
 import java.awt.Component;
 import javax.swing.JTree;
-import javax.swing.JLabel;
 import org.owasp.webscarab.util.swing.MultiLineTreeCellRenderer;
 import org.owasp.webscarab.util.swing.DOMTreeModel;
 
@@ -73,8 +68,6 @@ public class XMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
     private boolean _modified = false;
     
     private byte[] _data = new byte[0];
-    
-    private SearchDialog _searchDialog = null;
     
     /** Creates new form XMLPanel */
     public XMLPanel() {

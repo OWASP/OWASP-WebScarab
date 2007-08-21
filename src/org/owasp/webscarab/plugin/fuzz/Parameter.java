@@ -6,13 +6,11 @@
 
 package org.owasp.webscarab.plugin.fuzz;
 
-import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.util.Encoding;
 
-import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 

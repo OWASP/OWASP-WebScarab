@@ -46,10 +46,6 @@ import java.net.InetSocketAddress;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -73,8 +69,6 @@ import org.owasp.webscarab.util.Glob;
  * @author rdawes
  */
 public class URLFetcher implements HTTPClient {
-
-    private static SocketWatcher watcher = new SocketWatcher();
 
     // These represent the SSL classes required to connect to the server.
     private String _keyFingerprint = null;
@@ -424,7 +418,7 @@ public class URLFetcher implements HTTPClient {
             // Use the factory to create a secure socket connected to the
             // HTTPS port of the specified web server.
             try {
-                SSLSocketFactory factory = (SSLSocketFactory) sslContext.getSocketFactory();
+                SSLSocketFactory factory = sslContext.getSocketFactory();
                 SSLSocket sslsocket=(SSLSocket)factory.createSocket(_socket,_socket.getInetAddress().getHostName(),_socket.getPort(),true);
                 sslsocket.setUseClientMode(true);
                 _socket = sslsocket;
@@ -524,7 +518,6 @@ public class URLFetcher implements HTTPClient {
     }
 
     private String attemptNegotiation(String challenge, String credentials) {
-        String authProperty = null;
         String authMethod = null;
         String authorization = null;
         if (challenge.startsWith("NTLM")) {

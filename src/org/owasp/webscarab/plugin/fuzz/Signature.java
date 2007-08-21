@@ -7,25 +7,17 @@
 package org.owasp.webscarab.plugin.fuzz;
 
 import java.net.MalformedURLException;
-import org.owasp.webscarab.model.Cookie;
-import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.HttpUrl;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-
-import java.net.MalformedURLException;
 
 /**
  *
  * @author  rogan
  */
 public class Signature {
-    
-    private static Parameter[] NONE = new Parameter[0];
     
     private String _method;
     private HttpUrl _url;

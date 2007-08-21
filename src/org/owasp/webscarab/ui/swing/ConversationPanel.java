@@ -60,8 +60,6 @@ import java.awt.Dimension;
 import java.awt.Point;
 
 import javax.swing.JFrame;
-import javax.swing.border.TitledBorder;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 

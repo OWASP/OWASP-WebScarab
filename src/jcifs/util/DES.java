@@ -60,8 +60,6 @@
 
 package jcifs.util;
 
-import java.io.*;
-
 /**
  * This code is derived from the above source
  * JCIFS API

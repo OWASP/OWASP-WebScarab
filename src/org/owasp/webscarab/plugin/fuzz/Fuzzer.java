@@ -54,11 +54,6 @@ import org.owasp.webscarab.plugin.Hook;
 
 import org.owasp.webscarab.util.Encoding;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-
 import java.util.logging.Logger;
 
 import java.net.URL;
@@ -68,8 +63,6 @@ import java.net.MalformedURLException;
 
 public class Fuzzer implements Plugin, ConversationHandler {
     
-    private static Parameter[] NO_PARAMS = new Parameter[0];
-    
     private FuzzerModel _model = null;
     private Framework _framework = null;
     private FuzzFactory _fuzzFactory = new FuzzFactory();
@@ -77,11 +70,7 @@ public class Fuzzer implements Plugin, ConversationHandler {
     private FetcherQueue _fetcherQueue = null;
     private int _threads = 4;
     
-    private Thread _runThread = null;
-    
     private Logger _logger = Logger.getLogger(getClass().getName());
-    
-    private int _fuzzPriority = -1;
     
     public Fuzzer(Framework framework) {
         _framework = framework;
@@ -126,7 +115,6 @@ public class Fuzzer implements Plugin, ConversationHandler {
     public void run() {
         _model.setStatus("Started");
         _model.setStopping(false);
-        _runThread = Thread.currentThread();
         
         _model.setRunning(true);
         while (!_model.isStopping()) {
@@ -140,7 +128,6 @@ public class Fuzzer implements Plugin, ConversationHandler {
         }
         _fetcherQueue.clearRequestQueue();
         _model.setRunning(false);
-        _runThread = null;
         _model.setStatus("Stopped");
     }
     

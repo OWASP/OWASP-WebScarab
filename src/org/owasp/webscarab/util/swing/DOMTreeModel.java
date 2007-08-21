@@ -35,7 +35,6 @@ package org.owasp.webscarab.util.swing;
 
 import org.owasp.webscarab.util.swing.AbstractTreeModel;
 
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import javax.swing.tree.TreePath;

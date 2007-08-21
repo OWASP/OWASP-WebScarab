@@ -39,7 +39,6 @@ package org.owasp.webscarab.plugin.manualrequest;
 
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
-import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.NamedValue;
@@ -54,11 +53,8 @@ import org.owasp.webscarab.plugin.Hook;
 import java.io.IOException;
 
 import java.util.Date;
-import java.util.logging.Logger;
 
 public class ManualRequest implements Plugin {
-    
-    private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     private ManualRequestUI _ui = null;
     

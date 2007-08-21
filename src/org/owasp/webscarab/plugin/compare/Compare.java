@@ -11,7 +11,6 @@ import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.StoreException;
 
 import org.owasp.webscarab.plugin.Framework;
@@ -33,7 +32,6 @@ public class Compare implements Plugin {
     
     private CompareModel _model;
     private ConversationID _selected = null;
-    private HttpUrl _url = null;
     private Thread _runThread = null;
     private Object _lock = new Object();
     private LevenshteinDistance _diff = null;
@@ -51,7 +49,6 @@ public class Compare implements Plugin {
     
     public void setBaseConversation(HttpUrl url, ConversationID id) {
         _model.clearConversations();
-        _url = url;
         _selected = id;
         if (_model.isBusy())
             _runThread.interrupt();
@@ -97,7 +94,6 @@ public class Compare implements Plugin {
     public void run() {
         _runThread = Thread.currentThread();
         _model.setRunning(true);
-        int index = 0;
         int count = 0;
         ConversationID id = null;
         ConversationModel cmodel = _model.getConversationModel();

@@ -41,20 +41,16 @@ package org.owasp.webscarab.ui.swing.editors;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ByteArrayInputStream;
 import java.net.URL;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.HyperlinkEvent.EventType;
-import javax.swing.text.ChangedCharSetException;
 
 import java.util.logging.Logger;
 
 import org.mozilla.intl.chardet.nsDetector;
-import org.mozilla.intl.chardet.nsICharsetDetectionObserver;
 import org.mozilla.intl.chardet.nsPSMDetector;
 
 /**
@@ -62,10 +58,6 @@ import org.mozilla.intl.chardet.nsPSMDetector;
  * @author  rdawes
  */
 public class HTMLPanel extends JPanel implements ByteArrayEditor {
-    
-    private byte[] _data = new byte[0];
-    
-    private SearchDialog _searchDialog = null;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     

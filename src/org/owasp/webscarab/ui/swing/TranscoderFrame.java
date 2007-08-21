@@ -74,7 +74,6 @@ import org.owasp.webscarab.util.Encoding;
 
 public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwner {
     
-    private Clipboard clipboard = getToolkit().getSystemClipboard();
     protected UndoManager undo = new UndoManager();
     protected UndoAction undoAction;
     protected RedoAction redoAction;

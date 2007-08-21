@@ -40,8 +40,6 @@
 package org.owasp.webscarab.plugin.fragments;
 
 import org.owasp.webscarab.model.StoreException;
-import org.owasp.webscarab.util.Encoding;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -58,7 +56,6 @@ import java.util.Iterator;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.IOException;
 
 /**
  *
@@ -67,7 +64,6 @@ import java.io.IOException;
 public class FileSystemStore implements FragmentsStore {
     
     private File _dir;
-    private String _session;
     
     private static final String[] NONE = new String[0];
     
@@ -78,7 +74,6 @@ public class FileSystemStore implements FragmentsStore {
     /** Creates a new instance of FileSystemStore */
     public FileSystemStore(File dir, String session) throws StoreException {
         _dir = dir;
-        _session = session;
         create();
     }
     
@@ -184,7 +179,6 @@ public class FileSystemStore implements FragmentsStore {
         if (_types.size() == 0) return;
         try {
             String type = null;
-            String line;
             List list;
             BufferedWriter bw = new BufferedWriter(new FileWriter(index));
             Iterator it = _types.keySet().iterator();

@@ -66,7 +66,7 @@ public class Config {
             }
             Config.load( in );
         } catch( IOException ioe ) {
-            if( log.level > 0 )
+            if( LogStream.level > 0 )
                 ioe.printStackTrace( log );
         }
 
@@ -74,7 +74,7 @@ public class Config {
             LogStream.setLevel( level );
         }
 
-        if( log.level > 2 ) {
+        if( LogStream.level > 2 ) {
             try {
                 prp.store( log, "JCIFS PROPERTIES" );
             } catch( IOException ioe ) {
@@ -130,7 +130,7 @@ public class Config {
         try {
             Config.prp.putAll( System.getProperties() );
         } catch( SecurityException se ) {
-            if( log.level > 1 )
+            if( LogStream.level > 1 )
                 log.println( "SecurityException: jcifs will ignore System properties" );
         }
     }
@@ -147,7 +147,7 @@ public class Config {
         try {
             prp.putAll( System.getProperties() );
         } catch( SecurityException se ) {
-            if( log.level > 1 )
+            if( LogStream.level > 1 )
                 log.println( "SecurityException: jcifs will ignore System properties" );
         }
     }
@@ -160,7 +160,7 @@ public class Config {
      * List the properties in the <code>Code</code>.
      */
 
-    public static void list( PrintStream out ) throws IOException {
+    public static void list( PrintStream out ) {
         prp.list( out );
     }
 
@@ -209,7 +209,7 @@ public class Config {
             try {
                 def = Integer.parseInt( s );
             } catch( NumberFormatException nfe ) {
-                if( log.level > 0 )
+                if( LogStream.level > 0 )
                     nfe.printStackTrace( log );
             }
         }
@@ -227,7 +227,7 @@ public class Config {
             try {
                 result = Integer.parseInt( s );
             } catch( NumberFormatException nfe ) {
-                if( log.level > 0 )
+                if( LogStream.level > 0 )
                     nfe.printStackTrace( log );
             }
         }
@@ -246,7 +246,7 @@ public class Config {
             try {
                 def = Long.parseLong( s );
             } catch( NumberFormatException nfe ) {
-                if( log.level > 0 )
+                if( LogStream.level > 0 )
                     nfe.printStackTrace( log );
             }
         }
@@ -265,7 +265,7 @@ public class Config {
             try {
                 def = InetAddress.getByName( addr );
             } catch( UnknownHostException uhe ) {
-                if( log.level > 0 ) {
+                if( LogStream.level > 0 ) {
                     log.println( addr );
                     uhe.printStackTrace( log );
                 }
@@ -280,7 +280,7 @@ public class Config {
             try {
                 return InetAddress.getByName( addr );
             } catch( UnknownHostException uhe ) {
-                if( log.level > 0 ) {
+                if( LogStream.level > 0 ) {
                     log.println( "Ignoring jcifs.smb.client.laddr address: " + addr );
                     uhe.printStackTrace( log );
                 }
@@ -319,7 +319,7 @@ public class Config {
                 try {
                     arr[i] = InetAddress.getByName( addr );
                 } catch( UnknownHostException uhe ) {
-                    if( log.level > 0 ) {
+                    if( LogStream.level > 0 ) {
                         log.println( addr );
                         uhe.printStackTrace( log );
                     }

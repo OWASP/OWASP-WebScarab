@@ -40,7 +40,6 @@
 package org.owasp.webscarab.plugin.proxy;
 
 import java.lang.Runnable;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -49,11 +48,6 @@ import java.io.IOException;
 import java.lang.Thread;
 
 import java.util.logging.Logger;
-
-import org.owasp.webscarab.model.ConversationID;
-import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.model.Request;
-import org.owasp.webscarab.model.Response;
 
 import org.owasp.webscarab.util.W32WinInet;
 
@@ -76,7 +70,7 @@ public class Listener implements Runnable {
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
     /** Creates a new instance of Listener */
-    public Listener(Proxy proxy, ListenerSpec spec) throws IOException {
+    public Listener(Proxy proxy, ListenerSpec spec) {
         _proxy = proxy;
         _spec = spec;
     }
@@ -101,7 +95,6 @@ public class Listener implements Runnable {
         while (! _stop) {
             try {
                 sock = _serversocket.accept();
-                InetAddress address = sock.getInetAddress();
                 ch = new ConnectionHandler(_proxy, sock, _spec.getBase());
                 thread = new Thread(ch, Thread.currentThread().getName()+"-"+Integer.toString(_count++));
                 thread.setDaemon(true);

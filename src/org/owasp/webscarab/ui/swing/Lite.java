@@ -44,20 +44,15 @@ import java.awt.BorderLayout;
 import java.io.File;
 import java.io.IOException;
 
-import java.util.ArrayList;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
-import no.geosoft.cc.ui.SplashScreen;
 import org.owasp.webscarab.model.FileSystemStore;
 
 import org.owasp.webscarab.model.Preferences;
@@ -66,17 +61,8 @@ import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.plugin.CredentialManager;
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.FrameworkUI;
-import org.owasp.webscarab.plugin.fragments.Fragments;
-import org.owasp.webscarab.plugin.fragments.swing.FragmentsPanel;
-import org.owasp.webscarab.plugin.proxy.ManualEdit;
-import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.proxy.RevealHidden;
-import org.owasp.webscarab.plugin.proxy.swing.ManualEditPanel;
-import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysis;
-import org.owasp.webscarab.plugin.sessionid.swing.SessionIDPanel;
 import org.owasp.webscarab.util.TempDir;
-import org.owasp.webscarab.util.TextFormatter;
-import org.owasp.webscarab.util.swing.ExceptionHandler;
 import org.owasp.webscarab.util.swing.HeapMonitor;
 import org.owasp.webscarab.util.swing.SwingWorker;
 
@@ -93,7 +79,6 @@ public class Lite extends JFrame implements FrameworkUI {
     
     private Framework _framework;
     private FrameworkModel _model;
-    private ArrayList _plugins;
     
     private SummaryPanel _summaryPanel;
     
@@ -169,13 +154,6 @@ public class Lite extends JFrame implements FrameworkUI {
             } catch (InterruptedException ie) {
                 _logger.info("Interrupted waiting for exit: " + ie);
             }
-        }
-    }
-    
-    private void deleteTempdir() {
-        if (_tempDir != null) {
-            TempDir.recursiveDelete(_tempDir);
-            _tempDir = null;
         }
     }
     
@@ -557,13 +535,7 @@ public class Lite extends JFrame implements FrameworkUI {
     }
     
     private void createTemporarySession() {
-        try {
-            _tempDir = TempDir.createTempDir("webscarab", ".tmp", null);
-        } catch (IOException ioe) {
-            _tempDir = null;
-            JOptionPane.showMessageDialog(null, new String[] {"Error creating a temporary session : ", ioe.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        _tempDir = TempDir.createTempDir("webscarab", ".tmp", null);
         if (_tempDir != null) {
             loadSession(_tempDir);
         }

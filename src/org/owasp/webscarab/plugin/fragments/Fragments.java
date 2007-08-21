@@ -41,12 +41,7 @@ package org.owasp.webscarab.plugin.fragments;
 
 import java.io.File;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
 import java.util.logging.Logger;
-import java.util.Date;
-
 import org.htmlparser.nodes.RemarkNode;
 import org.htmlparser.tags.ScriptTag;
 import org.htmlparser.util.NodeIterator;
@@ -62,10 +57,7 @@ import org.owasp.webscarab.parser.Parser;
 
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
-import org.owasp.webscarab.plugin.PluginUI;
 import org.owasp.webscarab.plugin.Hook;
-
-import org.owasp.webscarab.util.Encoding;
 
 /**
  * This plugin looks for comments and scripts in the source of HTML pages.
@@ -76,16 +68,12 @@ public class Fragments implements Plugin {
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     private FragmentsModel _model = null;
-    private Framework _framework = null;
-    
-    private FragmentsStore _store = null;
     
     /**
      * Creates a new instance of Fragments
      * @param props contains the user's configuration properties
      */
     public Fragments(Framework framework) {
-        _framework = framework;
         _model = new FragmentsModel(framework.getModel());
     }
     

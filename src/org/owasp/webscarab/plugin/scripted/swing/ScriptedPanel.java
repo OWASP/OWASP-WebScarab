@@ -14,23 +14,17 @@ import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.DocumentOutputStream;
 
-import java.awt.Container;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Action;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.DocumentEvent;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-
-import java.awt.Color;
 
 import java.io.PrintStream;
 import java.io.File;
 import java.io.IOException;
 
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 /**
@@ -43,11 +37,9 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
     private static Action[] NO_ACTIONS = new Action[0];
     
     private Scripted _scripted = null;
-    private File _scriptFile = null;
     
     private PrintStream _printStream;
     
-    private Container _top = null; // used to set the title of the floating toolbar
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates new form ScriptedPanel */

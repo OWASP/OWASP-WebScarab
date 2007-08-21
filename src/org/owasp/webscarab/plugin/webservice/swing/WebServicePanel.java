@@ -9,14 +9,12 @@ package org.owasp.webscarab.plugin.webservice.swing;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Iterator;
-import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.wsdl.Definition;
-import javax.wsdl.WSDLException;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.Preferences;
@@ -37,7 +35,6 @@ import org.owasp.webscarab.util.swing.JTreeTable;
 import org.owasp.webscarab.util.swing.ListComboBoxModel;
 import org.owasp.webscarab.util.swing.SwingWorker;
 import org.owasp.webscarab.util.swing.TreeUtil;
-import org.owasp.webscarab.util.swing.treetable.DefaultTreeTableModel;
 
 /**
  *

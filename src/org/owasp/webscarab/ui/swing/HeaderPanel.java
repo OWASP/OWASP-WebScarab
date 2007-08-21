@@ -8,8 +8,6 @@ package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.model.NamedValue;
 
-import org.owasp.webscarab.model.Preferences;
-
 import javax.swing.table.AbstractTableModel;
 
 import java.util.List;

@@ -45,12 +45,10 @@ import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JFrame;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -85,7 +83,6 @@ import javax.help.HelpSet;
 import javax.help.HelpBroker;
 import javax.help.CSH;
 import java.net.URL;
-import java.net.MalformedURLException;
 
 /**
  *
@@ -95,7 +92,6 @@ public class UIFramework extends JFrame implements FrameworkUI {
     
     private Framework _framework;
     private FrameworkModel _model;
-    private ArrayList _plugins;
     
     private CookieJarViewer _cookieJarViewer;
     private CertificateManager _certificateManager;
@@ -180,13 +176,6 @@ public class UIFramework extends JFrame implements FrameworkUI {
             } catch (InterruptedException ie) {
                 _logger.info("Interrupted waiting for exit: " + ie);
             }
-        }
-    }
-    
-    private void deleteTempdir() {
-        if (_tempDir != null) {
-            TempDir.recursiveDelete(_tempDir);
-            _tempDir = null;
         }
     }
     
@@ -638,13 +627,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
     }
     
     private void createTemporarySession() {
-        try {
-            _tempDir = TempDir.createTempDir("webscarab", ".tmp", null);
-        } catch (IOException ioe) {
-            _tempDir = null;
-            JOptionPane.showMessageDialog(null, new String[] {"Error creating a temporary session : ", ioe.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        _tempDir = TempDir.createTempDir("webscarab", ".tmp", null);
         if (_tempDir != null) {
             loadSession(_tempDir);
         }

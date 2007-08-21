@@ -10,7 +10,6 @@ import java.util.List;
 import javax.swing.JOptionPane;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
-import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Response;
 
 import org.owasp.webscarab.plugin.compare.Compare;
@@ -19,7 +18,6 @@ import org.owasp.webscarab.plugin.compare.CompareModel;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.ui.swing.ConversationListModel;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;
-import org.owasp.webscarab.ui.swing.ContentPanel;
 import org.owasp.webscarab.util.Diff;
 
 import org.owasp.webscarab.util.swing.ColumnDataModel;
@@ -38,9 +36,6 @@ import java.awt.event.ActionEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import java.util.logging.Logger;
-import java.util.logging.Level;
-
 import java.util.Date;
 
 /**
@@ -54,7 +49,6 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
     private ConversationTableModel _tableModel;
     private TableSorter _conversationSorter;
     private DiffPanel _diffPanel;
-    private Logger _logger = Logger.getLogger(getClass().getName());
     
     private String _base = null;
     

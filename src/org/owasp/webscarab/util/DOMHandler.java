@@ -64,7 +64,7 @@ public class DOMHandler implements ContentHandler, LexicalHandler {
     }
     
     public void startElement(String namespace, String localName, String qName, Attributes attrs) {
-        Element element = (Element)_document.createElementNS(namespace, qName);
+        Element element = _document.createElementNS(namespace, qName);
         
         // Add namespace declarations first
         if (_namespaces != null) {

@@ -11,7 +11,6 @@ import EDU.oswego.cs.dl.util.concurrent.Sync;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 import org.owasp.webscarab.util.ReentrantReaderPreferenceReadWriteLock;
 
 /**
@@ -26,8 +25,6 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
     
     // contains conversations that should be visible
     private List _conversations = new ArrayList();
-    
-    private Logger _logger = Logger.getLogger(getClass().toString());
     
     /** Creates a new instance of FilteredConversationModel */
     public FilteredConversationModel(FrameworkModel model, ConversationModel cmodel) {

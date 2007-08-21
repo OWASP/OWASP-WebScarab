@@ -40,7 +40,6 @@
 package org.owasp.webscarab.model;
 
 import java.util.Properties;
-import java.util.logging.Logger;
 
 import java.io.InputStream;
 import java.io.FileInputStream;
@@ -55,7 +54,6 @@ import java.io.IOException;
 public class Preferences {
     
     static Properties _props = new Properties();
-    private static Logger _logger = Logger.getLogger("org.owasp.webscarab.model.Preferences");
     private static String _location = null;
     
     /** Creates a new instance of Preferences */

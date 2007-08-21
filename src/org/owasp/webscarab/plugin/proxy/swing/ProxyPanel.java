@@ -379,7 +379,6 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
     }//GEN-LAST:event_startButtonActionPerformed
     
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
-        ListenerSpec[] keys = _proxy.getProxies();
         int row = listenerTable.getSelectedRow();
         if (row<0) return;
         ListenerSpec spec = _ltm.getListener(row);

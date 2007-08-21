@@ -42,8 +42,6 @@ package org.owasp.webscarab.plugin.manualrequest.swing;
 import java.net.MalformedURLException;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.model.FrameworkModel;
-import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.ConversationID;
 
 import org.owasp.webscarab.plugin.manualrequest.ManualRequest;
@@ -81,9 +79,6 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
     
     private ManualRequestModel _model;
     private ManualRequest _manualRequest;
-    private SwingWorker _sw = null;
-    
-    private boolean _busy = false;
     
     private final RequestPanel _requestPanel;
     private final ResponsePanel _responsePanel;

@@ -20,7 +20,6 @@ import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.Security;
 import java.security.cert.X509Certificate;
-import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
@@ -42,9 +41,6 @@ import java.io.FileInputStream;
 
 import java.beans.PropertyChangeSupport;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-
-import org.owasp.webscarab.model.Preferences;
 
 /**
  *

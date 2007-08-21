@@ -45,7 +45,6 @@ import javax.swing.text.Element;
 import javax.swing.text.View;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.html.HTML;
-import javax.swing.text.html.BlockView;
 import javax.swing.text.Position;
 import javax.swing.text.BadLocationException;
 

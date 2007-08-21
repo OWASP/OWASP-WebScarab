@@ -47,7 +47,6 @@ import java.util.regex.PatternSyntaxException;
 import javax.swing.AbstractAction;
 import javax.swing.table.TableModel;
 import org.owasp.webscarab.model.ConversationID;
-import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.NamedValue;
 
 import org.owasp.webscarab.plugin.fuzz.Fuzzer;
@@ -56,7 +55,6 @@ import org.owasp.webscarab.plugin.fuzz.FuzzerListener;
 import org.owasp.webscarab.plugin.fuzz.FuzzerModel;
 import org.owasp.webscarab.plugin.fuzz.FuzzSource;
 import org.owasp.webscarab.plugin.fuzz.Parameter;
-import org.owasp.webscarab.plugin.fuzz.Signature;
 import org.owasp.webscarab.plugin.fuzz.FuzzFactory;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;

@@ -41,23 +41,13 @@ package org.owasp.webscarab.ui.swing;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
-
 import org.owasp.webscarab.ui.swing.editors.ByteArrayEditor;
 import org.owasp.webscarab.ui.swing.editors.EditorFactory;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.SwingUtilities;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.Dimension;
 import java.awt.Component;
-
-// for main()
-import java.io.ByteArrayOutputStream;
-
-import java.util.logging.Logger;
 
 /**
  *
@@ -75,8 +65,6 @@ public class ContentPanel extends javax.swing.JPanel {
     
     private int _selected = -1;
     private boolean[] _upToDate = new boolean[] {false};
-    
-    private Logger _logger = Logger.getLogger(getClass().getName());
     
     // This list is sorted in increasing order of preference
     private static List _preferred = new ArrayList();
@@ -250,8 +238,8 @@ public class ContentPanel extends javax.swing.JPanel {
     public static void main(String[] args) {
         org.owasp.webscarab.model.Response response = new org.owasp.webscarab.model.Response();
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
             /*
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
             FileInputStream fis = new FileInputStream("/home/rdawes/exodus/HowTo.html");
             byte[] buff = new byte[1024];
             int got = 0;

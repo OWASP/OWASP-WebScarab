@@ -51,7 +51,7 @@ public class ChunkedOutputStream extends FilterOutputStream {
     String[][] _trailer = null;
     boolean _writeTrailer = true;
     
-    public ChunkedOutputStream(OutputStream out) throws IOException {
+    public ChunkedOutputStream(OutputStream out) {
         super(out);
     }
 

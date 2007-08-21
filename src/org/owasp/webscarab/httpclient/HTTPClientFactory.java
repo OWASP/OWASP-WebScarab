@@ -39,27 +39,11 @@
 
 package org.owasp.webscarab.httpclient;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import javax.net.ssl.SSLContext;
-
 import java.util.logging.Logger;
-import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
@@ -84,28 +68,10 @@ public class HTTPClientFactory {
     
     private SSLContextManager _sslContextManager = null;
     
-    private String _certFile = "";
-    private String _keystorePassword = "";
-    private String _keyPassword = "";
-    
     private Authenticator _authenticator = null;
-    private KeyManager[] _keyManagers = null;
     
     private List _clientList = new ArrayList();
     private List _availableClients = new ArrayList();
-    
-    // Create a trust manager that does not validate certificate chains
-    private static TrustManager[] _trustAllCerts = new TrustManager[]{
-        new X509TrustManager() {
-            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
-            public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-            }
-            public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-            }
-        }
-    };
     
     /** Creates a new instance of HttpClientFactory */
     protected HTTPClientFactory() {

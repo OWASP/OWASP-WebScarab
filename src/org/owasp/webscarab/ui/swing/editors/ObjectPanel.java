@@ -221,7 +221,7 @@ public class ObjectPanel extends javax.swing.JPanel {
             return;
         }
         ObjectTreeNode selected = (ObjectTreeNode) path.getLastPathComponent();
-        Object userObject = ((ObjectTreeNode)selected).getUserObject();
+        Object userObject = selected.getUserObject();
         if (userObject instanceof Map) {
             Object key = JOptionPane.showInputDialog("Please input a key value");
             if (key == null) return;
@@ -258,7 +258,6 @@ public class ObjectPanel extends javax.swing.JPanel {
             return;
         }
         ObjectTreeNode selected = (ObjectTreeNode) path.getLastPathComponent();
-        Object userObject = ((ObjectTreeNode)selected).getUserObject();
         ObjectTreeNode parent = (ObjectTreeNode) selected.getParent();
         if (parent == null) {
             JOptionPane.showMessageDialog(null, "It is not possible to insert a node at the root", "Error", JOptionPane.ERROR_MESSAGE);
@@ -294,7 +293,6 @@ public class ObjectPanel extends javax.swing.JPanel {
             return;
         }
         ObjectTreeNode selected = (ObjectTreeNode) path.getLastPathComponent();
-        Object userObject = ((ObjectTreeNode)selected).getUserObject();
         ObjectTreeNode parent = (ObjectTreeNode) selected.getParent();
         if (parent == null) {
             _ottm.setObject(null);

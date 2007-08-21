@@ -7,16 +7,11 @@
 package org.owasp.webscarab.plugin.fragments;
 
 import EDU.oswego.cs.dl.util.concurrent.Sync;
-import EDU.oswego.cs.dl.util.concurrent.ReadWriteLock;
-import org.owasp.webscarab.util.ReentrantReaderPreferenceReadWriteLock;
-
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.AbstractConversationModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.ConversationID;
-import org.owasp.webscarab.model.Request;
-import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.StoreException;
 
 import org.owasp.webscarab.plugin.AbstractPluginModel;

@@ -6,7 +6,6 @@
 
 package org.owasp.webscarab.ui.swing;
 
-import org.apache.bsf.BSFException;
 import org.owasp.webscarab.model.Preferences;
 
 import org.owasp.webscarab.plugin.Hook;
@@ -27,12 +26,10 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  *
@@ -41,8 +38,6 @@ import java.io.IOException;
 public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptListener {
     
     private ScriptManager _manager;
-    private Hook _hook = null;
-    private Script _script = null;
     private JTreeTable _hookTree;
     private HookScriptTreeModel _treeModel;
     
@@ -82,7 +77,6 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
     }
     
     private void showHook(Hook hook) {
-        _hook = hook;
         if (hook != null) {
             descriptionTextArea.setText(hook.getDescription());
             descriptionTextArea.setCaretPosition(0);
@@ -94,7 +88,6 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
     }
     
     private void showScript(Script script) {
-        _script = script;
         if (script == null) {
             scriptTextField.setText("");
             scriptTextArea.setText("");

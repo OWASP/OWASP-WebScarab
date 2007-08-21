@@ -39,8 +39,6 @@
 
 package org.owasp.webscarab.model;
 
-import java.text.ParseException;
-
 /**
  * provides a link to a conversation in the model
  * @author knoppix

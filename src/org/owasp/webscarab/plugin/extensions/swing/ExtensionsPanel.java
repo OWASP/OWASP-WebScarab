@@ -252,23 +252,15 @@ public class ExtensionsPanel extends javax.swing.JPanel implements SwingPluginUI
         checkButton.setText("Stop");
         new SwingWorker() {
             public Object construct() {
-                try {
-                    if (urls.length>1) {
-                        _extensions.checkExtensionsFor(urls);
-                    } else {
-                        _extensions.checkExtensionsUnder(urls[0]);
-                    }
-                    return null;
-                } catch (IOException ioe) {
-                    return ioe;
+                if (urls.length>1) {
+                    _extensions.checkExtensionsFor(urls);
+                } else {
+                    _extensions.checkExtensionsUnder(urls[0]);
                 }
+                return null;
             }
             public void finished() {
                 Object result = getValue();
-                if (result != null && result instanceof Throwable) {
-                    Throwable throwable = (Throwable) result;
-                    _logger.warning("Caught a : " + throwable.toString());
-                }
                 checkButton.setText("Check");
             }
         }.start();

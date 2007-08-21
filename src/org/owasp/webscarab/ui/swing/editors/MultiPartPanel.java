@@ -6,9 +6,6 @@
 
 package org.owasp.webscarab.ui.swing.editors;
 
-import java.util.List;
-import java.util.ArrayList;
-
 import javax.swing.JSplitPane;
 
 import org.owasp.webscarab.model.MultiPartContent;
@@ -30,8 +27,6 @@ public class MultiPartPanel extends javax.swing.JPanel implements ByteArrayEdito
     private byte[] _data = null;
     private boolean _modified = false;
     private boolean _editable = false;
-    private byte[] _boundary = null;
-    private List _parts = new ArrayList();
     
     private MultiPartContent _content = null;
     private PartsListModel _partsList = new PartsListModel();

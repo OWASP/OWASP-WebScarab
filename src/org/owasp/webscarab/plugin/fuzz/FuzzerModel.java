@@ -7,19 +7,12 @@
 package org.owasp.webscarab.plugin.fuzz;
 
 import EDU.oswego.cs.dl.util.concurrent.Sync;
-import java.beans.PropertyChangeSupport;
 import java.net.MalformedURLException;
 import org.owasp.webscarab.model.AbstractConversationModel;
 import org.owasp.webscarab.model.ConversationModel;
 
-import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.FrameworkModel;
-import org.owasp.webscarab.model.FrameworkEvent;
-import org.owasp.webscarab.model.FrameworkListener;
-import org.owasp.webscarab.model.FilteredUrlModel;
-import org.owasp.webscarab.model.UrlModel;
 import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.NamedValue;
 
@@ -507,7 +500,6 @@ public class FuzzerModel extends AbstractPluginModel {
         void clear() {
             try {
                 _rwl.writeLock().acquire();
-                int index = _conversations.size();
                 _conversations.clear();
                 _rwl.readLock().acquire();
                 _rwl.writeLock().release();

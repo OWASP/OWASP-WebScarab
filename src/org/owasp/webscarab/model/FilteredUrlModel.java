@@ -8,11 +8,8 @@ package org.owasp.webscarab.model;
 
 import java.util.Set;
 import java.util.HashSet;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
-
 import EDU.oswego.cs.dl.util.concurrent.Sync;
 
 import javax.swing.event.EventListenerList;

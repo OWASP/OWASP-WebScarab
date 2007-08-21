@@ -26,7 +26,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTree;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.tree.TreeCellRenderer;
@@ -105,7 +104,7 @@ public class MultiLineTreeCellRenderer extends JPanel implements TreeCellRendere
         
         public void setText(String str) {
             BufferedImage bufferedImage = new BufferedImage(2, 2, BufferedImage.TYPE_4BYTE_ABGR_PRE);
-            Graphics2D g2d = (Graphics2D) (bufferedImage.createGraphics());
+            Graphics2D g2d = bufferedImage.createGraphics();
             FontRenderContext frc = g2d.getFontRenderContext();
             Font font = getFont();
             

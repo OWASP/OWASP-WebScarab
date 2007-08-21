@@ -39,28 +39,18 @@
 
 package org.owasp.webscarab.ui.swing.editors;
 
-import java.awt.Color;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import javax.swing.ActionMap;
 import javax.swing.InputMap;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.PlainDocument;
 import org.owasp.webscarab.model.Preferences;
 
 import javax.swing.AbstractAction;
-import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.Event;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.DocumentEvent;
-import javax.swing.text.Keymap;
-import java.awt.Container;
-import javax.swing.JFrame;
 
 import java.io.UnsupportedEncodingException;
 import org.owasp.webscarab.util.CharsetUtils;

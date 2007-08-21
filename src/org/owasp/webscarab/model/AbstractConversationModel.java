@@ -22,8 +22,6 @@ public abstract class AbstractConversationModel implements ConversationModel {
     
     private EventListenerList _listenerList = new EventListenerList();
     
-    private Sync _readLock;
-    
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates a new instance of AbstractConversationModel */

@@ -45,14 +45,8 @@ import org.owasp.webscarab.model.HttpUrl;
 import org.htmlparser.Parser;
 import org.htmlparser.Node;
 import org.htmlparser.NodeFilter;
-import org.htmlparser.lexer.Source;
-import org.htmlparser.lexer.InputStreamSource;
 import org.htmlparser.util.NodeList;
-import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.ParserException;
-
-import java.io.InputStreamReader;
-import java.io.ByteArrayInputStream;
 
 import java.util.logging.Logger;
 

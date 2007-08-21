@@ -70,8 +70,6 @@ import javax.swing.event.ListSelectionListener;
 
 import java.util.Map;
 import java.util.HashMap;
-import java.util.logging.Logger;
-
 import javax.swing.AbstractListModel;
 
 /**
@@ -80,8 +78,6 @@ import javax.swing.AbstractListModel;
  */
 public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI {
     
-    private Fragments _fragments;
-    private Logger _logger = Logger.getLogger(getClass().getName());
     private FragmentsModel _model = null;
     
     private String _type = null;
@@ -121,7 +117,6 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
         conversationTable.setModel(new ConversationTableModel(_model.getConversationModel()));
         ColumnWidthTracker.getTracker("ConversationTable").addTable(conversationTable);
         
-        _fragments = fragments;
         createActions();
         
         _model.addModelListener(_listener);
@@ -360,7 +355,6 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
     private class FragmentListModel extends AbstractListModel implements FragmentListener {
         
         private String _type = null;
-        private Object _id = null;
         private int _size = 0;
         
         public FragmentListModel() {
@@ -368,7 +362,6 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
         
         public void setFilter(Object id, String type) {
             fireIntervalRemoved(this, 0, getSize());
-            _id = id;
             _type = type;
             fireIntervalAdded(this, 0, getSize());
         }

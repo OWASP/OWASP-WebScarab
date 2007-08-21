@@ -40,8 +40,6 @@
 package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.model.ConversationID;
-import org.owasp.webscarab.model.Request;
-import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.ConversationModel;
 
 import javax.swing.JFrame;

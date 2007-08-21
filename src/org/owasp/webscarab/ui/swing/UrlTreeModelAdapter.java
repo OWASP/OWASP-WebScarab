@@ -49,8 +49,6 @@ import org.owasp.webscarab.model.UrlModel;
 import org.owasp.webscarab.model.UrlListener;
 import org.owasp.webscarab.model.UrlEvent;
 
-import java.util.Set;
-import java.util.HashSet;
 import java.util.logging.Logger;
 
 /**

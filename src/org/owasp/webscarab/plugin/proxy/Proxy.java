@@ -40,7 +40,6 @@ package org.owasp.webscarab.plugin.proxy;
 import java.io.IOException;
 
 import java.lang.NumberFormatException;
-import java.util.Vector;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.Iterator;
@@ -57,11 +56,7 @@ import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
 import org.owasp.webscarab.plugin.Hook;
-import org.owasp.webscarab.plugin.Script;
-import org.owasp.webscarab.plugin.ScriptManager;
-
 import java.net.MalformedURLException;
-import java.net.InetAddress;
 
 /**
  * The Proxy plugin supports multiple Listeners, and starts and stops them as
@@ -110,7 +105,7 @@ public class Proxy implements Plugin {
      */
     public Proxy(Framework framework) {
         _framework = framework;
-        createListeners();
+        parseListenerConfig();
     }
     
     public Hook[] getScriptingHooks() {
@@ -207,9 +202,9 @@ public class Proxy implements Plugin {
      * @throws IOException if there are any problems starting the Listener
      */
     
-    public void addListener(ListenerSpec spec) throws IOException {
-        Listener l = createListener(spec);
-        startListener(l);
+    public void addListener(ListenerSpec spec) {
+        createListener(spec);
+        startListener((Listener)_listeners.get(spec));
         
         String key = getKey(spec);
         Preferences.setPreference("Proxy.listener." + key + ".base", spec.getBase() == null ? "" : spec.getBase().toString());
@@ -288,16 +283,20 @@ public class Proxy implements Plugin {
         Iterator it = _listeners.keySet().iterator();
         while (it.hasNext()) {
             ListenerSpec spec = (ListenerSpec) it.next();
-            Listener l = (Listener) _listeners.get(spec);
             try {
                 spec.verifyAvailable();
+                Listener l = (Listener) _listeners.get(spec);
+                if (l == null) {
+                    createListener(spec);
+                    l = (Listener) _listeners.get(spec);
+                }
+                startListener(l);
             } catch (IOException ioe) {
                 _logger.warning("Unable to start listener " + spec);
                 if (_ui != null) 
                     _ui.proxyStartError(spec, ioe);
                 removeListener(spec);
             }
-            startListener(l);
         }
         _running = true;
         if (_ui != null) _ui.setEnabled(_running);
@@ -363,7 +362,7 @@ public class Proxy implements Plugin {
         _status = "Started, " + (_pending>0? (_pending + " in progress") : "Idle");
     }
     
-    private void createListeners() {
+    private void parseListenerConfig() {
         String prop = "Proxy.listeners";
         String value = Preferences.getPreference(prop);
         if (value == null || value.trim().equals("")) {
@@ -402,23 +401,16 @@ public class Proxy implements Plugin {
             value = Preferences.getPreference(prop, "false");
             primary = value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes");
             
-            try {
-                ListenerSpec spec = new ListenerSpec(addr, port, base, primary);
-                Listener l = createListener(spec);
-            } catch (IOException ioe) {
-                _logger.severe("Error starting proxy (" + addr + ":" + port + " " + base + " " + ioe);
-            }
+            _listeners.put(new ListenerSpec(addr, port, base, primary), null);
         }
     }
     
-    private Listener createListener(ListenerSpec spec) throws IOException {
+    private void createListener(ListenerSpec spec) {
         Listener l = new Listener(this, spec);
         
         _listeners.put(spec, l);
         
         if (_ui != null) _ui.proxyAdded(spec);
-        
-        return l;
     }
     
     public void flush() throws StoreException {

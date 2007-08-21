@@ -39,7 +39,6 @@
 
 package org.owasp.webscarab.model;
 
-import EDU.oswego.cs.dl.util.concurrent.ReadWriteLock;
 import EDU.oswego.cs.dl.util.concurrent.Sync;
 
 import java.net.MalformedURLException;

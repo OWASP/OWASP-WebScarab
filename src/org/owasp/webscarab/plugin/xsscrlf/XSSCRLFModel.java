@@ -1,17 +1,10 @@
 /*
  * XSSCRLFModel.java
  *
- * Created on 23 Апрель 2006 г., 16:51
- *
- * To change this template, choose Tools | Options and locate the template under
- * the Source Creation and Management node. Right-click the template and choose
- * Open. You can then make changes to the template in the Source Editor.
  */
 
 package org.owasp.webscarab.plugin.xsscrlf;
 
-import java.util.logging.Logger;
-import java.util.Hashtable;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -19,14 +12,11 @@ import java.util.NoSuchElementException;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.FilteredConversationModel;
-import org.owasp.webscarab.model.FilteredUrlModel;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.model.UrlModel;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.AbstractPluginModel;
-import org.owasp.webscarab.model.NamedValue;
 
 /**
  *
@@ -40,8 +30,6 @@ public class XSSCRLFModel extends AbstractPluginModel {
         
     private LinkedList toBeAnalyzedQueue = new LinkedList();
     
-    private Logger _logger = Logger.getLogger(getClass().getName());
-
     private Set testedURLandParameterpairs = new HashSet();
     
     private String xssTestString = "><script>a=/XSS BUG/; alert(a.source)</script>";

@@ -40,7 +40,6 @@
 package org.owasp.webscarab.ui.swing;
 
 import org.owasp.webscarab.model.ConversationModel;
-import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.ConversationListener;
@@ -49,7 +48,6 @@ import org.owasp.webscarab.model.ConversationEvent;
 import org.owasp.webscarab.util.swing.ExtensibleTableModel;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 
-import javax.swing.table.AbstractTableModel;
 import javax.swing.SwingUtilities;
 
 import java.util.logging.Logger;

@@ -3,9 +3,6 @@
  */
 package org.owasp.webscarab.plugin.webservice;
 
-import java.util.Map;
-import java.util.Iterator;
-import java.util.Hashtable;
 import javax.wsdl.Message;
 
 
@@ -17,9 +14,6 @@ import javax.wsdl.Message;
 
 public class OperationInfo
 {
-   /** The SOAP operation type */
-   private String operationType = "";
-
    /** The SOAP encoding style to use. */
    private String encodingStyle = "";
 

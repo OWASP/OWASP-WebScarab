@@ -15,9 +15,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import javax.wsdl.Definition;
 import javax.xml.namespace.QName;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -60,20 +58,6 @@ public class Schema {
         this(namespaces, new Element[] {element});
     }
     
-    private void parseNamespaces(Element element) {
-        NamedNodeMap attributes = element.getAttributes();
-        for (int i=0; i<attributes.getLength(); i++) {
-            Attr attr = (Attr) attributes.item(i);
-            String name = attr.getName();
-            if (name.startsWith("xmlns:")) {
-                String prefix = name.substring(6);
-                namespaces.put(prefix, attr.getValue());
-            } else if (name.equals("xmlns")) {
-                namespaces.put("", attr.getValue());
-            }
-        }
-    }
-    
     private void parseElement(Element element) {
         if (element == null) return;
         String targetNamespace = element.getAttribute("targetNamespace");
@@ -98,7 +82,7 @@ public class Schema {
     
     private Field[] parseFields(Node typeNode) {
         List fields = new LinkedList();
-        if (typeNode.getNodeType() == typeNode.ELEMENT_NODE) {
+        if (typeNode.getNodeType() == Node.ELEMENT_NODE) {
             Element typeElement = (Element) typeNode;
             NodeList elements = ((Element)typeNode).getElementsByTagName("element");
             for (int i=0; i<elements.getLength(); i++) {
@@ -130,8 +114,7 @@ public class Schema {
     }
     
     private QName parseArray(Node typeNode) {
-        if (typeNode.getNodeType() == typeNode.ELEMENT_NODE) {
-            Element typeElement = (Element) typeNode;
+        if (typeNode.getNodeType() == Node.ELEMENT_NODE) {
             NodeList attributeNodes = ((Element)typeNode).getElementsByTagName("attribute");
             for (int i=0; i<attributeNodes.getLength(); i++) {
                 Node attributeNode = attributeNodes.item(i);

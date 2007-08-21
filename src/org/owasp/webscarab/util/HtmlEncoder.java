@@ -115,11 +115,11 @@ public class HtmlEncoder
 		{
 			char ch = s1.charAt( i );
 
-			String entity = (String) i2e.get( new Integer( (int) ch ) );
+			String entity = (String) i2e.get( new Integer( ch ) );
 			
 			if ( entity == null )
 			{
-				if ( ( (int) ch ) > 128 )
+				if ( ch > 128 )
 				{
 					buf.append( "&#" + ( (int) ch ) + ";" );
 				}

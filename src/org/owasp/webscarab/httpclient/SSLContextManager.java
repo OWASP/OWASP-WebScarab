@@ -20,11 +20,9 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.Security;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -41,7 +39,6 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 import org.owasp.webscarab.util.Encoding;
 import org.owasp.webscarab.util.NullComparator;
@@ -97,10 +94,6 @@ public class SSLContextManager {
             return false;
         }
         return true;
-    }
-    
-    private boolean isProviderLoaded(String keyStoreType) {
-        return Security.getProvider(keyStoreType) != null ? true : false;
     }
     
     private int addKeyStore(KeyStore ks, String description) {
@@ -189,8 +182,7 @@ public class SSLContextManager {
         return _defaultKey;
     }
     
-    private void initMSCAPI()
-    throws KeyStoreException, NoSuchProviderException, IOException, NoSuchAlgorithmException, CertificateException {
+    private void initMSCAPI() {
         try {
             if (!isProviderAvailable("msks")) return;
             
@@ -207,8 +199,7 @@ public class SSLContextManager {
         }
     }
     
-    public int initPKCS11(String name, String library, String kspassword)
-    throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+    public int initPKCS11(String name, String library, String kspassword) {
         try {
             if (!isProviderAvailable("PKCS11")) return -1;
             
@@ -248,16 +239,6 @@ public class SSLContextManager {
         ks.load(is, ksPassword == null ? null : ksPassword.toCharArray());
         return addKeyStore(ks, "PKCS#12 - " + filename);
     }
-    
-    private void saveKey(KeyStore ks, String alias, String keypassword) {
-        Map pwmap = (Map) _aliasPasswords.get(ks);
-        if (pwmap == null) {
-            pwmap = new TreeMap(new NullComparator());
-            _aliasPasswords.put(ks, pwmap);
-        }
-        pwmap.put(alias, keypassword);
-    }
-    
     
     public void unlockKey(int keystoreIndex, int aliasIndex, String keyPassword) throws KeyStoreException, KeyManagementException {
         KeyStore ks = (KeyStore) _keyStores.get(keystoreIndex);

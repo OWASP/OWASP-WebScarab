@@ -6,7 +6,6 @@
 
 package org.owasp.webscarab.ui.swing;
 
-import javax.swing.SwingUtilities;
 import org.owasp.webscarab.plugin.BasicCredential;
 import org.owasp.webscarab.plugin.CredentialManager;
 import org.owasp.webscarab.plugin.CredentialManagerUI;

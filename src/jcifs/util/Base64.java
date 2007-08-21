@@ -34,7 +34,7 @@ public class Base64 {
         int length = bytes.length;
         if (length == 0) return "";
         StringBuffer buffer =
-                new StringBuffer((int) Math.ceil((double) length / 3d) * 4);
+                new StringBuffer((int) Math.ceil(length / 3d) * 4);
         int remainder = length % 3;
         length -= remainder;
         int block;

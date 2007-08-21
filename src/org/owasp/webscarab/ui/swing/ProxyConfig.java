@@ -39,15 +39,11 @@
 
 package org.owasp.webscarab.ui.swing;
 
-import java.awt.event.WindowEvent;
-
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.util.W32WinInet;
-
-import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
 
@@ -59,8 +55,6 @@ public class ProxyConfig extends javax.swing.JDialog {
     
     private HTTPClientFactory _factory = HTTPClientFactory.getInstance();
     private Framework _framework;
-    
-    private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates new form ProxyConfig */
     public ProxyConfig(java.awt.Frame parent, Framework framework) {

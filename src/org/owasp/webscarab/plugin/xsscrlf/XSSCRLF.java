@@ -6,11 +6,6 @@
  * - Add POST parameters to the ones being tested;
  *------------------------------------------------------------------------------
  *
- * Created on 23 Апрель 2006 г., 16:51
- *
- * To change this template, choose Tools | Options and locate the template under
- * the Source Creation and Management node. Right-click the template and choose
- * Open. You can then make changes to the template in the Source Editor.
  */
 
 package org.owasp.webscarab.plugin.xsscrlf;
@@ -20,11 +15,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.FileReader;
 import java.util.logging.Logger;
-import java.util.List;
-import java.util.ArrayList;
 import java.io.BufferedReader;
 import org.owasp.webscarab.model.ConversationID;
-import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Response;
@@ -37,8 +29,6 @@ import org.owasp.webscarab.httpclient.ConversationHandler;
 import org.owasp.webscarab.plugin.xsscrlf.XSSCRLFModel;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.util.Encoding;
-import java.util.logging.Logger;
-import org.owasp.webscarab.httpclient.FetcherQueue;
 import java.net.MalformedURLException;
 
 /**
@@ -50,7 +40,6 @@ public class XSSCRLF implements Plugin, ConversationHandler {
     private Framework _framework;
     private XSSCRLFModel _model;
     private Logger _logger = Logger.getLogger(getClass().getName());
-    private Thread _runThread;
     private FetcherQueue _fetcherQueue = null;
     private int _threads = 4;
     private int _delay = 100;
@@ -174,7 +163,6 @@ public class XSSCRLF implements Plugin, ConversationHandler {
         
         _model.setStatus("Started");
         _model.setStopping(false);
-        _runThread = Thread.currentThread();
         // start the fetchers
         _fetcherQueue = new FetcherQueue(getPluginName(), this, _threads, _delay);
         _model.setRunning(true);

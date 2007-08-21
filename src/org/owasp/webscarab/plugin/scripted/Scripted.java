@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 
 import java.io.File;
 import java.io.Reader;
-import java.io.Writer;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;

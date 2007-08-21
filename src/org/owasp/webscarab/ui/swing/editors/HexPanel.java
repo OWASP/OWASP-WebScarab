@@ -46,8 +46,6 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import java.awt.Font;
 
-import javax.swing.CellEditor;
-import java.awt.Component;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.Event;
@@ -286,9 +284,9 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
                 return 0;
             }
             if (_data.length % _columns == 0) {
-                return (int) (_data.length / _columns);
+                return (_data.length / _columns);
             } else {
-                return (int) (_data.length / _columns) + 1;
+                return (_data.length / _columns) + 1;
             }
         }
         

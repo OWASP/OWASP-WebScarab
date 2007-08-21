@@ -87,7 +87,7 @@ public class ReentrantReaderPreferenceReadWriteLock extends ReentrantWriterPrefe
         System.err.println("Writer thread:");
         System.err.println(activeWriter_.getName());
         System.err.println("Stack Trace:");
-        activeWriter_.dumpStack();
+        Thread.dumpStack();
     }
     
     public EDU.oswego.cs.dl.util.concurrent.Sync writeLock() {

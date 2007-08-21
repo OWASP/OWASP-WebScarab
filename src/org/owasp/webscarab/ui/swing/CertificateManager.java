@@ -10,11 +10,7 @@ import java.io.File;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -32,7 +28,6 @@ import org.owasp.webscarab.httpclient.SSLContextManager;
  */
 public class CertificateManager extends javax.swing.JFrame {
     
-    private String _password = null;
     private SSLContextManager _sslcm = HTTPClientFactory.getInstance().getSSLContextManager();
     
     private DefaultListModel _keystoreListModel;

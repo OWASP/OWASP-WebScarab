@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JMenuItem;
@@ -61,7 +60,6 @@ import javax.swing.table.TableModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import org.owasp.webscarab.model.ConversationID;
-import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.FilteredUrlModel;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.HttpUrl;
@@ -87,8 +85,6 @@ public class SummaryPanel extends JPanel {
     private ArrayList _conversationActions = new ArrayList();
     
     private Map _urlColumns = new HashMap();
-    
-    private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates new form SummaryPanel */
     public SummaryPanel(FrameworkModel model) {

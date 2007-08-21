@@ -36,11 +36,6 @@ package org.owasp.webscarab.ui.swing;
 import org.owasp.webscarab.model.UrlModel;
 import org.owasp.webscarab.model.HttpUrl;
 
-import javax.swing.tree.TreeModel;
-import javax.swing.event.TreeModelListener;
-import javax.swing.event.TreeModelEvent;
-
-import org.owasp.webscarab.util.swing.treetable.AbstractTreeTableModel;
 import org.owasp.webscarab.util.swing.treetable.TreeTableModel;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.ColumnDataListener;

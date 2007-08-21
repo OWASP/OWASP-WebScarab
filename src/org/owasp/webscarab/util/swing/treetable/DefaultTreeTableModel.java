@@ -42,17 +42,6 @@ package org.owasp.webscarab.util.swing.treetable;
 import javax.swing.tree.DefaultTreeModel;
 
 import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
-
-import java.io.Serializable;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.IOException;
-
-import java.util.Vector;
 
 /**
  * A simple treetable data model based on DefaultTreeModel. This 

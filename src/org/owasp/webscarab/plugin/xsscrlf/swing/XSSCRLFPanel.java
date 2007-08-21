@@ -14,7 +14,6 @@ import javax.swing.Action;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.table.TableModel;
-import javax.swing.tree.TreePath;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.plugin.xsscrlf.XSSCRLF;
@@ -23,8 +22,6 @@ import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;
 import org.owasp.webscarab.ui.swing.DateRenderer;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
-import org.owasp.webscarab.ui.swing.UrlTreeModelAdapter;
-import org.owasp.webscarab.ui.swing.UrlTreeRenderer;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.SwingWorker;
 import org.owasp.webscarab.util.swing.TableSorter;
@@ -352,7 +349,6 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         
         final ConversationID[] CIDs = new ConversationID[selection.length];
         TableModel tm = suspectedTable.getModel();
-        ConversationID id = null;         
         
         for (int i=0; i<selection.length; i++) {
             CIDs[i]= (ConversationID) tm.getValueAt(i,0); // UGLY hack! FIXME!!!!            

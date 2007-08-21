@@ -90,8 +90,6 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
         unseenLinkTree.setCellRenderer(new UrlTreeRenderer());
         
         configure();
-        
-        _spider.setUI(this);
     }
     
     public javax.swing.JPanel getPanel() {

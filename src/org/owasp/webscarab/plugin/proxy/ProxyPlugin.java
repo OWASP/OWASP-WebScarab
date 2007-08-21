@@ -39,8 +39,6 @@
 
 package org.owasp.webscarab.plugin.proxy;
 
-import org.owasp.webscarab.model.StoreException;
-
 import org.owasp.webscarab.httpclient.HTTPClient;
 
 /**
@@ -52,7 +50,7 @@ public abstract class ProxyPlugin {
     public void setSession(String type, Object store, String session)  {
     }
     
-    public void flush() throws StoreException {
+    public void flush() {
     }
     
     /** The plugin name

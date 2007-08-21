@@ -21,8 +21,6 @@ package jcifs.ntlmssp;
 
 import java.io.IOException;
 
-import java.net.UnknownHostException;
-
 import jcifs.Config;
 
 // import jcifs.netbios.NbtAddress;
