@@ -429,7 +429,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
     
     public void proxyStartError(final ListenerSpec spec, final IOException ioe) {
         if (SwingUtilities.isEventDispatchThread()) {
-            JOptionPane.showMessageDialog(null, new String[] {"Error starting proxy listener: ", spec.toString(), ioe.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, new String[] {"Error starting proxy listener: ", spec.toString(), ioe.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
         } else {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {

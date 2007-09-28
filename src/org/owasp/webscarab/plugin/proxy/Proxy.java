@@ -279,7 +279,6 @@ public class Proxy implements Plugin {
      * Starts the Listeners
      */
     public void run() {
-        System.out.println(_listeners);
         Iterator it = _listeners.keySet().iterator();
         while (it.hasNext()) {
             ListenerSpec spec = (ListenerSpec) it.next();
@@ -313,7 +312,7 @@ public class Proxy implements Plugin {
         while (it.hasNext()) {
             ListenerSpec spec = (ListenerSpec) it.next();
             Listener l = (Listener) _listeners.get(spec);
-            if (!stopListener(l)) {
+            if (l != null && !stopListener(l)) {
                 _logger.severe("Failed to stop Listener-" + l.getListenerSpec());
                 _running = true;
             }

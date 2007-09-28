@@ -15,8 +15,13 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import no.geosoft.cc.ui.SplashScreen;
+
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.compare.Compare;
@@ -32,8 +37,10 @@ import org.owasp.webscarab.plugin.manualrequest.swing.ManualRequestPanel;
 import org.owasp.webscarab.plugin.proxy.BeanShell;
 import org.owasp.webscarab.plugin.proxy.BrowserCache;
 import org.owasp.webscarab.plugin.proxy.CookieTracker;
+import org.owasp.webscarab.plugin.proxy.ListenerSpec;
 import org.owasp.webscarab.plugin.proxy.ManualEdit;
 import org.owasp.webscarab.plugin.proxy.Proxy;
+import org.owasp.webscarab.plugin.proxy.ProxyUI;
 import org.owasp.webscarab.plugin.proxy.RevealHidden;
 import org.owasp.webscarab.plugin.proxy.swing.BeanShellPanel;
 import org.owasp.webscarab.plugin.proxy.swing.ManualEditPanel;
@@ -232,6 +239,7 @@ public class WebScarab {
         framework.addPlugin(proxy);
         ManualEdit me = new ManualEdit();
         proxy.addPlugin(me);
+        proxy.setUI(new LiteProxyUI(uif));
         uif.addPanel("Intercept", new ManualEditPanel(me));
         
         RevealHidden rh = new RevealHidden();
@@ -245,6 +253,55 @@ public class WebScarab {
         Fragments fragments = new Fragments(framework);
         framework.addPlugin(fragments);
         uif.addPluginEnhancements(new FragmentsPanel(fragments));
+    }
+    
+    private static class LiteProxyUI implements ProxyUI {
+
+        private Lite lite;
+        
+        public LiteProxyUI(Lite lite) {
+            this.lite = lite;
+        }
+        public void aborted(ConversationID id, String reason) {
+        }
+
+        public void proxyAdded(ListenerSpec spec) {
+        }
+
+        public void proxyRemoved(ListenerSpec spec) {
+        }
+
+        public void proxyStarted(ListenerSpec spec) {
+        }
+
+        public void proxyStartError(final ListenerSpec spec, final IOException ioe) {
+            if (SwingUtilities.isEventDispatchThread()) {
+                JOptionPane.showMessageDialog(lite, new String[] {"Error starting proxy listener: ", spec.toString(), ioe.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        proxyStartError(spec, ioe);
+                    }
+                });
+            }
+        }
+
+        public void proxyStopped(ListenerSpec spec) {
+        }
+
+        public void received(ConversationID id, String status) {
+        }
+
+        public void requested(ConversationID id, String method, HttpUrl url) {
+        }
+
+        public String getPluginName() {
+            return "Proxy";
+        }
+
+        public void setEnabled(boolean enabled) {
+        }
+        
     }
     
 }
