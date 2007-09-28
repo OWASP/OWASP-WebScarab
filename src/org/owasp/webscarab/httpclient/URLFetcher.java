@@ -563,27 +563,4 @@ public class URLFetcher implements HTTPClient {
         return authMethod + " " + Base64.encode(message.toByteArray());
     }
 
-    private static class SocketWatcher {
-
-        private Map sockets = new HashMap();
-
-        public SocketWatcher() {}
-
-        public synchronized void add(Socket socket) {
-            Iterator it = sockets.keySet().iterator();
-            while (it.hasNext()) {
-                Socket sock = (Socket) it.next();
-                Thread thread = (Thread) sockets.get(sock);
-                if (!thread.isAlive() && sock.isConnected()) {
-                    try {
-                        sock.close();
-                    } catch (Exception e) {}
-                    it.remove();
-                }
-            }
-            sockets.put(socket, Thread.currentThread());
-        }
-
-    }
-
 }
