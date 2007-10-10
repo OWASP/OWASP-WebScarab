@@ -188,7 +188,7 @@ public class URLFetcher implements HTTPClient {
 
         // Get any provided credentials from the request
         _authCreds = request.getHeader("Authorization");
-
+        _proxyAuthCreds = request.getHeader("Proxy-Authorization");
         String keyFingerprint = request.getHeader("X-SSLClientCertificate");
         request.deleteHeader("X-SSLClientCertificate");
         if (keyFingerprint == null && _keyFingerprint == null) {
@@ -336,8 +336,8 @@ public class URLFetcher implements HTTPClient {
 
         if (_authCreds != null)
             request.setHeader("Authorization", _authCreds);
-        // There is not really a good reason to keep this header
-        request.deleteHeader("Proxy-Authorization");
+        if (_proxyAuthCreds != null) 
+            request.setHeader("Proxy-Authorization", _proxyAuthCreds);
         if (_keyFingerprint != null)
             request.setHeader("X-SSLClientCertificate", _keyFingerprint);
 
