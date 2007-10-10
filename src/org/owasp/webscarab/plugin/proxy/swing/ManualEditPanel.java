@@ -251,7 +251,7 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         jScrollPane3.setPreferredSize(new java.awt.Dimension(100, 120));
         jScrollPane3.setAutoscrolls(true);
         interceptMethodList.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "GET", "POST", "HEAD", "PUT", "DELETE", "TRACE", "PROPFIND", "OPTIONS" };
+            String[] strings = { "GET", "POST", "HEAD", "PUT", "DELETE", "TRACE", "PROPFIND", "OPTIONS", "PROPPATCH", "MKCOL", "COPY", "MOVE", "LOCK", "UNLOCK", "SEARCH", "SUBSCRIBE" };
             public int getSize() { return strings.length; }
             public Object getElementAt(int i) { return strings[i]; }
         });

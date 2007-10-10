@@ -131,6 +131,14 @@
                     <StringItem index="5" value="TRACE"/>
                     <StringItem index="6" value="PROPFIND"/>
                     <StringItem index="7" value="OPTIONS"/>
+                    <StringItem index="8" value="PROPPATCH"/>
+                    <StringItem index="9" value="MKCOL"/>
+                    <StringItem index="10" value="COPY"/>
+                    <StringItem index="11" value="MOVE"/>
+                    <StringItem index="12" value="LOCK"/>
+                    <StringItem index="13" value="UNLOCK"/>
+                    <StringItem index="14" value="SEARCH"/>
+                    <StringItem index="15" value="SUBSCRIBE"/>
                   </StringArray>
                 </Property>
                 <Property name="toolTipText" type="java.lang.String" value="Select which request methods to intercept"/>
