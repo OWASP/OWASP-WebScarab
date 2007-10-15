@@ -54,6 +54,8 @@ public class MultiPartPanel extends javax.swing.JPanel implements ByteArrayEdito
                     _partsList.fireContentsChanged(_selected, _selected);
                 }
                 _selected = partList.getSelectedIndex();
+                if (_selected < 0)
+                    return;
                 Message message = _content.get(_selected);
                 _mp.setMessage(message);
                 invalidate();
