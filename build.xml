@@ -60,7 +60,7 @@
         </path>
     </target>
     <target depends="init" description="clean up the build area" name="clean">
-        <!-- delete dir="${build.dir}"/ -->
+        <delete dir="${build.dir}"/>
         <delete dir="${dist.dir}"/>
         <delete>
             <fileset dir="${src.dir}" includes="**/*.class"/>
@@ -92,7 +92,9 @@
             listfiles="no" 
             optimize="on" 
             srcdir="${src.dir}"
-			debug="on"
+            debug="on"
+            source="1.4"
+            target="1.4"
         >
         </javac>
     </target>
