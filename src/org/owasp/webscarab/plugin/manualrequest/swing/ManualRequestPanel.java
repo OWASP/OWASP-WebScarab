@@ -40,6 +40,7 @@
 package org.owasp.webscarab.plugin.manualrequest.swing;
 
 import java.net.MalformedURLException;
+import java.text.ParseException;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.ConversationID;
@@ -212,6 +213,8 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
             }
         } catch (MalformedURLException mue) {
             JOptionPane.showMessageDialog(this, new String[] {"The URL requested is malformed", mue.getMessage()}, "Malformed URL", JOptionPane.ERROR_MESSAGE);
+        } catch (ParseException pe) {
+            JOptionPane.showMessageDialog(this, new String[] {"The request is malformed", pe.getMessage()}, "Malformed Request", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_getCookieButtonActionPerformed
     
@@ -221,7 +224,9 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
             fetchResponse(request);
         } catch (MalformedURLException mue) {
             JOptionPane.showMessageDialog(this, new String[] {"The URL requested is malformed", mue.getMessage()}, "Malformed URL", JOptionPane.ERROR_MESSAGE);
-        } 
+        } catch (ParseException pe) {
+            JOptionPane.showMessageDialog(this, new String[] {"The request is malformed", pe.getMessage()}, "Malformed Request", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_fetchResponseButtonActionPerformed
     
     private void fetchResponse(final Request request) {

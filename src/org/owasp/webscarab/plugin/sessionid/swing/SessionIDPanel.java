@@ -46,6 +46,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
@@ -585,6 +586,8 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
             }.start();
         } catch (MalformedURLException mue) {
             JOptionPane.showMessageDialog(this, new String[] {"The URL requested is malformed", mue.getMessage()}, "Malformed URL", JOptionPane.ERROR_MESSAGE);
+        } catch (ParseException pe) {
+            JOptionPane.showMessageDialog(this, new String[] {"The request is malformed", pe.getMessage()}, "Malformed Request", JOptionPane.ERROR_MESSAGE);
         } 
 
     }//GEN-LAST:event_testButtonActionPerformed
@@ -649,6 +652,8 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
             }
         } catch (MalformedURLException mue) {
             JOptionPane.showMessageDialog(this, new String[] {"The URL requested is malformed", mue.getMessage()}, "Malformed URL", JOptionPane.ERROR_MESSAGE);
+        } catch (ParseException pe) {
+            JOptionPane.showMessageDialog(this, new String[] {"The request is malformed", pe.getMessage()}, "Malformed Request", JOptionPane.ERROR_MESSAGE);
         } 
 
     }//GEN-LAST:event_fetchButtonActionPerformed

@@ -40,6 +40,7 @@
 package org.owasp.webscarab.plugin.proxy.swing;
 
 import java.net.MalformedURLException;
+import java.text.ParseException;
 import javax.swing.JOptionPane;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
@@ -314,6 +315,8 @@ public class ManualEditFrame extends javax.swing.JFrame {
             }
         } catch (MalformedURLException mue) {
             JOptionPane.showMessageDialog(this, new String[] {"The URL requested is malformed", mue.getMessage()}, "Malformed URL", JOptionPane.ERROR_MESSAGE);
+        } catch (ParseException pe) {
+            JOptionPane.showMessageDialog(this, new String[] {"The request is malformed", pe.getMessage()}, "Malformed Request", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_acceptButtonActionPerformed
     

@@ -40,6 +40,7 @@
 package org.owasp.webscarab.ui.swing;
 
 import java.net.MalformedURLException;
+import java.text.ParseException;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.event.ChangeListener;
@@ -95,6 +96,13 @@ public class RequestPanel extends javax.swing.JPanel {
                         displayTabbedPane.setSelectedIndex(_selected);
                         _reverting = false;
                     }
+                } catch (ParseException pe) {
+                    if (!_reverting) {
+                        JOptionPane.showMessageDialog(RequestPanel.this, new String[] {"Error parsing request", pe.getMessage()}, "Malformed Request", JOptionPane.ERROR_MESSAGE);
+                        _reverting = true;
+                        displayTabbedPane.setSelectedIndex(_selected);
+                        _reverting = false;
+                    }
                 }
             }
         });
@@ -128,7 +136,7 @@ public class RequestPanel extends javax.swing.JPanel {
         }
     }
     
-    private void updateRequest(int panel) throws MalformedURLException {
+    private void updateRequest(int panel) throws MalformedURLException, ParseException {
         if (! _editable || panel < 0) {
             return;
         }
@@ -151,15 +159,11 @@ public class RequestPanel extends javax.swing.JPanel {
             _modified = true;
         } else if (displayTabbedPane.getTitleAt(panel).equals("Raw")) { // raw text
             if (_textPanel.isModified()) {
-                try {
-                    Request r = new Request();
-                    String text = _textPanel.getText();
-                    if (!"".equals(text))
-                        r.parse(_textPanel.getText());
-                    _request = r;
-                } catch (Exception e) {
-                    _logger.severe("Error parsing the rawTextArea, abandoning changes : " + e);
-                }
+                Request r = new Request();
+                String text = _textPanel.getText();
+                if (!"".equals(text))
+                    r.parse(_textPanel.getText());
+                _request = r;
                 _modified = true;
             }
         }
@@ -241,7 +245,7 @@ public class RequestPanel extends javax.swing.JPanel {
         }
     }
     
-    public Request getRequest() throws MalformedURLException {
+    public Request getRequest() throws MalformedURLException, ParseException {
         if (_editable) {
             int panel = displayTabbedPane.getSelectedIndex();
             updateRequest(panel);

@@ -43,6 +43,7 @@ import java.awt.Event;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.net.MalformedURLException;
+import java.text.ParseException;
 import javax.swing.AbstractAction;
 import javax.swing.InputMap;
 import javax.swing.JSplitPane;
@@ -211,7 +212,7 @@ public class ConversationPanel extends javax.swing.JPanel {
      * returns the request currently displayed
      * @return the request currently displayed
      */
-    public Request getRequest() throws MalformedURLException {
+    public Request getRequest() throws MalformedURLException, ParseException {
         return _requestPanel.getRequest();
     }
     
