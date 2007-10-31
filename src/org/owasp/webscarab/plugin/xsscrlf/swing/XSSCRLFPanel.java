@@ -102,6 +102,17 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         });
         stm.addColumn(new ColumnDataModel() {
             public String getColumnName() {
+                return "XSS parameters";
+            }
+            public Object getValue(Object key) {
+                return _model.getXSSSuspected((ConversationID) key);
+            }
+            public Class getColumnClass() {
+                return String.class;
+            }
+        });
+        stm.addColumn(new ColumnDataModel() {
+            public String getColumnName() {
                 return "CRLF";
             }
             public Object getValue(Object key) {
@@ -109,6 +120,17 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
             }
             public Class getColumnClass() {
                 return Boolean.class;
+            }
+        });
+        stm.addColumn(new ColumnDataModel() {
+            public String getColumnName() {
+                return "CRLF parameters";
+            }
+            public Object getValue(Object key) {
+                return _model.getCRLFSuspected((ConversationID) key);
+            }
+            public Class getColumnClass() {
+                return String.class;
             }
         });
         
@@ -176,8 +198,12 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         okButton = new javax.swing.JButton();
         jScrollBar1 = new javax.swing.JScrollBar();
         jSplitPane1 = new javax.swing.JSplitPane();
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         suspectedTable = new javax.swing.JTable();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
         conversationTable = new javax.swing.JTable();
         controlPanel = new javax.swing.JPanel();
@@ -231,6 +257,11 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
 
         jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         jSplitPane1.setResizeWeight(0.5);
+        jPanel1.setLayout(new java.awt.BorderLayout());
+
+        jLabel1.setText("Suspected Vulnerabilities");
+        jPanel1.add(jLabel1, java.awt.BorderLayout.NORTH);
+
         suspectedTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
@@ -242,9 +273,17 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        suspectedTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
         jScrollPane1.setViewportView(suspectedTable);
 
-        jSplitPane1.setLeftComponent(jScrollPane1);
+        jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+
+        jSplitPane1.setLeftComponent(jPanel1);
+
+        jPanel2.setLayout(new java.awt.BorderLayout());
+
+        jLabel2.setText("Confirmed Vulnerabilities");
+        jPanel2.add(jLabel2, java.awt.BorderLayout.NORTH);
 
         conversationTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -260,7 +299,9 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         conversationTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
         jScrollPane2.setViewportView(conversationTable);
 
-        jSplitPane1.setRightComponent(jScrollPane2);
+        jPanel2.add(jScrollPane2, java.awt.BorderLayout.CENTER);
+
+        jSplitPane1.setRightComponent(jPanel2);
 
         add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
@@ -288,8 +329,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
 
         add(controlPanel, java.awt.BorderLayout.SOUTH);
 
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
         _model.setCRLFTestString(crlfTextArea.getText());
@@ -410,6 +450,10 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
     private javax.swing.JTextArea crlfTextArea;
     private javax.swing.JButton editButton;
     private javax.swing.JDialog editDialog;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollBar jScrollBar1;
     private javax.swing.JScrollPane jScrollPane1;

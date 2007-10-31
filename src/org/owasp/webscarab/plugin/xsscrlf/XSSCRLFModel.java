@@ -83,6 +83,12 @@ public class XSSCRLFModel extends AbstractPluginModel {
         return suspect;
     }
     
+    public String getXSSSuspected(ConversationID id) {
+        String params = _model.getConversationProperty(id, "XSS-GET");
+        if (params != null) return params;
+        return _model.getConversationProperty(id, "XSS-POST");
+    }
+    
     public boolean isCRLFSuspected(ConversationID id) {
         boolean suspect = false;
         suspect |= (_model.getConversationProperty(id, "CRLF-GET") != null);
@@ -90,6 +96,11 @@ public class XSSCRLFModel extends AbstractPluginModel {
         return suspect;
     }
     
+    public String getCRLFSuspected(ConversationID id) {
+        String params = _model.getConversationProperty(id, "CRLF-GET");
+        if (params != null) return params;
+        return _model.getConversationProperty(id, "CRLF-POST");
+    }
     public boolean isSuspected(HttpUrl url) {
         boolean suspect = false;
         suspect |= (_model.getUrlProperty(url, "XSS-GET") != null);
