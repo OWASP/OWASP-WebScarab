@@ -202,7 +202,6 @@ public class Lite extends JFrame implements FrameworkUI {
      */
     // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
     private void initComponents() {
-        summaryInternalFrame = new javax.swing.JInternalFrame();
         tabbedPane = new javax.swing.JTabbedPane();
         mainMenuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
@@ -222,12 +221,6 @@ public class Lite extends JFrame implements FrameworkUI {
         helpMenu = new javax.swing.JMenu();
         contentsMenuItem = new javax.swing.JMenuItem();
         aboutMenuItem = new javax.swing.JMenuItem();
-
-        summaryInternalFrame.setIconifiable(true);
-        summaryInternalFrame.setMaximizable(true);
-        summaryInternalFrame.setResizable(true);
-        summaryInternalFrame.setTitle("Summary");
-        summaryInternalFrame.setVisible(true);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("WebScarab Lite");
@@ -634,7 +627,6 @@ public class Lite extends JFrame implements FrameworkUI {
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem proxyMenuItem;
     private javax.swing.JMenuItem saveMenuItem;
-    private javax.swing.JInternalFrame summaryInternalFrame;
     private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JMenu toolsMenu;
     private javax.swing.JMenuItem transcoderMenuItem;
