@@ -80,6 +80,33 @@ public class RequestConverter {
         return convertPostToMultipart(convertGetToPost(request));
     }
     
+    public static Request convertPostToGet(Request post) {
+        if (!"application/x-www-form-urlencoded".equals(post.getHeader("Content-Type")))
+            throw new IllegalArgumentException("Content type incorrect, was " + post.getHeader("Content-Type"));
+        byte[] content = post.getContent();
+        Request get = new Request(post);
+        get.setMethod("GET");
+        get.setContent(null);
+        get.deleteHeader("Content-Type");
+        get.deleteHeader("Content-Length");
+        String query = "";
+        if (content != null) {
+            query = new String(content);
+            try {
+                HttpUrl url = get.getURL();
+                if (url.getQuery() != null) {
+                    url = new HttpUrl(url.toString() + "&" + query);
+                } else if (url.getQuery() == null) {
+                    url = new HttpUrl(url.toString() + "?" + query);
+                }
+                get.setURL(url);
+            } catch (MalformedURLException mue) {
+                throw new RuntimeException("Couldn't construct the URL", mue);
+            }
+        }
+        return get;
+    }
+    
     public static void main(String[] args) throws Exception {
         Request get = new Request();
         get.setMethod("GET");

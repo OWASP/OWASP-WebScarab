@@ -217,6 +217,7 @@ public class RequestPanel extends javax.swing.JPanel {
         methodTextField.setBackground(color);
         urlTextField.setBackground(color);
         versionTextField.setBackground(color);
+        editButton.setVisible(editable);
     }
     
     public void setEditable(boolean editable) {
@@ -274,6 +275,7 @@ public class RequestPanel extends javax.swing.JPanel {
         java.awt.GridBagConstraints gridBagConstraints;
 
         editOptionsPopupMenu = new javax.swing.JPopupMenu();
+        convertGetMenuItem = new javax.swing.JMenuItem();
         convertPostMenuItem = new javax.swing.JMenuItem();
         convertMultipartMenuItem = new javax.swing.JMenuItem();
         displayTabbedPane = new javax.swing.JTabbedPane();
@@ -285,8 +287,18 @@ public class RequestPanel extends javax.swing.JPanel {
         messagePanelPlaceHolder = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
         versionTextField = new javax.swing.JTextField();
+        editButton = new javax.swing.JButton();
 
-        convertPostMenuItem.setText("Convert to POST");
+        convertGetMenuItem.setText("Convert POST to GET");
+        convertGetMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                convertGetMenuItemActionPerformed(evt);
+            }
+        });
+
+        editOptionsPopupMenu.add(convertGetMenuItem);
+
+        convertPostMenuItem.setText("Convert GET to POST");
         convertPostMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 convertPostMenuItemActionPerformed(evt);
@@ -295,7 +307,7 @@ public class RequestPanel extends javax.swing.JPanel {
 
         editOptionsPopupMenu.add(convertPostMenuItem);
 
-        convertMultipartMenuItem.setText("Convert to Multipart");
+        convertMultipartMenuItem.setText("Convert POST to Multipart");
         convertMultipartMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 convertMultipartMenuItemActionPerformed(evt);
@@ -306,7 +318,6 @@ public class RequestPanel extends javax.swing.JPanel {
 
         setLayout(new java.awt.BorderLayout());
 
-        displayTabbedPane.setComponentPopupMenu(editOptionsPopupMenu);
         parsedPanel.setLayout(new java.awt.GridBagLayout());
 
         jLabel3.setLabelFor(methodTextField);
@@ -379,11 +390,42 @@ public class RequestPanel extends javax.swing.JPanel {
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         parsedPanel.add(versionTextField, gridBagConstraints);
 
+        editButton.setText("Transform");
+        editButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editButtonActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        parsedPanel.add(editButton, gridBagConstraints);
+
         displayTabbedPane.addTab("Parsed", parsedPanel);
 
         add(displayTabbedPane, java.awt.BorderLayout.CENTER);
 
     }// </editor-fold>//GEN-END:initComponents
+
+    private void convertGetMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_convertGetMenuItemActionPerformed
+        try {
+            Request req = getRequest();
+            if (req == null)
+                return;
+            Request get = RequestConverter.convertPostToGet(req);
+            setRequest(get);
+            _modified = true; // we have to do this as setRequest() resets this flag
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, e.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_convertGetMenuItemActionPerformed
+
+    private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editButtonActionPerformed
+        editOptionsPopupMenu.setVisible(true);
+        editOptionsPopupMenu.show(editButton, 0, editButton.getHeight());
+    }//GEN-LAST:event_editButtonActionPerformed
 
     private void convertPostMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_convertPostMenuItemActionPerformed
         try {
@@ -448,9 +490,11 @@ public class RequestPanel extends javax.swing.JPanel {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem convertGetMenuItem;
     private javax.swing.JMenuItem convertMultipartMenuItem;
     private javax.swing.JMenuItem convertPostMenuItem;
     private javax.swing.JTabbedPane displayTabbedPane;
+    private javax.swing.JButton editButton;
     private javax.swing.JPopupMenu editOptionsPopupMenu;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
