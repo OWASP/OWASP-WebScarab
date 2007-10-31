@@ -594,7 +594,8 @@ public class Message {
         } else {
             _content = new ByteArrayOutputStream();
             try {
-                _content.write(bytes);
+                if (bytes != null)
+                    _content.write(bytes);
             } catch (IOException ioe) {} // can't fail
         }
         String cl = getHeader("Content-length");
