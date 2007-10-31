@@ -47,6 +47,7 @@ import java.io.IOException;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.JFrame;
 import javax.swing.JFileChooser;
@@ -247,6 +248,12 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private void initComponents() {
         logLevelButtonGroup = new javax.swing.ButtonGroup();
         logTextArea = new javax.swing.JTextArea();
+        dropPatternDialog = new javax.swing.JDialog();
+        jLabel1 = new javax.swing.JLabel();
+        dropPatternTextField = new javax.swing.JTextField();
+        jPanel1 = new javax.swing.JPanel();
+        cancelButton = new javax.swing.JButton();
+        okButton = new javax.swing.JButton();
         tabbedPane = new javax.swing.JTabbedPane();
         mainMenuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
@@ -265,6 +272,7 @@ public class UIFramework extends JFrame implements FrameworkUI {
         transcoderMenuItem = new javax.swing.JMenuItem();
         scriptMenuItem = new javax.swing.JMenuItem();
         restartMenuItem = new javax.swing.JMenuItem();
+        showDropPatternDialogMenuItem = new javax.swing.JMenuItem();
         liteMenuItem = new javax.swing.JCheckBoxMenuItem();
         helpMenu = new javax.swing.JMenu();
         contentsMenuItem = new javax.swing.JMenuItem();
@@ -279,6 +287,36 @@ public class UIFramework extends JFrame implements FrameworkUI {
         logTextArea.setBackground(new java.awt.Color(204, 204, 204));
         logTextArea.setEditable(false);
         logTextArea.setToolTipText("");
+        dropPatternDialog.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+        dropPatternDialog.setTitle("Discard conversations");
+        dropPatternDialog.setModal(true);
+        dropPatternDialog.setResizable(false);
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 13));
+        jLabel1.setText("Discard conversations matching (URL):");
+        dropPatternDialog.getContentPane().add(jLabel1, java.awt.BorderLayout.NORTH);
+
+        dropPatternTextField.setPreferredSize(new java.awt.Dimension(200, 22));
+        dropPatternDialog.getContentPane().add(dropPatternTextField, java.awt.BorderLayout.CENTER);
+
+        cancelButton.setText("Cancel");
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelButtonActionPerformed(evt);
+            }
+        });
+
+        jPanel1.add(cancelButton);
+
+        okButton.setText("Ok");
+        okButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                okButtonActionPerformed(evt);
+            }
+        });
+
+        jPanel1.add(okButton);
+
+        dropPatternDialog.getContentPane().add(jPanel1, java.awt.BorderLayout.SOUTH);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("WebScarab");
@@ -430,6 +468,15 @@ public class UIFramework extends JFrame implements FrameworkUI {
 
         toolsMenu.add(restartMenuItem);
 
+        showDropPatternDialogMenuItem.setText("Discard conversations");
+        showDropPatternDialogMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showDropPatternDialogMenuItemActionPerformed(evt);
+            }
+        });
+
+        toolsMenu.add(showDropPatternDialogMenuItem);
+
         liteMenuItem.setText("Use Lite interface");
         liteMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -516,6 +563,27 @@ public class UIFramework extends JFrame implements FrameworkUI {
         setJMenuBar(mainMenuBar);
 
     }// </editor-fold>//GEN-END:initComponents
+
+    private void showDropPatternDialogMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showDropPatternDialogMenuItemActionPerformed
+        String pattern = _framework.getDropPattern();
+        dropPatternTextField.setText(pattern);
+        dropPatternDialog.pack();
+        dropPatternDialog.setLocationRelativeTo(this);
+        dropPatternDialog.setVisible(true);
+    }//GEN-LAST:event_showDropPatternDialogMenuItemActionPerformed
+
+    private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
+        try {
+            _framework.setDropPattern(dropPatternTextField.getText());
+            dropPatternDialog.setVisible(false);
+        } catch (PatternSyntaxException pse) {
+            JOptionPane.showMessageDialog(dropPatternDialog, new String[] {"Invalid pattern", pse.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_okButtonActionPerformed
+
+    private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
+        dropPatternDialog.setVisible(false);
+    }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void liteMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_liteMenuItemActionPerformed
         Preferences.setPreference("WebScarab.lite", Boolean.toString(liteMenuItem.isSelected()));
@@ -784,10 +852,13 @@ public class UIFramework extends JFrame implements FrameworkUI {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
+    private javax.swing.JButton cancelButton;
     private javax.swing.JMenuItem certsMenuItem;
     private javax.swing.JMenuItem contentsMenuItem;
     private javax.swing.JMenuItem cookieJarMenuItem;
     private javax.swing.JMenuItem credentialsMenuItem;
+    private javax.swing.JDialog dropPatternDialog;
+    private javax.swing.JTextField dropPatternTextField;
     private javax.swing.JMenu editorMenu;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu fileMenu;
@@ -796,18 +867,22 @@ public class UIFramework extends JFrame implements FrameworkUI {
     private javax.swing.JRadioButtonMenuItem finestLogRadioButtonMenuItem;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JRadioButtonMenuItem infoLogRadioButtonMenuItem;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JCheckBoxMenuItem liteMenuItem;
     private javax.swing.ButtonGroup logLevelButtonGroup;
     private javax.swing.JMenu logMenu;
     private javax.swing.JTextArea logTextArea;
     private javax.swing.JMenuBar mainMenuBar;
     private javax.swing.JMenuItem newMenuItem;
+    private javax.swing.JButton okButton;
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem proxyMenuItem;
     private javax.swing.JMenuItem restartMenuItem;
     private javax.swing.JMenuItem saveMenuItem;
     private javax.swing.JMenuItem scriptMenuItem;
     private javax.swing.JRadioButtonMenuItem severeLogRadioButtonMenuItem;
+    private javax.swing.JMenuItem showDropPatternDialogMenuItem;
     private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JMenu toolsMenu;
     private javax.swing.JMenuItem transcoderMenuItem;

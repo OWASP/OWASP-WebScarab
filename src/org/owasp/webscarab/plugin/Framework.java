@@ -97,12 +97,10 @@ public class Framework {
         _credentialManager = new CredentialManager();
         configureHTTPClient();
         String dropRegex = Preferences.getPreference("WebScarab.dropRegex", null);
-        if (dropRegex != null) {
-            try {
-                dropPattern = Pattern.compile(dropRegex);
-            } catch (PatternSyntaxException pse) {
-                _logger.warning("Got an invalid regular expression for conversations to ignore: " + dropRegex + " results in " + pse.toString());
-            }
+        try {
+            setDropPattern(dropRegex);
+        } catch (PatternSyntaxException pse) {
+            _logger.warning("Got an invalid regular expression for conversations to ignore: " + dropRegex + " results in " + pse.toString());
         }
         _qp = new Framework.QueueProcessor();
         _queueThread = new Thread(_qp, "QueueProcessor");
@@ -117,6 +115,20 @@ public class Framework {
     
     public CredentialManager getCredentialManager() {
         return _credentialManager;
+    }
+    
+    public String getDropPattern() {
+        return dropPattern == null ? "" : dropPattern.pattern();
+    }
+    
+    public void setDropPattern(String pattern) throws PatternSyntaxException {
+        if (pattern == null || "".equals(pattern)) {
+            dropPattern = null;
+            Preferences.setPreference("WebScarab.dropRegex", "");
+        } else {
+            dropPattern = Pattern.compile(pattern);
+            Preferences.setPreference("WebScarab.dropRegex", pattern);
+        }
     }
     
     /**
