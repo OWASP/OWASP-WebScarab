@@ -42,6 +42,7 @@ package org.owasp.webscarab.ui.swing;
 import java.net.MalformedURLException;
 import java.text.ParseException;
 import javax.swing.JButton;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -423,6 +424,22 @@ public class RequestPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_convertGetMenuItemActionPerformed
 
     private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editButtonActionPerformed
+        convertGetMenuItem.setEnabled(false);
+        convertPostMenuItem.setEnabled(false);
+        convertMultipartMenuItem.setEnabled(false);
+        try {
+            Request req = getRequest();
+            if ("GET".equals(req.getMethod())) {
+                convertPostMenuItem.setEnabled(true);
+                convertMultipartMenuItem.setEnabled(true);
+            } else if ("POST".equals(req.getMethod())) {
+                if ("application/x-www-form-urlencoded".equals(req.getHeader("Content-Type"))) {
+                    convertGetMenuItem.setEnabled(true);
+                    convertMultipartMenuItem.setEnabled(true);
+                }
+            }
+        } catch (Exception e) {
+        }
         editOptionsPopupMenu.setVisible(true);
         editOptionsPopupMenu.show(editButton, 0, editButton.getHeight());
     }//GEN-LAST:event_editButtonActionPerformed
