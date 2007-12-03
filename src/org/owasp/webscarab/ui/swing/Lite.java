@@ -207,8 +207,8 @@ public class Lite extends JFrame implements FrameworkUI {
         jLabel1 = new javax.swing.JLabel();
         dropPatternTextField = new javax.swing.JTextField();
         jPanel1 = new javax.swing.JPanel();
-        cancelButton = new javax.swing.JButton();
         okButton = new javax.swing.JButton();
+        cancelButton = new javax.swing.JButton();
         tabbedPane = new javax.swing.JTabbedPane();
         mainMenuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
@@ -230,7 +230,6 @@ public class Lite extends JFrame implements FrameworkUI {
         contentsMenuItem = new javax.swing.JMenuItem();
         aboutMenuItem = new javax.swing.JMenuItem();
 
-        dropPatternDialog.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         dropPatternDialog.setTitle("Discard conversations");
         dropPatternDialog.setModal(true);
         dropPatternDialog.setResizable(false);
@@ -241,6 +240,15 @@ public class Lite extends JFrame implements FrameworkUI {
         dropPatternTextField.setPreferredSize(new java.awt.Dimension(200, 22));
         dropPatternDialog.getContentPane().add(dropPatternTextField, java.awt.BorderLayout.CENTER);
 
+        okButton.setText("OK");
+        okButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                okButtonActionPerformed(evt);
+            }
+        });
+
+        jPanel1.add(okButton);
+
         cancelButton.setText("Cancel");
         cancelButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -249,15 +257,6 @@ public class Lite extends JFrame implements FrameworkUI {
         });
 
         jPanel1.add(cancelButton);
-
-        okButton.setText("Ok");
-        okButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                okButtonActionPerformed(evt);
-            }
-        });
-
-        jPanel1.add(okButton);
 
         dropPatternDialog.getContentPane().add(jPanel1, java.awt.BorderLayout.SOUTH);
 
