@@ -66,7 +66,8 @@ public class ImagePanel extends javax.swing.JPanel implements ByteArrayEditor {
     }
     
     public void setEditable(boolean editable) {
-        throw new UnsupportedOperationException("ImagePanels are not editable!");
+        if (editable)
+            throw new UnsupportedOperationException("ImagePanels are not editable!");
     }
     
     public byte[] getBytes() {
