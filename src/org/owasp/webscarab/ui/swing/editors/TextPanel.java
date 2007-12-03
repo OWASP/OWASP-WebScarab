@@ -39,9 +39,18 @@
 
 package org.owasp.webscarab.ui.swing.editors;
 
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Insets;
+import java.awt.Rectangle;
 import java.util.regex.PatternSyntaxException;
 import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
+import javax.swing.text.Highlighter.HighlightPainter;
+import javax.swing.text.JTextComponent;
 import org.owasp.webscarab.model.Preferences;
 
 import javax.swing.AbstractAction;
@@ -76,6 +85,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     private DocumentChangeListener _dcl = new DocumentChangeListener();
     
     private RegexSearcher searcher;
+    private Highlighter.HighlightPainter regexPainter, selectionPainter;
     
     /** Creates new form HexEditor */
     public TextPanel() {
@@ -84,7 +94,10 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         
         setName("Text");
         
-        searcher = new RegexSearcher(textTextArea, DefaultHighlighter.DefaultPainter);
+        regexPainter = new DefaultHighlighter.DefaultHighlightPainter(textTextArea.getSelectionColor());
+        selectionPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
+        
+        searcher = new RegexSearcher(textTextArea, regexPainter, selectionPainter);
         
         InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         
@@ -122,7 +135,8 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
             }
             private void find() {
                 _find = findTextField.getText();
-                _start = doFind(_find, 0, _caseSensitive) + 1;
+                doFind(_find, _caseSensitive);
+                _start = nextMatch(0);
             }
         });
     }
@@ -164,7 +178,8 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         textTextArea.setCaretPosition(0);
         if (_editable)
             textTextArea.getDocument().addDocumentListener(_dcl);
-        _start = doFind(_find, 0, _caseSensitive) + 1;
+        doFind(_find, _caseSensitive);
+        _start = nextMatch(0);
     }
     
     public String getText() {
@@ -194,24 +209,44 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         return _bytes;
     }
     
-    private int doFind(String pattern, int start, boolean caseSensitive) {
-        findMessageLabel.setText("");
-        try {
-            int pos = searcher.search(pattern, start, caseSensitive);
-            if (start > 0 && pos == -1) {
-                pos = searcher.search(pattern, 0, caseSensitive);
-                if (pos > -1)
-                    findMessageLabel.setText("Reached end of page, continued from top");
-            }
-            if (pos > -1) {
-                textTextArea.setCaretPosition(pos);
+    private int nextMatch(int oldPos) {
+        int pos = searcher.nextMatch();
+        if (pos == -1) {
+            findMessageLabel.setText("Not found");
+            locationLabel.setText("");
+        } else {
+            if (pos <= oldPos) {
+                findMessageLabel.setText("Reached end of page, continued from top");
             } else {
-                findMessageLabel.setText("Not found");
+                findMessageLabel.setText("");
             }
-            return pos;
+            locationLabel.setText("Character " + pos);
+        }
+        return pos;
+    }
+    
+    private int previousMatch(int oldPos) {
+        int pos = searcher.previousMatch();
+        if (pos == -1) {
+            findMessageLabel.setText("Not found");
+            locationLabel.setText("");
+        } else {
+            if (pos >= oldPos) {
+                findMessageLabel.setText("Reached top of page, continued from bottom");
+            } else {
+                findMessageLabel.setText("");
+            }
+            locationLabel.setText("   Character " + pos + "   ");
+        }
+        return pos;
+    }
+    
+    private void doFind(String pattern, boolean caseSensitive) {
+        try {
+            searcher.search(pattern, caseSensitive);
         } catch (PatternSyntaxException pse) {
             findMessageLabel.setText(pse.getMessage());
-            return -1;
+            locationLabel.setText("");
         }
     }
     
@@ -230,7 +265,9 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         findLabel = new javax.swing.JLabel();
         findTextField = new javax.swing.JTextField();
         findNextButton = new javax.swing.JButton();
+        findPreviousButton = new javax.swing.JButton();
         findCaseCheckBox = new javax.swing.JCheckBox();
+        locationLabel = new javax.swing.JLabel();
         findMessageLabel = new javax.swing.JLabel();
 
         setLayout(new java.awt.BorderLayout());
@@ -261,6 +298,16 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
 
         findPanel.add(findNextButton, new java.awt.GridBagConstraints());
 
+        findPreviousButton.setMnemonic('N');
+        findPreviousButton.setText("Previous");
+        findPreviousButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                findPreviousButtonActionPerformed(evt);
+            }
+        });
+
+        findPanel.add(findPreviousButton, new java.awt.GridBagConstraints());
+
         findCaseCheckBox.setMnemonic('M');
         findCaseCheckBox.setText("Match Case");
         findCaseCheckBox.addActionListener(new java.awt.event.ActionListener() {
@@ -271,26 +318,37 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
 
         findPanel.add(findCaseCheckBox, new java.awt.GridBagConstraints());
 
-        findMessageLabel.setFont(new java.awt.Font("Dialog", 0, 12));
+        locationLabel.setFont(new java.awt.Font("Dialog", 0, 12));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        findPanel.add(locationLabel, gridBagConstraints);
+
+        findMessageLabel.setFont(new java.awt.Font("Dialog", 0, 12));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         findPanel.add(findMessageLabel, gridBagConstraints);
 
         add(findPanel, java.awt.BorderLayout.SOUTH);
 
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void findPreviousButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_findPreviousButtonActionPerformed
+        _start = previousMatch(_start);
+    }//GEN-LAST:event_findPreviousButtonActionPerformed
     
     private void findCaseCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_findCaseCheckBoxActionPerformed
         _caseSensitive = findCaseCheckBox.isSelected();
-        _start = doFind(_find, 0, _caseSensitive) + 1;
+        doFind(_find, _caseSensitive);
+        _start = nextMatch(0);
     }//GEN-LAST:event_findCaseCheckBoxActionPerformed
     
     private void findNextButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_findNextButtonActionPerformed
-        _start = doFind(_find, _start, _caseSensitive) + 1;
+        _start = nextMatch(_start);
     }//GEN-LAST:event_findNextButtonActionPerformed
     
     
@@ -300,7 +358,9 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     private javax.swing.JLabel findMessageLabel;
     private javax.swing.JButton findNextButton;
     private javax.swing.JPanel findPanel;
+    private javax.swing.JButton findPreviousButton;
     private javax.swing.JTextField findTextField;
+    private javax.swing.JLabel locationLabel;
     private javax.swing.JScrollPane textScrollPane;
     private javax.swing.JTextArea textTextArea;
     // End of variables declaration//GEN-END:variables
