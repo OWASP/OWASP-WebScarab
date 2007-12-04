@@ -89,7 +89,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         
         InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         
-        getActionMap().put("TOGGLEWRAP", new AbstractAction() {
+        textTextArea.getActionMap().put("TOGGLEWRAP", new AbstractAction() {
             public void actionPerformed(ActionEvent event) {
                 textTextArea.setLineWrap(! textTextArea.getLineWrap());
             }
@@ -97,7 +97,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         // Ctrl-W to toggle wordwrap
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, Event.CTRL_MASK), "TOGGLEWRAP");
         
-        getActionMap().put("TOGGLEFIND", new AbstractAction() {
+        textTextArea.getActionMap().put("TOGGLEFIND", new AbstractAction() {
             public void actionPerformed(ActionEvent event) {
                 _findVisible = ! findPanel.isVisible();
                 findPanel.setVisible(_findVisible);
