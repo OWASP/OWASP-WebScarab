@@ -10,6 +10,7 @@
 
 package org.owasp.webscarab;
 
+import java.awt.Toolkit;
 import java.io.IOException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -62,6 +63,7 @@ import org.owasp.webscarab.ui.swing.Lite;
 import org.owasp.webscarab.ui.swing.UIFramework;
 import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.swing.ExceptionHandler;
+import org.owasp.webscarab.util.swing.TextComponentContextMenu;
 
 /**
  *
@@ -93,6 +95,9 @@ public class WebScarab {
             System.err.println("Error loading preferences: " + ioe);
             System.exit(1);
         }
+        
+        // Provide default Copy/Paste/etc actions on text components
+        Toolkit.getDefaultToolkit().getSystemEventQueue().push(new TextComponentContextMenu());
         
         Framework framework = new Framework();
         
