@@ -144,6 +144,8 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
             int ci = contentType.indexOf("charset");
             if ( ci == -1) {
                 _charset = CharsetUtils.getCharset(bytes);
+                if (_charset == null)
+                    _charset = "ASCII";
             } else {
                 _charset = contentType.substring(ci+8);
             }
