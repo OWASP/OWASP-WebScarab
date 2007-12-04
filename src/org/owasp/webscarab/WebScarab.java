@@ -82,78 +82,80 @@ public class WebScarab {
      * of user interfaces
      */
     public static void main(String[] args) {
-        
-        System.setProperty("sun.awt.exception.handler", ExceptionHandler.class.getName());
-        
-        final SplashScreen splash = new SplashScreen("/org/owasp/webscarab/webscarab_logo.gif");
-        splash.open(10000);
-        initLogging();
-        
         try {
-            Preferences.loadPreferences(null);
-        } catch (IOException ioe) {
-            System.err.println("Error loading preferences: " + ioe);
-            System.exit(1);
-        }
-        
-        // Provide default Copy/Paste/etc actions on text components
-        Toolkit.getDefaultToolkit().getSystemEventQueue().push(new TextComponentContextMenu());
-        
-        Framework framework = new Framework();
-        
-        boolean lite = Boolean.valueOf(Preferences.getPreference("WebScarab.lite", "true")).booleanValue();
-        
-        if (args != null && args.length > 0) {
-            if (args[0].equalsIgnoreCase("lite")) {
-                lite = true;
-                if (args.length>1) {
-                    String[] trim = new String[args.length-1];
-                    System.arraycopy(args, 1, trim, 0, args.length-1);
-                    args = trim;
-                } else {
-                    args = new String[0];
+            System.setProperty("sun.awt.exception.handler", ExceptionHandler.class.getName());
+
+            final SplashScreen splash = new SplashScreen("/org/owasp/webscarab/webscarab_logo.gif");
+            splash.open(10000);
+            initLogging();
+
+            try {
+                Preferences.loadPreferences(null);
+            } catch (IOException ioe) {
+                System.err.println("Error loading preferences: " + ioe);
+                System.exit(1);
+            }
+
+            // Provide default Copy/Paste/etc actions on text components
+            Toolkit.getDefaultToolkit().getSystemEventQueue().push(new TextComponentContextMenu());
+
+            Framework framework = new Framework();
+
+            boolean lite = Boolean.valueOf(Preferences.getPreference("WebScarab.lite", "true")).booleanValue();
+
+            if (args != null && args.length > 0) {
+                if (args[0].equalsIgnoreCase("lite")) {
+                    lite = true;
+                    if (args.length>1) {
+                        String[] trim = new String[args.length-1];
+                        System.arraycopy(args, 1, trim, 0, args.length-1);
+                        args = trim;
+                    } else {
+                        args = new String[0];
+                    }
                 }
             }
-        }
-        
-        if (! lite) {
-            final UIFramework uif = new UIFramework(framework);
-            ExceptionHandler.setParentComponent(uif);
-            loadAllPlugins(framework, uif);
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        uif.setVisible(true);
-                        uif.toFront();
-                        uif.requestFocus();
-                        splash.close();
-                    }
-                });
-            } catch (Exception e) {
-                System.err.println("Error loading GUI: " + e.getMessage());
-                System.exit(1);
+
+            if (! lite) {
+                final UIFramework uif = new UIFramework(framework);
+                ExceptionHandler.setParentComponent(uif);
+                loadAllPlugins(framework, uif);
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            uif.setVisible(true);
+                            uif.toFront();
+                            uif.requestFocus();
+                            splash.close();
+                        }
+                    });
+                } catch (Exception e) {
+                    System.err.println("Error loading GUI: " + e.getMessage());
+                    System.exit(1);
+                }
+                uif.run();
+            } else {
+                final Lite uif = new Lite(framework);
+                ExceptionHandler.setParentComponent(uif);
+                loadLitePlugins(framework, uif);
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            uif.setVisible(true);
+                            uif.toFront();
+                            uif.requestFocus();
+                            splash.close();
+                        }
+                    });
+                } catch (Exception e) {
+                    System.err.println("Error loading GUI: " + e.getMessage());
+                    System.exit(1);
+                }
+                uif.run();
             }
-            uif.run();
-        } else {
-            final Lite uif = new Lite(framework);
-            ExceptionHandler.setParentComponent(uif);
-            loadLitePlugins(framework, uif);
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        uif.setVisible(true);
-                        uif.toFront();
-                        uif.requestFocus();
-                        splash.close();
-                    }
-                });
-            } catch (Exception e) {
-                System.err.println("Error loading GUI: " + e.getMessage());
-                System.exit(1);
-            }
-            uif.run();
+        } catch (Throwable t) {
+            JOptionPane.showMessageDialog(null, t, "Error!", JOptionPane.ERROR_MESSAGE);
         }
-        
         try {
             Preferences.savePreferences();
         } catch (IOException ioe) {
