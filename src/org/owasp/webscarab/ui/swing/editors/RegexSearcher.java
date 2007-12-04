@@ -10,12 +10,14 @@
 
 package org.owasp.webscarab.ui.swing.editors;
 
+import java.awt.Color;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Document;
 import javax.swing.text.Highlighter;
 import javax.swing.text.JTextComponent;
@@ -25,10 +27,10 @@ import javax.swing.text.JTextComponent;
  * @author rdawes
  */
 public class RegexSearcher {
-    public RegexSearcher(JTextComponent comp, Highlighter.HighlightPainter matchPainter, Highlighter.HighlightPainter selectionPainter) {
+    public RegexSearcher(JTextComponent comp, Color matchColor, Color selectionColor) {
         this.comp = comp;
-        this.matchPainter = matchPainter;
-        this.selectionPainter = selectionPainter;
+        this.matchPainter = new DefaultHighlighter.DefaultHighlightPainter(matchColor);
+        this.selectionPainter = new DefaultHighlighter.DefaultHighlightPainter(selectionColor);
     }
     
     // Highlights all occurrences found of the specified pattern.
@@ -77,47 +79,46 @@ public class RegexSearcher {
     public int previousMatch() {
         Highlighter highlighter = comp.getHighlighter();
         Highlighter.Highlight[] highlights = highlighter.getHighlights();
-        Highlighter.Highlight match = null;
+        Highlighter.Highlight last = null, previous = null, current = null;
         
-        for (int i = highlights.length - 1; i >= 0; i--) {
+        for (int i = 0; i < highlights.length; i++) {
             Highlighter.Highlight h = highlights[i];
             if (h.getPainter() == matchPainter) {
-                if (h.getStartOffset() < pos && match == null) {
-                    match = h;
+                if (last == null || h.getStartOffset() > last.getStartOffset())
+                    last = h;
+                if (h.getStartOffset() < pos) {
+                    if (previous == null) {
+                        previous = h;
+                    } else if (previous.getStartOffset() < h.getStartOffset()) {
+                        previous = h;
+                    }
                 }
             } else if (h.getPainter() == selectionPainter) {
-                // remove the painter for the selected item,
-                // and replace it with the regular painter
-                highlighter.removeHighlight(h);
-                try {
-                    highlighter.addHighlight(h.getStartOffset(), h.getEndOffset(), matchPainter);
-                } catch (BadLocationException ble) {
-                    ble.printStackTrace();
-                }
-            }
-        }
-
-        if (match == null) {
-            for (int i = highlights.length - 1; i >= 0; i--) {
-                Highlighter.Highlight h = highlights[i];
-                if (h.getPainter() == matchPainter) {
-                    match = h;
-                    break;
-                }
+                current = h;
             }
         }
         
-        if (match == null) {
+        if (previous == null)
+            previous = last;
+        if (previous == null)
+            previous = current;
+        
+        if (previous == null) {
             pos = -1;
         } else {
-            try {
-                highlighter.removeHighlight(match);
-                highlighter.addHighlight(match.getStartOffset(), match.getEndOffset(), selectionPainter);
-                center(match);
-            } catch (BadLocationException ble) {
-                // impossible
-            }
-            pos = match.getStartOffset();
+            if (previous != current) 
+                try {
+                    if (current != null) {
+                        highlighter.removeHighlight(current);
+                        highlighter.addHighlight(current.getStartOffset(), current.getEndOffset(), matchPainter);
+                    }
+                    highlighter.removeHighlight(previous);
+                    highlighter.addHighlight(previous.getStartOffset(), previous.getEndOffset(), selectionPainter);
+                    center(previous);
+                } catch (BadLocationException ble) {
+                    // impossible
+                }
+            pos = previous.getStartOffset();
         }
         return pos;
     }
@@ -125,47 +126,46 @@ public class RegexSearcher {
     public int nextMatch() {
         Highlighter highlighter = comp.getHighlighter();
         Highlighter.Highlight[] highlights = highlighter.getHighlights();
-        Highlighter.Highlight match = null;
+        Highlighter.Highlight first = null, next = null, current = null;
         
         for (int i = 0; i < highlights.length; i++) {
             Highlighter.Highlight h = highlights[i];
             if (h.getPainter() == matchPainter) {
-                if (h.getStartOffset() > pos && match == null) {
-                    match = h;
+                if (first == null || h.getStartOffset() < first.getStartOffset())
+                    first = h;
+                if (h.getStartOffset() > pos) {
+                    if (next == null) {
+                        next = h;
+                    } else if (next.getStartOffset() > h.getStartOffset()) {
+                        next = h;
+                    }
                 }
             } else if (h.getPainter() == selectionPainter) {
-                // remove the painter for the selected item,
-                // and replace it with the regular painter
-                highlighter.removeHighlight(h);
-                try {
-                    highlighter.addHighlight(h.getStartOffset(), h.getEndOffset(), matchPainter);
-                } catch (BadLocationException ble) {
-                    ble.printStackTrace();
-                }
-            }
-        }
-
-        if (match == null) {
-            for (int i = 0; i < highlights.length; i++) {
-                Highlighter.Highlight h = highlights[i];
-                if (h.getPainter() == matchPainter) {
-                    match = h;
-                    break;
-                }
+                current = h;
             }
         }
         
-        if (match == null) {
+        if (next == null)
+            next = first;
+        if (next == null)
+            next = current;
+        
+        if (next == null) {
             pos = -1;
         } else {
-            try {
-                highlighter.removeHighlight(match);
-                highlighter.addHighlight(match.getStartOffset(), match.getEndOffset(), selectionPainter);
-                center(match);
-            } catch (BadLocationException ble) {
-                // impossible
-            }
-            pos = match.getStartOffset();
+            if (next != current) 
+                try {
+                    if (current != null) {
+                        highlighter.removeHighlight(current);
+                        highlighter.addHighlight(current.getStartOffset(), current.getEndOffset(), matchPainter);
+                    }
+                    highlighter.removeHighlight(next);
+                    highlighter.addHighlight(next.getStartOffset(), next.getEndOffset(), selectionPainter);
+                    center(next);
+                } catch (BadLocationException ble) {
+                    // impossible
+                }
+            pos = next.getStartOffset();
         }
         return pos;
     }
@@ -173,7 +173,8 @@ public class RegexSearcher {
     private void center(Highlighter.Highlight match) throws BadLocationException {
         Rectangle r = comp.modelToView(match.getStartOffset());
         r.add(comp.modelToView(match.getEndOffset()));
-        center(r, false);
+        if (! comp.getVisibleRect().contains(r))
+            center(r, false);
     }
     
     private void center(Rectangle r, boolean withInsets) {
@@ -204,9 +205,10 @@ public class RegexSearcher {
         comp.scrollRectToVisible(visible);
     }
 
-    protected JTextComponent comp;
+    private JTextComponent comp;
     
-    protected Highlighter.HighlightPainter matchPainter, selectionPainter;
+    private Highlighter.HighlightPainter matchPainter, selectionPainter;
     
-    int pos = -1;
+    private int pos = -1;
+    
 }

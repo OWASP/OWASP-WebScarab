@@ -40,17 +40,9 @@
 package org.owasp.webscarab.ui.swing.editors;
 
 import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Insets;
-import java.awt.Rectangle;
 import java.util.regex.PatternSyntaxException;
 import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Highlighter;
-import javax.swing.text.Highlighter.HighlightPainter;
-import javax.swing.text.JTextComponent;
+import javax.swing.text.Element;
 import org.owasp.webscarab.model.Preferences;
 
 import javax.swing.AbstractAction;
@@ -85,7 +77,6 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     private DocumentChangeListener _dcl = new DocumentChangeListener();
     
     private RegexSearcher searcher;
-    private Highlighter.HighlightPainter regexPainter, selectionPainter;
     
     /** Creates new form HexEditor */
     public TextPanel() {
@@ -94,10 +85,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         
         setName("Text");
         
-        regexPainter = new DefaultHighlighter.DefaultHighlightPainter(textTextArea.getSelectionColor());
-        selectionPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
-        
-        searcher = new RegexSearcher(textTextArea, regexPainter, selectionPainter);
+        searcher = new RegexSearcher(textTextArea, textTextArea.getSelectionColor(), Color.YELLOW);
         
         InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         
@@ -134,6 +122,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
                 find();
             }
             private void find() {
+                
                 _find = findTextField.getText();
                 doFind(_find, _caseSensitive);
                 _start = nextMatch(0);
@@ -211,33 +200,31 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
     private int nextMatch(int oldPos) {
         int pos = searcher.nextMatch();
+        StringBuffer message = new StringBuffer();
         if (pos == -1) {
-            findMessageLabel.setText("Not found");
-            locationLabel.setText("");
+            message.append("Not found");
         } else {
             if (pos <= oldPos) {
-                findMessageLabel.setText("Reached end of page, continued from top");
-            } else {
-                findMessageLabel.setText("");
+                message.append("Reached end of page, continued from top. ");
             }
-            locationLabel.setText("Character " + pos);
+            message.append(getLocation(pos));
         }
+        findMessageLabel.setText(message.toString());
         return pos;
     }
     
     private int previousMatch(int oldPos) {
         int pos = searcher.previousMatch();
+        StringBuffer message = new StringBuffer();
         if (pos == -1) {
-            findMessageLabel.setText("Not found");
-            locationLabel.setText("");
+            message.append("Not found");
         } else {
             if (pos >= oldPos) {
-                findMessageLabel.setText("Reached top of page, continued from bottom");
-            } else {
-                findMessageLabel.setText("");
+                message.append("Reached top of page, continued from bottom. ");
             }
-            locationLabel.setText("   Character " + pos + "   ");
+            message.append("Found at " + getLocation(pos));
         }
+        findMessageLabel.setText(message.toString());
         return pos;
     }
     
@@ -246,8 +233,15 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
             searcher.search(pattern, caseSensitive);
         } catch (PatternSyntaxException pse) {
             findMessageLabel.setText(pse.getMessage());
-            locationLabel.setText("");
         }
+    }
+    
+    private String getLocation(int pos) {
+        Element root = textTextArea.getDocument().getDefaultRootElement();
+        int row = root.getElementIndex(pos);
+        Element rowElement = root.getElement(row);
+        int column = pos - rowElement.getStartOffset();
+        return ("line " + (row + 1) + ", " + (column + 1));
     }
     
     /** This method is called from within the constructor to
@@ -267,7 +261,6 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         findNextButton = new javax.swing.JButton();
         findPreviousButton = new javax.swing.JButton();
         findCaseCheckBox = new javax.swing.JCheckBox();
-        locationLabel = new javax.swing.JLabel();
         findMessageLabel = new javax.swing.JLabel();
 
         setLayout(new java.awt.BorderLayout());
@@ -318,13 +311,6 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
 
         findPanel.add(findCaseCheckBox, new java.awt.GridBagConstraints());
 
-        locationLabel.setFont(new java.awt.Font("Dialog", 0, 12));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        findPanel.add(locationLabel, gridBagConstraints);
-
         findMessageLabel.setFont(new java.awt.Font("Dialog", 0, 12));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 6;
@@ -360,7 +346,6 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     private javax.swing.JPanel findPanel;
     private javax.swing.JButton findPreviousButton;
     private javax.swing.JTextField findTextField;
-    private javax.swing.JLabel locationLabel;
     private javax.swing.JScrollPane textScrollPane;
     private javax.swing.JTextArea textTextArea;
     // End of variables declaration//GEN-END:variables
@@ -407,5 +392,4 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
             _text = null;
         }
     }
-    
 }
