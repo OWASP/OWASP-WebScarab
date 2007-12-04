@@ -6,6 +6,9 @@
 
 package org.owasp.webscarab.plugin.xsscrlf.swing;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -13,6 +16,8 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Preferences;
@@ -21,6 +26,7 @@ import org.owasp.webscarab.plugin.xsscrlf.XSSCRLFModel;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;
 import org.owasp.webscarab.ui.swing.DateRenderer;
+import org.owasp.webscarab.ui.swing.ShowConversationAction;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.SwingWorker;
@@ -40,6 +46,8 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
     private ColumnDataModel[] _vulnerableConversationColumns;
     
     private ColumnDataModel[] _vulnerableUrlColumns;
+    
+    private ShowConversationAction _showAction;
     
     /** Creates new form XSSCRLFPanel */
     public XSSCRLFPanel(XSSCRLF xsscrlf) {
@@ -175,8 +183,38 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         };
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         editDialog.setBounds((screenSize.width-300)/2, (screenSize.height-150)/2, 300, 150);
+        addTableListeners();
     }
     
+    private void addTableListeners() {
+        _showAction = new ShowConversationAction(_model.getVulnerableConversationModel());
+        conversationTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getValueIsAdjusting()) return;
+                int row = conversationTable.getSelectedRow();
+                TableModel tm = conversationTable.getModel();
+                if (row >-1) {
+                    ConversationID id = (ConversationID) tm.getValueAt(row, 0); // UGLY hack! FIXME!!!!
+                    _showAction.putValue("CONVERSATION", id);
+                } else {
+                    _showAction.putValue("CONVERSATION", null);
+                }
+            }
+        });
+        
+        conversationTable.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                int row = conversationTable.rowAtPoint(e.getPoint());
+                conversationTable.getSelectionModel().setSelectionInterval(row,row);
+                if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
+                    ActionEvent evt = new ActionEvent(conversationTable, 0, (String) _showAction.getValue(Action.ACTION_COMMAND_KEY));
+                    if (_showAction.isEnabled())
+                        _showAction.actionPerformed(evt);
+                }
+            }
+        });
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
