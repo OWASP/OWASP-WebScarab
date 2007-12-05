@@ -277,7 +277,7 @@
         </zip>
     </target>
     <target 
-        depends="clean,source,proguard,izpack" 
+        depends="clean,javahelp,source,proguard,izpack" 
         description="Build all distributables" 
         name="dist"
     />
