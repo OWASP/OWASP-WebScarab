@@ -137,6 +137,7 @@ public class HeaderPanel extends javax.swing.JPanel {
         jScrollPane1.setPreferredSize(new java.awt.Dimension(453, 103));
         headerTable.setModel(_htm);
         headerTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        headerTable.setCellSelectionEnabled(true);
         jScrollPane1.setViewportView(headerTable);
 
         add(jScrollPane1, java.awt.BorderLayout.CENTER);

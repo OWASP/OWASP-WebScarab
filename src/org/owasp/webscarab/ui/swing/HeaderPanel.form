@@ -68,6 +68,7 @@
               <Connection code="_htm" type="code"/>
             </Property>
             <Property name="autoResizeMode" type="int" value="0"/>
+            <Property name="cellSelectionEnabled" type="boolean" value="true"/>
           </Properties>
         </Component>
       </SubComponents>
