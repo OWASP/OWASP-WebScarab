@@ -23,6 +23,7 @@
         <Component class="javax.swing.JCheckBox" name="interceptRequestCheckBox">
           <Properties>
             <Property name="text" type="java.lang.String" value="Intercept requests : "/>
+            <Property name="toolTipText" type="java.lang.String" value="Use Ctrl-Alt Q to toggle"/>
             <Property name="horizontalTextPosition" type="int" value="10"/>
           </Properties>
           <Constraints>
@@ -122,7 +123,7 @@
             <Component class="javax.swing.JList" name="interceptMethodList">
               <Properties>
                 <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.editors2.ListModelEditor">
-                  <StringArray count="8">
+                  <StringArray count="16">
                     <StringItem index="0" value="GET"/>
                     <StringItem index="1" value="POST"/>
                     <StringItem index="2" value="HEAD"/>
@@ -142,8 +143,8 @@
                   </StringArray>
                 </Property>
                 <Property name="toolTipText" type="java.lang.String" value="Select which request methods to intercept"/>
-                <Property name="visibleRowCount" type="int" value="0"/>
                 <Property name="enabled" type="boolean" value="false"/>
+                <Property name="visibleRowCount" type="int" value="0"/>
               </Properties>
             </Component>
           </SubComponents>
@@ -162,7 +163,7 @@
         <Component class="javax.swing.JCheckBox" name="interceptResponseCheckBox">
           <Properties>
             <Property name="text" type="java.lang.String" value="Intercept responses : "/>
-            <Property name="toolTipText" type="java.lang.String" value=""/>
+            <Property name="toolTipText" type="java.lang.String" value="Use Ctrl-Alt S to toggle"/>
             <Property name="horizontalTextPosition" type="int" value="10"/>
           </Properties>
           <Constraints>

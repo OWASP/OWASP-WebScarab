@@ -117,8 +117,8 @@
         <Component class="javax.swing.JCheckBox" name="interceptRequestCheckBox">
           <Properties>
             <Property name="text" type="java.lang.String" value="Intercept requests : "/>
-            <Property name="horizontalTextPosition" type="int" value="10"/>
             <Property name="enabled" type="boolean" value="false"/>
+            <Property name="horizontalTextPosition" type="int" value="10"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="interceptResponseCheckBox">

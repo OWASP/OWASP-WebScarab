@@ -39,9 +39,16 @@
 
 package org.owasp.webscarab.plugin.proxy.swing;
 
+import java.awt.Event;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.net.MalformedURLException;
 import java.text.ParseException;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
@@ -49,9 +56,8 @@ import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.ui.swing.RequestPanel;
 import org.owasp.webscarab.ui.swing.ResponsePanel;
 
-import javax.swing.SwingUtilities;
 import javax.swing.ButtonModel;
-import java.lang.Runnable;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -77,6 +83,25 @@ public class ManualEditFrame extends javax.swing.JFrame {
         _responsePanel = new ResponsePanel();
         contentSplitPane.setBottomComponent(_responsePanel);
         getRootPane().setDefaultButton(acceptButton);
+        installShortcuts();
+    }
+    
+    private void installShortcuts() {
+        Action toggleRequest = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                interceptRequestCheckBox.doClick();
+            }
+        };
+        KeyStroke toggleRequestKey = KeyStroke.getKeyStroke(KeyEvent.VK_Q, Event.CTRL_MASK | Event.ALT_MASK);
+        getRootPane().registerKeyboardAction(toggleRequest, "TOGGLEREQUEST", toggleRequestKey, JComponent.WHEN_IN_FOCUSED_WINDOW);
+        
+        Action toggleResponse = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                interceptResponseCheckBox.doClick();
+            }
+        };
+        KeyStroke toggleResponseKey = KeyStroke.getKeyStroke(KeyEvent.VK_S, Event.CTRL_MASK | Event.ALT_MASK);
+        getRootPane().registerKeyboardAction(toggleResponse, "TOGGLERESPONSE", toggleResponseKey, JComponent.WHEN_IN_FOCUSED_WINDOW);
     }
     
     public void setInterceptModels(ButtonModel interceptRequest, ButtonModel interceptResponse) {
