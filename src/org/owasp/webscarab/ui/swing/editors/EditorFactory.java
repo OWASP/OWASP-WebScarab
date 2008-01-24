@@ -31,7 +31,7 @@ public class EditorFactory {
     private EditorFactory() {
     }
     
-    private static void registerEditors() {
+    static {
         _editors = new LinkedHashMap(); // this helps to maintainthe order of the editors
         registerEditor("multipart/form-data; .*", "org.owasp.webscarab.ui.swing.editors.MultiPartPanel");
         registerEditor("application/x-serialized-object", "org.owasp.webscarab.ui.swing.editors.SerializedObjectPanel");
@@ -59,7 +59,6 @@ public class EditorFactory {
     
     public static ByteArrayEditor[] getEditors(String contentType) {
         if (contentType == null) return new ByteArrayEditor[] { new HexPanel() };
-        if (_editors == null) registerEditors();
         Iterator it = _editors.keySet().iterator();
         List editors = new ArrayList();
         while (it.hasNext()) {
