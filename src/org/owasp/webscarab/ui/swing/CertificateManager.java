@@ -88,7 +88,10 @@ public class CertificateManager extends javax.swing.JFrame {
     public String getPassword() {
         int result = JOptionPane.showConfirmDialog(this, askPasswordField, "Enter password", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
-            return new String(askPasswordField.getPassword());
+            char[] password = askPasswordField.getPassword();
+            if (password != null)
+                return new String(password);
+            return new String();
         } else return null;
     }
     
@@ -388,6 +391,7 @@ public class CertificateManager extends javax.swing.JFrame {
                 try {
                     _sslcm.unlockKey(ks, alias, password);
                 } catch (Exception e) {
+                    e.printStackTrace();
                     JOptionPane.showMessageDialog(null, new String[] {"Error accessing key store: ", e.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -395,6 +399,7 @@ public class CertificateManager extends javax.swing.JFrame {
             try {
                 fingerprint = _sslcm.getFingerPrint(cert);
             } catch (KeyStoreException kse) {
+                kse.printStackTrace();
                 JOptionPane.showMessageDialog(null, new String[] {"Error calculating key fingerprint: ", kse.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
                 fingerprint = "";
             }
