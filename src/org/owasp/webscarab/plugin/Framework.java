@@ -440,7 +440,7 @@ public class Framework {
                 try {
                     _bsfManager.declareBean("conversation", conversation, conversation.getClass());
                     super.runScripts();
-                    _bsfManager.undeclareBean("connection");
+                    _bsfManager.undeclareBean("conversation");
                 } catch (Exception e) {
                     _logger.severe("Declaring or undeclaring a bean should not throw an exception! " + e);
                 }
