@@ -137,12 +137,25 @@ public class RevealHidden extends ProxyPlugin {
                 input = inputMatcher.group(1) + "text" + inputMatcher.group(2);
 
                 /* insert [hidden] <fieldname> before the field itself */
-                inputMatcher.appendReplacement(outbuf, "<STRONG style=\"background-color: white;\"> [hidden field name =\"" + name + "\"]:</STRONG> "+ input + "<BR/>");
+//                inputMatcher.appendReplacement(outbuf, "<STRONG style=\"background-color: white;\"> [hidden field name =\"" + name + "\"]:</STRONG> "+ input + "<BR/>");
+                inputMatcher.appendReplacement(outbuf, constructReplacement(name, input));
             }
             inputMatcher.appendTail(outbuf);
             return outbuf.toString().getBytes();
         }
 
-    }
+		private String constructReplacement(final String name, final String input) {
+			final StringBuilder result = new StringBuilder();
+			result.append("<div style=\"background: pink; border: red 1px solid; padding: 2px; margin:4px; text-align: left;\">");
+			result.append("<p style=\"color: red; text-align: left; margin-top: 0px; font-size: xx-small;\">Hidden Input Field</p>");
+			result.append("<p style=\"text-align: center; color: black; margin: 0px; font-size: normal;\">");
+			result.append("[").append(name).append("]").append("&nbsp;").append(input);
+			result.append("</p>");
+			result.append("<p style=\"color: red; text-align: right; margin-bottom: 0px; font-size: xx-small;\">Revealed by WebScarab</p>");
+			result.append("</div>");
+			return result.toString();
+		}
+
+	}
 
 }
