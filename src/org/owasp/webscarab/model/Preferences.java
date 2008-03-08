@@ -78,7 +78,7 @@ public class Preferences {
         }
         
         try {
-            Properties props = new Properties(System.getProperties());
+            Properties props = new Properties();
             InputStream is = new FileInputStream(_location);
             props.load(is);
             _props = props;
@@ -98,11 +98,17 @@ public class Preferences {
     }
     
     public static String getPreference(String key) {
-        return _props.getProperty(key);
+        String result = System.getProperty(key);
+        if (result == null)
+            result = _props.getProperty(key);
+        return result;
     }
     
     public static String getPreference(String key, String defaultValue) {
-        return _props.getProperty(key, defaultValue);
+        String result = getPreference(key);
+        if (result == null)
+            result = defaultValue;
+        return result;
     }
     
     public static String remove(String key) {
