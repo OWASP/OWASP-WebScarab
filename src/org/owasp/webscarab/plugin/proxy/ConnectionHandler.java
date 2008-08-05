@@ -33,33 +33,34 @@
 
 package org.owasp.webscarab.plugin.proxy;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
-
 import java.net.Socket;
 import java.net.SocketException;
+import java.security.KeyStore;
+import java.util.HashMap;
+import java.util.logging.Logger;
 
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-
-import java.security.KeyStore;
-import java.util.logging.Logger;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
-
-import org.owasp.webscarab.model.Request;
-import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.util.HtmlEncoder;
 
 public class ConnectionHandler implements Runnable {
 
-    private static SSLSocketFactory _factory = null;
+    private static HashMap _factoryMap = new HashMap();
 
     private static String _keystore = "server.p12";
     private static char[] _keystorepass = "password".toCharArray();
@@ -147,7 +148,7 @@ public class ConnectionHandler implements Runnable {
             if (_base != null) {
                 if (_base.getScheme().equals("https")) {
                     _logger.fine("Intercepting SSL connection!");
-                    _sock = negotiateSSL(_sock);
+                    _sock = negotiateSSL(_sock, _base.getHost());
                     _clientIn = _sock.getInputStream();
                     _clientOut = _sock.getOutputStream();
                 }
@@ -290,32 +291,72 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
-    private void initSSL() {
-        KeyStore ks = null;
-        KeyManagerFactory kmf = null;
-        SSLContext sslcontext = null;
-        try {
-            ks = KeyStore.getInstance("PKCS12");
-            InputStream is = getClass().getClassLoader().getResourceAsStream(_keystore);
+    private SSLSocketFactory getSocketFactory(String host) {
+    	synchronized (_factoryMap) {
+    		if (_factoryMap.containsKey(host))
+    			return (SSLSocketFactory) _factoryMap.get(host);
+    		File p12 = new File(host + ".p12");
+    		InputStream is = null;
+    		if (p12.exists() && p12.canRead()) {
+    			try {
+					is = new FileInputStream(p12);
+				} catch (FileNotFoundException e) {
+					// impossible
+					e.printStackTrace();
+				}
+    		} else {
+    			if (_factoryMap.containsKey(null)) {
+    				_factoryMap.put(host, _factoryMap.get(null));
+    				return (SSLSocketFactory) _factoryMap.get(host);
+    			}
+    			p12 = new File("server.p12");
+    			if (p12.exists() && p12.canRead()) {
+    				try {
+						is = new FileInputStream(p12);
+					} catch (FileNotFoundException e) {
+						// impossible
+						e.printStackTrace();
+					}
+    			} else {
+    				is = getClass().getClassLoader().getResourceAsStream("server.p12");
+    			}
+    			p12 = null;
+    		}
             if (is == null) throw new NullPointerException("No keystore found!!");
-            ks.load(is, _keystorepass);
-            kmf = KeyManagerFactory.getInstance("SunX509");
-            kmf.init(ks, _keypassword);
-            sslcontext = SSLContext.getInstance("SSLv3");
-            sslcontext.init(kmf.getKeyManagers(), null, null);
-            _factory = sslcontext.getSocketFactory();
-            _logger.info("Initialised SSL handler OK");
-        } catch (Exception e) {
-            _logger.severe("Exception accessing keystore: " + e);
-            _factory = null;
-        }
+            KeyStore ks = null;
+            KeyManagerFactory kmf = null;
+            SSLContext sslcontext = null;
+            try {
+                ks = KeyStore.getInstance("PKCS12");
+                ks.load(is, _keystorepass);
+                kmf = KeyManagerFactory.getInstance("SunX509");
+                kmf.init(ks, _keypassword);
+                sslcontext = SSLContext.getInstance("SSLv3");
+                sslcontext.init(kmf.getKeyManagers(), null, null);
+                SSLSocketFactory factory = sslcontext.getSocketFactory();
+                _factoryMap.put(host, factory);
+                if (p12 == null) {
+                	_factoryMap.put(null, factory);
+                	_logger.info("Loaded default SSL keystore for " + host);
+                } else {
+                	_logger.info("Loaded custom SSL keystore for " + host);
+                }
+                return factory;
+            } catch (Exception e) {
+                _logger.severe("Exception accessing keystore: " + e);
+                e.printStackTrace();
+            }
+            return null;
+    	}
     }
 
-    private Socket negotiateSSL(Socket sock) throws Exception {
-        if (_factory == null) initSSL();
+    private Socket negotiateSSL(Socket sock, String host) throws Exception {
+    	SSLSocketFactory factory = getSocketFactory(host);
+    	if (factory == null)
+    		throw new RuntimeException("SSL Intercept not available - no keystores available");
         SSLSocket sslsock;
         try {
-            sslsock=(SSLSocket)_factory.createSocket(sock,sock.getInetAddress().getHostName(),sock.getPort(),true);
+            sslsock=(SSLSocket)factory.createSocket(sock,sock.getInetAddress().getHostName(),sock.getPort(),true);
             sslsock.setUseClientMode(false);
             _logger.fine("Finished negotiating SSL - algorithm is " + sslsock.getSession().getCipherSuite());
             return sslsock;
