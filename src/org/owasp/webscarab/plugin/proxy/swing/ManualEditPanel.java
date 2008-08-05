@@ -106,7 +106,11 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         _manualEdit.setUI(this);
         addHierarchyListener(new HierarchyListener() {
             public void hierarchyChanged(HierarchyEvent e) {
-                installShortcuts();
+            	SwingUtilities.invokeLater(new Runnable() {
+            		public void run() {
+                        installShortcuts();
+            		}
+            	});
                 // disconnect from the hierarchy after installing the shortcuts once
                 removeHierarchyListener(this);
             }
