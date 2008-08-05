@@ -131,6 +131,7 @@ public class WebScarab {
                     });
                 } catch (Exception e) {
                     System.err.println("Error loading GUI: " + e.getMessage());
+                    e.printStackTrace();
                     System.exit(1);
                 }
                 uif.run();
@@ -149,11 +150,13 @@ public class WebScarab {
                     });
                 } catch (Exception e) {
                     System.err.println("Error loading GUI: " + e.getMessage());
+                    e.printStackTrace();
                     System.exit(1);
                 }
                 uif.run();
             }
         } catch (Throwable t) {
+            t.printStackTrace();
             JOptionPane.showMessageDialog(null, t, "Error!", JOptionPane.ERROR_MESSAGE);
         }
         try {
