@@ -75,11 +75,6 @@
   <extension name="Java Help" href="lib/help.jnlp"/>
 </resources>
 
-<!-- JNI native Windows .dll code -->
-<resources os="Windows" arch="x86">
-  <nativelib href="lib/windows_x86.jar" download="eager"/>
-</resources>
-
 <!-- application class with main method -->
 <application-desc main-class="org.owasp.webscarab.WebScarab">
 </application-desc>
