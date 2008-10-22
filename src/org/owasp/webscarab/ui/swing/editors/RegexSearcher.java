@@ -172,6 +172,8 @@ public class RegexSearcher {
 
     private void center(Highlighter.Highlight match) throws BadLocationException {
         Rectangle r = comp.modelToView(match.getStartOffset());
+        if (r == null)
+        	return;
         r.add(comp.modelToView(match.getEndOffset()));
         if (! comp.getVisibleRect().contains(r))
             center(r, false);
