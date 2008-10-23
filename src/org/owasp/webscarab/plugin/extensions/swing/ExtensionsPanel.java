@@ -195,7 +195,7 @@ public class ExtensionsPanel extends javax.swing.JPanel implements SwingPluginUI
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
-        JFileChooser jfc = new JFileChooser(Preferences.getPreference("Extensions.DefaultDir"));
+        JFileChooser jfc = new JFileChooser(Preferences.getPreference("Extensions.DefaultDirectory"));
         jfc.setDialogTitle("Open extension file");
         int returnVal = jfc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -211,7 +211,7 @@ public class ExtensionsPanel extends javax.swing.JPanel implements SwingPluginUI
                 JOptionPane.showMessageDialog(null, new String[] {"Error loading extensions: ", ioe.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-        Preferences.setPreference("Scripted.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
+        Preferences.setPreference("Extensions.DefaultDirectory", jfc.getCurrentDirectory().getAbsolutePath());
     }//GEN-LAST:event_loadButtonActionPerformed
 
     private String arrayToString(String[] strings) {

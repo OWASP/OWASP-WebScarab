@@ -162,7 +162,7 @@ public class BeanShell extends ProxyPlugin {
     
     public void setScriptFile(String filename) throws EvalError {
         _scriptFile = filename;
-        String prop = "BeanShell.scriptfile";
+        String prop = "BeanShell.scriptFile";
         Preferences.setPreference(prop,filename);
         if (!filename.equals("")) {
             loadScriptFile(filename);

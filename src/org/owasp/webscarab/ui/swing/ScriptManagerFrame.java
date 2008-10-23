@@ -309,7 +309,7 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
         } else {
             return;
         }
-        JFileChooser jfc = new JFileChooser(Preferences.getPreference("ScriptManager.DefaultDir"));
+        JFileChooser jfc = new JFileChooser(Preferences.getPreference("ScriptManager.DefaultDirectory"));
         jfc.setDialogTitle("Load script");
         int returnVal = jfc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -321,7 +321,7 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
                 JOptionPane.showMessageDialog(null, new String[] {"Error loading Script : ", e.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-        Preferences.setPreference("ScriptManager.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
+        Preferences.setPreference("ScriptManager.DefaultDirectory", jfc.getCurrentDirectory().getAbsolutePath());
     }//GEN-LAST:event_addButtonActionPerformed
     
     /** Exit the Application */

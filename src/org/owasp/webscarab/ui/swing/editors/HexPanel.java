@@ -101,7 +101,7 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, Event.CTRL_MASK), "Load");
         getActionMap().put("Save", new AbstractAction() {
             public void actionPerformed(ActionEvent evt) {
-                JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDir"));
+                JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDirectory"));
                 jfc.setDialogTitle("Select a file to write the message content to");
                 int returnVal = jfc.showSaveDialog(HexPanel.this);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -113,13 +113,13 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
                         JOptionPane.showMessageDialog(HexPanel.this, "Error writing file: " + ioe.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
-                Preferences.setPreference("WebScarab.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
+                Preferences.setPreference("WebScarab.DefaultDirectory", jfc.getCurrentDirectory().getAbsolutePath());
             }
         });
         getActionMap().put("Load", new AbstractAction() {
             public void actionPerformed(ActionEvent evt) {
                 if (!_editable) return;
-                JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDir"));
+                JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDirectory"));
                 jfc.setDialogTitle("Select a file to read the message content from");
                 int returnVal = jfc.showOpenDialog(HexPanel.this);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -140,7 +140,7 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
                         JOptionPane.showMessageDialog(HexPanel.this, "Error writing file: " + ioe.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
-                Preferences.setPreference("WebScarab.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
+                Preferences.setPreference("WebScarab.DefaultDirectory", jfc.getCurrentDirectory().getAbsolutePath());
             }
         });
     }

@@ -216,7 +216,7 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
 
     private void saveAsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsButtonActionPerformed
         _scripted.setScript(scriptLanguageTextField.getText(), scriptTextPane.getText());
-        JFileChooser jfc = new JFileChooser(Preferences.getPreference("Scripted.DefaultDir"));
+        JFileChooser jfc = new JFileChooser(Preferences.getPreference("Scripted.DefaultDirectory"));
         jfc.setDialogTitle("Save as");
         int returnVal = jfc.showSaveDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -227,11 +227,11 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
                 JOptionPane.showMessageDialog(null, new String[] {"Error saving script: ", ioe.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-        Preferences.setPreference("Scripted.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
+        Preferences.setPreference("Scripted.DefaultDirectory", jfc.getCurrentDirectory().getAbsolutePath());
     }//GEN-LAST:event_saveAsButtonActionPerformed
 
     private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
-        JFileChooser jfc = new JFileChooser(Preferences.getPreference("Scripted.DefaultDir"));
+        JFileChooser jfc = new JFileChooser(Preferences.getPreference("Scripted.DefaultDirectory"));
         jfc.setDialogTitle("Load script");
         int returnVal = jfc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -242,7 +242,7 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
                 JOptionPane.showMessageDialog(null, new String[] {"Error loading script: ", ioe.getMessage()}, "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-        Preferences.setPreference("Scripted.DefaultDir", jfc.getCurrentDirectory().getAbsolutePath());
+        Preferences.setPreference("Scripted.DefaultDirectory", jfc.getCurrentDirectory().getAbsolutePath());
     }//GEN-LAST:event_loadButtonActionPerformed
 
     private void newButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newButtonActionPerformed
