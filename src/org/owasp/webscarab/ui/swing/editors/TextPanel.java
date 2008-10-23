@@ -87,7 +87,7 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         
         searcher = new RegexSearcher(textTextArea, textTextArea.getSelectionColor(), Color.YELLOW);
         
-        InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        InputMap inputMap = textTextArea.getInputMap(WHEN_FOCUSED);
         
         textTextArea.getActionMap().put("TOGGLEWRAP", new AbstractAction() {
             public void actionPerformed(ActionEvent event) {
