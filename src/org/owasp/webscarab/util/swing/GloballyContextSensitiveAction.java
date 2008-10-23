@@ -33,7 +33,6 @@ public class GloballyContextSensitiveAction implements Action {
                 if(evt.getNewValue() instanceof JComponent){
                     JComponent comp = (JComponent)evt.getNewValue();
                     Action action = comp.getActionMap().get(actionName);
-                    System.out.println("FocusOwner is " + comp + ", action is " + action);
                     if(action != null)
                         changeDelegate(comp, action);
                 }
