@@ -31,7 +31,9 @@ public class RequestConverter {
                 post.setContent(query.getBytes("ASCII"));
             } catch (UnsupportedEncodingException uee) {
                 _logger.severe("Bizarre! " + uee.getLocalizedMessage());
-                throw new IllegalArgumentException("Unknown ASCII encoding!", uee);
+                RuntimeException e = new IllegalArgumentException("Unknown ASCII encoding!");
+                e.initCause(uee);
+                throw e;
             }
             String s = url.toString();
             int q = s.indexOf('?');
