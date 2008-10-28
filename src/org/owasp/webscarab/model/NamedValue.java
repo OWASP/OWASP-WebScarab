@@ -44,7 +44,7 @@ public class NamedValue {
     
     public static NamedValue[] splitNamedValues(String source, String pairSeparator, String nvSeparator) {
         try {
-            if (source == null) return new NamedValue[0];
+            if (source == null || "".equals(source)) return new NamedValue[0];
             String[] pairs = source.split(pairSeparator);
             _logger.fine("Split \""+ source + "\" into " + pairs.length);
             NamedValue[] values = new NamedValue[pairs.length];
