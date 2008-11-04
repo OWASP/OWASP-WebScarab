@@ -296,13 +296,14 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
         if (selection != null && selection.length==1) {
             if (_spider.isBusy()) {
                 _logger.warning("Spider is still busy, please wait");
-                // FIXME show a message dialog
+                JOptionPane.showMessageDialog(SpiderPanel.this, "Spider is still busy, please wait");
                 return;
             }
             HttpUrl url = (HttpUrl) selection[0].getLastPathComponent();
             _spider.requestLinksUnder(url);
         } else {
             _logger.info("Cannot fetch a tree if there are 0 or many paths selected!");
+            JOptionPane.showMessageDialog(SpiderPanel.this, "Cannot fetch a tree if there are 0 or many paths selected!");
         }
     }//GEN-LAST:event_linkTreeFetchTreeButtonActionPerformed
     
@@ -323,7 +324,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
     }//GEN-LAST:event_linkTreeFetchSelectionButtonActionPerformed
     
     private void pathRegexTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pathRegexTextFieldFocusLost
-        _model.setForbiddenPaths(pathRegexTextField.getText());
+        //_model.setForbiddenPaths(pathRegexTextField.getText());
     }//GEN-LAST:event_pathRegexTextFieldFocusLost
     
     private void pathRegexTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pathRegexTextFieldActionPerformed
@@ -436,7 +437,7 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
                 _spider.requestLinksUnder(url);
             } else {
                 _logger.warning("Spider is still busy, please wait");
-                // FIXME show a message dialog
+                JOptionPane.showMessageDialog(SpiderPanel.this, "Spider is still busy, please wait");
             }
         }
         
