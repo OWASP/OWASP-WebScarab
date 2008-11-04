@@ -229,7 +229,7 @@ public class Spider implements Plugin, ConversationHandler {
     private void queueLinksUnder(HttpUrl url, List links, int max) {
         String referer;
         if (_model.isUnseen(url)) {
-            if (! _model.isForbidden(url)) {
+        	if (! _model.isForbidden(url) && !url.toString().matches(_framework.getDropPattern())) {
                 referer = _model.getReferer(url);
                 links.add(new Link(url, referer));
             } else {
