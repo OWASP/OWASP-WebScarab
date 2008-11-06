@@ -36,14 +36,14 @@ public class EditorFactory {
         registerEditor("multipart/form-data; *.*", "org.owasp.webscarab.ui.swing.editors.MultiPartPanel");
         registerEditor("application/x-serialized-object", "org.owasp.webscarab.ui.swing.editors.SerializedObjectPanel");
         registerEditor("image/.*", "org.owasp.webscarab.ui.swing.editors.ImagePanel");
-        registerEditor("application/x-www-form-urlencoded[;.*]?", "org.owasp.webscarab.ui.swing.editors.UrlEncodedPanel");
+        registerEditor("application/x-www-form-urlencoded(;.*){0,1}", "org.owasp.webscarab.ui.swing.editors.UrlEncodedPanel");
         registerEditor("text/html.*","org.owasp.webscarab.ui.swing.editors.HTMLPanel");
         registerEditor("text/html.*","org.owasp.webscarab.ui.swing.editors.XMLPanel");
         registerEditor("text/xml.*","org.owasp.webscarab.ui.swing.editors.XMLPanel");
         registerEditor("text/.*","org.owasp.webscarab.ui.swing.editors.TextPanel");
-        registerEditor("application/x-javascript[;.*]?","org.owasp.webscarab.ui.swing.editors.TextPanel");
-        registerEditor("application/x-www-form-urlencoded[;.*]?","org.owasp.webscarab.ui.swing.editors.TextPanel");
-        registerEditor("application/x-amf[;.*]?","org.owasp.webscarab.ui.swing.editors.AMFPanel");
+        registerEditor("application/x-javascript(;.*){0,1}","org.owasp.webscarab.ui.swing.editors.TextPanel");
+        registerEditor("application/x-www-form-urlencoded(;.*){0,1}","org.owasp.webscarab.ui.swing.editors.TextPanel");
+        registerEditor("application/x-amf(;.*){0,1}","org.owasp.webscarab.ui.swing.editors.AMFPanel");
         registerEditor(".*", "org.owasp.webscarab.ui.swing.editors.HexPanel");
         // registerEditor(".*","org.owasp.webscarab.ui.swing.editors.CompressedTextPanel");
     }
