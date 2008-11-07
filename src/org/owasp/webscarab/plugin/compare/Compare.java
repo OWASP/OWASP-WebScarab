@@ -105,6 +105,9 @@ public class Compare implements Plugin {
                 if (id != _selected) {
                     id = _selected;
                     _model.setBusy(true);
+                    HttpUrl baseUrl = cmodel.getRequestUrl(id);
+                    if (baseUrl.getQuery() != null)
+                    	baseUrl = baseUrl.getParentUrl();
                     Response baseResponse = cmodel.getResponse(id);
                     byte[] baseBytes = baseResponse.getContent();
                     String type = baseResponse.getHeader("Content-Type");
@@ -119,6 +122,11 @@ public class Compare implements Plugin {
                     _logger.info("Checking " + count + " conversaitons");
                     for (int i=0; i<count; i++) {
                         ConversationID cid = cmodel.getConversationAt(i);
+                        HttpUrl curl = cmodel.getRequestUrl(cid);
+                        if (curl.getQuery() != null)
+                        	curl = curl.getParentUrl();
+                        if (!curl.equals(baseUrl))
+                        	continue;
                         _logger.info("Checking conversation " + i + " == " + cid);
                         if (cid.equals(id)) {
                             _model.setDistance(cid, 0);
