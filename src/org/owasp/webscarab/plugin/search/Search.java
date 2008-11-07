@@ -18,6 +18,7 @@ import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.plugin.Framework;
+import org.owasp.webscarab.plugin.FrameworkModelWrapper;
 import org.owasp.webscarab.plugin.Hook;
 import org.owasp.webscarab.plugin.Plugin;
 
@@ -31,6 +32,7 @@ public class Search implements Plugin {
     
     private Framework _framework;
     private FrameworkModel _frameworkModel;
+    private FrameworkModelWrapper _wrapper;
     private Interpreter _interpreter = new Interpreter();
     
     private SearchModel _model;
@@ -43,6 +45,7 @@ public class Search implements Plugin {
     public Search(Framework framework) {
         _framework = framework;
         _frameworkModel = _framework.getModel();
+        _wrapper = new FrameworkModelWrapper(_frameworkModel);
         _model = new SearchModel(_frameworkModel);
         loadSearches();
     }
@@ -118,7 +121,7 @@ public class Search implements Plugin {
     }
     
     private boolean matches(ConversationID id, Request request, Response response, String origin, String expression) throws EvalError {
-        _interpreter.set("frameworkModel", _frameworkModel);
+        _interpreter.set("model", _wrapper);
         _interpreter.set("id", id);
         _interpreter.set("request", request);
         _interpreter.set("response", response);

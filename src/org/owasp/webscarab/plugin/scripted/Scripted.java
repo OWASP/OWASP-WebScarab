@@ -18,6 +18,7 @@ import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.httpclient.FetcherQueue;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
+import org.owasp.webscarab.plugin.FrameworkModelWrapper;
 import org.owasp.webscarab.plugin.Plugin;
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Hook;
@@ -67,6 +68,7 @@ public class Scripted implements Plugin, ConversationHandler {
     private Object _lock = new Object();
     
     private ScriptedObjectModel _som;
+    private FrameworkModelWrapper _wrapper;
     
     private int _threads = 4;
     private FetcherQueue _fetcherQueue = null;
@@ -79,6 +81,7 @@ public class Scripted implements Plugin, ConversationHandler {
     public Scripted(Framework framework) {
         _framework = framework;
         _som = new ScriptedObjectModel(_framework, this);
+        _wrapper = new FrameworkModelWrapper(_framework.getModel());
         try {
             String defaultScript = Preferences.getPreference("Scripted.script");
             if (defaultScript != null && !defaultScript.equals("")) {
@@ -216,7 +219,8 @@ public class Scripted implements Plugin, ConversationHandler {
                 _status = "Running";
                 _fetcherQueue = new FetcherQueue("Scripted", this, _threads, 0);
                 try {
-                    _bsfManager.declareBean("framework", _framework, _framework.getClass());
+//                    _bsfManager.declareBean("framework", _framework, _framework.getClass());
+                    _bsfManager.declareBean("model", _wrapper, _wrapper.getClass());
                     _bsfManager.declareBean("scripted", _som, _som.getClass());
                     _bsfManager.declareBean("out", _out, _out.getClass());
                     _bsfManager.declareBean("err", _err, _err.getClass());
