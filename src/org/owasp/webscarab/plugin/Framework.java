@@ -66,6 +66,7 @@ public class Framework {
     private List _analysisQueue = new LinkedList();
     
     private FrameworkModel _model;
+    private FrameworkModelWrapper _wrapper;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -90,6 +91,7 @@ public class Framework {
      */
     public Framework() {
         _model = new FrameworkModel();
+        _wrapper = new FrameworkModelWrapper(_model);
         _scriptManager = new ScriptManager(this);
         _allowAddConversation = new AddConversationHook();
         _scriptManager.registerHooks("Framework", new Hook[] { _allowAddConversation });
@@ -439,6 +441,7 @@ public class Framework {
             synchronized(_bsfManager) {
                 try {
                     _bsfManager.declareBean("conversation", conversation, conversation.getClass());
+                    _bsfManager.declareBean("model", _wrapper, _wrapper.getClass());
                     super.runScripts();
                     _bsfManager.undeclareBean("conversation");
                 } catch (Exception e) {
