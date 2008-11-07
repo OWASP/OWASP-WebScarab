@@ -79,7 +79,7 @@ public class Framework {
     
     private AddConversationHook _allowAddConversation;
     
-    private Hook _analyseConversation;
+    private AnalyseConversationHook _analyseConversation;
     
     private Thread _queueThread = null;
     private QueueProcessor _qp = null;
@@ -94,7 +94,8 @@ public class Framework {
         _wrapper = new FrameworkModelWrapper(_model);
         _scriptManager = new ScriptManager(this);
         _allowAddConversation = new AddConversationHook();
-        _scriptManager.registerHooks("Framework", new Hook[] { _allowAddConversation });
+        _analyseConversation = new AnalyseConversationHook();
+        _scriptManager.registerHooks("Framework", new Hook[] { _allowAddConversation, _analyseConversation });
         extractVersionFromManifest();
         _credentialManager = new CredentialManager();
         configureHTTPClient();
@@ -322,7 +323,7 @@ public class Framework {
     }
     
     public void addConversation(ConversationID id, Date when, Request request, Response response, String origin) {
-        ScriptableConversation conversation = new ScriptableConversation(request, response, origin);
+        ScriptableConversation conversation = new ScriptableConversation(id, request, response, origin);
         _allowAddConversation.runScripts(conversation);
         if (conversation.isCancelled()) return;
         if (dropPattern != null && dropPattern.matcher(request.getURL().toString()).matches()) {
@@ -330,6 +331,7 @@ public class Framework {
         }
         _model.addConversation(id, when, request, response, origin);
         if (!conversation.shouldAnalyse()) return;
+        _analyseConversation.runScripts(conversation);
         synchronized(_analysisQueue) {
             _analysisQueue.add(id);
         }
@@ -441,7 +443,6 @@ public class Framework {
             synchronized(_bsfManager) {
                 try {
                     _bsfManager.declareBean("conversation", conversation, conversation.getClass());
-                    _bsfManager.declareBean("model", _wrapper, _wrapper.getClass());
                     super.runScripts();
                     _bsfManager.undeclareBean("conversation");
                 } catch (Exception e) {
@@ -451,5 +452,28 @@ public class Framework {
         }
         
     }
-    
+
+    private class AnalyseConversationHook extends Hook {
+    	
+        public AnalyseConversationHook() {
+            super("Analyse Conversation", 
+            "Called when a new conversation is added to the framework.\n" +
+            "Use model.setConversationProperty(id, property, value) to assign properties");
+        }
+        
+        public void runScripts(ScriptableConversation conversation) {
+            if (_bsfManager == null) return;
+            synchronized(_bsfManager) {
+                try {
+                    _bsfManager.declareBean("id", conversation.getId(), conversation.getId().getClass());
+                    _bsfManager.declareBean("conversation", conversation, conversation.getClass());
+                    _bsfManager.declareBean("model", _wrapper, _wrapper.getClass());
+                    super.runScripts();
+                    _bsfManager.undeclareBean("conversation");
+                } catch (Exception e) {
+                    _logger.severe("Declaring or undeclaring a bean should not throw an exception! " + e);
+                }
+            }
+        }
+    }
 }

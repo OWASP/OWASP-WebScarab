@@ -6,6 +6,7 @@
 
 package org.owasp.webscarab.plugin;
 
+import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
@@ -15,6 +16,7 @@ import org.owasp.webscarab.model.Response;
  */
 public class ScriptableConversation {
     
+	private ConversationID _id;
     private Request _request;
     private Response _response;
     private String _origin;
@@ -23,10 +25,15 @@ public class ScriptableConversation {
     private boolean _analyse = true;
     
     /** Creates a new instance of ScriptableConversation */
-    public ScriptableConversation(Request request, Response response, String origin) {
+    public ScriptableConversation(ConversationID id, Request request, Response response, String origin) {
+    	_id = id;
         _request = request;
         _response = response;
         _origin = origin;
+    }
+    
+    public ConversationID getId() {
+    	return _id;
     }
     
     public Request getRequest() {
