@@ -52,7 +52,11 @@ import org.owasp.webscarab.model.ConversationModel;
  */
 public class ConversationRenderer extends JLabel implements ListCellRenderer {
     
-    private ConversationModel _conversationModel;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -5962129823533074346L;
+	private ConversationModel _conversationModel;
     
     /** Creates a new instance of ConversationRenderer */
     public ConversationRenderer(ConversationModel conversationModel) {

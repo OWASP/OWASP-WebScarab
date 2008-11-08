@@ -14,7 +14,11 @@ import java.util.EventObject;
  */
 public class UrlEvent extends EventObject {
     
-    private HttpUrl _url;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -2563329935372684632L;
+	private HttpUrl _url;
     private int _position;
     
     /** Creates a new instance of UrlEvent */

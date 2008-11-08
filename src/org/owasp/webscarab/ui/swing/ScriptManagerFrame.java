@@ -37,7 +37,11 @@ import java.io.File;
  */
 public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptListener {
     
-    private ScriptManager _manager;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -6841423959579700341L;
+	private ScriptManager _manager;
     private JTreeTable _hookTree;
     private HookScriptTreeModel _treeModel;
     
@@ -432,7 +436,12 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
     
     private class HookTreeRenderer extends DefaultTreeCellRenderer {
         
-        public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1889788178767738909L;
+
+		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
             Component comp = super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
             if (value instanceof Hook && comp instanceof JLabel) {
                 JLabel label = (JLabel) comp;

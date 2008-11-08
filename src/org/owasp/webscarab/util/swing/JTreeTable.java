@@ -47,7 +47,11 @@ import org.owasp.webscarab.util.swing.treetable.AbstractCellEditor;
  * @author Scott Violet
  */
 public class JTreeTable extends JTable {
-    /** A subclass of JTree. */
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 4077836330340897227L;
+	/** A subclass of JTree. */
     protected TreeTableCellRenderer tree;
 
     public JTreeTable(TreeTableModel treeTableModel) {
@@ -136,6 +140,10 @@ public class JTreeTable extends JTable {
      */
     public class TreeTableCellRenderer extends JTree implements
 	         TableCellRenderer {
+	/**
+		 * 
+		 */
+		private static final long serialVersionUID = -1770387965544570005L;
 	/** Last table/tree row asked to renderer. */
 	protected int visibleRow;
 
@@ -273,6 +281,10 @@ public class JTreeTable extends JTable {
      * in the DefaultTreeSelectionModel.
      */
     class ListToTreeSelectionModelWrapper extends DefaultTreeSelectionModel { 
+	/**
+		 * 
+		 */
+		private static final long serialVersionUID = 463955629779085946L;
 	/** Set to true when we are updating the ListSelectionModel. */
 	protected boolean         updatingListSelectionModel;
 

@@ -65,7 +65,11 @@ import javax.swing.SwingUtilities;
  */
 public class ManualEditFrame extends javax.swing.JFrame {
     
-    private static boolean _cancelAll = false;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -8237270407615405475L;
+	private static boolean _cancelAll = false;
     private static Object _lock = new Object();
     
     private boolean _done = false;
@@ -88,7 +92,12 @@ public class ManualEditFrame extends javax.swing.JFrame {
     
     private void installShortcuts() {
         Action toggleRequest = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 4660900260023719510L;
+
+			public void actionPerformed(ActionEvent e) {
                 interceptRequestCheckBox.doClick();
             }
         };
@@ -96,7 +105,12 @@ public class ManualEditFrame extends javax.swing.JFrame {
         getRootPane().registerKeyboardAction(toggleRequest, "TOGGLEREQUEST", toggleRequestKey, JComponent.WHEN_IN_FOCUSED_WINDOW);
         
         Action toggleResponse = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 5909538388895326161L;
+
+			public void actionPerformed(ActionEvent e) {
                 interceptResponseCheckBox.doClick();
             }
         };

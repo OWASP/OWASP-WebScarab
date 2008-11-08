@@ -64,7 +64,11 @@ import org.xml.sax.InputSource;
  */
 public class XMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
-    private boolean _editable = false;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -244729718376716387L;
+	private boolean _editable = false;
     private boolean _modified = false;
     
     private byte[] _data = new byte[0];
@@ -156,7 +160,12 @@ public class XMLPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
     private class XMLTreeNodeRenderer extends MultiLineTreeCellRenderer {
         
-        /** Creates a new instance of UrlTreeRenderer */
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 4591128488009949423L;
+
+		/** Creates a new instance of UrlTreeRenderer */
         public XMLTreeNodeRenderer() {
         }
         

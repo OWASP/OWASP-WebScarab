@@ -50,7 +50,11 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.math.BigInteger;
 
 public class BigRenderer extends DefaultTableCellRenderer {
-    Icon bang = null; // new ImageIcon("bang.gif"); // until we actually have a bang.gif
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 7286688114262249340L;
+	Icon bang = null; // new ImageIcon("bang.gif"); // until we actually have a bang.gif
     
     public BigRenderer() {
         setHorizontalAlignment(JLabel.RIGHT);

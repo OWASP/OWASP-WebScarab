@@ -47,7 +47,11 @@ import java.util.EventObject;
  */
 public class ColumnDataEvent extends EventObject {
     
-    private Object _key;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 6956119410115383747L;
+	private Object _key;
     
     /** Creates a new instance of ColumnDataEvent */
     public ColumnDataEvent(Object source, Object key) {

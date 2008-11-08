@@ -71,7 +71,11 @@ import javax.swing.JPanel;
  */
 public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI, ManualEditUI {
     
-    private ManualEdit _manualEdit;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 4874553823942170256L;
+	private ManualEdit _manualEdit;
     private ButtonModel _requestButtonModel, _responseButtonModel;
     
     /** Creates new form ManualEditPanel */
@@ -119,7 +123,12 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
     
     private void installShortcuts() {
         Action toggleRequest = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = -9087215230742742495L;
+
+			public void actionPerformed(ActionEvent e) {
                 System.out.println("Toggle request");
                 interceptRequestCheckBox.doClick();
             }
@@ -128,7 +137,12 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         SwingUtilities.getRootPane(this).registerKeyboardAction(toggleRequest, "TOGGLEREQUEST", toggleRequestKey, WHEN_IN_FOCUSED_WINDOW);
         
         Action toggleResponse = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 6167233061339024122L;
+
+			public void actionPerformed(ActionEvent e) {
                 System.out.println("Toggle response");
                 interceptResponseCheckBox.doClick();
             }
@@ -293,7 +307,11 @@ public class ManualEditPanel extends javax.swing.JPanel implements ProxyPluginUI
         jScrollPane3.setPreferredSize(new java.awt.Dimension(100, 120));
         jScrollPane3.setAutoscrolls(true);
         interceptMethodList.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "GET", "POST", "HEAD", "PUT", "DELETE", "TRACE", "PROPFIND", "OPTIONS", "PROPPATCH", "MKCOL", "COPY", "MOVE", "LOCK", "UNLOCK", "SEARCH", "SUBSCRIBE" };
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 2656664151003905524L;
+			String[] strings = { "GET", "POST", "HEAD", "PUT", "DELETE", "TRACE", "PROPFIND", "OPTIONS", "PROPPATCH", "MKCOL", "COPY", "MOVE", "LOCK", "UNLOCK", "SEARCH", "SUBSCRIBE" };
             public int getSize() { return strings.length; }
             public Object getElementAt(int i) { return strings[i]; }
         });

@@ -53,7 +53,11 @@ import java.io.FileInputStream;
  */
 public class ImagePanel extends javax.swing.JPanel implements ByteArrayEditor {
     
-    private byte[] _data = new byte[0];
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 6069538617330618742L;
+	private byte[] _data = new byte[0];
     
     /** Creates new form HexEditor */
     public ImagePanel() {

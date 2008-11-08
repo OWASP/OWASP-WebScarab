@@ -78,7 +78,12 @@ import javax.swing.AbstractListModel;
  */
 public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI {
     
-    private FragmentsModel _model = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 383270526566796972L;
+
+	private FragmentsModel _model = null;
     
     private String _type = null;
     
@@ -267,7 +272,11 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
     
     private class FragmentsAction extends AbstractAction {
         
-        private String _type;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -4183487246345191629L;
+		private String _type;
         private String _where;
         
         public FragmentsAction(String where, String type) {
@@ -354,7 +363,11 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
     
     private class FragmentListModel extends AbstractListModel implements FragmentListener {
         
-        private String _type = null;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -2253303710061129296L;
+		private String _type = null;
         private int _size = 0;
         
         public FragmentListModel() {
@@ -412,7 +425,12 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
     
     private class FragmentRenderer extends MultiLineCellRenderer {
         
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -6061481472856144741L;
+
+		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             if (value instanceof String) {
                 value = _model.getFragment((String) value);
             }

@@ -35,7 +35,11 @@ import org.owasp.webscarab.util.swing.TableSorter;
  */
 public class ExtensionsPanel extends javax.swing.JPanel implements SwingPluginUI {
     
-    private Extensions _extensions;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 431458232664764498L;
+	private Extensions _extensions;
     private ExtensionsModel _model;
     
     private Logger _logger = Logger.getLogger(getClass().getName());

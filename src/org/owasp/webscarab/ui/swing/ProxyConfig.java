@@ -53,7 +53,11 @@ import javax.swing.JOptionPane;
  */
 public class ProxyConfig extends javax.swing.JDialog {
     
-    private HTTPClientFactory _factory = HTTPClientFactory.getInstance();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1655655396211378140L;
+	private HTTPClientFactory _factory = HTTPClientFactory.getInstance();
     private Framework _framework;
     
     /** Creates new form ProxyConfig */

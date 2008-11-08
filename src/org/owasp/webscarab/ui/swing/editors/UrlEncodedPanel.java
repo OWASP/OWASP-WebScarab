@@ -57,7 +57,12 @@ import org.owasp.webscarab.util.Encoding;
  */
 public class UrlEncodedPanel extends JPanel implements ByteArrayEditor {
     
-    private final static ColumnWidthTracker _cwt = ColumnWidthTracker.getTracker("UrlEncoded");
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -3833312254718210891L;
+
+	private final static ColumnWidthTracker _cwt = ColumnWidthTracker.getTracker("UrlEncoded");
     
     private boolean _editable = false;
     private boolean _modified = false;
@@ -251,7 +256,11 @@ public class UrlEncodedPanel extends JPanel implements ByteArrayEditor {
     
     private class NamedValueTableModel extends AbstractTableModel {
         
-        private String[] _names = new String[] { "Variable", "Value"};
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 4167541370824350945L;
+		private String[] _names = new String[] { "Variable", "Value"};
         
         public String getColumnName(int column) {
             return _names[column];

@@ -57,7 +57,12 @@ import javax.swing.ListCellRenderer;
  */
 public class MultiLineCellRenderer extends JTextArea implements TableCellRenderer, ListCellRenderer {
     
-    public MultiLineCellRenderer() {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 8068299330081793937L;
+
+	public MultiLineCellRenderer() {
         setOpaque(true);
     }
     

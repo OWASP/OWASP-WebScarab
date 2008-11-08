@@ -42,7 +42,12 @@ import jcifs.util.HMACT64;
 
 public final class NtlmPasswordAuthentication implements Principal, Serializable {
 
-    private static final int LM_COMPATIBILITY =
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -5846231657183142368L;
+
+	private static final int LM_COMPATIBILITY =
             Config.getInt("jcifs.smb.lmCompatibility", 0);
 
     static final String OEM_ENCODING =

@@ -62,7 +62,11 @@ import java.awt.Graphics;
  * @author rdawes
  */
 public class MyHTMLEditorKit extends javax.swing.text.html.HTMLEditorKit {
-    private static final ViewFactory defaultFactory = new MyHTMLFactory();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 2375665246506547467L;
+	private static final ViewFactory defaultFactory = new MyHTMLFactory();
     
     public ViewFactory getViewFactory() {
 	return defaultFactory;

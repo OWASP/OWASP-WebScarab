@@ -50,7 +50,11 @@ import java.util.ArrayList;
  */
 public abstract class ExtensibleTableModel extends AbstractTableModel {
     
-    private List _columns = new ArrayList();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -2783690695443856742L;
+	private List _columns = new ArrayList();
     private ColumnDataListener _columnListener;
     
     /** Creates a new instance of ExtensibleTableModel */

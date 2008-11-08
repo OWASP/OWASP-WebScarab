@@ -59,7 +59,12 @@ import javax.swing.JButton;
  */
 public class ResponsePanel extends javax.swing.JPanel {
     
-    private boolean[] _upToDate;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 4667896968499809048L;
+
+	private boolean[] _upToDate;
     
     private boolean _editable = false;
     private boolean _modified = false;

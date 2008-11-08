@@ -39,7 +39,11 @@ import org.owasp.webscarab.util.swing.TableSorter;
  */
 public class SearchPanel extends JPanel implements SwingPluginUI {
     
-    private Search _search;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -594313478603602953L;
+	private Search _search;
     private SearchModel _model;
     private ConversationModel _conversationModel;
     private DefaultComboBoxModel _searches = new DefaultComboBoxModel();

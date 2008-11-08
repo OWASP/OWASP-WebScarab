@@ -77,7 +77,11 @@ import java.util.logging.Logger;
  */
 public class ManualRequestPanel extends javax.swing.JPanel implements SwingPluginUI, ManualRequestUI {
     
-    private ManualRequestModel _model;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 277808739447506130L;
+	private ManualRequestModel _model;
     private ManualRequest _manualRequest;
     
     private final RequestPanel _requestPanel;

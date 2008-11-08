@@ -245,7 +245,11 @@ public class AMFPanel extends JPanel implements ByteArrayEditor {
     }
     
     private class RecordsetTableModel extends AbstractTableModel {
-        private ArrayList data=null;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 571049126967767177L;
+		private ArrayList data=null;
         private ArrayList colNames=null;
         
         public RecordsetTableModel(ASObject rs) {

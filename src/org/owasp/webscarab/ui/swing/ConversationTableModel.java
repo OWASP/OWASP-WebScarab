@@ -59,7 +59,12 @@ import java.util.Date;
  */
 public class ConversationTableModel extends ExtensibleTableModel {
     
-    protected ConversationModel _model = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 5188752872581098199L;
+
+	protected ConversationModel _model = null;
     
     private Listener _listener = new Listener();
     

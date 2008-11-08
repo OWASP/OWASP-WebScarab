@@ -70,7 +70,11 @@ import java.util.TimerTask;
  */
 public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, ProxyUI {
     
-    private Proxy _proxy;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -3557927604958599392L;
+	private Proxy _proxy;
     private ListenerTableModel _ltm;
     private MessageTableModel _mtm;
     
@@ -526,7 +530,11 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
     
     private class MessageTableModel extends AbstractTableModel {
         
-        private ArrayList _rows = new ArrayList();
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 3090029861017879230L;
+		private ArrayList _rows = new ArrayList();
         private Timer _timer = new Timer(true);
         
         private String[] _columns = new String [] {

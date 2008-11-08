@@ -61,7 +61,11 @@ import java.util.logging.Logger;
  */
 public class CookieJarViewer extends javax.swing.JFrame {
     
-    private FrameworkModel _model;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -1330444912535205210L;
+	private FrameworkModel _model;
     private CookieTableModel _cookieTableModel;
     private HistoricalCookieTableModel _detailTableModel;
     
@@ -396,7 +400,11 @@ public class CookieJarViewer extends javax.swing.JFrame {
     
     private class CookieTableModel extends AbstractTableModel {
         
-        private FrameworkModel _model;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 5256611073293100905L;
+		private FrameworkModel _model;
         private FrameworkListener _listener = new FrameworkListener() {
             public void cookieAdded(FrameworkEvent evt) {
                 Cookie cookie = evt.getCookie();
@@ -479,7 +487,11 @@ public class CookieJarViewer extends javax.swing.JFrame {
     
     private class HistoricalCookieTableModel extends AbstractTableModel {
         
-        private FrameworkModel _model = null;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 5621223454741175006L;
+		private FrameworkModel _model = null;
         private String _key = null;
         
         private FrameworkListener _listener = new FrameworkListener() {

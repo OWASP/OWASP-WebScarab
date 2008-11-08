@@ -20,7 +20,11 @@ import org.owasp.webscarab.plugin.DomainCredential;
  */
 public class CredentialManagerFrame extends javax.swing.JFrame {
     
-    private CredentialManager _manager;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1688116674185863060L;
+	private CredentialManager _manager;
     private BasicTableModel _btm;
     private DomainTableModel _dtm;
     
@@ -236,7 +240,11 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
     
     private class BasicTableModel extends AbstractTableModel {
         
-        private String[] _columnNames = { "Host", "Realm", "Username"};
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 4101228666708000944L;
+		private String[] _columnNames = { "Host", "Realm", "Username"};
         
         public String getColumnName(int column) {
             return _columnNames[column];
@@ -264,7 +272,11 @@ public class CredentialManagerFrame extends javax.swing.JFrame {
     
     private class DomainTableModel extends AbstractTableModel {
         
-        private String[] _columnNames = { "Host", "Domain", "Username"};
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -4483058953578321230L;
+		private String[] _columnNames = { "Host", "Domain", "Username"};
         
         public String getColumnName(int column) {
             return _columnNames[column];

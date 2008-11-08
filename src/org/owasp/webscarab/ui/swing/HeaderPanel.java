@@ -19,7 +19,11 @@ import java.util.ArrayList;
  */
 public class HeaderPanel extends javax.swing.JPanel {
     
-    private final static NamedValue[] NO_HEADERS = new NamedValue[0];
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1597589394015618679L;
+	private final static NamedValue[] NO_HEADERS = new NamedValue[0];
     private final static ColumnWidthTracker _cwt = ColumnWidthTracker.getTracker("Header");
     
     private boolean _editable = false;
@@ -171,7 +175,11 @@ public class HeaderPanel extends javax.swing.JPanel {
     
     private class HeaderTableModel extends AbstractTableModel {
         
-        private String[] _names = new String[] { "Header", "Value"};
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 4130873664468397110L;
+		private String[] _names = new String[] { "Header", "Value"};
         
         public String getColumnName(int column) {
             return _names[column];

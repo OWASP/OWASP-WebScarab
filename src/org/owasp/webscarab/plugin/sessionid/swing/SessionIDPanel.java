@@ -100,7 +100,12 @@ import org.owasp.webscarab.util.swing.TableSorter;
  */
 public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDListener {
     
-    private static final ColumnDataModel[] CDM = new ColumnDataModel[0];
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -6717611035456089823L;
+
+	private static final ColumnDataModel[] CDM = new ColumnDataModel[0];
     
     private final RequestPanel _requestPanel;
     private final ResponsePanel _responsePanel;
@@ -820,7 +825,12 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
     
     private class SessionIDDataset extends AbstractSeriesDataset implements XYDataset {
         
-        public int getSeriesCount() {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -8276132180435935115L;
+
+		public int getSeriesCount() {
             return 1;
         }
         
@@ -864,7 +874,11 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
     
     public class SessionIDTableModel extends AbstractTableModel {
         
-        private String[] _columnNames = new String[] { "Date", "Value", "Numeric", "Difference" };
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1799339015349456174L;
+		private String[] _columnNames = new String[] { "Date", "Value", "Numeric", "Difference" };
         private Class[] _columnClass = new Class[] { Date.class, String.class, BigInteger.class, BigInteger.class };
         
         public int getColumnCount() {

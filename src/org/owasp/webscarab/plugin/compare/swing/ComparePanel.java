@@ -44,7 +44,11 @@ import java.util.Date;
  */
 public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
     
-    private Compare _compare;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -7352280691484196048L;
+	private Compare _compare;
     private CompareModel _model;
     private ConversationTableModel _tableModel;
     private TableSorter _conversationSorter;

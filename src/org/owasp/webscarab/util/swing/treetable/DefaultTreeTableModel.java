@@ -62,6 +62,12 @@ import javax.swing.tree.TreeNode;
 public class DefaultTreeTableModel extends DefaultTreeModel implements TreeTableModel {
     
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 925253405099508866L;
+
+
+	/**
       * Creates a tree in which any node can have children.
       *
       * @param root a TreeNode object that is the root of the tree

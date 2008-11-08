@@ -55,7 +55,11 @@ import java.awt.event.KeyEvent;
  */
 public class SearchDialog extends javax.swing.JDialog {
     
-    private JTextComponent _textComponent = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -3627749756146163207L;
+	private JTextComponent _textComponent = null;
     
     /** Creates new form SearchDialog */
     public SearchDialog(java.awt.Frame parent, JTextComponent textComponent) {
@@ -82,7 +86,12 @@ public class SearchDialog extends javax.swing.JDialog {
         });
         KeyStroke escapeKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
         Action escapeAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 482285775389739514L;
+
+			public void actionPerformed(ActionEvent e) {
                 setVisible( false );
             }
         };

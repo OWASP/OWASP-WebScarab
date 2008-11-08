@@ -48,7 +48,11 @@ import javax.swing.JWindow;
  * @author <a href="mailto:jacob.dreyer@geosoft.no">Jacob Dreyer</a>
  */
 public class SplashScreen extends JWindow {
-    private Image  image_;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 6755880409556259144L;
+	private Image  image_;
     private int    x_, y_, width_, height_;
     
     

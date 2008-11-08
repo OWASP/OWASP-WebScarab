@@ -54,6 +54,11 @@ import org.owasp.webscarab.plugin.webservice.Value;
 public class MessageTreeRenderer extends DefaultTreeCellRenderer {
     
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 3030710658611006780L;
+
+	/**
      * Creates a new instance of MessageTreeRenderer
      */
     public MessageTreeRenderer() {

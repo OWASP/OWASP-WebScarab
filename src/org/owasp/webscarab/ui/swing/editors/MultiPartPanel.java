@@ -24,7 +24,11 @@ import org.owasp.webscarab.ui.swing.MessagePanel;
  */
 public class MultiPartPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
-    private byte[] _data = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 7790954945202743857L;
+	private byte[] _data = null;
     private boolean _modified = false;
     private boolean _editable = false;
     
@@ -142,7 +146,12 @@ public class MultiPartPanel extends javax.swing.JPanel implements ByteArrayEdito
     
     private class PartsListModel extends AbstractListModel {
         
-        public Object getElementAt(int index) {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 690901016063929348L;
+
+		public Object getElementAt(int index) {
             return _content.getPartName(index);
         }
         

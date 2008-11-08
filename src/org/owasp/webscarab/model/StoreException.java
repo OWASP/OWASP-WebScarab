@@ -46,6 +46,11 @@ package org.owasp.webscarab.model;
 public class StoreException extends java.lang.Exception {
     
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = -3216060604426546272L;
+
+	/**
      * Creates a new instance of <code>StoreException</code> without detail message.
      */
     public StoreException() {

@@ -55,7 +55,11 @@ import java.awt.Component;
  */
 public class ContentPanel extends javax.swing.JPanel {
     
-    private String _contentType = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -8219184959231369179L;
+	private String _contentType = null;
     private boolean _editable = false;
     private boolean _modified = false;
     

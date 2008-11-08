@@ -49,7 +49,11 @@ import org.owasp.webscarab.util.swing.MultiLineCellRenderer;
  */
 public class FragmentsFrame extends javax.swing.JFrame {
     
-    private FragmentTableModel _ftm;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 7945448210186454157L;
+	private FragmentTableModel _ftm;
     
     /** Creates new form FragmentsFrame */
     public FragmentsFrame() {
@@ -134,7 +138,11 @@ public class FragmentsFrame extends javax.swing.JFrame {
     
     private class FragmentTableModel extends AbstractTableModel {
         
-        private String[] _fragments = null;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -4290112756620953610L;
+		private String[] _fragments = null;
         
         public FragmentTableModel() {
         }

@@ -52,7 +52,12 @@ import org.owasp.webscarab.plugin.proxy.Proxy;
  */
 public class ListenerTableModel extends AbstractTableModel {
 
-    private ArrayList _listeners = new ArrayList();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -8353819323669374935L;
+
+	private ArrayList _listeners = new ArrayList();
     
     protected String [] columnNames = {
         "Address", "Port", "Base URL", "Primary"

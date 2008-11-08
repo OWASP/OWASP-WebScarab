@@ -54,7 +54,11 @@ import java.util.logging.Logger;
  */
 public class ListComboBoxModel extends AbstractListModel implements ComboBoxModel {
     
-    ListModel _list;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 8131981331486016455L;
+	ListModel _list;
     Object _selected = null;
     
     Logger _logger = Logger.getLogger(this.getClass().getName());

@@ -90,7 +90,11 @@ import java.io.IOException;
  */
 public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     
-    private Fuzzer _fuzzer;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -6271384466092738141L;
+	private Fuzzer _fuzzer;
     private FuzzerModel _model;
     private HeaderTableModel _headerTableModel;
     private ParameterTableModel _parameterTableModel;
@@ -1024,7 +1028,11 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     
     private class HeaderTableModel extends AbstractTableModel {
         
-        private String[] _columnNames = new String[] { "Header", "Value" };
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 3474321623837028739L;
+		private String[] _columnNames = new String[] { "Header", "Value" };
         
         public String getColumnName(int columnIndex) {
             return _columnNames[columnIndex];
@@ -1064,7 +1072,11 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     
     private class ParameterTableModel extends AbstractTableModel {
         
-        private String[] _columnNames = new String[] {"Location", "Name", "Type", "Value", "Priority", "Fuzz Source"};
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -8566605696068089276L;
+		private String[] _columnNames = new String[] {"Location", "Name", "Type", "Value", "Priority", "Fuzz Source"};
         
         public String getColumnName(int columnIndex) {
             return _columnNames[columnIndex];
@@ -1123,7 +1135,12 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
     
     private class FuzzConversationAction extends AbstractAction {
         
-        /** Creates a new instance of ShowConversationAction */
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -8234938261159363334L;
+
+		/** Creates a new instance of ShowConversationAction */
         public FuzzConversationAction() {
             putValue(NAME, "Use as fuzz template");
             putValue(SHORT_DESCRIPTION, "Loads this request into the Fuzzer");

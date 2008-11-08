@@ -67,7 +67,12 @@ import javax.swing.JPanel;
  */
 public class BeanShellPanel extends javax.swing.JPanel implements ProxyPluginUI,  BeanShellUI {
     
-    private BeanShell _beanShell;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 5073008807690179538L;
+
+	private BeanShell _beanShell;
     
     private Logger _logger = Logger.getLogger(this.getClass().getName());
     
@@ -228,7 +233,12 @@ public class BeanShellPanel extends javax.swing.JPanel implements ProxyPluginUI,
     // End of variables declaration//GEN-END:variables
     
     private static class AutoIndentAction extends AbstractAction {
-        public void actionPerformed(ActionEvent ae) {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 4742439629762409215L;
+
+		public void actionPerformed(ActionEvent ae) {
             JTextArea comp = (JTextArea)ae.getSource();
             Document doc = comp.getDocument();
             

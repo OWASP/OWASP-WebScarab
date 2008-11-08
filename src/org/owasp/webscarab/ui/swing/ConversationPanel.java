@@ -71,7 +71,11 @@ import java.beans.PropertyChangeEvent;
  */
 public class ConversationPanel extends javax.swing.JPanel {
     
-    private static Dimension _preferredSize = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -5973620315232052252L;
+	private static Dimension _preferredSize = null;
     private static Point _preferredLocation = null;
     
     private ConversationModel _model = null;

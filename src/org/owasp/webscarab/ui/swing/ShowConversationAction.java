@@ -52,7 +52,11 @@ import java.awt.event.ActionEvent;
  */
 public class ShowConversationAction extends AbstractAction {
     
-    private ConversationModel _model;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 7597072873023208639L;
+	private ConversationModel _model;
     
     /** Creates a new instance of ShowConversationAction */
     public ShowConversationAction(ConversationModel model) {

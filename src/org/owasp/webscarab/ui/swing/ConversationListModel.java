@@ -55,7 +55,11 @@ import java.util.logging.Logger;
  */
 public class ConversationListModel extends AbstractListModel {
     
-    private ConversationModel _model = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 5429247298419259534L;
+	private ConversationModel _model = null;
     private Listener _listener = new Listener();
     private int _size = 0;
     

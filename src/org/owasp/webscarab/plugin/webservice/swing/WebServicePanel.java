@@ -42,7 +42,11 @@ import org.owasp.webscarab.util.swing.TreeUtil;
  */
 public class WebServicePanel extends javax.swing.JPanel implements SwingPluginUI {
     
-    private WebService _plugin;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -2099305849133623995L;
+	private WebService _plugin;
     private WebServiceModel _model;
     private ResponsePanel _responsePanel;
     private JTreeTable _inputTreeTable;

@@ -78,7 +78,11 @@ import java.net.URL;
  */
 public class Lite extends JFrame implements FrameworkUI {
     
-    private Framework _framework;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -4506826433971215530L;
+	private Framework _framework;
     private FrameworkModel _model;
     
     private SummaryPanel _summaryPanel;
@@ -140,7 +144,12 @@ public class Lite extends JFrame implements FrameworkUI {
                 System.err.println(message[i]);
             }
             contentsMenuItem.addActionListener(new AbstractAction() {
-                public void actionPerformed(ActionEvent evt) {
+                /**
+				 * 
+				 */
+				private static final long serialVersionUID = 9133004623466464185L;
+
+				public void actionPerformed(ActionEvent evt) {
                     JOptionPane.showMessageDialog(Lite.this, message, "Help is not available", JOptionPane.ERROR_MESSAGE);
                 }
             });

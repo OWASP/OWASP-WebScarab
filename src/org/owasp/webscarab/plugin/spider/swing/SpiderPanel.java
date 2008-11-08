@@ -67,7 +67,11 @@ import java.util.logging.Logger;
  */
 public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, SpiderUI {
     
-    private SpiderModel _model;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 8563871484142539698L;
+	private SpiderModel _model;
     private Spider _spider;
     
     private Logger _logger = Logger.getLogger(this.getClass().getName());
@@ -423,7 +427,12 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
     
     private class SpiderAction extends AbstractAction {
         
-        public SpiderAction() {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -2207351321290083769L;
+
+		public SpiderAction() {
             putValue(NAME, "Spider tree");
             putValue(SHORT_DESCRIPTION, "Fetches any unseen links below this point");
             putValue("URL", null);

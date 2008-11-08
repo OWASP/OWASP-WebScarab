@@ -59,7 +59,12 @@ import java.util.logging.Logger;
  */
 public class RequestPanel extends javax.swing.JPanel {
     
-    private boolean[] _upToDate;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -5571563143330632769L;
+
+	private boolean[] _upToDate;
     
     private boolean _editable = false;
     private boolean _modified = false;

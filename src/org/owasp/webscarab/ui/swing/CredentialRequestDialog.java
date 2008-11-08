@@ -17,7 +17,11 @@ import org.owasp.webscarab.plugin.DomainCredential;
  */
 public class CredentialRequestDialog extends javax.swing.JDialog implements CredentialManagerUI {
     
-    private CredentialManager _manager;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 2733259794943234695L;
+	private CredentialManager _manager;
     
     /** Creates new form CredentialRequestDialog */
     public CredentialRequestDialog(java.awt.Frame parent, boolean modal, CredentialManager manager) {

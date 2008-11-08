@@ -36,13 +36,22 @@ import javax.swing.tree.TreeCellRenderer;
  * @version 1.0 11/09/98
  */
 public class MultiLineTreeCellRenderer extends JPanel implements TreeCellRenderer {
-    protected JLabel       _icon;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -6667215953379805686L;
+	protected JLabel       _icon;
     protected TreeTextArea _text;
     
     public MultiLineTreeCellRenderer() {
         setLayout(new BoxLayout(this,BoxLayout.X_AXIS));
         _icon = new JLabel() {
-            public void setBackground(Color color) {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1750349321755256468L;
+
+			public void setBackground(Color color) {
                 if(color instanceof ColorUIResource)
                     color = null;
                 super.setBackground(color);
@@ -88,7 +97,11 @@ public class MultiLineTreeCellRenderer extends JPanel implements TreeCellRendere
     }
     
     class TreeTextArea extends JTextArea {
-        Dimension preferredSize;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 46035115936579701L;
+		Dimension preferredSize;
         
         TreeTextArea() {
             setLineWrap(false);

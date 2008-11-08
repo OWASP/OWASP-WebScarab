@@ -49,7 +49,11 @@ import org.owasp.webscarab.plugin.proxy.CookieTracker;
  */
 public class MiscPanel extends javax.swing.JPanel implements ProxyPluginUI {
     
-    private RevealHidden _revealHidden;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -6036027012899433768L;
+	private RevealHidden _revealHidden;
     private BrowserCache _browsercache;
     private CookieTracker _cookieTracker;
     

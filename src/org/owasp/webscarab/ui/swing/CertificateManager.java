@@ -28,7 +28,12 @@ import org.owasp.webscarab.httpclient.SSLContextManager;
  */
 public class CertificateManager extends javax.swing.JFrame {
     
-    private SSLContextManager _sslcm = HTTPClientFactory.getInstance().getSSLContextManager();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 5690492352598432340L;
+
+	private SSLContextManager _sslcm = HTTPClientFactory.getInstance().getSSLContextManager();
     
     private DefaultListModel _keystoreListModel;
     private AliasTableModel _aliasTableModel;
@@ -540,7 +545,11 @@ public class CertificateManager extends javax.swing.JFrame {
     
     private class AliasTableModel extends AbstractTableModel {
         
-        private int _ks = -1;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 7086599198379703765L;
+		private int _ks = -1;
         private List _aliases = new ArrayList();
         
         public void setKeystore(int ks) {

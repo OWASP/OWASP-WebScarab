@@ -62,7 +62,11 @@ import org.owasp.webscarab.util.CharsetUtils;
  */
 public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
-    private static boolean _findVisible = false;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -3187847151844324989L;
+	private static boolean _findVisible = false;
     private static String _find = "";
     private static boolean _caseSensitive = false;
     private int _start = 0;
@@ -90,7 +94,12 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         InputMap inputMap = textTextArea.getInputMap(WHEN_FOCUSED);
         
         textTextArea.getActionMap().put("TOGGLEWRAP", new AbstractAction() {
-            public void actionPerformed(ActionEvent event) {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = -5660836423742675291L;
+
+			public void actionPerformed(ActionEvent event) {
                 textTextArea.setLineWrap(! textTextArea.getLineWrap());
             }
         });
@@ -98,7 +107,12 @@ public class TextPanel extends javax.swing.JPanel implements ByteArrayEditor {
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, Event.CTRL_MASK), "TOGGLEWRAP");
         
         textTextArea.getActionMap().put("TOGGLEFIND", new AbstractAction() {
-            public void actionPerformed(ActionEvent event) {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1834782994385394227L;
+
+			public void actionPerformed(ActionEvent event) {
                 _findVisible = ! findPanel.isVisible();
                 findPanel.setVisible(_findVisible);
                 if (_findVisible) {

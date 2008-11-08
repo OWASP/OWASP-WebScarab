@@ -33,7 +33,11 @@ import java.util.logging.Logger;
  */
 public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, SwingPluginUI {
     
-    private static ColumnDataModel[] NO_COLUMNS = new ColumnDataModel[0];
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -5126009853771604406L;
+	private static ColumnDataModel[] NO_COLUMNS = new ColumnDataModel[0];
     private static Action[] NO_ACTIONS = new Action[0];
     
     private Scripted _scripted = null;

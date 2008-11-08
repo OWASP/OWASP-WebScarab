@@ -14,7 +14,11 @@ import java.util.EventObject;
  */
 public class FrameworkEvent extends EventObject {
     
-    private ConversationID _id = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 6301623751009629601L;
+	private ConversationID _id = null;
     private HttpUrl _url = null;
     private Cookie _cookie = null;
     private String _property = null;

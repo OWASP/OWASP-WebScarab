@@ -17,7 +17,11 @@ import javax.swing.tree.TreePath;
  */
 public class TreeTableModelEvent extends TreeModelEvent{
     
-    protected int column;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 8804967269725219736L;
+	protected int column;
     protected int type = 0;
     
     /** Identifies the addtion of new columns. */

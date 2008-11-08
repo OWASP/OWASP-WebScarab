@@ -74,7 +74,11 @@ import org.owasp.webscarab.util.Encoding;
 
 public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwner {
     
-    protected UndoManager undo = new UndoManager();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 5712516501903313109L;
+	protected UndoManager undo = new UndoManager();
     protected UndoAction undoAction;
     protected RedoAction redoAction;
     private Hashtable actions;
@@ -415,7 +419,12 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
     // End of variables declaration//GEN-END:variables
     
     class UndoAction extends AbstractAction {
-        public UndoAction() {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -137321944593284589L;
+
+		public UndoAction() {
             super("Undo");
             setEnabled(false);
         }
@@ -444,7 +453,12 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
     
     
     class RedoAction extends AbstractAction {
-        public RedoAction() {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -2044519935735823050L;
+
+		public RedoAction() {
             super("Redo");
             setEnabled(false);
         }

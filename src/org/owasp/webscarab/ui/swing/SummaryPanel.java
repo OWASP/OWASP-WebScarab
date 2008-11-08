@@ -74,7 +74,11 @@ import org.owasp.webscarab.util.swing.TableSorter;
  */
 public class SummaryPanel extends JPanel {
     
-    private FrameworkModel _model;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -653352257745170107L;
+	private FrameworkModel _model;
     private UrlFilteredConversationModel _conversationModel;
     private FilteredUrlModel _urlModel;
     private JTreeTable _urlTreeTable;

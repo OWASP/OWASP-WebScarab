@@ -52,7 +52,11 @@ import java.beans.PropertyChangeEvent;
  */
 public class MessagePanel extends javax.swing.JPanel {
     
-    private ContentPanel _cp;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -295413596776666722L;
+	private ContentPanel _cp;
     private HeaderPanel _hp;
     private Message _message = null;
     private boolean _editable = false;

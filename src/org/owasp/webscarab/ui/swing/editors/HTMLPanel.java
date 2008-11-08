@@ -59,7 +59,12 @@ import org.mozilla.intl.chardet.nsPSMDetector;
  */
 public class HTMLPanel extends JPanel implements ByteArrayEditor {
     
-    private Logger _logger = Logger.getLogger(getClass().getName());
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 6521674496262573570L;
+
+	private Logger _logger = Logger.getLogger(getClass().getName());
     
     private byte[] _bytes = null;
     
@@ -182,7 +187,12 @@ public class HTMLPanel extends JPanel implements ByteArrayEditor {
     // End of variables declaration//GEN-END:variables
     
     private class NoNetEditorPane extends JEditorPane {
-        protected InputStream getStream(URL page) throws IOException {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 5246114185513152820L;
+
+		protected InputStream getStream(URL page) throws IOException {
             _logger.info("Rejecting request for " + page);
             throw new IOException("We do not support network traffic");
         }

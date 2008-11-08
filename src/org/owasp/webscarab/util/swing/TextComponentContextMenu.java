@@ -67,7 +67,11 @@ public class TextComponentContextMenu extends EventQueue{
     }
     
     private static class CutAction extends AbstractAction {
-        JTextComponent comp;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 5259448700110788753L;
+		JTextComponent comp;
         
         public CutAction(JTextComponent comp){
             super("Cut");
@@ -86,7 +90,11 @@ public class TextComponentContextMenu extends EventQueue{
     }
     
     private static class PasteAction extends AbstractAction{
-        JTextComponent comp;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 2284758389817935638L;
+		JTextComponent comp;
         
         public PasteAction(JTextComponent comp){
             super("Paste");
@@ -107,7 +115,11 @@ public class TextComponentContextMenu extends EventQueue{
     }
     
     private static class DeleteAction extends AbstractAction{
-        JTextComponent comp;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -2623797972969659203L;
+		JTextComponent comp;
         
         public DeleteAction(JTextComponent comp){
             super("Delete");
@@ -126,7 +138,11 @@ public class TextComponentContextMenu extends EventQueue{
     }
     
     private static class CopyAction extends AbstractAction{
-        JTextComponent comp;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -7049993248136391935L;
+		JTextComponent comp;
         
         public CopyAction(JTextComponent comp){
             super("Copy");
@@ -144,7 +160,11 @@ public class TextComponentContextMenu extends EventQueue{
     }
     
     private static class SelectAllAction extends AbstractAction{
-        JTextComponent comp;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 792587916551631284L;
+		JTextComponent comp;
         
         public SelectAllAction(JTextComponent comp){
             super("Select All");

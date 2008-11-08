@@ -38,7 +38,11 @@ import org.owasp.webscarab.model.ConversationID;
  */
 public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
     
-    private XSSCRLF _xsscrlf;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -5862303750441463107L;
+	private XSSCRLF _xsscrlf;
     private XSSCRLFModel _model;
     
     private Logger _logger = Logger.getLogger(getClass().getName());

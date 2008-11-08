@@ -54,6 +54,10 @@ import org.owasp.webscarab.model.FrameworkModel;
  */
 public class TagConversationAction extends AbstractAction {
     
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -55516030560746658L;
 	private JComponent parent;
 	private FrameworkModel _model;
 	

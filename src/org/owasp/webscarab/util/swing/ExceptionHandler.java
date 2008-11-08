@@ -17,7 +17,11 @@ import java.io.PrintStream;
  */
 public class ExceptionHandler extends javax.swing.JDialog {
     
-    private static Frame _parent = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 7592992184923087071L;
+	private static Frame _parent = null;
     private static boolean _disabled = false;
     
     /** Creates new form ExceptionHandler */

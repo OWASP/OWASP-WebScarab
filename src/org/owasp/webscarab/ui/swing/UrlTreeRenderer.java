@@ -52,7 +52,12 @@ import javax.swing.tree.DefaultTreeCellRenderer;
  */
 public class UrlTreeRenderer extends DefaultTreeCellRenderer {
     
-    /** Creates a new instance of UrlTreeRenderer */
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1928179376725725457L;
+
+	/** Creates a new instance of UrlTreeRenderer */
     public UrlTreeRenderer() {
     }
     

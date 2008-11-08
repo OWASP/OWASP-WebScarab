@@ -53,7 +53,11 @@ import javax.swing.JOptionPane;
  */
 public class SerializedObjectPanel extends ObjectPanel implements ByteArrayEditor {
     
-    private byte[] _data = new byte[0];
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -6252472359907569548L;
+	private byte[] _data = new byte[0];
     private boolean _editable = false;
     private boolean _error = false;
     

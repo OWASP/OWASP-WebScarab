@@ -68,7 +68,11 @@ import java.awt.Component;
  */
 public class ObjectPanel extends javax.swing.JPanel {
     
-    private JTreeTable _tt;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -1149080437965386611L;
+	private JTreeTable _tt;
     private ObjectTreeTableModel _ottm;
     private boolean _editable = false;
     
@@ -78,7 +82,11 @@ public class ObjectPanel extends javax.swing.JPanel {
         setName("Object");
         _ottm = new ObjectTreeTableModel();
         _tt = new JTreeTable(_ottm) {
-            public TableCellRenderer getCellRenderer(int row, int column) {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = -6733180628013589307L;
+			public TableCellRenderer getCellRenderer(int row, int column) {
                 if (column == 2) {
                     Object o = ((ObjectTreeNode)getValueAt(row, 0)).getUserObject();
                     if (o != null) {
@@ -388,7 +396,11 @@ public class ObjectPanel extends javax.swing.JPanel {
     
     
     private class ObjectTreeTableModel extends DefaultTreeTableModel {
-        private boolean _modified = false;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -310076954129946613L;
+		private boolean _modified = false;
         private boolean _editable = false;
         
         private String[] _columnNames = new String[] { "Key", "Class", "Value" };
@@ -740,7 +752,11 @@ public class ObjectPanel extends javax.swing.JPanel {
     }
     
     private class ObjectTreeNode extends DefaultMutableTreeNode {
-        private Object _key = null;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -3998840936827564434L;
+		private Object _key = null;
         
         public ObjectTreeNode(Object object) {
             super(object);
@@ -770,7 +786,11 @@ public class ObjectPanel extends javax.swing.JPanel {
     /** A simple CellRenderer to format a Date to include the time */    
     private class DateRenderer extends javax.swing.table.DefaultTableCellRenderer {
 	
-        private DateFormat _df;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 7004833139749646236L;
+		private DateFormat _df;
 	
         public DateRenderer() { super(); }
 
@@ -786,7 +806,11 @@ public class ObjectPanel extends javax.swing.JPanel {
     /** A simple CellEditor that parses java.util.Date objects */
     private class DateEditor extends javax.swing.AbstractCellEditor implements javax.swing.table.TableCellEditor {
         
-        private Object _value = null;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1964260936777401751L;
+		private Object _value = null;
         private javax.swing.JTextField _textField;
         private DateFormat _df;
         private int clickCountToStart = 2;
@@ -827,7 +851,12 @@ public class ObjectPanel extends javax.swing.JPanel {
     /** A simple CellRenderer to display the elements of an array */    
     private class ArrayRenderer extends javax.swing.table.DefaultTableCellRenderer {
 		
-        public ArrayRenderer() { super(); }
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -4882652613205132057L;
+
+		public ArrayRenderer() { super(); }
 
 	public void setValue(Object value) {
             if (value.getClass().isArray()) {

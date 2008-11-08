@@ -69,7 +69,11 @@ import java.io.IOException;
  */
 public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
-    private HexTableModel _tableModel = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -6389071746723775943L;
+	private HexTableModel _tableModel = null;
     private boolean _editable = false;
     private int _columns = 16;
     private boolean _modified = false;
@@ -100,7 +104,12 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, Event.CTRL_MASK), "Save");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, Event.CTRL_MASK), "Load");
         getActionMap().put("Save", new AbstractAction() {
-            public void actionPerformed(ActionEvent evt) {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 6229743807139403588L;
+
+			public void actionPerformed(ActionEvent evt) {
                 JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDirectory"));
                 jfc.setDialogTitle("Select a file to write the message content to");
                 int returnVal = jfc.showSaveDialog(HexPanel.this);
@@ -117,7 +126,12 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
             }
         });
         getActionMap().put("Load", new AbstractAction() {
-            public void actionPerformed(ActionEvent evt) {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 2208374207129449438L;
+
+			public void actionPerformed(ActionEvent evt) {
                 if (!_editable) return;
                 JFileChooser jfc = new JFileChooser(Preferences.getPreference("WebScarab.DefaultDirectory"));
                 jfc.setDialogTitle("Select a file to read the message content from");
@@ -256,7 +270,11 @@ public class HexPanel extends javax.swing.JPanel implements ByteArrayEditor {
     
     private class HexTableModel extends AbstractTableModel {
         
-        private int _columns = 8;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -5393432450731234710L;
+		private int _columns = 8;
         
         public HexTableModel() {
         }

@@ -91,7 +91,11 @@ import java.net.URL;
  */
 public class UIFramework extends JFrame implements FrameworkUI {
     
-    private Framework _framework;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1703415432525545808L;
+	private Framework _framework;
     private FrameworkModel _model;
     
     private CookieJarViewer _cookieJarViewer;
@@ -162,7 +166,12 @@ public class UIFramework extends JFrame implements FrameworkUI {
                 System.err.println(message[i]);
             }
             contentsMenuItem.addActionListener(new AbstractAction() {
-                public void actionPerformed(ActionEvent evt) {
+                /**
+				 * 
+				 */
+				private static final long serialVersionUID = -7470145620330176298L;
+
+				public void actionPerformed(ActionEvent evt) {
                     JOptionPane.showMessageDialog(UIFramework.this, message, "Help is not available", JOptionPane.ERROR_MESSAGE);
                 }
             });

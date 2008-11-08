@@ -19,7 +19,11 @@ import java.text.SimpleDateFormat;
  */
 public class DateRenderer extends DefaultTableCellRenderer {
     
-    private SimpleDateFormat _sdf;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 4146923038862167831L;
+	private SimpleDateFormat _sdf;
     
     public DateRenderer() {
         String format = Preferences.getPreference("WebScarab.DateFormat", "yyyy/MM/dd HH:mm:ss");
