@@ -61,7 +61,6 @@ import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.plugin.CredentialManager;
 import org.owasp.webscarab.plugin.Framework;
-import org.owasp.webscarab.plugin.FrameworkUI;
 import org.owasp.webscarab.plugin.proxy.RevealHidden;
 import org.owasp.webscarab.util.TempDir;
 import org.owasp.webscarab.util.swing.HeapMonitor;
@@ -76,7 +75,7 @@ import java.net.URL;
  *
  * @author  rdawes
  */
-public class Lite extends JFrame implements FrameworkUI {
+public class Lite extends JFrame {
     
     /**
 	 * 
@@ -108,8 +107,6 @@ public class Lite extends JFrame implements FrameworkUI {
         initComponents();
         getContentPane().add(new HeapMonitor(), BorderLayout.SOUTH);
         setPreferredSize();
-        
-        framework.setUI(this);
         
         _summaryPanel = new SummaryPanel(_model);
         tabbedPane.addTab("Summary", _summaryPanel);

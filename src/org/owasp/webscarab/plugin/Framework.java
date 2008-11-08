@@ -72,8 +72,6 @@ public class Framework {
     
     private String _version;
     
-    private FrameworkUI _ui = null;
-    
     private ScriptManager _scriptManager;
     private CredentialManager _credentialManager;
     
@@ -132,14 +130,6 @@ public class Framework {
             dropPattern = Pattern.compile(pattern);
             Preferences.setPreference("WebScarab.dropRegex", pattern);
         }
-    }
-    
-    /**
-     * links the framework to its GUI
-     * @param ui a class implementing the necessary interface methods
-     */
-    public void setUI(FrameworkUI ui) {
-        _ui = ui;
     }
     
     /**

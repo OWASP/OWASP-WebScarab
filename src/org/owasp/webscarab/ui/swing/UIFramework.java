@@ -73,7 +73,6 @@ import org.owasp.webscarab.model.FileSystemStore;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.plugin.CredentialManager;
 import org.owasp.webscarab.plugin.Framework;
-import org.owasp.webscarab.plugin.FrameworkUI;
 import org.owasp.webscarab.util.TempDir;
 import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.swing.DocumentHandler;
@@ -89,7 +88,7 @@ import java.net.URL;
  *
  * @author  rdawes
  */
-public class UIFramework extends JFrame implements FrameworkUI {
+public class UIFramework extends JFrame {
     
     /**
 	 * 
@@ -124,8 +123,6 @@ public class UIFramework extends JFrame implements FrameworkUI {
         initComponents();
         getContentPane().add(new HeapMonitor(), BorderLayout.SOUTH);
         setPreferredSize();
-        
-        framework.setUI(this);
         
         _summaryPanel = new SummaryPanel(_model);
         tabbedPane.addTab("Summary", _summaryPanel);
