@@ -76,6 +76,8 @@ public class ConnectionHandler implements Runnable {
 
     private InputStream _clientIn = null;
     private OutputStream _clientOut = null;
+    
+    private static String _certDir = "./certs/";
 
     public ConnectionHandler(Proxy proxy, Socket sock, HttpUrl base) {
         _proxy = proxy;
@@ -294,7 +296,7 @@ public class ConnectionHandler implements Runnable {
     	synchronized (_factoryMap) {
     		if (_factoryMap.containsKey(host))
     			return (SSLSocketFactory) _factoryMap.get(host);
-    		File p12 = new File(host + ".p12");
+    		File p12 = new File(_certDir + host + ".p12");
     		InputStream is = null;
     		if (p12.exists() && p12.canRead()) {
     			try {
@@ -308,7 +310,7 @@ public class ConnectionHandler implements Runnable {
     				_factoryMap.put(host, _factoryMap.get(null));
     				return (SSLSocketFactory) _factoryMap.get(host);
     			}
-    			p12 = new File("server.p12");
+    			p12 = new File(_certDir + "server.p12");
     			if (p12.exists() && p12.canRead()) {
     				try {
 						is = new FileInputStream(p12);
