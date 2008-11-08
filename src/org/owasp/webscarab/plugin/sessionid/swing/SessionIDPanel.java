@@ -227,7 +227,6 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        locationButtonGroup = new javax.swing.ButtonGroup();
         mainTabbedPane = new javax.swing.JTabbedPane();
         collectionPanel = new javax.swing.JPanel();
         specPanel = new javax.swing.JPanel();
@@ -807,7 +806,6 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.ButtonGroup locationButtonGroup;
     private javax.swing.JTabbedPane mainTabbedPane;
     private javax.swing.JTextField maxTextField;
     private javax.swing.JTextField minTextField;
