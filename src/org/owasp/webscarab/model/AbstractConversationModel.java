@@ -49,6 +49,10 @@ public abstract class AbstractConversationModel implements ConversationModel {
         return _model.getRequestMethod(id);
     }
     
+    public String getConversationProperty(ConversationID id, String property) {
+        return _model.getConversationProperty(id, property);
+    }
+    
     public String getResponseStatus(ConversationID id) {
         return _model.getResponseStatus(id);
     }

@@ -39,10 +39,10 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 
 import org.owasp.webscarab.model.ConversationID;
@@ -58,11 +58,11 @@ public class TagConversationAction extends AbstractAction {
 	 * 
 	 */
 	private static final long serialVersionUID = -55516030560746658L;
-	private JComponent parent;
+	private Component parent;
 	private FrameworkModel _model;
 	
     /** Creates a new instance of ShowConversationAction */
-    public TagConversationAction(JComponent parent, FrameworkModel model) {
+    public TagConversationAction(Component parent, FrameworkModel model) {
     	_model = model;
         putValue(NAME, "Tag conversation");
         putValue(SHORT_DESCRIPTION, "Assign a user-defined tag to this conversation");

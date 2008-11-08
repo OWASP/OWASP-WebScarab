@@ -150,6 +150,16 @@ public class ConversationTableModel extends ExtensibleTableModel {
             public Class getColumnClass() { return String.class; }
         };
         addColumn(cdm);
+
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                return _model.getConversationProperty((ConversationID) key, "TAG");
+            }
+            public String getColumnName() { return "Tag"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        addColumn(cdm);
     }
     
     public Object getKeyAt(int row) {

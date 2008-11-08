@@ -41,35 +41,36 @@ package org.owasp.webscarab.ui.swing;
 
 import java.awt.BorderLayout;
 import java.awt.Rectangle;
-
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.PatternSyntaxException;
 
-import javax.swing.JFrame;
+import javax.help.CSH;
+import javax.help.HelpBroker;
+import javax.help.HelpSet;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
-import javax.swing.AbstractAction;
-import java.awt.event.ActionEvent;
-
 import javax.swing.plaf.TextUI;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position.Bias;
 
-import org.owasp.webscarab.model.Preferences;
-import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.FileSystemStore;
+import org.owasp.webscarab.model.FrameworkModel;
+import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.plugin.CredentialManager;
 import org.owasp.webscarab.plugin.Framework;
@@ -78,11 +79,6 @@ import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.swing.DocumentHandler;
 import org.owasp.webscarab.util.swing.HeapMonitor;
 import org.owasp.webscarab.util.swing.SwingWorker;
-
-import javax.help.HelpSet;
-import javax.help.HelpBroker;
-import javax.help.CSH;
-import java.net.URL;
 
 /**
  *
@@ -125,6 +121,9 @@ public class UIFramework extends JFrame {
         setPreferredSize();
         
         _summaryPanel = new SummaryPanel(_model);
+        _summaryPanel.addConversationActions(new Action[] { 
+    		new TagConversationAction(this, _model)
+		});
         tabbedPane.addTab("Summary", _summaryPanel);
         tabbedPane.addTab("Messages", new JScrollPane(logTextArea));
         

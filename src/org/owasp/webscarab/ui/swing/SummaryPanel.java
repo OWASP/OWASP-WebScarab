@@ -64,7 +64,6 @@ import org.owasp.webscarab.model.FilteredUrlModel;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
-import org.owasp.webscarab.util.swing.ExtensibleTableModel;
 import org.owasp.webscarab.util.swing.JTreeTable;
 import org.owasp.webscarab.util.swing.TableSorter;
 
@@ -109,8 +108,7 @@ public class SummaryPanel extends JPanel {
         initTable();
         addTableListeners();
         addConversationActions(new Action[] {
-            new ShowConversationAction(_conversationModel),
-            new TagConversationAction(this, _model)
+            new ShowConversationAction(_conversationModel)
         });
     }
     
@@ -213,7 +211,6 @@ public class SummaryPanel extends JPanel {
     
     private void initTable() {
         _conversationTableModel = new ConversationTableModel(_conversationModel);
-        addTagColumn(_conversationTableModel);
         ColumnWidthTracker.getTracker("ConversationTable").addTable(conversationTable);
         
         _conversationTableSorter = new TableSorter(_conversationTableModel, conversationTable.getTableHeader());
@@ -222,35 +219,6 @@ public class SummaryPanel extends JPanel {
         conversationTable.setDefaultRenderer(Date.class, new DateRenderer());
     }
     
-    private void addTagColumn(ExtensibleTableModel tableModel) {
-    	tableModel.addColumn(new ColumnDataModel() {
-
-			/* (non-Javadoc)
-			 * @see org.owasp.webscarab.util.swing.ColumnDataModel#getColumnClass()
-			 */
-			public Class getColumnClass() {
-				return String.class;
-			}
-
-			/* (non-Javadoc)
-			 * @see org.owasp.webscarab.util.swing.ColumnDataModel#getColumnName()
-			 */
-			public String getColumnName() {
-				return "Tag";
-			}
-
-			/* (non-Javadoc)
-			 * @see org.owasp.webscarab.util.swing.ColumnDataModel#getValue(java.lang.Object)
-			 */
-			public Object getValue(Object key) {
-				if (!(key instanceof ConversationID))
-					return null;
-				ConversationID id = (ConversationID) key;
-				return _model.getConversationProperty(id, "TAG");
-			}
-    		
-    	});
-    }
     private void addTableListeners() {
         // This listener updates the registered actions with the selected Conversation
         conversationTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
