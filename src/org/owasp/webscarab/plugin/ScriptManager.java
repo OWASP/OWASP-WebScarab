@@ -154,7 +154,6 @@ public class ScriptManager {
         Iterator hookIt = _hooks.entrySet().iterator();
         while (hookIt.hasNext()) {
             Map.Entry entry = (Map.Entry) hookIt.next();
-            String plugin = (String) entry.getKey();
             Hook[] hooks = (Hook[]) entry.getValue();
             if (hooks != null) {
                 for (int i=0; i<hooks.length; i++) {
