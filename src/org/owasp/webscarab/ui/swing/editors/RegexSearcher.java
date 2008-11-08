@@ -64,11 +64,9 @@ public class RegexSearcher {
         int flags = Pattern.DOTALL | Pattern.MULTILINE;
         if (!caseSensitive) flags |= Pattern.CASE_INSENSITIVE;
         Pattern p = Pattern.compile(pattern, flags);
-        int offset = 0;
         Matcher m = p.matcher(content);
         while (m.find()) {
             for (int i=(m.groupCount()>0?1:0); i<=m.groupCount(); i++) {
-                String match = m.group(i);
                 try {
                     highlighter.addHighlight(m.start(i), m.end(i), matchPainter);
                 } catch (BadLocationException e) {}
