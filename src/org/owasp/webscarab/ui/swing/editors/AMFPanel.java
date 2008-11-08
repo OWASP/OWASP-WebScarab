@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Vector;
 
 import javax.swing.JPanel;
 
@@ -261,10 +260,7 @@ public class AMFPanel extends JPanel implements ByteArrayEditor {
                     Iterator it = rows.iterator();
                     while (it.hasNext()) {
                         Object row = it.next();
-                        if (row instanceof ArrayList) {
-                            Vector vRow = new Vector((ArrayList)row);
-                            
-                        } else {
+                        if (!(row instanceof ArrayList)) {
                             allOk =false;
                             break;
                         }
