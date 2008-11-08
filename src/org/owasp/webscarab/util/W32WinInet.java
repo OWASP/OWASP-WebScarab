@@ -94,7 +94,7 @@ public class W32WinInet {
      */    
     public static void revertProxy() {
         if (! _intercepted) return;
-        int result = setProxy(_perConn, _proxyServer, _proxyBypass);
+        setProxy(_perConn, _proxyServer, _proxyBypass);
         _intercepted = false;
     }
     

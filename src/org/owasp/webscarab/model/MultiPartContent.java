@@ -111,39 +111,6 @@ public class MultiPartContent {
         return pos;
     }
     
-    /**
-     * a private method to read a line up to and including the CR or CRLF.
-     *
-     * We don't use a BufferedInputStream so that we don't read further than we should
-     * i.e. into the message body, or next message!
-     * @param is The InputStream to read the line from
-     * @throws IOException if an IOException occurs while reading from the supplied InputStream
-     * @return the line that was read, WITHOUT the CR or CRLF
-     */
-    private String readLine(InputStream is) throws IOException {
-        if (is == null) {
-            NullPointerException npe = new NullPointerException("InputStream may not be null!");
-            npe.printStackTrace();
-            throw npe;
-        }
-        StringBuffer line = new StringBuffer();
-        int i;
-        char c=0x00;
-        i = is.read();
-        if (i == -1) return null;
-        while (i > -1 && i != 10 && i != 13) {
-            // Convert the int to a char
-            c = (char)(i & 0xFF);
-            line = line.append(c);
-            i = is.read();
-        }
-        if (i == 13) { // 10 is unix LF, but DOS does 13+10, so read the 10 if we got 13
-            i = is.read();
-        }
-        // _logger.finest(line.toString());
-        return line.toString();
-    }
-    
     public String getPartName(int index) {
         Message part = (Message) _parts.get(index);
         String disposition = part.getHeader("Content-Disposition");
