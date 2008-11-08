@@ -62,7 +62,6 @@ import org.owasp.webscarab.util.swing.ColumnDataModel;
 import javax.swing.border.TitledBorder;
 import javax.swing.SwingUtilities;
 
-import java.io.IOException;
 import javax.swing.JOptionPane;
 import javax.swing.ComboBoxModel;
 import javax.swing.ListModel;

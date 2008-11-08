@@ -1,10 +1,6 @@
 package org.owasp.webscarab.plugin;
 
-import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.Cookie;
 import org.owasp.webscarab.model.FrameworkModel;

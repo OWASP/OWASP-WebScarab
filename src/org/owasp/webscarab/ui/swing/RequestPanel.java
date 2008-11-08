@@ -41,8 +41,6 @@ package org.owasp.webscarab.ui.swing;
 
 import java.net.MalformedURLException;
 import java.text.ParseException;
-import javax.swing.JButton;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
