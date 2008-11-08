@@ -264,7 +264,6 @@ public class ExtensionsPanel extends javax.swing.JPanel implements SwingPluginUI
                 return null;
             }
             public void finished() {
-                Object result = getValue();
                 checkButton.setText("Check");
             }
         }.start();
@@ -272,7 +271,7 @@ public class ExtensionsPanel extends javax.swing.JPanel implements SwingPluginUI
             
     private void showBusyMessage() {
         _logger.warning("Plugin is still busy, please wait");
-        // FIXME show a message dialog
+        JOptionPane.showMessageDialog(this, "Plugin is still busy", "Please wait!", JOptionPane.INFORMATION_MESSAGE);
     }
     public Action[] getConversationActions() {
         return null;
