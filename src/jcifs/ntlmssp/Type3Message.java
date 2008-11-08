@@ -68,7 +68,7 @@ public class Type3Message extends NtlmMessage {
         DEFAULT_USER = Config.getProperty("jcifs.smb.client.username", null);
         DEFAULT_PASSWORD = Config.getProperty("jcifs.smb.client.password",
                 null);
-        String defaultWorkstation = null;
+//        String defaultWorkstation = null;
 //        try {
 //            defaultWorkstation = NbtAddress.getLocalHost().getHostName();
 //        } catch (UnknownHostException ex) { }
