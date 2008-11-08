@@ -39,7 +39,6 @@
      	<property name="jhelpjar" value="lib/jhall-2.0_02.jar"/>
      	<property name="chardetjar" value="lib/chardet.jar"/>
      	<property name="tagsoupjar" value="lib/tagsoup-1.0rc2.jar"/>
-     	<property name="wsdljar" value="lib/wsdl4j.jar"/>
      	<property name="openamfjar" value="lib/openamf.jar"/>
      	<property name="commonsloggingjar" value="lib/commons-logging-1.0.4.jar"/>
         
@@ -54,7 +53,6 @@
             <pathelement location="${jhelpjar}"/>
             <pathelement location="${chardetjar}"/>
             <pathelement location="${tagsoupjar}"/>
-            <pathelement location="${wsdljar}"/>
             <pathelement location="${openamfjar}"/>
             <pathelement location="${commonsloggingjar}"/>
         </path>
@@ -132,7 +130,7 @@
                 <attribute name="Main-Class" value="${mainclass}"/>
                 <attribute 
                     name="Class-Path" 
-                    value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar} ${wsdljar} ${openamfjar} ${commonsloggingjar}"
+                    value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar} ${openamfjar} ${commonsloggingjar}"
                 />
                 <attribute name="Built-By" value="${user.name}"/>
                 <section name="org/owasp/webscarab/">
@@ -224,7 +222,6 @@
             <injar name="${basedir}/${jcommonjar}"/>
             <injar name="${basedir}/${chardetjar}"/>
             <injar name="${basedir}/${tagsoupjar}"/>
-            <injar name="${basedir}/${wsdljar}"/>
             <injar name="${basedir}/${openamfjar}"/>
             <injar name="${basedir}/${commonsloggingjar}"/>
             <libraryjar name="${basedir}/${jhelpjar}"/>

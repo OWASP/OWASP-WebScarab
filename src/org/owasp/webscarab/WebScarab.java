@@ -55,8 +55,6 @@ import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysis;
 import org.owasp.webscarab.plugin.sessionid.swing.SessionIDPanel;
 import org.owasp.webscarab.plugin.spider.Spider;
 import org.owasp.webscarab.plugin.spider.swing.SpiderPanel;
-import org.owasp.webscarab.plugin.webservice.WebService;
-import org.owasp.webscarab.plugin.webservice.swing.WebServicePanel;
 import org.owasp.webscarab.plugin.xsscrlf.XSSCRLF;
 import org.owasp.webscarab.plugin.xsscrlf.swing.XSSCRLFPanel;
 import org.owasp.webscarab.ui.swing.Lite;
@@ -199,10 +197,6 @@ public class WebScarab {
         ManualRequest manualRequest = new ManualRequest(framework);
         framework.addPlugin(manualRequest);
         uif.addPlugin(new ManualRequestPanel(manualRequest));
-        
-        WebService webservice = new WebService(framework);
-        framework.addPlugin(webservice);
-        uif.addPlugin(new WebServicePanel(webservice));
         
         Spider spider = new Spider(framework);
         framework.addPlugin(spider);
