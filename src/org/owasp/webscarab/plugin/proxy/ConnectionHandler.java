@@ -62,7 +62,6 @@ public class ConnectionHandler implements Runnable {
 
     private static HashMap _factoryMap = new HashMap();
 
-    private static String _keystore = "server.p12";
     private static char[] _keystorepass = "password".toCharArray();
     private static char[] _keypassword = "password".toCharArray();
 
