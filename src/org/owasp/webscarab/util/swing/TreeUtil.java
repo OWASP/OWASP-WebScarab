@@ -11,7 +11,6 @@
 package org.owasp.webscarab.util.swing;
 
 import javax.swing.JTree;
-import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 /**
@@ -25,8 +24,6 @@ public class TreeUtil {
     }
     
     public static void expandAll(JTree tree, boolean expand) {
-        TreeModel model = tree.getModel();
-        
         // Traverse tree from root
         expandAll(tree, new TreePath(tree.getModel().getRoot()), expand);
     }
