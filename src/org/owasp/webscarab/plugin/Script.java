@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  *
@@ -23,6 +24,8 @@ public class Script {
     private boolean _enabled;
     private String _language = null;
     
+    private Logger _logger = Logger.getLogger(getClass().toString());
+    
     /** Creates a new instance of Script */
     public Script(File file) throws IOException {
         _file = file;
@@ -31,6 +34,7 @@ public class Script {
     }
     
     public void reload() throws IOException {
+    	_logger.info("reloading " + _file);
         FileReader fr = null;
         try {
             fr = new FileReader(_file);
@@ -56,6 +60,14 @@ public class Script {
     }
     
     public void setEnabled(boolean enabled) {
+        if (enabled)
+        	try {
+        		reload();
+        	} catch (IOException ioe) {
+        		_logger.severe("Error reloading script " + _file + " : " + ioe);
+        		_enabled = false;
+        		return;
+        	}
         _enabled = enabled;
     }
     
