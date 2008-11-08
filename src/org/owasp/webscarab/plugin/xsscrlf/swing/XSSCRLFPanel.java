@@ -238,7 +238,6 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         loadButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         okButton = new javax.swing.JButton();
-        jScrollBar1 = new javax.swing.JScrollBar();
         jSplitPane1 = new javax.swing.JSplitPane();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -497,7 +496,6 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JScrollBar jScrollBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
