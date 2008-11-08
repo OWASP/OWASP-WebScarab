@@ -51,8 +51,6 @@ import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.ui.swing.editors.TextPanel;
 import org.owasp.webscarab.util.RequestConverter;
 
-import java.util.logging.Logger;
-
 /**
  *
  * @author  rdawes
@@ -77,8 +75,6 @@ public class RequestPanel extends javax.swing.JPanel {
     
     private static int _preferred = -1;
     private boolean _reverting = false;
-    
-    private Logger _logger = Logger.getLogger(getClass().getName());
     
     /** Creates new form RequestPanel */
     public RequestPanel() {
