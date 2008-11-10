@@ -134,4 +134,22 @@ public abstract class ExtensibleTableModel extends AbstractTableModel {
         return getValueAt(key, column);
     }
     
+    protected boolean isCellEditable(Object key, int column) {
+    	return ((ColumnDataModel) _columns.get(column)).isEditable(key);
+    }
+    
+    public boolean isCellEditable(int row, int column) {
+        Object key = getKeyAt(row);
+        return isCellEditable(key, column);
+    }
+    
+    protected void setValueAt(Object aValue, Object key, int column) {
+        ((ColumnDataModel) _columns.get(column)).setValue(aValue, key);
+    }
+    
+    public void setValueAt(Object aValue, int row, int column) {
+        Object key = getKeyAt(row);
+        setValueAt(aValue, key, column);
+    }
+    
 }

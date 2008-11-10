@@ -82,6 +82,13 @@ public abstract class ColumnDataModel {
      */
     public abstract Object getValue(Object key);
     
+    public boolean isEditable(Object key) {
+    	return false;
+    }
+    
+    public void setValue(Object aValue, Object key) {
+    }
+    
     /**
      * Adds a listener to the column model
      * @param l the listener to add
@@ -144,4 +151,7 @@ public abstract class ColumnDataModel {
         }
     }
     
+    public String toString() {
+    	return getColumnName() + "[" + getColumnClass() + "]";
+    }
 }

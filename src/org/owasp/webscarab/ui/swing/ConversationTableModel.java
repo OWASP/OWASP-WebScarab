@@ -158,6 +158,13 @@ public class ConversationTableModel extends ExtensibleTableModel {
             }
             public String getColumnName() { return "Tag"; }
             public Class getColumnClass() { return String.class; }
+			public boolean isEditable(Object key) { 
+				return true; 
+			}
+            public void setValue(Object aValue, Object key) { 
+            	String value = aValue == null ? null : aValue.toString();
+            	_model.setConversationProperty((ConversationID) key, "TAG", value);
+            }
         };
         addColumn(cdm);
     }
@@ -211,7 +218,18 @@ public class ConversationTableModel extends ExtensibleTableModel {
         return super.getColumnClass(column-1);
     }
     
-    protected void addedConversation(ConversationEvent evt) {
+    
+	public boolean isCellEditable(int row, int column) {
+        if (column == 0) return false;
+		return super.isCellEditable(row, column-1);
+	}
+
+	public void setValueAt(Object value, int row, int column) {
+        if (column == 0) return;
+		super.setValueAt(value, row, column-1);
+	}
+
+	protected void addedConversation(ConversationEvent evt) {
         ConversationID id = evt.getConversationID();
         int row = indexOfKey(id);
         fireTableRowsInserted(row, row);

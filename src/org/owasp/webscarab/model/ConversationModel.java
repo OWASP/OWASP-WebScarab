@@ -27,6 +27,8 @@ public interface ConversationModel {
     
     String getConversationProperty(ConversationID id, String property);
     
+    void setConversationProperty(ConversationID id, String property, String value);
+    
     Date getConversationDate(ConversationID id);
     
     String getRequestMethod(ConversationID id);
