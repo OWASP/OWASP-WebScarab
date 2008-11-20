@@ -168,6 +168,15 @@ public class ScriptedObjectModel {
     public String getConversationProperty(ConversationID id, String property) {
         return _model.getConversationProperty(id, property);
     }
+    
+    public void setConversationProperty(ConversationID id, String property, String value) {
+    	_model.setConversationProperty(id, property, value);
+    }
+    
+    public void setConversationProperty(int id, String property, String value) {
+    	_model.setConversationProperty(new ConversationID(id), property, value);
+    }
+    
     /**
      * instructs WebScarab to submit the supplied Request to the appropriate server, 
      * and return the corresponding corresponding Response to the caller
