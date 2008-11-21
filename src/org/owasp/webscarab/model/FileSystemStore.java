@@ -238,10 +238,6 @@ public class FileSystemStore implements SiteModelStore {
         setResponse(id, response);
         Map map = new HashMap();
         _conversationProperties.put(id, map);
-        setConversationProperty(id, "METHOD", request.getMethod());
-        setConversationProperty(id, "URL", request.getURL().toString());
-        setConversationProperty(id, "STATUS", response.getStatusLine());
-        setConversationProperty(id, "WHEN", Long.toString(when.getTime()));
         
         addConversationForUrl(request.getURL(), id);
         int index = Collections.binarySearch(_conversations, id);
