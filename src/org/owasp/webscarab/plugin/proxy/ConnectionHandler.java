@@ -307,7 +307,6 @@ public class ConnectionHandler implements Runnable {
 				}
     		} else {
     			if (_factoryMap.containsKey(null)) {
-    				_factoryMap.put(host, _factoryMap.get(null));
     				return (SSLSocketFactory) _factoryMap.get(host);
     			}
     			p12 = new File(_certDir + "server.p12");
