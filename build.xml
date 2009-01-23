@@ -174,7 +174,7 @@
         </javadoc>
     </target>
     <target 
-        depends="clean,build" 
+        depends="clean,javahelp,build" 
         description="Build a self contained installer package" 
         name="izpack"
     >
@@ -192,7 +192,7 @@
         />
     </target>
     <target 
-        depends="clean,build" 
+        depends="clean,javahelp,build" 
         description="Build a standalone self-contained jar" 
         name="proguard"
     >
