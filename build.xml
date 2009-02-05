@@ -41,7 +41,10 @@
      	<property name="tagsoupjar" value="lib/tagsoup-1.0rc2.jar"/>
      	<property name="openamfjar" value="lib/openamf.jar"/>
      	<property name="commonsloggingjar" value="lib/commons-logging-1.0.4.jar"/>
-        
+     	<property name="flexcommonjar" value="lib/flex-messaging-common.jar"/>
+     	<property name="flexremotingjar" value="lib/flex-messaging-remoting.jar"/>
+     	<property name="flexcorejar" value="lib/flex-messaging-core.jar"/>
+ 
         <path id="cpath">
             <pathelement location="${build.dir}"/>
             <pathelement path="${concurrentjar}"/>
@@ -55,6 +58,9 @@
             <pathelement location="${tagsoupjar}"/>
             <pathelement location="${openamfjar}"/>
             <pathelement location="${commonsloggingjar}"/>
+            <pathelement location="${flexcommonjar}"/>
+            <pathelement location="${flexremotingjar}"/>
+            <pathelement location="${flexcorejar}"/>
         </path>
     </target>
     <target depends="init" description="clean up the build area" name="clean">
@@ -134,7 +140,7 @@
                 <attribute name="Main-Class" value="${mainclass}"/>
                 <attribute 
                     name="Class-Path" 
-                    value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar} ${openamfjar} ${commonsloggingjar}"
+                    value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar} ${openamfjar} ${commonsloggingjar} ${flexcommonjar} ${flexremotingjar} ${flexcorejar}"
                 />
                 <attribute name="Built-By" value="${user.name}"/>
                 <section name="org/owasp/webscarab/">
@@ -228,6 +234,9 @@
             <injar name="${basedir}/${tagsoupjar}"/>
             <injar name="${basedir}/${openamfjar}"/>
             <injar name="${basedir}/${commonsloggingjar}"/>
+            <injar name="${basedir}/${flexcommonjar}"/>
+            <injar name="${basedir}/${flexremotingjar}"/>
+            <injar name="${basedir}/${flexcorejar}"/>
             <libraryjar name="${basedir}/${jhelpjar}"/>
             <libraryjar name="${java.home}/lib/rt.jar"/>
             <libraryjar name="${java.home}/lib/jsse.jar"/>
