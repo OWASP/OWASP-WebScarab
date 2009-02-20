@@ -203,7 +203,7 @@
         />
     </target>
     <target 
-        depends="clean,javahelp,build" 
+        depends="clean,build" 
         description="Build a standalone self-contained jar" 
         name="proguard"
     >
@@ -320,7 +320,7 @@
         </zip>
     </target>
     <target 
-        depends="clean,javahelp,source,proguard,izpack" 
+        depends="clean,source,proguard,izpack" 
         description="Build all distributables" 
         name="dist"
     />
