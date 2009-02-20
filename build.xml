@@ -126,10 +126,11 @@
         <exec executable="xsltproc">
             <arg line="-stringparam base.dir build/help/ -stringparam use.id.as.filename 1 ${docbook.location}/javahelp/javahelp.xsl doc/userguide/swing.xml"/>
         </exec>
-	<!-- -->
+	<!-- - ->
         <copy todir="${build.dir}/help/">
             <fileset dir="doc/userguide/javahelp/"/>
         </copy>
+	<!- - -->
         <copy todir="${build.dir}/help/">
             <fileset dir="doc/userguide/" includes="*.png,*.jpg,*.gif,*.css"/>
         </copy>
@@ -242,6 +243,38 @@
             <libraryjar name="${java.home}/lib/jsse.jar"/>
             <outjar name="${dist.dir}/webscarab-selfcontained-${project.version}.jar"/>
         </proguard>
+    </target>
+    <target
+	depends="init,clean,compile,javahelp"
+	description="Package webScara.jar and libs in a ZIP"
+	name="zip"
+    >
+	<zip destfile="${dist.dir}/webscarab-${project.version}.zip">
+           <zipfileset
+                dir="${basedir}"
+                includes="ChangeLog"
+                prefix="webscarab-${project.version}"
+            />
+            <zipfileset
+                dir="${basedir}"
+                includes="LICENSE"
+                prefix="webscarab-${project.version}"
+            />
+            <zipfileset
+                dir="${basedir}"
+                includes="README"
+                prefix="webscarab-${project.version}"
+            />
+	    <zipfileset
+		dir="${basedir}"
+		includes="webscarab.jar"
+		prefix="webscarab-${project.version}"
+	    />
+	    <zipfileset
+		dir="${basedir}/lib"
+		prefix="webscarab-${project.version}/lib"
+	    />
+	</zip>
     </target>
     <target 
         depends="init,clean" 
