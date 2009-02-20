@@ -245,7 +245,7 @@
         </proguard>
     </target>
     <target
-	depends="init,clean,compile"
+	depends="init,clean,build"
 	description="Package webScara.jar and libs in a ZIP"
 	name="zip"
     >
