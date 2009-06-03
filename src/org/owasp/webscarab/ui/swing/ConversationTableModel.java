@@ -167,6 +167,17 @@ public class ConversationTableModel extends ExtensibleTableModel {
             }
         };
         addColumn(cdm);
+
+        cdm = new ColumnDataModel() {
+            public Object getValue(Object key) {
+                if (_model == null) return null;
+                return _model.getConversationProperty((ConversationID) key, "RESPONSE_SIZE");
+            }
+            public String getColumnName() { return "Size"; }
+            public Class getColumnClass() { return String.class; }
+        };
+        addColumn(cdm);
+
     }
     
     public Object getKeyAt(int row) {

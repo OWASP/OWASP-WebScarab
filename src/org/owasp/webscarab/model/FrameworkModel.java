@@ -179,7 +179,14 @@ public class FrameworkModel {
             addUrl(url); // fires appropriate events
             _rwl.writeLock().acquire();
             int index = _store.addConversation(id, when, request, response);
+            _store.setConversationProperty(id, "METHOD", request.getMethod());
+            _store.setConversationProperty(id, "URL", request.getURL().toString());
+            _store.setConversationProperty(id, "STATUS", response.getStatusLine());
+            _store.setConversationProperty(id, "WHEN", Long.toString(when.getTime()));
             _store.setConversationProperty(id, "ORIGIN", origin);
+            byte[] content=response.getContent();
+            if (content != null && content.length > 0)
+            	_store.setConversationProperty(id, "RESPONSE_SIZE", Integer.toString(content.length));
             _rwl.readLock().acquire();
             _rwl.writeLock().release();
             _conversationModel.fireConversationAdded(id, index); // FIXME
