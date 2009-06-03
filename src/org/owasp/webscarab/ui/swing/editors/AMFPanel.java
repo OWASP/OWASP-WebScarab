@@ -545,7 +545,7 @@ public class AMFPanel extends JPanel implements ByteArrayEditor, ActionListener 
 				|| (object instanceof HashMap)
 				|| (object instanceof List)
 				|| (object != null && object.getClass().getPackage().toString()
-						.contains("flex.messaging.messages"));
+						.indexOf("flex.messaging.messages") > -1);
 	}
 
 	private void addObject(AMFTreeTableNode node, Object object) {
