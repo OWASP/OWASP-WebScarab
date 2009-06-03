@@ -28,7 +28,7 @@
             value="${docbook.location}/javahelp/javahelp.xsl"
         />
 
-        <property name="mainclass" value="org.owasp.webscarab.WebScarab"/>
+        <property name="mainclass" value="org.owasp.webscarab.Main"/>
         
      	<property name="concurrentjar" value="lib/concurrent.jar"/>
      	<property name="htmlparserjar" value="lib/htmlparser.jar"/>

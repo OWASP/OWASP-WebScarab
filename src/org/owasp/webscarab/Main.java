@@ -2,7 +2,6 @@ package org.owasp.webscarab;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -12,26 +11,18 @@ import java.util.List;
 public class Main {
 
 	public static void main(String[] args) throws Exception {
-		File dir = new File("./lib/");
+		File dir = new File("./plugins/");
 		List urls = new ArrayList();
 		findJars(dir, urls);
 		ClassLoader loader = ClassLoader.getSystemClassLoader();
 		if (urls.size() > 0) {
 			URL[] u = (URL[]) urls.toArray(new URL[urls.size()]);
-			loader = new URLClassLoader(u, loader);
+			System.out.println("Creating new ClassLoader");
+			Thread.currentThread().setContextClassLoader(new URLClassLoader(u, loader));
+		} else {
+			System.err.println("No plugins found!");
 		}
-		Class c = loader.loadClass("org.owasp.webscarab.WebScarab");
-		System.out.println(c);
-		Method[] methods = c.getMethods();
-		if (methods != null) {
-			for (int i = 0; i< methods.length; i++) {
-				System.out.println(methods[i]);
-				if (methods[i].getName().equals("main")) {
-					methods[i].invoke(null, new Object[] { args });
-					return;
-				}
-			}
-		}
+		WebScarab.main(args);
 	}
 	
 	private static void findJars(File dir, List urls) {
@@ -51,11 +42,14 @@ public class Main {
 				findJars(f, urls);
 			} else {
 				try {
-					urls.add(f.toURL());
+					URL u = f.toURL();
+					System.err.println("Adding " + u);
+					urls.add(u);
 				} catch (MalformedURLException mue) {
 					mue.printStackTrace();
 				}
 			}
 		}
 	}
+	
 }
