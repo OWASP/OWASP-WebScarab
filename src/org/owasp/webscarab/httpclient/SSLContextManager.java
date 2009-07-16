@@ -87,8 +87,6 @@ public class SSLContextManager {
         try {
             if (type.equals("PKCS11")) {
                 Class.forName("sun.security.pkcs11.SunPKCS11");
-            } else if (type.equals("msks")) {
-                Class.forName("se.assembla.jce.provider.ms.MSProvider");
             }
         } catch (Throwable t) {
             return false;
@@ -184,18 +182,11 @@ public class SSLContextManager {
     
     private void initMSCAPI() {
         try {
-            if (!isProviderAvailable("msks")) return;
-            
-            Provider mscapi = (Provider) Class.forName("se.assembla.jce.provider.ms.MSProvider").newInstance();
-            Security.addProvider(mscapi);
-            
-            // init the key store
-            KeyStore ks = KeyStore.getInstance("msks", "assembla");
-            ks.load(null, null);
+            KeyStore ks = KeyStore.getInstance("Windows-MY");
+            ks.load(null, null); 
             addKeyStore(ks, "Microsoft CAPI Store");
         } catch (Exception e) {
-            System.err.println("Error instantiating the MSCAPI provider");
-            e.printStackTrace();
+            System.err.println("Error instantiating the MSCAPI provider: " + e.getLocalizedMessage());
         }
     }
     
