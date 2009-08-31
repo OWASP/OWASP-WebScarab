@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -17,8 +18,10 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.net.ssl.KeyManager;
@@ -26,15 +29,24 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509KeyManager;
 
+import sun.security.util.ObjectIdentifier;
 import sun.security.x509.AlgorithmId;
+import sun.security.x509.AuthorityKeyIdentifierExtension;
+import sun.security.x509.BasicConstraintsExtension;
 import sun.security.x509.CertAndKeyGen;
 import sun.security.x509.CertificateAlgorithmId;
+import sun.security.x509.CertificateExtensions;
 import sun.security.x509.CertificateIssuerName;
 import sun.security.x509.CertificateSerialNumber;
 import sun.security.x509.CertificateSubjectName;
 import sun.security.x509.CertificateValidity;
 import sun.security.x509.CertificateVersion;
 import sun.security.x509.CertificateX509Key;
+import sun.security.x509.ExtendedKeyUsageExtension;
+import sun.security.x509.KeyIdentifier;
+import sun.security.x509.KeyUsageExtension;
+import sun.security.x509.NetscapeCertTypeExtension;
+import sun.security.x509.SubjectKeyIdentifierExtension;
 import sun.security.x509.X500Name;
 import sun.security.x509.X500Signer;
 import sun.security.x509.X509CertImpl;
@@ -73,6 +85,8 @@ public class SSLSocketFactoryFactory {
 
 	private X500Name caName;
 
+	private BigInteger maxSerial = BigInteger.ZERO;
+	
 	public SSLSocketFactoryFactory() throws GeneralSecurityException,
 			IOException {
 		this(null, "JKS", "password".toCharArray());
@@ -103,6 +117,7 @@ public class SSLSocketFactoryFactory {
 				logger.warning("Keystore does not contain an entry for '" + CA
 						+ "'");
 			}
+			initMaxSerial();
 		} else {
 			logger.info("Generating CA key");
 			keystore.load(null, password);
@@ -176,6 +191,17 @@ public class SSLSocketFactoryFactory {
 		saveKeystore();
 	}
 
+	private void initMaxSerial() throws GeneralSecurityException {
+		Enumeration e = keystore.aliases();
+		while (e.hasMoreElements()) {
+			String alias = (String) e.nextElement();
+			X509Certificate cert = (X509Certificate) keystore.getCertificate(alias);
+			BigInteger serial = cert.getSerialNumber();
+			if (serial.compareTo(maxSerial) > 0)
+				maxSerial = serial;
+		}
+	}
+	
 	private void generate(String cname, boolean reuseKeys)
 			throws GeneralSecurityException {
 		try {
@@ -210,8 +236,8 @@ public class SSLSocketFactoryFactory {
 			// Add all mandatory attributes
 			info.set(X509CertInfo.VERSION, new CertificateVersion(
 					CertificateVersion.V3));
-			info.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(
-					(int) (begin.getTime() / 1000)));
+			maxSerial = maxSerial.add(BigInteger.ONE);
+			info.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(maxSerial));
 			AlgorithmId algID = issuer.getAlgorithmId();
 			info.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(
 					algID));
@@ -220,6 +246,11 @@ public class SSLSocketFactoryFactory {
 			info.set(X509CertInfo.VALIDITY, valid);
 			info.set(X509CertInfo.ISSUER, new CertificateIssuerName(issuer
 					.getSigner()));
+
+			// add Extensions
+			CertificateExtensions ext = getCertificateExtensions(pubKey,
+					caPubKey);
+			info.set(X509CertInfo.EXTENSIONS, ext);
 
 			X509CertImpl cert = new X509CertImpl(info);
 			cert.sign(caKey, SIGALG);
@@ -238,6 +269,64 @@ public class SSLSocketFactoryFactory {
 			throw cee;
 		}
 	}
+
+	private CertificateExtensions getCertificateExtensions(PublicKey pubKey,
+			PublicKey caPubKey) throws IOException {
+		CertificateExtensions ext = new CertificateExtensions();
+
+		ext.set(SubjectKeyIdentifierExtension.NAME,
+				new SubjectKeyIdentifierExtension(new KeyIdentifier(pubKey)
+						.getIdentifier()));
+
+		ext.set(AuthorityKeyIdentifierExtension.NAME,
+				new AuthorityKeyIdentifierExtension(
+						new KeyIdentifier(caPubKey), null, null));
+
+		// Basic Constraints
+		ext.set(BasicConstraintsExtension.NAME, new BasicConstraintsExtension(
+		/* isCritical */Boolean.TRUE, /* isCA */
+		false, /* pathLen */Integer.MAX_VALUE));
+
+		// Netscape Cert Type Extension
+		boolean[] ncteOk = new boolean[8];
+		ncteOk[0] = true; // SSL_CLIENT
+		ncteOk[1] = true; // SSL_SERVER
+		NetscapeCertTypeExtension ncte = new NetscapeCertTypeExtension(ncteOk);
+		ncte = new NetscapeCertTypeExtension(Boolean.FALSE, ncte.getExtensionValue());
+		ext.set(NetscapeCertTypeExtension.NAME, ncte);
+
+		// Key Usage Extension
+		boolean[] kueOk = new boolean[9];
+		kueOk[0] = true;
+		kueOk[2] = true;
+		// "digitalSignature", // (0),
+		// "nonRepudiation", // (1)
+		// "keyEncipherment", // (2),
+		// "dataEncipherment", // (3),
+		// "keyAgreement", // (4),
+		// "keyCertSign", // (5),
+		// "cRLSign", // (6),
+		// "encipherOnly", // (7),
+		// "decipherOnly", // (8)
+		// "contentCommitment" // also (1)
+		KeyUsageExtension kue = new KeyUsageExtension(kueOk);
+		ext.set(KeyUsageExtension.NAME, kue);
+
+		// Extended Key Usage Extension
+		int[] serverAuthOidData = { 1, 3, 6, 1, 5, 5, 7, 3, 1 };
+		ObjectIdentifier serverAuthOid = new ObjectIdentifier(serverAuthOidData);
+		int[] clientAuthOidData = { 1, 3, 6, 1, 5, 5, 7, 3, 2 };
+		ObjectIdentifier clientAuthOid = new ObjectIdentifier(clientAuthOidData);
+		Vector v = new Vector();
+		v.add(serverAuthOid);
+		v.add(clientAuthOid);
+		ExtendedKeyUsageExtension ekue = new ExtendedKeyUsageExtension(Boolean.FALSE, v);
+		ext.set(ExtendedKeyUsageExtension.NAME, ekue);
+
+		return ext;
+
+	}
+
 
 	private class HostKeyManager implements X509KeyManager {
 
