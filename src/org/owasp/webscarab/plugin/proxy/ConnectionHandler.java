@@ -61,11 +61,6 @@ import org.owasp.webscarab.util.HtmlEncoder;
 
 public class ConnectionHandler implements Runnable {
 
-	private static HashMap _factoryMap = new HashMap();
-
-	private static char[] _keystorepass = "password".toCharArray();
-	private static char[] _keypassword = "password".toCharArray();
-
 	private ProxyPlugin[] _plugins = null;
 	private Proxy _proxy;
 	private Socket _sock = null;
@@ -78,10 +73,6 @@ public class ConnectionHandler implements Runnable {
 	private InputStream _clientIn = null;
 	private OutputStream _clientOut = null;
 
-	private static String _certDir = "./certs/";
-
-	private SSLSocketFactoryFactory _certGenerator = null;
-
 	public ConnectionHandler(Proxy proxy, Socket sock, HttpUrl base) {
 		_proxy = proxy;
 		_sock = sock;
@@ -92,18 +83,6 @@ public class ConnectionHandler implements Runnable {
 			_sock.setSoTimeout(30 * 1000);
 		} catch (SocketException se) {
 			_logger.warning("Error setting socket parameters");
-		}
-		try {
-			_certGenerator = new SSLSocketFactoryFactory(".keystore", "JKS",
-					"password".toCharArray());
-		} catch (NoClassDefFoundError e) {
-			_certGenerator = null;
-		} catch (GeneralSecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 
@@ -335,83 +314,9 @@ public class ConnectionHandler implements Runnable {
 		}
 	}
 
-	private SSLSocketFactory getSocketFactory(String host) {
-		synchronized (_factoryMap) {
-			if (_factoryMap.containsKey(host))
-				return (SSLSocketFactory) _factoryMap.get(host);
-			File p12 = new File(_certDir + host + ".p12");
-			InputStream is = null;
-			if (p12.exists() && p12.canRead()) {
-				try {
-					is = new FileInputStream(p12);
-				} catch (FileNotFoundException e) {
-					// impossible
-					e.printStackTrace();
-				}
-			} else {
-				if (_certGenerator != null) {
-					try {
-						SSLSocketFactory factory = _certGenerator
-								.getSocketFactory(host);
-						if (factory != null) {
-							_logger.info("Loaded custom SSL keystore for " + host);
-							_factoryMap.put(host, factory);
-							return factory;
-						}
-					} catch (IOException ioe) {
-						ioe.printStackTrace();
-					} catch (GeneralSecurityException gse) {
-						gse.printStackTrace();
-					}
-				}
-				if (_factoryMap.containsKey(null)) {
-					return (SSLSocketFactory) _factoryMap.get(host);
-				}
-				p12 = new File(_certDir + "server.p12");
-				if (p12.exists() && p12.canRead()) {
-					try {
-						is = new FileInputStream(p12);
-					} catch (FileNotFoundException e) {
-						// impossible
-						e.printStackTrace();
-					}
-				} else {
-					is = getClass().getClassLoader().getResourceAsStream(
-							"server.p12");
-				}
-				p12 = null;
-			}
-			if (is == null)
-				throw new NullPointerException("No keystore found!!");
-			KeyStore ks = null;
-			KeyManagerFactory kmf = null;
-			SSLContext sslcontext = null;
-			try {
-				ks = KeyStore.getInstance("PKCS12");
-				ks.load(is, _keystorepass);
-				kmf = KeyManagerFactory.getInstance("SunX509");
-				kmf.init(ks, _keypassword);
-				sslcontext = SSLContext.getInstance("SSLv3");
-				sslcontext.init(kmf.getKeyManagers(), null, null);
-				SSLSocketFactory factory = sslcontext.getSocketFactory();
-				_factoryMap.put(host, factory);
-				if (p12 == null) {
-					_factoryMap.put(null, factory);
-					_logger.info("Loaded default SSL keystore for " + host);
-				} else {
-					_logger.info("Loaded custom SSL keystore for " + host);
-				}
-				return factory;
-			} catch (Exception e) {
-				_logger.severe("Exception accessing keystore: " + e);
-				e.printStackTrace();
-			}
-			return null;
-		}
-	}
 
 	private Socket negotiateSSL(Socket sock, String host) throws Exception {
-		SSLSocketFactory factory = getSocketFactory(host);
+		SSLSocketFactory factory = _proxy.getSocketFactory(host);
 		if (factory == null)
 			throw new RuntimeException(
 					"SSL Intercept not available - no keystores available");

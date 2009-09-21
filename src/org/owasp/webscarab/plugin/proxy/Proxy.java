@@ -37,10 +37,17 @@
 
 package org.owasp.webscarab.plugin.proxy;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 import java.lang.NumberFormatException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -57,6 +64,10 @@ import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Plugin;
 import org.owasp.webscarab.plugin.Hook;
 import java.net.MalformedURLException;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 
 /**
  * The Proxy plugin supports multiple Listeners, and starts and stops them as
@@ -79,6 +90,13 @@ public class Proxy implements Plugin {
     private String _status = "Stopped";
     private int _pending = 0;
     
+	private static HashMap _factoryMap = new HashMap();
+
+	private static char[] _keystorepass = "password".toCharArray();
+	private static char[] _keypassword = "password".toCharArray();
+	private SSLSocketFactoryFactory _certGenerator = null;
+	private static String _certDir = "./certs/";
+
     private Proxy.ConnectionHook _allowConnection = new ConnectionHook(
     "Allow connection", 
     "Called when a new connection is received from a browser\n" +
@@ -106,6 +124,19 @@ public class Proxy implements Plugin {
     public Proxy(Framework framework) {
         _framework = framework;
         parseListenerConfig();
+		try {
+			_certGenerator = new SSLSocketFactoryFactory(".keystore", "JKS",
+					"password".toCharArray());
+			_certGenerator.setReuseKeys(true);
+		} catch (NoClassDefFoundError e) {
+			_certGenerator = null;
+		} catch (GeneralSecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
     
     public Hook[] getScriptingHooks() {
@@ -350,6 +381,81 @@ public class Proxy implements Plugin {
         _status = "Started, " + (_pending>0? (_pending + " in progress") : "Idle");
     }
     
+	protected SSLSocketFactory getSocketFactory(String host) {
+		synchronized (_factoryMap) {
+			if (_factoryMap.containsKey(host))
+				return (SSLSocketFactory) _factoryMap.get(host);
+			File p12 = new File(_certDir + host + ".p12");
+			InputStream is = null;
+			if (p12.exists() && p12.canRead()) {
+				try {
+					is = new FileInputStream(p12);
+				} catch (FileNotFoundException e) {
+					// impossible
+					e.printStackTrace();
+				}
+			} else {
+				if (_certGenerator != null) {
+					try {
+						SSLSocketFactory factory = _certGenerator
+								.getSocketFactory(host);
+						if (factory != null) {
+							_logger.info("Loaded custom SSL keystore for " + host);
+							_factoryMap.put(host, factory);
+							return factory;
+						}
+					} catch (IOException ioe) {
+						ioe.printStackTrace();
+					} catch (GeneralSecurityException gse) {
+						gse.printStackTrace();
+					}
+				}
+				if (_factoryMap.containsKey(null)) {
+					return (SSLSocketFactory) _factoryMap.get(host);
+				}
+				p12 = new File(_certDir + "server.p12");
+				if (p12.exists() && p12.canRead()) {
+					try {
+						is = new FileInputStream(p12);
+					} catch (FileNotFoundException e) {
+						// impossible
+						e.printStackTrace();
+					}
+				} else {
+					is = getClass().getClassLoader().getResourceAsStream(
+							"server.p12");
+				}
+				p12 = null;
+			}
+			if (is == null)
+				throw new NullPointerException("No keystore found!!");
+			KeyStore ks = null;
+			KeyManagerFactory kmf = null;
+			SSLContext sslcontext = null;
+			try {
+				ks = KeyStore.getInstance("PKCS12");
+				ks.load(is, _keystorepass);
+				kmf = KeyManagerFactory.getInstance("SunX509");
+				kmf.init(ks, _keypassword);
+				sslcontext = SSLContext.getInstance("SSLv3");
+				sslcontext.init(kmf.getKeyManagers(), null, null);
+				SSLSocketFactory factory = sslcontext.getSocketFactory();
+				_factoryMap.put(host, factory);
+				if (p12 == null) {
+					_factoryMap.put(null, factory);
+					_logger.info("Loaded default SSL keystore for " + host);
+				} else {
+					_logger.info("Loaded custom SSL keystore for " + host);
+				}
+				return factory;
+			} catch (Exception e) {
+				_logger.severe("Exception accessing keystore: " + e);
+				e.printStackTrace();
+			}
+			return null;
+		}
+	}
+
     /**
      * notifies any observers that the request failed to complete, and the reason for it
      * @param reason the reason for failure
