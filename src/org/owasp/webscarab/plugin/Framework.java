@@ -83,6 +83,7 @@ public class Framework {
     private QueueProcessor _qp = null;
     
     private Pattern dropPattern = null;
+    private Pattern whitelistPattern = null;
     
     /**
      * Creates a new instance of Framework
@@ -103,6 +104,12 @@ public class Framework {
         } catch (PatternSyntaxException pse) {
             _logger.warning("Got an invalid regular expression for conversations to ignore: " + dropRegex + " results in " + pse.toString());
         }
+        String whitelistRegex = Preferences.getPreference("WebScarab.whitelistRegex", null);
+        try {
+        	setWhitelistPattern(whitelistRegex);
+        } catch (PatternSyntaxException pse) {
+        	_logger.warning("Got an invalid regular expression for conversations to whitelist: " + whitelistRegex + " results in " + pse.toString());
+        }
         _qp = new Framework.QueueProcessor();
         _queueThread = new Thread(_qp, "QueueProcessor");
         _queueThread.setDaemon(true);
@@ -121,7 +128,16 @@ public class Framework {
     public String getDropPattern() {
         return dropPattern == null ? "" : dropPattern.pattern();
     }
-    
+    public void setWhitelistPattern(String pattern) throws PatternSyntaxException{
+    	if (pattern == null || "".equals(pattern)) {
+    		whitelistPattern = null;
+    		Preferences.setPreference("WebScarab.whitelistRegex", "");
+    	} else {
+    		whitelistPattern = Pattern.compile(pattern);
+    		Preferences.setPreference("WebScarab.whitelistRegex", pattern);
+    	}
+    	System.out.println("Using white list pattern : "+pattern+". Will not save any data for requests not matching this pattern");
+    }
     public void setDropPattern(String pattern) throws PatternSyntaxException {
         if (pattern == null || "".equals(pattern)) {
             dropPattern = null;
@@ -316,6 +332,13 @@ public class Framework {
         ScriptableConversation conversation = new ScriptableConversation(id, request, response, origin);
         _allowAddConversation.runScripts(conversation);
         if (conversation.isCancelled()) return;
+        //Do we have whitelisting? If so, check if it matches
+        if(whitelistPattern != null && !whitelistPattern.matcher(request.getURL().toString()).matches())
+        {
+        	return;
+        }
+        // Also, check blacklist - drop pattern
+        
         if (dropPattern != null && dropPattern.matcher(request.getURL().toString()).matches()) {
             return;
         }
