@@ -108,8 +108,15 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
         fragmentList.setModel(_flm);
         fragmentList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
-        _typeListModel.addElement("COMMENTS");
-        _typeListModel.addElement("SCRIPTS");
+        _typeListModel.addElement(FragmentsModel.KEY_COMMENTS);
+        _typeListModel.addElement(FragmentsModel.KEY_SCRIPTS);
+        
+        
+        _typeListModel.addElement(FragmentsModel.KEY_HIDDENFIELD);
+        _typeListModel.addElement(FragmentsModel.KEY_FILEUPLOAD);
+        _typeListModel.addElement(FragmentsModel.KEY_DOMXSS);
+        _typeListModel.addElement(FragmentsModel.KEY_FORMS);
+        
         typeComboBox.setModel(new ListComboBoxModel(_typeListModel));
         typeComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -130,57 +137,50 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
     
     private void createActions() {
         _conversationActions = new Action[] {
-            new FragmentsAction("CONVERSATION", "SCRIPTS"),
-            new FragmentsAction("CONVERSATION","COMMENTS")
+            new FragmentsAction("CONVERSATION", FragmentsModel.KEY_SCRIPTS),
+            new FragmentsAction("CONVERSATION",FragmentsModel.KEY_COMMENTS)
         };
         _urlActions = new Action[] {
-            new FragmentsAction("URL", "SCRIPTS"),
-            new FragmentsAction("URL","COMMENTS")
+            new FragmentsAction("URL", FragmentsModel.KEY_SCRIPTS),
+            new FragmentsAction("URL",FragmentsModel.KEY_COMMENTS)
         };
-        ColumnDataModel cdm = new ColumnDataModel() {
+        class InnerCDM extends ColumnDataModel
+        {
+        	private String _key;
+        	private String _name;
+        	public InnerCDM(String key, String name )
+        	{
+        		this._key = key;
+        		this._name = name;
+        	}
             public Object getValue(Object key) {
-                if (_model == null) return null;
-                String[] value = _model.getConversationFragmentKeys((ConversationID) key, "COMMENTS");
-                return Boolean.valueOf(value != null && value.length > 0);
+            	if (_model == null) return null;
+            	if (key instanceof ConversationID)
+            	{
+            		String[] value = _model.getConversationFragmentKeys((ConversationID) key, _key);
+            		return Boolean.valueOf(value != null && value.length > 0);
+            	}else // if key instanceof HttpUrl
+            	{
+                    String[] keys = _model.getUrlFragmentKeys((HttpUrl) key, _key);
+                    return Boolean.valueOf(keys != null && keys.length > 0);
+            	}
             }
-            public String getColumnName() { return "Comments"; }
+            public String getColumnName() { return _name; }
             public Class getColumnClass() { return Boolean.class; }
-        };
-        _conversationColumns.put("COMMENTS", cdm);
+        }
         
-        cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
-                String[] value = _model.getConversationFragmentKeys((ConversationID) key, "SCRIPTS");
-                return Boolean.valueOf(value != null && value.length > 0);
-            }
-            public String getColumnName() { return "Scripts"; }
-            public Class getColumnClass() { return Boolean.class; }
-        };
-        _conversationColumns.put("SCRIPTS", cdm);
-        
-        cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
-                String[] keys = _model.getUrlFragmentKeys((HttpUrl) key, "COMMENTS");
-                return Boolean.valueOf(keys != null && keys.length > 0);
-            }
-            public String getColumnName() { return "Comments"; }
-            public Class getColumnClass() { return Boolean.class; }
-        };
-        _urlColumns.put("COMMENTS", cdm);
-        
-        cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
-                String[] keys = _model.getUrlFragmentKeys((HttpUrl) key, "SCRIPTS");
-                return Boolean.valueOf(keys != null && keys.length > 0);
-            }
-            public String getColumnName() { return "Scripts"; }
-            public Class getColumnClass() { return Boolean.class; }
-        };
-        _urlColumns.put("SCRIPTS", cdm);
-        
+        _conversationColumns.put(FragmentsModel.KEY_COMMENTS, new InnerCDM(FragmentsModel.KEY_COMMENTS,"Comments"));
+        _conversationColumns.put(FragmentsModel.KEY_SCRIPTS, new InnerCDM(FragmentsModel.KEY_SCRIPTS,"Scripts"));
+        _conversationColumns.put(FragmentsModel.KEY_FILEUPLOAD, new InnerCDM(FragmentsModel.KEY_FILEUPLOAD,"File upload"));
+        _conversationColumns.put(FragmentsModel.KEY_DOMXSS, new InnerCDM(FragmentsModel.KEY_DOMXSS,"DomXss"));
+        _conversationColumns.put(FragmentsModel.KEY_FORMS, new InnerCDM(FragmentsModel.KEY_FORMS,"Forms"));
+        _conversationColumns.put(FragmentsModel.KEY_HIDDENFIELD, new InnerCDM(FragmentsModel.KEY_HIDDENFIELD,"Hidden fields"));
+        _urlColumns.put(FragmentsModel.KEY_COMMENTS, new InnerCDM(FragmentsModel.KEY_COMMENTS,"Comments"));
+        _urlColumns.put(FragmentsModel.KEY_SCRIPTS, new InnerCDM(FragmentsModel.KEY_SCRIPTS,"Scripts"));
+        _urlColumns.put(FragmentsModel.KEY_FILEUPLOAD, new InnerCDM(FragmentsModel.KEY_FILEUPLOAD,"File upload"));
+        _urlColumns.put(FragmentsModel.KEY_DOMXSS, new InnerCDM(FragmentsModel.KEY_DOMXSS,"DomXss"));
+        _urlColumns.put(FragmentsModel.KEY_FORMS, new InnerCDM(FragmentsModel.KEY_FORMS,"Forms"));
+        _urlColumns.put(FragmentsModel.KEY_HIDDENFIELD, new InnerCDM(FragmentsModel.KEY_HIDDENFIELD,"Hidden fields"));
     }
     
     /** This method is called from within the constructor to

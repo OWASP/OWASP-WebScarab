@@ -818,7 +818,8 @@ public class UIFramework extends JFrame {
                     " - part of the Open Web Application Security Project",
                     "See http://www.owasp.org/software/webscarab.html",
                     "", "Primary Developer : ",
-                    "         Rogan Dawes (rogan at dawes.za.net)"
+                    "         Rogan Dawes (rogan at dawes.za.net)",
+                    "This version is modified by Martin Holst Swende"
         };
         JOptionPane.showMessageDialog(this, message, "About WebScarab", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_aboutMenuItemActionPerformed

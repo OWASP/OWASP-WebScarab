@@ -40,9 +40,16 @@
 package org.owasp.webscarab.plugin.fragments;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.htmlparser.Node;
 import org.htmlparser.nodes.RemarkNode;
+import org.htmlparser.tags.FormTag;
+import org.htmlparser.tags.InputTag;
 import org.htmlparser.tags.ScriptTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
@@ -68,7 +75,25 @@ public class Fragments implements Plugin {
     private Logger _logger = Logger.getLogger(getClass().getName());
     
     private FragmentsModel _model = null;
-    
+	/**
+	 * Pattern that searches for window.location in right-hand side assignments.
+	 * Can trap potential DOM-based xss These ones search for 
+	 * window.location,
+	 * window.top.location document.URL document.location document.URLUnencoded
+	 */
+	Pattern[] jsDomXssPatterns = {
+			//This one searches for 
+			// fobobar = window.location
+			// baz = window.top.location
+			
+			Pattern.compile("[\\S&&[^=]]+\\s*=\\s*window\\.(?:top\\.)?location"),
+			//This one searches for 
+			// foo= document.URL
+			// bar = document.URLUnencoded
+			// gazonk = document.location
+			Pattern
+					.compile("[\\S&&[^=]]+\\s*=\\s*document\\.(?:URL|URLUnencoded|location)"), };
+
     /**
      * Creates a new instance of Fragments
      * @param props contains the user's configuration properties
@@ -124,22 +149,59 @@ public class Fragments implements Plugin {
             NodeList nodes = (NodeList) parsed;
             try {
                 NodeList comments = nodes.searchFor(RemarkNode.class);
+                NodeList scripts = nodes.searchFor(ScriptTag.class);
+                NodeList forms = nodes.searchFor(FormTag.class);
+                NodeList inputs = nodes.searchFor(InputTag.class);
+            
                 for (NodeIterator ni = comments.elements(); ni.hasMoreNodes(); ) {
                     String fragment = ni.nextNode().toHtml();
-                    _model.addFragment(url, id, "COMMENTS", fragment);
+                    _model.addFragment(url, id, FragmentsModel.KEY_COMMENTS, fragment);
                 }
-                NodeList scripts = nodes.searchFor(ScriptTag.class);
                 for (NodeIterator ni = scripts.elements(); ni.hasMoreNodes(); ) {
                     String fragment = ni.nextNode().toHtml();
-                    _model.addFragment(url, id, "SCRIPTS", fragment);
+                    _model.addFragment(url, id, FragmentsModel.KEY_SCRIPTS, fragment);
+                }
+                for (NodeIterator ni = forms.elements(); ni.hasMoreNodes(); ) {
+                	FormTag form = (FormTag) ni.nextNode();
+                	String fragment = "action:"+form.getAttribute("action")+" method:"+form.getAttribute("method");
+                	_model.addFragment(url, id, FragmentsModel.KEY_FORMS,fragment );
+                }
+                for (NodeIterator ni = inputs.elements(); ni.hasMoreNodes(); ) {
+                	InputTag tag = (InputTag) ni.nextNode();
+                	String type = tag.getAttribute("type");
+                	if( "hidden".equals(type))
+                	{
+                		String fragment = tag.toHtml();
+                		_model.addFragment(url, id, FragmentsModel.KEY_HIDDENFIELD, fragment);
+                	}
+                	if("file".equals(type))
+                	{
+                		String fragment = tag.toHtml();
+                		_model.addFragment(url, id, FragmentsModel.KEY_FILEUPLOAD, fragment);
+                	}
                 }
             } catch (ParserException pe) {
                 _logger.warning("Looking for fragments, got '" + pe + "'");
             }
         }
+        //Now, look for "dangerous" javascript
+        try {
+			String content = new String(response.getContent(),"UTF-8");
+			for (int i = 0; i < jsDomXssPatterns.length; i++) {
+				Matcher m = jsDomXssPatterns[i].matcher(content);
+				while(m.find())
+				{
+					String fragment = m.group();
+					_model.addFragment(url, id, FragmentsModel.KEY_DOMXSS, fragment);
+				}
+			}
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
         
     }
-    
     public void flush() throws StoreException {
         _model.flush();
     }
