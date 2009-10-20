@@ -67,19 +67,19 @@ public class Search implements Plugin {
         
         _model.addSearch(
         		"Body search",
-        		"new String(response.getContent(),\"UTF-8\").toLowerCase().contains(\"SEARCHWORD\")"
+        		"new String(response.getContent(),\"UTF-8\").toLowerCase().contains(\"<SEARCHWORD>\".toLowerCase())"
         );
         _model.addSearch(
         		"Request search",
-        		"new String(request.toString()).toLowerCase().contains(\"SEARCHWORD\")"
+        		"new String(request.toString()).toLowerCase().contains(\"<SEARCHWORD>\".toLowerCase())"
         );
         _model.addSearch(
         		"Response search",
-        		"new String(response.toString()).toLowerCase().contains(\"SEARCHWORD\")"
+        		"new String(response.toString()).toLowerCase().contains(\"<SEARCHWORD>\".toLowerCase())"
         );
         _model.addSearch(
         		"Request parameter search",
-        		"request.parameterSearch(\"SEARCHWORD\")"
+        		"request.parameterSearch(\"<SEARCHWORD>\".toLowerCase())"
         );
         do {
             description=Preferences.getPreference(base+i+".description");
