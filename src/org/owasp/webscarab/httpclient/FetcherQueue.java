@@ -90,27 +90,29 @@ public class FetcherQueue {
     }
     
     private Request getNextRequest() {
-        synchronized (_requestQueue) {
-            while (_requestQueue.size() == 0) {
-                try {
-                    _requestQueue.wait();
-                } catch (InterruptedException ie) {
-                    // check again
-                }
-            }
-            if (_requestDelay > 0) {
-                long currentTimeMillis = System.currentTimeMillis();
-                while (currentTimeMillis < _lastRequest + _requestDelay) {
-                    try {
-                        Thread.sleep(_lastRequest + _requestDelay - currentTimeMillis);
-                    } catch (InterruptedException ie) {}
-                    currentTimeMillis = System.currentTimeMillis();
-                }
-                _lastRequest = currentTimeMillis;
-            }
-            _pending++;
-            return (Request) _requestQueue.remove(0);
+    	Request nextRequest = null;
+    	synchronized (_requestQueue) {
+    		while (_requestQueue.size() == 0) {
+    			try {
+    				_requestQueue.wait();
+    			} catch (InterruptedException ie) {
+    				// check again
+    			}
+    		}
+    		nextRequest = (Request) _requestQueue.remove(0);
+    	}
+        if (_requestDelay > 0) {
+        	long currentTimeMillis = System.currentTimeMillis();
+        	while (currentTimeMillis < _lastRequest + _requestDelay) {
+        		try {
+        			Thread.sleep(_lastRequest + _requestDelay - currentTimeMillis);
+        		} catch (InterruptedException ie) {}
+        		currentTimeMillis = System.currentTimeMillis();
+        	}
+        	_lastRequest = currentTimeMillis;
         }
+        _pending++;
+        return nextRequest;
     }
     
     private class Fetcher extends Thread {
