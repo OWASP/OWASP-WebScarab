@@ -85,7 +85,7 @@ public class ReentrantReaderPreferenceReadWriteLock extends ReentrantWriterPrefe
         }
         System.err.println("Done");
         System.err.println("Writer thread:");
-        System.err.println(activeWriter_.getName());
+        System.err.println(activeWriter_ == null ? null : activeWriter_.getName());
         System.err.println("Stack Trace:");
         Thread.dumpStack();
     }

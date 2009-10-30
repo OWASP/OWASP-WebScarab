@@ -92,8 +92,25 @@ public class Fragments implements Plugin {
 			// bar = document.URLUnencoded
 			// gazonk = document.location
 			Pattern
-					.compile("[\\S&&[^=]]+\\s*=\\s*document\\.(?:URL|URLUnencoded|location)"), };
-
+					.compile("[\\S&&[^=]]+\\s*=\\s*document\\.(?:URL|URLUnencoded|location)"), 
+			
+			//This one searches for string concatenation
+			// such as a = "<img src='"+document.URL+"/foobar' />";
+			Pattern.compile("\\+\\s*window\\.(?:top\\.)?location"),
+			Pattern.compile("\\+\\s*document\\.(?:URL|URLUnencoded|location)"),
+	};
+	
+	Pattern[] jsDomXssFalsePositivesPattern = {
+		//This one removes false positives on the form
+			// if(blaha != window.location)
+			// if(blaha == document.URL)
+			Pattern.compile(".+[!=]+=.*(?:document|window)"),
+			//This one removes 
+			// + escape(document.location)
+			//which normally is not a problem
+			Pattern.compile("escape\\((?:document.|window.).+\\)"),
+	};
+	
     /**
      * Creates a new instance of Fragments
      * @param props contains the user's configuration properties
@@ -192,7 +209,28 @@ public class Fragments implements Plugin {
 				while(m.find())
 				{
 					String fragment = m.group();
-					_model.addFragment(url, id, FragmentsModel.KEY_DOMXSS, fragment);
+					boolean falsePositive = false;
+					//Test false positives
+					for (int j = 0; j < jsDomXssFalsePositivesPattern.length; j++) {
+						Matcher fp = jsDomXssFalsePositivesPattern[j]
+								.matcher(fragment);
+						if (fp.find()) {
+							falsePositive = true;
+							_logger
+									.info("Ignoring XSS-DOM fragment '"
+											+ fragment
+											+ "' - false positive according to pattern :"
+											+ jsDomXssFalsePositivesPattern[j]
+													.pattern());
+							break;
+						}
+					}
+					if (!falsePositive)
+					{
+						_model.addFragment(url, id, FragmentsModel.KEY_DOMXSS,
+								fragment);
+					}
+					
 				}
 			}
 		} catch (UnsupportedEncodingException e) {
