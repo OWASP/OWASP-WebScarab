@@ -27,14 +27,21 @@ import java.util.logging.Logger;
 import javax.swing.event.EventListenerList;
 
 /**
- *
- * @author  rogan
+ * 
+ * @author rogan
  */
 public class FragmentsModel extends AbstractPluginModel {
     
     private FragmentsStore _store = null;
     private FrameworkModel _model = null;
     private FragmentConversationModel _fcm = null;
+    
+    public static String KEY_SCRIPTS = "SCRIPTS";
+    public static String KEY_COMMENTS = "COMMENTS";
+    public static String KEY_FILEUPLOAD = "FILEUPLOAD";
+    public static String KEY_FORMS = "FORMS";
+    public static String KEY_HIDDENFIELD = "HIDDENFIELD";
+    public static String KEY_DOMXSS = "DOMXSS";
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -66,7 +73,13 @@ public class FragmentsModel extends AbstractPluginModel {
     }
     
     public String[] getUrlFragmentKeys(HttpUrl url, String type) {
-        if (type.equals("SCRIPTS") || type.equals("COMMENTS")) {
+    	if(KEY_COMMENTS.equals(type)|| 
+    			KEY_DOMXSS.equals(type)||
+    			KEY_FILEUPLOAD.equals(type)||
+    			KEY_FORMS.equals(type)||
+    			KEY_HIDDENFIELD.equals(type) ||
+    			KEY_SCRIPTS.equals(type))
+    	{
             return _model.getUrlProperties(url, type);
         } else {
             return new String[0];
@@ -74,8 +87,14 @@ public class FragmentsModel extends AbstractPluginModel {
     }
     
     public String[] getConversationFragmentKeys(ConversationID id, String type) {
-        if (type.equals("SCRIPTS") || type.equals("COMMENTS")) {
-            return _model.getConversationProperties(id, type);
+    	if(KEY_COMMENTS.equals(type)|| 
+    			KEY_DOMXSS.equals(type)||
+    			KEY_FILEUPLOAD.equals(type)||
+    			KEY_FORMS.equals(type)||
+    			KEY_HIDDENFIELD.equals(type) ||
+    			KEY_SCRIPTS.equals(type))
+    	{
+    		return _model.getConversationProperties(id, type);
         } else {
             return new String[0];
         }

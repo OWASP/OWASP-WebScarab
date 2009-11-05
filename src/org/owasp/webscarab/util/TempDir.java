@@ -172,7 +172,7 @@ public class TempDir {
     
     public static void recursiveCopy(File source, File dest) throws IOException {
         if (dest.exists())
-            throw new IOException("Copy to existing directory " + dest);
+            throw new IOException("Directory already exists: " + dest);
         if (!source.isDirectory())
             throw new IOException("Source is not a directory " + source);
         if (!dest.mkdirs()) 

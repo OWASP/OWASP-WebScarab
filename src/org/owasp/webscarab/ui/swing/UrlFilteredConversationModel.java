@@ -32,7 +32,7 @@ public class UrlFilteredConversationModel extends FilteredConversationModel {
     }
     
     public void setUrl(HttpUrl url) {
-        if (url == _url) {
+    	if (url == _url) {
             return;
         } else if (_url == null && url != null || _url != null && url == null || !_url.equals(url)) {
             _url = url;
@@ -44,7 +44,9 @@ public class UrlFilteredConversationModel extends FilteredConversationModel {
         if (_url == null) {
             return false;
         } else {
-            return ! _url.equals(_model.getRequestUrl(id));
+        	String cmp1 = _url.toString();
+        	String cmp2 = _model.getRequestUrl(id).toString();
+        	return !cmp2.startsWith(cmp1);
         }
     }
     

@@ -22,6 +22,7 @@ import org.owasp.webscarab.plugin.FrameworkModelWrapper;
 import org.owasp.webscarab.plugin.Hook;
 import org.owasp.webscarab.plugin.Plugin;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -59,6 +60,27 @@ public class Search implements Plugin {
         String description;
         String expression;
         int i=0;
+        
+        /**
+         * Pre-load some common templates
+         */
+        
+        _model.addSearch(
+        		"Body search",
+        		"new String(response.getContent(),\"UTF-8\").toLowerCase().contains(\"<SEARCHWORD>\".toLowerCase())"
+        );
+        _model.addSearch(
+        		"Request search",
+        		"new String(request.toString()).toLowerCase().contains(\"<SEARCHWORD>\".toLowerCase())"
+        );
+        _model.addSearch(
+        		"Response search",
+        		"new String(response.toString()).toLowerCase().contains(\"<SEARCHWORD>\".toLowerCase())"
+        );
+        _model.addSearch(
+        		"Request parameter search",
+        		"request.parameterSearch(\"<SEARCHWORD>\".toLowerCase())"
+        );
         do {
             description=Preferences.getPreference(base+i+".description");
             expression=Preferences.getPreference(base+i+".expression");
@@ -116,12 +138,12 @@ public class Search implements Plugin {
                 _model.setSearchMatch(id, description, matches);
             }
         } catch (Exception e) {
-            _logger.warning("Evaluation error for conversation " + id + " : " + e.getMessage());
+            _logger.log(Level.WARNING,"Evaluation error for conversation " + id,e);
         }
     }
     
     private boolean matches(ConversationID id, Request request, Response response, String origin, String expression) throws EvalError {
-        _interpreter.set("model", _wrapper);
+    	_interpreter.set("model", _wrapper);
         _interpreter.set("id", id);
         _interpreter.set("request", request);
         _interpreter.set("response", response);

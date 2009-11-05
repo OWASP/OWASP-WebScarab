@@ -264,7 +264,18 @@ public class Request extends Message {
     public HttpUrl getURL() {
         return _url;
     }
+    /**
+     * Convenience method to search on parameters
+     * @param search
+     * @return true if parameters contains
+     */
     
+    public boolean parameterSearch(String search)
+    {
+    	String s = getURL().getQuery();
+    	if(s == null) return false;
+    	return s.toLowerCase().contains(search);
+    }
     /**
      * Sets the HTTP version supported
      * @param version the version of the request. Automatically converted to uppercase.
