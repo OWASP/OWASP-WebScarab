@@ -13,6 +13,7 @@ package org.owasp.webscarab.httpclient;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
@@ -123,10 +124,11 @@ public class FetcherQueue {
         }
         
         public void run() {
+        	HTTPClient client = HTTPClientFactory.getInstance().getHTTPClient();
             while (_running) {
                 Request request = getNextRequest();
                 try {
-                    Response response = HTTPClientFactory.getInstance().fetchResponse(request);
+                    Response response = client.fetchResponse(request);
                     response.flushContentStream();
                     responseReceived(response);
                 } catch (IOException ioe) {
