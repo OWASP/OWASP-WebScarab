@@ -274,7 +274,7 @@ public class Request extends Message {
     {
     	String s = getURL().getQuery();
     	if(s == null) return false;
-    	return s.toLowerCase().contains(search);
+    	return s.toLowerCase().indexOf(search) > -1;
     }
     /**
      * Sets the HTTP version supported
