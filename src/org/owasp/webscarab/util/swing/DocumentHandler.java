@@ -43,6 +43,7 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.ErrorManager;
 
+import javax.swing.SwingUtilities;
 import javax.swing.text.Document;
 import javax.swing.text.PlainDocument;
 import javax.swing.text.BadLocationException;
@@ -89,14 +90,23 @@ public class DocumentHandler extends Handler {
             reportError(null, ex, ErrorManager.FORMAT_FAILURE);
             return;
         }
-        try {
-            makeSpace(msg.length());
-            _doc.insertString(_doc.getLength(), msg, null);
-            // cr++;
-        } catch (Exception ex) {
-            // We don't want to throw an exception here, but we
-            // report the exception to any registered ErrorManager.
-            reportError(null, ex, ErrorManager.WRITE_FAILURE);
+        Runnable r = new Runnable() {
+        	public void run() {
+        		try {
+        			makeSpace(msg.length());
+        			_doc.insertString(_doc.getLength(), msg, null);
+        			// cr++;
+        		} catch (Exception ex) {
+        			// We don't want to throw an exception here, but we
+        			// report the exception to any registered ErrorManager.
+        			reportError(null, ex, ErrorManager.WRITE_FAILURE);
+        		}
+        	}
+        };
+        if (SwingUtilities.isEventDispatchThread()) {
+        	r.run();
+        } else {
+        	SwingUtilities.invokeLater(r);
         }
     }
     
