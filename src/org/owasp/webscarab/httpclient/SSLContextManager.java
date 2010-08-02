@@ -70,6 +70,7 @@ public class SSLContextManager {
     
     /** Creates a new instance of SSLContextManager */
     public SSLContextManager() {
+    	System.setProperty("sun.security.ssl.allowUnsafeRenegotiation", "true");
         try {
             _noClientCertContext = SSLContext.getInstance("SSL");
             _noClientCertContext.init(null, _trustAllCerts, new SecureRandom());
