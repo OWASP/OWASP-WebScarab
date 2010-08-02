@@ -57,8 +57,6 @@ public class SSLSocketFactoryFactory {
 		}
 	}
 
-	private X500Principal caName;
-
 	private PrivateKey caKey;
 
 	private X509Certificate[] caCerts;
@@ -90,7 +88,6 @@ public class SSLSocketFactoryFactory {
 			throws GeneralSecurityException, IOException {
 		this.filename = filename;
 		this.password = password;
-		this.caName = caName;
 		keystore = KeyStore.getInstance(type);
 		File file = new File(filename);
 		if (filename == null) {
