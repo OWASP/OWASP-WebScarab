@@ -191,7 +191,7 @@ public class SSLContextManager {
         }
     }
     
-    public int initPKCS11(String name, String library, String kspassword) {
+    public int initPKCS11(String name, String library, int slotListIndex, String kspassword) {
         try {
             if (!isProviderAvailable("PKCS11")) return -1;
             
@@ -199,6 +199,7 @@ public class SSLContextManager {
             StringBuffer cardConfig = new StringBuffer();
             cardConfig.append("name = ").append(name).append("\n");
             cardConfig.append("library = ").append(library).append("\n");
+            cardConfig.append("slotListIndex = ").append(Integer.toString(slotListIndex)).append("\n");
             InputStream is = new ByteArrayInputStream(cardConfig.toString().getBytes());
             
             // create the provider
