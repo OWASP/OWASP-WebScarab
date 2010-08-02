@@ -559,7 +559,7 @@ public class URLFetcher implements HTTPClient {
             String password = credentials.substring(domain.length()+user.length()+2);
             _logger.fine("Domain : '" + domain + "' username : '" + user + "' password length : " + password.length());
             Type2Message type2 = (Type2Message) message;
-            message = new Type3Message(type2, password, domain, user, Type3Message.getDefaultWorkstation());
+            message = new Type3Message(type2, password, domain, user, null, 0);
         }
         return authMethod + " " + Base64.encode(message.toByteArray());
     }

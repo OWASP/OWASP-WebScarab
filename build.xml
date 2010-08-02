@@ -45,6 +45,7 @@
      	<property name="flexremotingjar" value="lib/flex-messaging-remoting.jar"/>
      	<property name="flexcorejar" value="lib/flex-messaging-core.jar"/>
 	<property name="xmlsecjar" value="lib/xmlsec-1.4.3.jar"/>
+	<property name="jcifsjar" value="lib/jcifs-1.3.14.jar"/>
  
         <path id="cpath">
             <pathelement location="${build.dir}"/>
@@ -63,6 +64,7 @@
             <pathelement location="${flexremotingjar}"/>
             <pathelement location="${flexcorejar}"/>
 	    <pathelement location="${xmlsecjar}"/>
+	    <pathelement location="${jcifsjar}"/>
         </path>
     </target>
     <target depends="init" description="clean up the build area" name="clean">
@@ -143,7 +145,7 @@
                 <attribute name="Main-Class" value="${mainclass}"/>
                 <attribute 
                     name="Class-Path" 
-                    value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar} ${openamfjar} ${commonsloggingjar} ${flexcommonjar} ${flexremotingjar} ${flexcorejar} ${xmlsecjar}"
+                    value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar} ${openamfjar} ${commonsloggingjar} ${flexcommonjar} ${flexremotingjar} ${flexcorejar} ${xmlsecjar} ${jcifsjar}"
                 />
                 <attribute name="Built-By" value="${user.name}"/>
                 <section name="org/owasp/webscarab/">
@@ -241,6 +243,7 @@
             <injar name="${basedir}/${flexremotingjar}"/>
             <injar name="${basedir}/${flexcorejar}"/>
 	    <injar name="${basedir}/${xmlsecjar}"/>
+	    <injar name="${basedir}/${jcifsjar}"/>
             <libraryjar name="${basedir}/${jhelpjar}"/>
             <libraryjar name="${java.home}/lib/rt.jar"/>
             <libraryjar name="${java.home}/lib/jsse.jar"/>
