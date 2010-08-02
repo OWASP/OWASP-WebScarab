@@ -44,6 +44,7 @@
      	<property name="flexcommonjar" value="lib/flex-messaging-common.jar"/>
      	<property name="flexremotingjar" value="lib/flex-messaging-remoting.jar"/>
      	<property name="flexcorejar" value="lib/flex-messaging-core.jar"/>
+	<property name="xmlsecjar" value="lib/xmlsec-1.4.3.jar"/>
  
         <path id="cpath">
             <pathelement location="${build.dir}"/>
@@ -61,6 +62,7 @@
             <pathelement location="${flexcommonjar}"/>
             <pathelement location="${flexremotingjar}"/>
             <pathelement location="${flexcorejar}"/>
+	    <pathelement location="${xmlsecjar}"/>
         </path>
     </target>
     <target depends="init" description="clean up the build area" name="clean">
@@ -97,8 +99,8 @@
             optimize="on" 
             srcdir="${src.dir}"
             debug="on"
-            source="1.4"
-            target="1.4"
+            source="1.5"
+            target="1.5"
         >
         </javac>
     </target>
@@ -141,7 +143,7 @@
                 <attribute name="Main-Class" value="${mainclass}"/>
                 <attribute 
                     name="Class-Path" 
-                    value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar} ${openamfjar} ${commonsloggingjar} ${flexcommonjar} ${flexremotingjar} ${flexcorejar}"
+                    value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar} ${openamfjar} ${commonsloggingjar} ${flexcommonjar} ${flexremotingjar} ${flexcorejar} ${xmlsecjar}"
                 />
                 <attribute name="Built-By" value="${user.name}"/>
                 <section name="org/owasp/webscarab/">
@@ -238,6 +240,7 @@
             <injar name="${basedir}/${flexcommonjar}"/>
             <injar name="${basedir}/${flexremotingjar}"/>
             <injar name="${basedir}/${flexcorejar}"/>
+	    <injar name="${basedir}/${xmlsecjar}"/>
             <libraryjar name="${basedir}/${jhelpjar}"/>
             <libraryjar name="${java.home}/lib/rt.jar"/>
             <libraryjar name="${java.home}/lib/jsse.jar"/>

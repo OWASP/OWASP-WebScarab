@@ -47,6 +47,9 @@ import org.owasp.webscarab.plugin.proxy.swing.BeanShellPanel;
 import org.owasp.webscarab.plugin.proxy.swing.ManualEditPanel;
 import org.owasp.webscarab.plugin.proxy.swing.MiscPanel;
 import org.owasp.webscarab.plugin.proxy.swing.ProxyPanel;
+import org.owasp.webscarab.plugin.saml.Saml;
+import org.owasp.webscarab.plugin.saml.SamlProxy;
+import org.owasp.webscarab.plugin.saml.swing.SamlPanel;
 import org.owasp.webscarab.plugin.scripted.Scripted;
 import org.owasp.webscarab.plugin.scripted.swing.ScriptedPanel;
 import org.owasp.webscarab.plugin.search.Search;
@@ -193,6 +196,8 @@ public class WebScarab {
         CookieTracker ct = new CookieTracker(framework);
         proxy.addPlugin(ct);
         proxyPanel.addPlugin(new MiscPanel(rh, bc, ct));
+        SamlProxy samlProxy = new SamlProxy();
+        proxy.addPlugin(samlProxy);
         
         ManualRequest manualRequest = new ManualRequest(framework);
         framework.addPlugin(manualRequest);
@@ -236,6 +241,11 @@ public class WebScarab {
         framework.addPlugin(search);
         SearchPanel searchPanel = new SearchPanel(search);
         uif.addPlugin(searchPanel);
+        
+        Saml saml = new Saml(framework, samlProxy);
+	framework.addPlugin(saml);
+	SamlPanel samlPanel = new SamlPanel(saml);
+	uif.addPlugin(samlPanel);
     }
     
     public static void loadLitePlugins(Framework framework, Lite uif) {
