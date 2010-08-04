@@ -63,4 +63,8 @@ public interface SamlProxyConfig {
     String getInjectionSubject();
 
     public boolean doSomething();
+
+    boolean doInjectPublicDoctype();
+
+    String getDtdUri();
 }

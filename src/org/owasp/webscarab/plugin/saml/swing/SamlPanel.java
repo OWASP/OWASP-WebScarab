@@ -78,6 +78,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private final ShowConversationAction showConversationAction;
     private final SamlReplayConversationAction samlReplayConversationAction;
     private final SamlExportConversationAction samlExportConversationAction;
+    private final AttributesTableModel attributesTableModel;
 
     /** Creates new form SamlPanel */
     public SamlPanel(Saml saml) {
@@ -115,6 +116,9 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         this.samlPopupMenu.add(new JMenuItem(this.samlExportConversationAction));
 
         this.saml.getSamlProxy().addSamlProxyListener(this);
+
+        this.attributesTableModel = new AttributesTableModel();
+        this.attributesTable.setModel(this.attributesTableModel);
 
         addTableListeners();
         addTreeListeners();
@@ -217,6 +221,9 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         this.samlVersionLabel.setText("Unknown");
         this.destinationIndicationCheckBox.setSelected(false);
         this.assertionsDigestedCheckBox.setSelected(false);
+        this.validityIntervalIndicationCheckBox.setSelected(false);
+
+        this.attributesTableModel.resetAttributes();
     }
 
     private void displaySaml(ConversationID id) {
@@ -257,13 +264,16 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         this.samlVersionLabel.setText(samlVersionStr);
 
         this.destinationIndicationCheckBox.setSelected(this.samlModel.hasDestinationIndication(id));
-        this.assertionsDigestedCheckBox.setSelected(this.samlModel.digestsAssertions(id));
+        this.assertionsDigestedCheckBox.setSelected(this.samlModel.protocolSignatureDigestsAssertions(id));
+        this.validityIntervalIndicationCheckBox.setSelected(this.samlModel.hasValidityIntervalIndication(id));
+
+        this.attributesTableModel.setAttributes(this.samlModel.getSAMLAttributes(id));
     }
 
     private void displaySignature(ConversationID id) {
         List certificateChain;
         try {
-            certificateChain = this.samlModel.verifySAMLSignature(id);
+            certificateChain = this.samlModel.verifySAMLProtocolSignature(id);
         } catch (SamlSignatureException ex) {
             this.signatureValidityLabel.setText(ex.getMessage());
             this.signedMessageCheckBox.setSelected(false);
@@ -301,6 +311,9 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel4 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
         signatureValidityLabel = new javax.swing.JLabel();
+        attributesPanel = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        attributesTable = new javax.swing.JTable();
         htmlFormPanel = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
         jLabel7 = new javax.swing.JLabel();
@@ -322,6 +335,8 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         destinationIndicationCheckBox = new javax.swing.JCheckBox();
         jLabel13 = new javax.swing.JLabel();
         assertionsDigestedCheckBox = new javax.swing.JCheckBox();
+        jLabel18 = new javax.swing.JLabel();
+        validityIntervalIndicationCheckBox = new javax.swing.JCheckBox();
         aboutPanel = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
@@ -356,6 +371,11 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         injectSubjectCheckBox = new javax.swing.JCheckBox();
         jLabel17 = new javax.swing.JLabel();
         injectionSubjectTextField = new javax.swing.JTextField();
+        jPanel23 = new javax.swing.JPanel();
+        jPanel24 = new javax.swing.JPanel();
+        injectPublicDoctypeCheckBox = new javax.swing.JCheckBox();
+        jLabel19 = new javax.swing.JLabel();
+        dtdUriTextField = new javax.swing.JTextField();
         jPanel21 = new javax.swing.JPanel();
         jPanel22 = new javax.swing.JPanel();
         jPanel9 = new javax.swing.JPanel();
@@ -394,7 +414,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         jPanel4.setLayout(new javax.swing.BoxLayout(jPanel4, javax.swing.BoxLayout.LINE_AXIS));
 
-        jLabel6.setText("Signature Validity: ");
+        jLabel6.setText("Protocol Signature Validity: ");
         jPanel4.add(jLabel6);
 
         signatureValidityLabel.setText("Unknown");
@@ -406,7 +426,26 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         signaturePanel.add(jSplitPane2, java.awt.BorderLayout.CENTER);
 
-        jTabbedPane1.addTab("Signature", signaturePanel);
+        jTabbedPane1.addTab("Protocol Signature", signaturePanel);
+
+        attributesPanel.setLayout(new java.awt.BorderLayout());
+
+        attributesTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane3.setViewportView(attributesTable);
+
+        attributesPanel.add(jScrollPane3, java.awt.BorderLayout.CENTER);
+
+        jTabbedPane1.addTab("Attributes", attributesPanel);
 
         htmlFormPanel.setLayout(new java.awt.BorderLayout());
 
@@ -486,7 +525,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         analysisDataPanel.add(samlVersionLabel, gridBagConstraints);
 
-        jLabel12.setText("Destination Indication:");
+        jLabel12.setText("Destination indication:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
@@ -501,20 +540,35 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         analysisDataPanel.add(destinationIndicationCheckBox, gridBagConstraints);
 
-        jLabel13.setText("Assertions Digested:");
+        jLabel13.setText("Assertions digested:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         analysisDataPanel.add(jLabel13, gridBagConstraints);
 
-        assertionsDigestedCheckBox.setToolTipText("Checks whether all SAML Assertions are digested by the XML signature");
+        assertionsDigestedCheckBox.setToolTipText("Checks whether all SAML Assertions are digested by the SAML protocol XML signature");
         assertionsDigestedCheckBox.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         analysisDataPanel.add(assertionsDigestedCheckBox, gridBagConstraints);
+
+        jLabel18.setText("Validity Interval indication:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        analysisDataPanel.add(jLabel18, gridBagConstraints);
+
+        validityIntervalIndicationCheckBox.setToolTipText("Checks whether the Conditions @NotBefore and @NotOnOrAfter are present.");
+        validityIntervalIndicationCheckBox.setEnabled(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        analysisDataPanel.add(validityIntervalIndicationCheckBox, gridBagConstraints);
 
         analysisPanel.add(analysisDataPanel);
 
@@ -608,7 +662,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         jPanel14.setLayout(new java.awt.GridBagLayout());
 
-        injectRemoteReferenceCheckBox.setText("Inject remote Reference URI");
+        injectRemoteReferenceCheckBox.setText("Inject Reference URI in SAML Response Signature");
         injectRemoteReferenceCheckBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 injectRemoteReferenceCheckBoxItemStateChanged(evt);
@@ -664,7 +718,8 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         jPanel16.setLayout(new java.awt.GridBagLayout());
 
-        injectAttributeCheckBox.setText("Inject Attribute");
+        injectAttributeCheckBox.setText("Change Attribute");
+        injectAttributeCheckBox.setToolTipText("Changes the given attribute value on the SAML assertions");
         injectAttributeCheckBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 injectAttributeCheckBoxItemStateChanged(evt);
@@ -682,7 +737,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel16.add(jLabel15, gridBagConstraints);
 
-        attributeNameTextField.setColumns(15);
+        attributeNameTextField.setColumns(20);
         attributeNameTextField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 attributeNameTextFieldActionPerformed(evt);
@@ -704,7 +759,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.gridy = 2;
         jPanel16.add(jLabel16, gridBagConstraints);
 
-        attributeValueTextField.setColumns(15);
+        attributeValueTextField.setColumns(20);
         attributeValueTextField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 attributeValueTextFieldActionPerformed(evt);
@@ -723,8 +778,8 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel15.add(jPanel16);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel20.add(jPanel15, gridBagConstraints);
 
@@ -733,7 +788,8 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         jPanel18.setLayout(new java.awt.GridBagLayout());
 
-        injectSubjectCheckBox.setText("Inject Subject");
+        injectSubjectCheckBox.setText("Change Subject");
+        injectSubjectCheckBox.setToolTipText("Changes the subject within the SAML assertions.");
         injectSubjectCheckBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 injectSubjectCheckBoxItemStateChanged(evt);
@@ -751,7 +807,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel18.add(jLabel17, gridBagConstraints);
 
-        injectionSubjectTextField.setColumns(15);
+        injectionSubjectTextField.setColumns(20);
         injectionSubjectTextField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 injectionSubjectTextFieldActionPerformed(evt);
@@ -775,6 +831,53 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel20.add(jPanel17, gridBagConstraints);
 
+        jPanel23.setBorder(javax.swing.BorderFactory.createTitledBorder("DTD Injection Attack"));
+        jPanel23.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jPanel24.setLayout(new java.awt.GridBagLayout());
+
+        injectPublicDoctypeCheckBox.setText("Inject PUBLIC DOCTYPE");
+        injectPublicDoctypeCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                injectPublicDoctypeCheckBoxItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel24.add(injectPublicDoctypeCheckBox, gridBagConstraints);
+
+        jLabel19.setText("DTD URI: ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel24.add(jLabel19, gridBagConstraints);
+
+        dtdUriTextField.setColumns(20);
+        dtdUriTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dtdUriTextFieldActionPerformed(evt);
+            }
+        });
+        dtdUriTextField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                dtdUriTextFieldFocusLost(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        jPanel24.add(dtdUriTextField, gridBagConstraints);
+
+        jPanel23.add(jPanel24);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        jPanel20.add(jPanel23, gridBagConstraints);
+
         jPanel19.add(jPanel20);
 
         jTabbedPane3.addTab("Injection Attacks", jPanel19);
@@ -783,7 +886,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         jPanel22.setLayout(new java.awt.GridBagLayout());
 
-        jPanel9.setBorder(javax.swing.BorderFactory.createTitledBorder("Replay Attack"));
+        jPanel9.setBorder(javax.swing.BorderFactory.createTitledBorder("SAML Response Replay Attack"));
         jPanel9.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         jPanel12.setLayout(new java.awt.GridBagLayout());
@@ -915,6 +1018,24 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         samlProxy.setInjectionAttributeValue(attributeValue);
     }//GEN-LAST:event_attributeValueTextFieldFocusLost
 
+    private void injectPublicDoctypeCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_injectPublicDoctypeCheckBoxItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean injectPublicDoctype = evt.getStateChange() == ItemEvent.SELECTED;
+        samlProxy.setInjectPublicDoctype(injectPublicDoctype);
+    }//GEN-LAST:event_injectPublicDoctypeCheckBoxItemStateChanged
+
+    private void dtdUriTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dtdUriTextFieldActionPerformed
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        String dtdUri = this.dtdUriTextField.getText();
+        samlProxy.setDtdUri(dtdUri);
+    }//GEN-LAST:event_dtdUriTextFieldActionPerformed
+
+    private void dtdUriTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_dtdUriTextFieldFocusLost
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        String dtdUri = this.dtdUriTextField.getText();
+        samlProxy.setDtdUri(dtdUri);
+    }//GEN-LAST:event_dtdUriTextFieldFocusLost
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel aboutPanel;
     private javax.swing.JPanel analysisDataPanel;
@@ -922,17 +1043,21 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JCheckBox assertionsDigestedCheckBox;
     private javax.swing.JTextField attributeNameTextField;
     private javax.swing.JTextField attributeValueTextField;
+    private javax.swing.JPanel attributesPanel;
+    private javax.swing.JTable attributesTable;
     private javax.swing.JCheckBox browserPostSslCheckBox;
     private org.owasp.webscarab.ui.swing.editors.TextPanel certDetailTextPanel;
     private javax.swing.JTree certPathTree;
     private javax.swing.JCheckBox corruptSignatureCheckBox;
     private javax.swing.JCheckBox destinationIndicationCheckBox;
+    private javax.swing.JTextField dtdUriTextField;
     private javax.swing.JLabel htmlFormConversationIdLabel;
     private javax.swing.JPanel htmlFormPanel;
     private javax.swing.JCheckBox htmlFormSslCheckBox;
     private org.owasp.webscarab.ui.swing.editors.TextPanel htmlFormTextPanel;
     private org.owasp.webscarab.ui.swing.editors.XMLPanel htmlFormXmlPanel;
     private javax.swing.JCheckBox injectAttributeCheckBox;
+    private javax.swing.JCheckBox injectPublicDoctypeCheckBox;
     private javax.swing.JCheckBox injectRemoteReferenceCheckBox;
     private javax.swing.JCheckBox injectSubjectCheckBox;
     private javax.swing.JTextField injectionSubjectTextField;
@@ -946,6 +1071,8 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -969,6 +1096,8 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JPanel jPanel20;
     private javax.swing.JPanel jPanel21;
     private javax.swing.JPanel jPanel22;
+    private javax.swing.JPanel jPanel23;
+    private javax.swing.JPanel jPanel24;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
@@ -978,6 +1107,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
@@ -994,6 +1124,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JLabel signatureValidityLabel;
     private javax.swing.JCheckBox signedMessageCheckBox;
     private org.owasp.webscarab.ui.swing.editors.TextPanel textPanel;
+    private javax.swing.JCheckBox validityIntervalIndicationCheckBox;
     private org.owasp.webscarab.ui.swing.editors.XMLPanel xmlPanel;
     // End of variables declaration//GEN-END:variables
 

@@ -37,6 +37,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -64,6 +65,7 @@ import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.FilteredConversationModel;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.parser.Parser;
 import org.owasp.webscarab.plugin.AbstractPluginModel;
@@ -271,7 +273,7 @@ public class SamlModel extends AbstractPluginModel {
         return false;
     }
 
-    private Element findSignatureElement(Document document) {
+    public static Element findProtocolSignatureElement(Document document) {
         Element documentElement = document.getDocumentElement();
         NodeList documentChildNodes = documentElement.getChildNodes();
         int documentNodeCount = documentChildNodes.getLength();
@@ -291,20 +293,20 @@ public class SamlModel extends AbstractPluginModel {
         return null;
     }
 
-    public List verifySAMLSignature(ConversationID id) throws SamlSignatureException {
+    public List verifySAMLProtocolSignature(ConversationID id) throws SamlSignatureException {
         Document document = getSAMLDocument(id);
         if (null == document) {
             throw new SamlSignatureException("DOM parser error");
         }
-        Element signatureElement = findSignatureElement(document);
-        if (null == signatureElement) {
-            throw new SamlSignatureException("No XML signature present");
+        Element protocolSignatureElement = findProtocolSignatureElement(document);
+        if (null == protocolSignatureElement) {
+            throw new SamlSignatureException("No protocol XML signature present");
         }
         XMLSignature xmlSignature;
         try {
-            xmlSignature = new XMLSignature(signatureElement, "");
+            xmlSignature = new XMLSignature(protocolSignatureElement, "");
         } catch (XMLSignatureException ex) {
-            throw new SamlSignatureException("Invalid XML Signature", ex);
+            throw new SamlSignatureException("Invalid protocol XML Signature", ex);
         } catch (XMLSecurityException ex) {
             throw new SamlSignatureException("XML security error", ex);
         }
@@ -423,20 +425,20 @@ public class SamlModel extends AbstractPluginModel {
         return false;
     }
 
-    public boolean digestsAssertions(ConversationID id) {
+    public boolean protocolSignatureDigestsAssertions(ConversationID id) {
         Document document = getSAMLDocument(id);
         if (null == document) {
             return false;
         }
-        Element signatureElement = findSignatureElement(document);
-        if (null == signatureElement) {
+        Element protocolSignatureElement = findProtocolSignatureElement(document);
+        if (null == protocolSignatureElement) {
             return false;
         }
 
         NodeList saml2AssertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
         if (0 != saml2AssertionNodeList.getLength()) {
             try {
-                return isDigested(saml2AssertionNodeList, signatureElement);
+                return isDigested(saml2AssertionNodeList, protocolSignatureElement);
             } catch (XMLSignatureException ex) {
                 this._logger.log(Level.WARNING, "XML signature error: {0}", ex.getMessage());
             } catch (XMLSecurityException ex) {
@@ -447,7 +449,7 @@ public class SamlModel extends AbstractPluginModel {
         NodeList saml1AssertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "Assertion");
         if (0 != saml1AssertionNodeList.getLength()) {
             try {
-                return isDigested(saml1AssertionNodeList, signatureElement);
+                return isDigested(saml1AssertionNodeList, protocolSignatureElement);
             } catch (XMLSignatureException ex) {
                 this._logger.log(Level.WARNING, "XML signature error: {0}", ex.getMessage());
             } catch (XMLSecurityException ex) {
@@ -522,5 +524,92 @@ public class SamlModel extends AbstractPluginModel {
             }
         }
         return true;
+    }
+
+    public List getSAMLAttributes(ConversationID id) {
+        List samlAttributes = new ArrayList();
+
+        Document document = getSAMLDocument(id);
+        if (null == document) {
+            return samlAttributes;
+        }
+
+        NodeList attributeNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "Attribute");
+        for (int idx = 0; idx < attributeNodeList.getLength(); idx++) {
+            Element attributeElement = (Element) attributeNodeList.item(idx);
+            String attributeName = attributeElement.getAttribute("AttributeName");
+            NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "AttributeValue");
+            if (0 == attributeValueNodeList.getLength()) {
+                continue;
+            }
+            Element attributeValueElement = (Element) attributeValueNodeList.item(0);
+            String attributeValue = attributeValueElement.getChildNodes().item(0).getNodeValue();
+            NamedValue attribute = new NamedValue(attributeName, attributeValue);
+            samlAttributes.add(attribute);
+        }
+
+        NodeList attribute2NodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Attribute");
+        for (int idx = 0; idx < attribute2NodeList.getLength(); idx++) {
+            Element attributeElement = (Element) attribute2NodeList.item(idx);
+            String attributeName = attributeElement.getAttribute("Name");
+            NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AttributeValue");
+            if (0 == attributeValueNodeList.getLength()) {
+                continue;
+            }
+            Element attributeValueElement = (Element) attributeValueNodeList.item(0);
+            String attributeValue = attributeValueElement.getChildNodes().item(0).getNodeValue();
+            NamedValue attribute = new NamedValue(attributeName, attributeValue);
+            samlAttributes.add(attribute);
+        }
+
+        return samlAttributes;
+    }
+
+    public boolean hasValidityIntervalIndication(ConversationID id) {
+        Document document = getSAMLDocument(id);
+        if (null == document) {
+            return false;
+        }
+
+        NodeList saml1AssertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "Assertion");
+        if (0 != saml1AssertionNodeList.getLength()) {
+            Element assertionElement = (Element) saml1AssertionNodeList.item(0);
+            NodeList conditionsNodeList = assertionElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "Conditions");
+            if (0 != conditionsNodeList.getLength()) {
+                Element conditionsElement = (Element) conditionsNodeList.item(0);
+                if (null != conditionsElement.getAttributeNode("NotBefore")
+                        && null != conditionsElement.getAttributeNode("NotOnOrAfter")) {
+                    return true;
+                }
+            }
+        }
+
+        NodeList saml2AssertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
+        if (0 != saml2AssertionNodeList.getLength()) {
+            Element assertionElement = (Element) saml2AssertionNodeList.item(0);
+            NodeList conditionsNodeList = assertionElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Conditions");
+            if (0 != conditionsNodeList.getLength()) {
+                Element conditionsElement = (Element) conditionsNodeList.item(0);
+                if (null != conditionsElement.getAttributeNode("NotBefore")
+                        && null != conditionsElement.getAttributeNode("NotOnOrAfter")) {
+                    return true;
+                }
+            }
+        }
+
+        NodeList saml2AuthnRequestNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:protocol", "AuthnRequest");
+        if (0 != saml2AuthnRequestNodeList.getLength()) {
+            Element authnRequestElement = (Element) saml2AuthnRequestNodeList.item(0);
+            NodeList conditionsNodeList = authnRequestElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Conditions");
+            if (0 != conditionsNodeList.getLength()) {
+                Element conditionsElement = (Element) conditionsNodeList.item(0);
+                if (null != conditionsElement.getAttributeNode("NotBefore")
+                        && null != conditionsElement.getAttributeNode("NotOnOrAfter")) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

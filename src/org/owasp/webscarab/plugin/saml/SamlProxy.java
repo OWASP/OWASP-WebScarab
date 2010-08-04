@@ -60,8 +60,9 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private String attributeValue;
     private boolean injectSubject;
     private String subject;
+    private boolean injectPublicDoctype;
+    private String dtdUri;
     private boolean attack;
-
     private EventListenerList _listenerList = new EventListenerList();
     private SamlModel samlModel;
 
@@ -202,6 +203,23 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
 
     private void updateAttackState() {
         this.attack = this.corruptSignature | this.injectAttribute | this.injectRemoteReference
-                | this.injectSubject | this.removeSignature | this.replay;
+                | this.injectSubject | this.removeSignature | this.replay | this.injectPublicDoctype;
+    }
+
+    public void setInjectPublicDoctype(boolean injectPublicDoctype) {
+        this.injectPublicDoctype = injectPublicDoctype;
+        updateAttackState();
+    }
+
+    public void setDtdUri(String dtdUri) {
+        this.dtdUri = dtdUri;
+    }
+
+    public boolean doInjectPublicDoctype() {
+        return this.injectPublicDoctype;
+    }
+
+    public String getDtdUri() {
+        return this.dtdUri;
     }
 }
