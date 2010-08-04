@@ -52,6 +52,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.SSLContext;
 
 import java.util.logging.Logger;
+import jcifs.ntlmssp.NtlmFlags;
 import jcifs.ntlmssp.NtlmMessage;
 import jcifs.ntlmssp.Type1Message;
 import jcifs.ntlmssp.Type2Message;
@@ -549,17 +550,18 @@ public class URLFetcher implements HTTPClient {
             }
         }
         // reconnect();
+        int flags = NtlmFlags.NTLMSSP_NEGOTIATE_NTLM2 | NtlmFlags.NTLMSSP_NEGOTIATE_ALWAYS_SIGN | NtlmFlags.NTLMSSP_NEGOTIATE_NTLM | NtlmFlags.NTLMSSP_REQUEST_TARGET | NtlmFlags.NTLMSSP_NEGOTIATE_OEM | NtlmFlags.NTLMSSP_NEGOTIATE_UNICODE;
         if (message == null) {
-            message = new Type1Message();
+            message = new Type1Message(flags, null, null);
         } else {
             credentials = credentials.substring(authMethod.length()+1); // strip off the "NTLM " or "Negotiate "
             credentials = new String(Base64.decode(credentials)); // decode the base64
             String domain = credentials.substring(0, credentials.indexOf("\\"));
             String user = credentials.substring(domain.length()+1, credentials.indexOf(":"));
             String password = credentials.substring(domain.length()+user.length()+2);
-            _logger.fine("Domain : '" + domain + "' username : '" + user + "' password length : " + password.length());
             Type2Message type2 = (Type2Message) message;
-            message = new Type3Message(type2, password, domain, user, null, 0);
+            flags ^= NtlmFlags.NTLMSSP_NEGOTIATE_OEM;
+            message = new Type3Message(type2, password, domain, user, null, flags);
         }
         return authMethod + " " + Base64.encode(message.toByteArray());
     }
