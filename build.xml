@@ -251,6 +251,27 @@
         </proguard>
     </target>
     <target
+        depends="init,clean,build"
+        description="Package WebScarab.jar and libs into a single runnable jar"
+        name="one-jar"
+    >
+        <property name="one-jar.ant.jar" 
+            value="${one-jar.dist.dir}/"
+        />
+        <taskdef name="one-jar" 
+            classname="com.simontuffs.onejar.ant.OneJarTask" 
+            classpath="${one-jar.ant.jar}" onerror="report"/>
+        <one-jar destfile="webscarab-one.jar" update="false">
+            <manifest>
+                <attribute name="Main-Class" value="com.simontuffs.onejar.Boot
+"/>
+                <attribute name="One-Jar-Main-Class" value="${mainclass}"/>
+            </manifest>
+            <main><fileset dir="${build.dir}"/></main>
+            <lib><fileset dir="./lib/*.jar"/></lib>
+        </one-jar>
+    </target>
+    <target
 	depends="init,clean,build"
 	description="Package webScara.jar and libs in a ZIP"
 	name="zip"
