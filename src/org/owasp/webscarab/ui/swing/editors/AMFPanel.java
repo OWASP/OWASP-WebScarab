@@ -345,8 +345,8 @@ public class AMFPanel extends JPanel implements ByteArrayEditor, ActionListener 
 				if (object instanceof HashMap) {
 					value = ((HashMap) object).get(field);
 				} else {
-					Method m = object.getClass().getMethod("get" + field, null);
-					value = m.invoke(object, null);
+					Method m = object.getClass().getMethod("get" + field, (Class[]) null);
+					value = m.invoke(object, (Object[]) null);
 				}
 
 				this.type = OBJ_TYPE(value);
@@ -597,7 +597,7 @@ public class AMFPanel extends JPanel implements ByteArrayEditor, ActionListener 
 					Class[] paramTypes = m.getParameterTypes();
 					if (name.startsWith("get") && !name.equals("getClass")
 							&& paramTypes.length == 0) {
-						Object val = m.invoke(object, null);
+						Object val = m.invoke(object, (Object[]) null);
 						if (isComplex(val))
 							addObject(node, val);
 						else {
