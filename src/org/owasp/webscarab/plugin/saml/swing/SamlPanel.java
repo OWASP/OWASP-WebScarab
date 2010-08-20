@@ -74,7 +74,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
     private final Saml saml;
     private final SamlModel samlModel;
-    private Logger _logger = Logger.getLogger(getClass().getName());
+
     private final ShowConversationAction showConversationAction;
     private final SamlReplayConversationAction samlReplayConversationAction;
     private final SamlExportConversationAction samlExportConversationAction;

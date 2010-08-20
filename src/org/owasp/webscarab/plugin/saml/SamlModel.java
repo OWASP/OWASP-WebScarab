@@ -338,7 +338,7 @@ public class SamlModel extends AbstractPluginModel {
                 }
                 int certificateCount = x509Data.lengthCertificate();
                 for (int certificateIdx = 0; certificateIdx < certificateCount; certificateIdx++) {
-                    XMLX509Certificate xmlX509Certificate = xmlX509Certificate = x509Data.itemCertificate(certificateIdx);
+                    XMLX509Certificate xmlX509Certificate = x509Data.itemCertificate(certificateIdx);
                     X509Certificate certificate = xmlX509Certificate.getX509Certificate();
                     certificateChain.add(certificate);
                 }
