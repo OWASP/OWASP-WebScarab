@@ -111,7 +111,7 @@ public class SamlHTTPClient implements HTTPClient {
             samlProxyHeader += "injected public doctype;";
         }
 
-        if (false == samlProxyHeader.isEmpty()) {
+        if (samlProxyHeader.length() > 0) {
             request.addHeader("X-SAMLProxy", samlProxyHeader);
         }
 
