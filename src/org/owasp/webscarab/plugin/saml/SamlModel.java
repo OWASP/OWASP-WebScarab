@@ -125,6 +125,15 @@ public class SamlModel extends AbstractPluginModel {
                 encodedSamlResponse);
     }
 
+    public void setRelayState(ConversationID id, String relayState) {
+        this.model.setConversationProperty(id, "SAML-RELAY-STATE", relayState);
+    }
+
+    public String getRelayState(ConversationID id) {
+        String relayState = this.model.getConversationProperty(id, "SAML-RELAY-STATE");
+        return relayState;
+    }
+
     public String getEncodedSAMLMessage(ConversationID id) {
         String encodedSamlMessage = this.model.getConversationProperty(id, "SAML-MESSAGE");
         String urlDecodedSamlMessage = Encoding.urlDecode(encodedSamlMessage);

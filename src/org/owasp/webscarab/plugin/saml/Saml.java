@@ -86,6 +86,8 @@ public class Saml implements Plugin {
                                 this._model.setSAMLResponse(id, namedValue.getValue());
                             } else if ("SAMLRequest".equals(namedValue.getName())) {
                                 this._model.setSAMLRequest(id, namedValue.getValue());
+                            } else if ("RelayState".equals(namedValue.getName())) {
+                                this._model.setRelayState(id, namedValue.getValue());
                             }
                         }
                     }

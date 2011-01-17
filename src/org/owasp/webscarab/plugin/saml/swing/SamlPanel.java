@@ -39,7 +39,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.security.cert.X509Certificate;
 import java.util.List;
-import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -205,6 +204,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         this.rawPanel.setText(null, "");
         this.textPanel.setText(null, "");
         this.xmlPanel.setBytes(null, null);
+        this.relayStatePanel.setText(null, "");
 
         this.certDetailTextPanel.setText(null, "");
         this.signatureValidityLabel.setText("");
@@ -233,6 +233,8 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         String decodedSamlMessage = this.samlModel.getDecodedSAMLMessage(encodedSamlMessage);
         this.textPanel.setText(null, decodedSamlMessage);
         this.xmlPanel.setBytes("text/xml", decodedSamlMessage.getBytes());
+        String relayState = this.samlModel.getRelayState(id);
+        this.relayStatePanel.setText(null, relayState);
 
         displaySignature(id);
 
@@ -321,6 +323,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jTabbedPane2 = new javax.swing.JTabbedPane();
         htmlFormTextPanel = new org.owasp.webscarab.ui.swing.editors.TextPanel();
         htmlFormXmlPanel = new org.owasp.webscarab.ui.swing.editors.XMLPanel();
+        relayStatePanel = new org.owasp.webscarab.ui.swing.editors.TextPanel();
         analysisPanel = new javax.swing.JPanel();
         analysisDataPanel = new javax.swing.JPanel();
         jLabel8 = new javax.swing.JLabel();
@@ -465,6 +468,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         htmlFormPanel.add(jTabbedPane2, java.awt.BorderLayout.CENTER);
 
         jTabbedPane1.addTab("HTML Form", htmlFormPanel);
+        jTabbedPane1.addTab("Relay State", relayStatePanel);
 
         analysisPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
@@ -1114,6 +1118,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JTabbedPane jTabbedPane3;
     private org.owasp.webscarab.ui.swing.editors.TextPanel rawPanel;
+    private org.owasp.webscarab.ui.swing.editors.TextPanel relayStatePanel;
     private javax.swing.JCheckBox removeSignatureCheckBox;
     private javax.swing.JPopupMenu samlPopupMenu;
     private javax.swing.JCheckBox samlReplayCheckBox;
