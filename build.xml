@@ -261,14 +261,22 @@
         <taskdef name="one-jar" 
             classname="com.simontuffs.onejar.ant.OneJarTask" 
             classpath="${one-jar.ant.jar}" onerror="report"/>
-        <one-jar destfile="webscarab-one.jar" update="false">
+        <one-jar 
+            destfile="${dist.dir}/webscarab-one-${project.version}.jar" 
+            update="false">
             <manifest>
                 <attribute name="Main-Class" value="com.simontuffs.onejar.Boot
 "/>
                 <attribute name="One-Jar-Main-Class" value="${mainclass}"/>
+                <attribute name="Built-By" value="${user.name}"/>
+                <section name="org/owasp/webscarab/">
+                    <attribute name="Implementation-Title" value="org.owasp.webscarab"/>
+                    <attribute name="Implementation-Vendor" value="OWASP Foundation."/>
+                    <attribute name="Implementation-Version" value="${project.version}"/>
+                </section>
             </manifest>
             <main><fileset dir="${build.dir}"/></main>
-            <lib><fileset dir="./lib/*.jar"/></lib>
+            <lib><fileset file="./lib/*.jar"/></lib>
         </one-jar>
     </target>
     <target
