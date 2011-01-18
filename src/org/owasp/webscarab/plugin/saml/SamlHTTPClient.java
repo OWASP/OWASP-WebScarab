@@ -110,6 +110,9 @@ public class SamlHTTPClient implements HTTPClient {
         if (this.samlProxyConfig.doInjectPublicDoctype()) {
             samlProxyHeader += "injected public doctype;";
         }
+        if (this.samlProxyConfig.doInjectRelayState()) {
+            samlProxyHeader += "injected relay state;";
+        }
 
         if (samlProxyHeader.length() > 0) {
             request.addHeader("X-SAMLProxy", samlProxyHeader);
@@ -143,6 +146,13 @@ public class SamlHTTPClient implements HTTPClient {
                 body, "&", "=");
         boolean samlResponseMessage = false;
         for (int idx = 0; idx < namedValues.length; idx++) {
+            if ("RelayState".equals(namedValues[idx].getName())) {
+                if (this.samlProxyConfig.doInjectRelayState()) {
+                    String newRelayState = getInjectedRelayState();
+                    namedValues[idx] = new NamedValue(namedValues[idx].getName(), newRelayState);
+                }
+            }
+
             if (false == "SAMLResponse".equals(namedValues[idx].getName())) {
                 continue;
             }
@@ -338,6 +348,11 @@ public class SamlHTTPClient implements HTTPClient {
         }
 
         return outputDocument(document);
+    }
+
+    private String getInjectedRelayState() {
+        String injectionRelayState = this.samlProxyConfig.getRelayState();
+        return Encoding.urlEncode(injectionRelayState);
     }
 
     private String injectSubject(String samlResponse) throws IOException, ParserConfigurationException, SAXException, Base64DecodingException, TransformerConfigurationException, TransformerException {

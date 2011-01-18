@@ -67,4 +67,8 @@ public interface SamlProxyConfig {
     boolean doInjectPublicDoctype();
 
     String getDtdUri();
+
+    boolean doInjectRelayState();
+
+    String getRelayState();
 }

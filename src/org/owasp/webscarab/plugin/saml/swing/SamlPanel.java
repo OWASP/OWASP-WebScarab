@@ -379,6 +379,11 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         injectPublicDoctypeCheckBox = new javax.swing.JCheckBox();
         jLabel19 = new javax.swing.JLabel();
         dtdUriTextField = new javax.swing.JTextField();
+        jPanel25 = new javax.swing.JPanel();
+        jPanel26 = new javax.swing.JPanel();
+        injectRelayStateCheckBox = new javax.swing.JCheckBox();
+        jLabel20 = new javax.swing.JLabel();
+        relayStateTextField = new javax.swing.JTextField();
         jPanel21 = new javax.swing.JPanel();
         jPanel22 = new javax.swing.JPanel();
         jPanel9 = new javax.swing.JPanel();
@@ -882,6 +887,48 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel20.add(jPanel23, gridBagConstraints);
 
+        jPanel25.setBorder(javax.swing.BorderFactory.createTitledBorder("Relay State Injection Attack"));
+        jPanel25.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jPanel26.setLayout(new java.awt.GridBagLayout());
+
+        injectRelayStateCheckBox.setText("Change Response Relay State");
+        injectRelayStateCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                injectRelayStateCheckBoxItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel26.add(injectRelayStateCheckBox, gridBagConstraints);
+
+        jLabel20.setText("Relay State: ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel26.add(jLabel20, gridBagConstraints);
+
+        relayStateTextField.setColumns(20);
+        relayStateTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                relayStateTextFieldActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        jPanel26.add(relayStateTextField, gridBagConstraints);
+
+        jPanel25.add(jPanel26);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        jPanel20.add(jPanel25, gridBagConstraints);
+
         jPanel19.add(jPanel20);
 
         jTabbedPane3.addTab("Injection Attacks", jPanel19);
@@ -1040,6 +1087,18 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         samlProxy.setDtdUri(dtdUri);
     }//GEN-LAST:event_dtdUriTextFieldFocusLost
 
+    private void injectRelayStateCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_injectRelayStateCheckBoxItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean injectRelayState = evt.getStateChange() == ItemEvent.SELECTED;
+        samlProxy.setInjectRelayState(injectRelayState);
+    }//GEN-LAST:event_injectRelayStateCheckBoxItemStateChanged
+
+    private void relayStateTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_relayStateTextFieldActionPerformed
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        String relayState = this.relayStateTextField.getText();
+        samlProxy.setRelayState(relayState);
+    }//GEN-LAST:event_relayStateTextFieldActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel aboutPanel;
     private javax.swing.JPanel analysisDataPanel;
@@ -1062,6 +1121,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private org.owasp.webscarab.ui.swing.editors.XMLPanel htmlFormXmlPanel;
     private javax.swing.JCheckBox injectAttributeCheckBox;
     private javax.swing.JCheckBox injectPublicDoctypeCheckBox;
+    private javax.swing.JCheckBox injectRelayStateCheckBox;
     private javax.swing.JCheckBox injectRemoteReferenceCheckBox;
     private javax.swing.JCheckBox injectSubjectCheckBox;
     private javax.swing.JTextField injectionSubjectTextField;
@@ -1078,6 +1138,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -1102,6 +1163,8 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JPanel jPanel22;
     private javax.swing.JPanel jPanel23;
     private javax.swing.JPanel jPanel24;
+    private javax.swing.JPanel jPanel25;
+    private javax.swing.JPanel jPanel26;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
@@ -1119,6 +1182,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JTabbedPane jTabbedPane3;
     private org.owasp.webscarab.ui.swing.editors.TextPanel rawPanel;
     private org.owasp.webscarab.ui.swing.editors.TextPanel relayStatePanel;
+    private javax.swing.JTextField relayStateTextField;
     private javax.swing.JCheckBox removeSignatureCheckBox;
     private javax.swing.JPopupMenu samlPopupMenu;
     private javax.swing.JCheckBox samlReplayCheckBox;
