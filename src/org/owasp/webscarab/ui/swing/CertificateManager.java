@@ -70,6 +70,7 @@ public class CertificateManager extends javax.swing.JFrame {
                     try {
                         Certificate cert = _sslcm.getCertificate(keystore, alias);
                         certTextArea.setText(cert.toString());
+                        certTextArea.setCaretPosition(0);
                     } catch (Exception e) {
                         JOptionPane.showMessageDialog(null, new String[] {"Error accessing key store: ", e.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
                         e.printStackTrace();

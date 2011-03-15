@@ -80,8 +80,12 @@ public class SSLContextManager {
             _logger.severe("Error initialising the SSL Context: " + kme);
         }
         try {
-            initMSCAPI();
-        } catch (Exception e) {}
+        	if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
+            	initPKCS11("P11-CAPI", "lib/p11-capi.dll", 0, "");
+        	}
+        } catch (Exception e) {
+        	e.printStackTrace();
+        }
     }
     
     public boolean isProviderAvailable(String type) {
@@ -181,16 +185,6 @@ public class SSLContextManager {
         return _defaultKey;
     }
     
-    private void initMSCAPI() {
-        try {
-            KeyStore ks = KeyStore.getInstance("Windows-MY");
-            ks.load(null, null); 
-            addKeyStore(ks, "Microsoft CAPI Store");
-        } catch (Exception e) {
-            System.err.println("Error instantiating the MSCAPI provider: " + e.getLocalizedMessage());
-        }
-    }
-    
     public int initPKCS11(String name, String library, int slotListIndex, String kspassword) {
         try {
             if (!isProviderAvailable("PKCS11")) return -1;
@@ -211,7 +205,7 @@ public class SSLContextManager {
             // init the key store
             KeyStore ks = KeyStore.getInstance("PKCS11");
             ks.load(null, kspassword == null ? null : kspassword.toCharArray());
-            return addKeyStore(ks, "PKCS#11");
+            return addKeyStore(ks, name);
         } catch (Exception e) {
             System.err.println("Error instantiating the PKCS11 provider");
             e.printStackTrace();
