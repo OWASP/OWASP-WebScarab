@@ -574,6 +574,10 @@ public class CertificateManager extends javax.swing.JFrame {
         public int getColumnCount() {
             return 1;
         }
+
+        public String getColumnName(int column) {
+            return "Alias";
+        }   
         
         public int getRowCount() {
             return _aliases.size();
