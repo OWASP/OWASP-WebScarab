@@ -19,8 +19,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.AbstractTableModel;
+import org.owasp.webscarab.httpclient.CertificateRepository;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
-import org.owasp.webscarab.httpclient.SSLContextManager;
 
 /**
  *
@@ -33,15 +33,21 @@ public class CertificateManager extends javax.swing.JFrame {
 	 */
 	private static final long serialVersionUID = 5690492352598432340L;
 
-	private SSLContextManager _sslcm = HTTPClientFactory.getInstance().getSSLContextManager();
+	private CertificateRepository _certRepo;
     
     private DefaultListModel _keystoreListModel;
     private AliasTableModel _aliasTableModel;
     
-    /** Creates new form CertificateManager */
+     /** Creates new form CertificateManager */
     public CertificateManager() {
+        this(HTTPClientFactory.getInstance().getSSLContextManager());
+    }
+    
+    /** Creates new form CertificateManager */
+    public CertificateManager(CertificateRepository certRepo) {
+        this._certRepo = certRepo;
         initComponents();
-        if (!_sslcm.isProviderAvailable("PKCS11"))
+        if (!_certRepo.isProviderAvailable("PKCS11"))
             keystoreTabbedPane.setEnabledAt(1, false);
         
         _keystoreListModel = new DefaultListModel();
@@ -63,12 +69,12 @@ public class CertificateManager extends javax.swing.JFrame {
         aliasTable.setModel(_aliasTableModel);
         aliasTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent evt) {
-                _sslcm.setDefaultKey(null);
+                _certRepo.setDefaultKey(null);
                 int keystore = keyStoreList.getSelectedIndex();
                 int alias = aliasTable.getSelectedRow();
                 if (alias > -1) {
                     try {
-                        Certificate cert = _sslcm.getCertificate(keystore, alias);
+                        Certificate cert = _certRepo.getCertificate(keystore, alias);
                         certTextArea.setText(cert.toString());
                         certTextArea.setCaretPosition(0);
                     } catch (Exception e) {
@@ -395,18 +401,18 @@ public class CertificateManager extends javax.swing.JFrame {
         int alias = aliasTable.getSelectedRow();
         String fingerprint = "";
         if (ks > -1 && alias>-1) {
-            if (!_sslcm.isKeyUnlocked(ks, alias)) {
+            if (!_certRepo.isKeyUnlocked(ks, alias)) {
                 String password = getPassword();
                 try {
-                    _sslcm.unlockKey(ks, alias, password);
+                    _certRepo.unlockKey(ks, alias, password);
                 } catch (Exception e) {
                     e.printStackTrace();
                     JOptionPane.showMessageDialog(null, new String[] {"Error accessing key store: ", e.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
-            Certificate cert = _sslcm.getCertificate(ks, alias);
+            Certificate cert = _certRepo.getCertificate(ks, alias);
             try {
-                fingerprint = _sslcm.getFingerPrint(cert);
+                fingerprint = _certRepo.getFingerPrint(cert);
             } catch (KeyStoreException kse) {
                 kse.printStackTrace();
                 JOptionPane.showMessageDialog(null, new String[] {"Error calculating key fingerprint: ", kse.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
@@ -414,7 +420,7 @@ public class CertificateManager extends javax.swing.JFrame {
             }
         }
         currentCertTextField.setText(fingerprint);
-        _sslcm.setDefaultKey(fingerprint);
+        _certRepo.setDefaultKey(fingerprint);
     }//GEN-LAST:event_setButtonActionPerformed
             
     private void pkcs11BrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pkcs11BrowseButtonActionPerformed
@@ -460,8 +466,8 @@ public class CertificateManager extends javax.swing.JFrame {
                 String kspass = new String(pkcs12PasswordField.getPassword());
                 if (kspass.equals(""))
                     kspass = null;
-                int ksIndex = _sslcm.loadPKCS12Certificate(file, kspass);
-                _keystoreListModel.insertElementAt(_sslcm.getKeyStoreDescription(ksIndex), ksIndex);
+                int ksIndex = _certRepo.loadPKCS12Certificate(file, kspass);
+                _keystoreListModel.insertElementAt(_certRepo.getKeyStoreDescription(ksIndex), ksIndex);
             } else if (tab == 1) { //PKCS#11
                 String name = pkcs11NameTextField.getText();
                 if (name.equals("")) return;
@@ -470,8 +476,8 @@ public class CertificateManager extends javax.swing.JFrame {
                 String kspass = new String(pkcs11PasswordField.getPassword());
                 if (kspass.equals("")) kspass = null;
                 int slotListIndex = Integer.parseInt(pkcs11SlotListIndexSpinner.getValue().toString());
-                int ksIndex = _sslcm.initPKCS11(name, library, slotListIndex, kspass);
-                _keystoreListModel.insertElementAt(_sslcm.getKeyStoreDescription(ksIndex), ksIndex);
+                int ksIndex = _certRepo.initPKCS11(name, library, slotListIndex, kspass);
+                _keystoreListModel.insertElementAt(_certRepo.getKeyStoreDescription(ksIndex), ksIndex);
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, new String[] {"Error loading Key Store: ", e.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
@@ -482,8 +488,8 @@ public class CertificateManager extends javax.swing.JFrame {
     
     private void updateKeystoreList() {
         _keystoreListModel.removeAllElements();
-        for (int i=0; i<_sslcm.getKeyStoreCount(); i++) {
-            _keystoreListModel.addElement(_sslcm.getKeyStoreDescription(i));
+        for (int i=0; i<_certRepo.getKeyStoreCount(); i++) {
+            _keystoreListModel.addElement(_certRepo.getKeyStoreDescription(i));
         }
     }
     
@@ -563,8 +569,8 @@ public class CertificateManager extends javax.swing.JFrame {
             _ks = ks;
             _aliases.clear();
             if (_ks > -1) {
-                for (int i=0; i<_sslcm.getAliasCount(ks); i++)
-                    _aliases.add(_sslcm.getAliasAt(ks, i));
+                for (int i=0; i<_certRepo.getAliasCount(ks); i++)
+                    _aliases.add(_certRepo.getAliasAt(ks, i));
             }
             fireTableDataChanged();
         }

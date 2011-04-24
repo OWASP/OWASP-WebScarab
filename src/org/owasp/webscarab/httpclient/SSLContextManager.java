@@ -47,7 +47,7 @@ import org.owasp.webscarab.util.NullComparator;
  *
  * @author rdawes
  */
-public class SSLContextManager {
+public class SSLContextManager implements CertificateRepository {
     
     private Map _contextMaps = new TreeMap(new NullComparator());
     private SSLContext _noClientCertContext;
