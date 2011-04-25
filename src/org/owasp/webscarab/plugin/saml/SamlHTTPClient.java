@@ -36,6 +36,10 @@ package org.owasp.webscarab.plugin.saml;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
@@ -50,7 +54,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.apache.xml.security.exceptions.Base64DecodingException;
+import org.apache.xml.security.exceptions.XMLSecurityException;
+import org.apache.xml.security.keys.KeyInfo;
+import org.apache.xml.security.keys.content.X509Data;
+import org.apache.xml.security.signature.XMLSignature;
+import org.apache.xml.security.transforms.Transforms;
 import org.apache.xml.security.utils.Base64;
+import org.apache.xml.security.utils.Constants;
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
@@ -91,16 +101,7 @@ public class SamlHTTPClient implements HTTPClient {
         if (this.samlProxyConfig.doReplay()) {
             samlProxyHeader += "replayed;";
         }
-        if (this.samlProxyConfig.doRemoveSignature()) {
-            samlProxyHeader += "removed signature;";
-        } else {
-            if (this.samlProxyConfig.doCorruptSignature()) {
-                samlProxyHeader += "corrupted signature;";
-            }
-            if (this.samlProxyConfig.doInjectRemoteReference()) {
-                samlProxyHeader += "injected remote reference;";
-            }
-        }
+        
         if (this.samlProxyConfig.doInjectAttribute()) {
             samlProxyHeader += "injected attribute;";
         }
@@ -112,6 +113,19 @@ public class SamlHTTPClient implements HTTPClient {
         }
         if (this.samlProxyConfig.doInjectRelayState()) {
             samlProxyHeader += "injected relay state;";
+        }
+        
+        if (this.samlProxyConfig.doSignSamlMessage()) {
+            samlProxyHeader += "sign;";
+        } else if (this.samlProxyConfig.doRemoveSignature()) {
+            samlProxyHeader += "removed signature;";
+        } else {
+            if (this.samlProxyConfig.doCorruptSignature()) {
+                samlProxyHeader += "corrupted signature;";
+            }
+            if (this.samlProxyConfig.doInjectRemoteReference()) {
+                samlProxyHeader += "injected remote reference;";
+            }
         }
 
         if (samlProxyHeader.length() > 0) {
@@ -164,20 +178,6 @@ public class SamlHTTPClient implements HTTPClient {
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
                 }
 
-                if (this.samlProxyConfig.doRemoveSignature()) {
-                    String newSamlResponse = removeSamlResponseSignature(namedValues[idx].getValue());
-                    namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
-                } else {
-                    if (this.samlProxyConfig.doCorruptSignature()) {
-                        String newSamlResponse = corruptSamlResponseSignature(namedValues[idx].getValue());
-                        namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
-                    }
-                    if (this.samlProxyConfig.doInjectRemoteReference()) {
-                        String newSamlResponse = injectRemoteReference(namedValues[idx].getValue());
-                        namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
-                    }
-                }
-
                 if (this.samlProxyConfig.doInjectAttribute()) {
                     String newSamlResponse = injectAttribute(namedValues[idx].getValue());
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
@@ -189,6 +189,23 @@ public class SamlHTTPClient implements HTTPClient {
                 if (this.samlProxyConfig.doInjectPublicDoctype()) {
                     String newSamlResponse = injectPublicDoctype(namedValues[idx].getValue());
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                }
+                
+                if (this.samlProxyConfig.doSignSamlMessage()) {
+                    String newSamlResponse = signSamlMessage(namedValues[idx].getValue());
+                    namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                } else if (this.samlProxyConfig.doRemoveSignature()) {
+                    String newSamlResponse = removeSamlResponseSignature(namedValues[idx].getValue());
+                    namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                } else {
+                    if (this.samlProxyConfig.doCorruptSignature()) {
+                        String newSamlResponse = corruptSamlResponseSignature(namedValues[idx].getValue());
+                        namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    }
+                    if (this.samlProxyConfig.doInjectRemoteReference()) {
+                        String newSamlResponse = injectRemoteReference(namedValues[idx].getValue());
+                        namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    }
                 }
             } catch (Exception ex) {
                 this._logger.log(Level.WARNING, "could not corrupt the SAML Response signature: {0}", ex.getMessage());
@@ -387,5 +404,37 @@ public class SamlHTTPClient implements HTTPClient {
         String newDecodedSamlResponse = "<!DOCTYPE SomeElement SYSTEM \"" + dtdUri + "\">" + new String(decodedSamlResponse);
         String newSamlResponse = Encoding.urlEncode(Base64.encode(newDecodedSamlResponse.getBytes()));
         return newSamlResponse;
+    }
+
+    private String signSamlMessage(String samlResponse) throws IOException, ParserConfigurationException, SAXException, Base64DecodingException, TransformerConfigurationException, TransformerException, XMLSecurityException {
+        Document document = parseDocument(samlResponse);
+        Element protocolSignatureElement = SamlModel.findProtocolSignatureElement(document);
+        if (null == protocolSignatureElement) {
+            return samlResponse;
+        }
+        protocolSignatureElement.getParentNode().removeChild(protocolSignatureElement);
+
+        XMLSignature xmlSignature = new XMLSignature(document, null, XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1);
+        document.getDocumentElement().insertBefore(xmlSignature.getElement(), document.getDocumentElement().getFirstChild());
+        Transforms transforms = new Transforms(document);
+        transforms.addTransform(Transforms.TRANSFORM_ENVELOPED_SIGNATURE);
+        transforms.addTransform(Transforms.TRANSFORM_C14N_EXCL_OMIT_COMMENTS);
+        xmlSignature.addDocument("", transforms, Constants.ALGO_ID_DIGEST_SHA1);
+        
+        KeyStore.PrivateKeyEntry privateKeyEntry = this.samlProxyConfig.getPrivateKeyEntry();
+        
+        KeyInfo keyInfo = xmlSignature.getKeyInfo();
+        X509Data x509Data = new X509Data(document);
+        Certificate[] certificateChain = privateKeyEntry.getCertificateChain();
+        for (int certIdx = 0; certIdx < certificateChain.length; certIdx++) {
+            Certificate certificate = certificateChain[certIdx];
+            x509Data.addCertificate((X509Certificate) certificate);
+        }
+        keyInfo.add(x509Data);
+        
+        PrivateKey privateKey = privateKeyEntry.getPrivateKey();
+        xmlSignature.sign(privateKey);
+        
+        return outputDocument(document);
     }
 }

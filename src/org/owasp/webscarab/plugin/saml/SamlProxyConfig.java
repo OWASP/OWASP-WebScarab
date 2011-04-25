@@ -34,6 +34,8 @@
 
 package org.owasp.webscarab.plugin.saml;
 
+import java.security.KeyStore.PrivateKeyEntry;
+
 /**
  *
  * @author Frank Cornelis
@@ -62,7 +64,7 @@ public interface SamlProxyConfig {
 
     String getInjectionSubject();
 
-    public boolean doSomething();
+    boolean doSomething();
 
     boolean doInjectPublicDoctype();
 
@@ -71,4 +73,8 @@ public interface SamlProxyConfig {
     boolean doInjectRelayState();
 
     String getRelayState();
+
+    boolean doSignSamlMessage();
+
+    public PrivateKeyEntry getPrivateKeyEntry();
 }

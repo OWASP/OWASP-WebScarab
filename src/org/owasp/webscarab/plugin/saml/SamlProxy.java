@@ -33,6 +33,8 @@
  */
 package org.owasp.webscarab.plugin.saml;
 
+import java.security.KeyStore;
+import java.security.KeyStore.PrivateKeyEntry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.EventListenerList;
@@ -65,6 +67,8 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private boolean attack;
     private boolean injectRelayState;
     private String relayState;
+    private boolean signSamlMessage;
+    private KeyStore.PrivateKeyEntry privateKeyEntry;
     private EventListenerList _listenerList = new EventListenerList();
     private SamlModel samlModel;
 
@@ -206,7 +210,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private void updateAttackState() {
         this.attack = this.corruptSignature | this.injectAttribute | this.injectRemoteReference
                 | this.injectSubject | this.removeSignature | this.replay | this.injectPublicDoctype |
-                this.injectRelayState;
+                this.injectRelayState | this.signSamlMessage;
     }
 
     public void setInjectPublicDoctype(boolean injectPublicDoctype) {
@@ -241,5 +245,22 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
 
     public String getRelayState() {
         return this.relayState;
+    }
+
+    public void setSignSamlMessage(boolean signSamlMessage) {
+        this.signSamlMessage = signSamlMessage;
+        updateAttackState();
+    }
+
+    public boolean doSignSamlMessage() {
+        return this.signSamlMessage;
+    }
+
+    public PrivateKeyEntry getPrivateKeyEntry() {
+        return this.privateKeyEntry;
+    }
+    
+    public void setPrivateKeyEntry(PrivateKeyEntry privateKeyEntry) {
+        this.privateKeyEntry = privateKeyEntry;
     }
 }
