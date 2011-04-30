@@ -70,9 +70,10 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.StandardXYItemRenderer;
-import org.jfree.data.AbstractSeriesDataset;
-import org.jfree.data.XYDataset;
+import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
+import org.jfree.data.DomainOrder;
+import org.jfree.data.general.AbstractSeriesDataset;
+import org.jfree.data.xy.XYDataset;
 
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
@@ -829,6 +830,7 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
 		private static final long serialVersionUID = -8276132180435935115L;
 
 		public int getSeriesCount() {
+                    if (_key == null) return 0;
             return 1;
         }
         
@@ -841,18 +843,18 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
             return _model.getSessionIDCount(_key);
         }
         
-        public Number getXValue(int series, int item) {
+        public double getXValue(int series, int item) {
             SessionID id = _model.getSessionIDAt(_key, item);
-            return new Long(id.getDate().getTime());
+            return id.getDate().getTime();
         }
         
-        public Number getYValue(int series, int item) {
+        public double getYValue(int series, int item) {
             SessionID id = _model.getSessionIDAt(_key, item);
             BigInteger bi = _model.getSessionIDValue(_key, id);
             if (bi == null) {
-                return new Double(0);
+                return 0;
             } else {
-                return new Double(bi.doubleValue());
+                return bi.doubleValue();
             }
         }
         
@@ -867,7 +869,23 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
         public void fireDatasetChanged() {
             super.fireDatasetChanged();
         }
-        
+
+        public Comparable getSeriesKey(int series) {
+            return _key;
+        }
+
+        public DomainOrder getDomainOrder() {
+            return DomainOrder.NONE;
+        }
+
+        public Number getX(int series, int item) {
+            SessionID id = _model.getSessionIDAt(_key, item);
+            return new Long(id.getDate().getTime());
+        }
+
+        public Number getY(int series, int item) {
+            return new Double(getYValue(series, item));
+        }
     }
     
     public class SessionIDTableModel extends AbstractTableModel {

@@ -34,8 +34,8 @@
      	<property name="htmlparserjar" value="lib/htmlparser.jar"/>
      	<property name="bsfjar" value="lib/bsf-2.3.0.jar"/>
      	<property name="beanshelljar" value="lib/bsh-2.0b1.jar"/>
-     	<property name="jfreechartjar" value="lib/jfreechart-0.9.12.jar"/>
-     	<property name="jcommonjar" value="lib/jcommon-0.8.7.jar"/>
+     	<property name="jfreechartjar" value="lib/jfreechart-1.0.13.jar"/>
+     	<property name="jcommonjar" value="lib/jcommon-1.0.16.jar"/>
      	<property name="jhelpjar" value="lib/jhall-2.0_02.jar"/>
      	<property name="chardetjar" value="lib/chardet.jar"/>
      	<property name="tagsoupjar" value="lib/tagsoup-1.0rc2.jar"/>
