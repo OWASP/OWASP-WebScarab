@@ -34,8 +34,6 @@ package test.unit.org.owasp.webscarab.util;
 
 import org.bouncycastle.x509.extension.X509ExtensionUtil;
 import org.bouncycastle.asn1.DERBitString;
-import org.bouncycastle.asn1.ASN1InputStream;
-import java.io.ByteArrayInputStream;
 import org.bouncycastle.x509.extension.AuthorityKeyIdentifierStructure;
 import org.bouncycastle.x509.extension.SubjectKeyIdentifierStructure;
 import org.bouncycastle.asn1.x509.X509Extensions;
@@ -57,13 +55,13 @@ import org.bouncycastle.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.asn1.misc.NetscapeCertType;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.owasp.webscarab.util.SunCertificateUtils;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -71,7 +69,7 @@ import static org.junit.Assert.*;
  */
 public class SunCertificateUtilsTest {
 
-    private static final Log LOG = LogFactory.getLog(SunCertificateUtils.class);
+    private static final Log LOG = LogFactory.getLog(SunCertificateUtilsTest.class);
 
     @Test
     public void testSign() throws Exception {
@@ -98,8 +96,13 @@ public class SunCertificateUtilsTest {
         assertEquals(issuer, resultCert.getIssuerX500Principal());
         assertEquals(serialNo, resultCert.getSerialNumber());
         assertEquals(pubKey, resultCert.getPublicKey());
-        assertEquals(begin, resultCert.getNotBefore());
-        assertEquals(ends, resultCert.getNotAfter());
+        LOG.debug("expected begin: " + begin.getTime());
+        LOG.debug("actual begin: " + resultCert.getNotBefore().getTime());
+        /*
+         * BouncyCastle drops the milliseconds.
+         */
+        assertTrue(Math.abs(begin.getTime() - resultCert.getNotBefore().getTime()) < 1000);
+        assertTrue(Math.abs(ends.getTime() - resultCert.getNotAfter().getTime()) < 1000);
 
         byte[] subjectKeyIdentifierExtValue = resultCert.getExtensionValue(X509Extensions.SubjectKeyIdentifier.getId());
         assertNotNull(subjectKeyIdentifierExtValue);
@@ -110,7 +113,7 @@ public class SunCertificateUtilsTest {
         byte[] authorityKeyIdentifierExtValue = resultCert.getExtensionValue(X509Extensions.AuthorityKeyIdentifier.getId());
         AuthorityKeyIdentifierStructure authorityKeyIdentifierStructure = new AuthorityKeyIdentifierStructure(
                 authorityKeyIdentifierExtValue);
-        assertArrayEquals(new SubjectKeyIdentifierStructure(caPubKey).getKeyIdentifier(), authorityKeyIdentifierStructure.getKeyIdentifier());
+        assertArrayEquals(new AuthorityKeyIdentifierStructure(caPubKey).getKeyIdentifier(), authorityKeyIdentifierStructure.getKeyIdentifier());
 
         assertEquals(-1, resultCert.getBasicConstraints());
 
