@@ -733,6 +733,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         jPanel14.add(injectionUriTextField, gridBagConstraints);
 
         jPanel13.add(jPanel14);
@@ -759,7 +760,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         jPanel28.add(signCheckBox, gridBagConstraints);
 
-        jLabel21.setText("Key:");
+        jLabel21.setText("Key: ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
