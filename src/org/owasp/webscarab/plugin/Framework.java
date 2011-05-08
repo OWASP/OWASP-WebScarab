@@ -425,7 +425,13 @@ public class Framework {
                         Plugin plugin = (Plugin) it.next();
                         if (plugin.isRunning()) {
                             try {
+                                long t0 = System.currentTimeMillis();
                                 plugin.analyse(id, request, response, origin);
+                                long t1 = System.currentTimeMillis();
+                                long dt = t1 - t0;
+                                if (dt > 1000 * 10) {
+                                    _logger.warning("plugin " + plugin.getPluginName() + " is taking a long time to analyse conversation " + id + " (" + dt + " milliseconds)");
+                                }
                             } catch (Exception e) {
                                 _logger.warning(plugin.getPluginName() + " failed to process " + id + ": " + e);
                                 e.printStackTrace();
