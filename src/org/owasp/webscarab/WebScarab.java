@@ -35,6 +35,8 @@ import org.owasp.webscarab.plugin.fuzz.Fuzzer;
 import org.owasp.webscarab.plugin.fuzz.swing.FuzzerPanel;
 import org.owasp.webscarab.plugin.manualrequest.ManualRequest;
 import org.owasp.webscarab.plugin.manualrequest.swing.ManualRequestPanel;
+import org.owasp.webscarab.plugin.openid.OpenId;
+import org.owasp.webscarab.plugin.openid.swing.OpenIdPanel;
 import org.owasp.webscarab.plugin.proxy.BeanShell;
 import org.owasp.webscarab.plugin.proxy.BrowserCache;
 import org.owasp.webscarab.plugin.proxy.CookieTracker;
@@ -246,6 +248,11 @@ public class WebScarab {
 	framework.addPlugin(saml);
 	SamlPanel samlPanel = new SamlPanel(saml);
 	uif.addPlugin(samlPanel);
+        
+        OpenId openId = new OpenId(framework);
+        framework.addPlugin(openId);
+        OpenIdPanel openIdPanel = new OpenIdPanel(openId);
+        uif.addPlugin(openIdPanel);
     }
     
     public static void loadLitePlugins(Framework framework, Lite uif) {
