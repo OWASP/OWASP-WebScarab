@@ -52,6 +52,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private final ShowConversationAction showConversationAction;
     private final ParametersTableModel parametersTableModel;
     private final AXFetchRequestTableModel axFetchRequestTableModel;
+    private final AXFetchResponseTableModel axFetchResponseTableModel;
     
     public OpenIdPanel(OpenId openId) {
         this.openId = openId;
@@ -89,6 +90,9 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         
         this.axFetchRequestTableModel = new AXFetchRequestTableModel();
         this.axFetchRequestTable.setModel(this.axFetchRequestTableModel);
+        
+        this.axFetchResponseTableModel = new AXFetchResponseTableModel();
+        this.axFetchResponseTable.setModel(this.axFetchResponseTableModel);
     }
 
     private void addTableListeners() {
@@ -171,6 +175,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        java.awt.GridBagConstraints gridBagConstraints;
 
         openIdPopupMenu = new javax.swing.JPopupMenu();
         jSplitPane1 = new javax.swing.JSplitPane();
@@ -190,6 +195,10 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         jPanel5 = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
         axFetchResponseTable = new javax.swing.JTable();
+        jPanel6 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -280,6 +289,27 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
 
         jTabbedPane2.addTab("Attribute Exchange", jPanel3);
 
+        jPanel6.setLayout(new java.awt.GridBagLayout());
+
+        jLabel1.setText("WebScarab OpenID Plugin");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 19, 0);
+        jPanel6.add(jLabel1, gridBagConstraints);
+
+        jLabel2.setText("Copyright (C) 2011 FedICT");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        jPanel6.add(jLabel2, gridBagConstraints);
+
+        jLabel3.setText("Copyright (C) 2011 Frank Cornelis <info@frankcornelis.be>");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        jPanel6.add(jLabel3, gridBagConstraints);
+
+        jTabbedPane2.addTab("About", jPanel6);
+
         jSplitPane1.setRightComponent(jTabbedPane2);
         jTabbedPane2.getAccessibleContext().setAccessibleName("");
 
@@ -288,11 +318,15 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTable axFetchRequestTable;
     private javax.swing.JTable axFetchResponseTable;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
@@ -309,10 +343,12 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private void displayOpenID(ConversationID id) {
         this.parametersTableModel.setParameters(this.openIdModel.getParameters(id));
         this.axFetchRequestTableModel.setAttributes(this.openIdModel.getAXFetchRequestAttributes(id));
+        this.axFetchResponseTableModel.setAttributes(this.openIdModel.getAXFetchResponseAttributes(id));
     }
 
     private void resetDisplay() {
         this.parametersTableModel.resetParameters();
         this.axFetchRequestTableModel.resetAttributes();
+        this.axFetchResponseTableModel.resetAttributes();
     }
 }
