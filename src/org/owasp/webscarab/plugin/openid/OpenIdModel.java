@@ -22,8 +22,12 @@
  */
 package org.owasp.webscarab.plugin.openid;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.FilteredConversationModel;
@@ -40,6 +44,7 @@ import org.owasp.webscarab.util.Encoding;
  */
 public class OpenIdModel extends AbstractPluginModel {
 
+    private Logger _logger = Logger.getLogger(getClass().getName());
     private final FrameworkModel model;
     private final ConversationModel openIdConversationModel;
 
@@ -100,5 +105,81 @@ public class OpenIdModel extends AbstractPluginModel {
             }
         }
         return parameters;
+    }
+
+    public List getAXFetchRequestAttributes(ConversationID id) {
+        List attributes = new LinkedList();
+        Request request = this.model.getRequest(id);
+        HttpUrl url = request.getURL();
+        String query = url.getQuery();
+        if (null != query) {
+            NamedValue[] values = NamedValue.splitNamedValues(query, "&", "=");
+            // first locate the AX extension
+            String alias = null;
+            for (int i = 0; i < values.length; i++) {
+                String name = values[i].getName();
+                String value = Encoding.urlDecode(values[i].getValue());
+                if (name.startsWith("openid.ns.")) {
+                    if ("http://openid.net/srv/ax/1.0".equals(value)) {
+                        alias = name.substring("openid.ns.".length());
+                        break;
+                    }
+                }
+            }
+            if (null == alias) {
+                return attributes;
+            }
+            _logger.info("AX alias: " + alias);
+            // check the AX mode
+            boolean isFetchRequest = false;
+            for (int i = 0; i < values.length; i++) {
+                String name = values[i].getName();
+                String value = Encoding.urlDecode(values[i].getValue());
+                if (name.equals("openid." + alias + ".mode")) {
+                    if ("fetch_request".equals(value)) {
+                        isFetchRequest = true;
+                        break;
+                    }
+                }
+            }
+            if (false == isFetchRequest) {
+                return attributes;
+            }
+            // required aliases
+            Set requiredAliases = new HashSet();
+            for (int i = 0; i < values.length; i++) {
+                String name = values[i].getName();
+                String value = Encoding.urlDecode(values[i].getValue());
+                if (name.equals("openid." + alias + ".required")) {
+                    String[] aliases = value.split(",");
+                    requiredAliases.addAll(Arrays.asList(aliases));
+                    break;
+                }
+            }
+            // optional aliases
+            Set optionalAliases = new HashSet();
+            for (int i = 0; i < values.length; i++) {
+                String name = values[i].getName();
+                String value = Encoding.urlDecode(values[i].getValue());
+                if (name.equals("openid." + alias + ".if_available")) {
+                    String[] aliases = value.split(",");
+                    optionalAliases.addAll(Arrays.asList(aliases));
+                    break;
+                }
+            }
+            // get the fetch request attributes
+            for (int i = 0; i < values.length; i++) {
+                String name = values[i].getName();
+                String value = Encoding.urlDecode(values[i].getValue());
+                if (name.startsWith("openid." + alias + ".type.")) {
+                    String attributeAlias = name.substring(("openid." + alias + ".type.").length());
+                    boolean requiredAttribute = requiredAliases.contains(attributeAlias);
+                    boolean optionalAttribute = optionalAliases.contains(attributeAlias);
+                    AXFetchRequestAttribute attribute = new AXFetchRequestAttribute(value, attributeAlias, requiredAttribute, optionalAttribute);
+                    attributes.add(attribute);
+                }
+            }
+        }
+        return attributes;
     }
 }

@@ -51,6 +51,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private final OpenIdModel openIdModel;
     private final ShowConversationAction showConversationAction;
     private final ParametersTableModel parametersTableModel;
+    private final AXFetchRequestTableModel axFetchRequestTableModel;
     
     public OpenIdPanel(OpenId openId) {
         this.openId = openId;
@@ -85,6 +86,9 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         
         this.parametersTableModel = new ParametersTableModel();
         this.parametersTable.setModel(this.parametersTableModel);
+        
+        this.axFetchRequestTableModel = new AXFetchRequestTableModel();
+        this.axFetchRequestTable.setModel(this.axFetchRequestTableModel);
     }
 
     private void addTableListeners() {
@@ -178,6 +182,14 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         jPanel2 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         parametersTable = new javax.swing.JTable();
+        jPanel3 = new javax.swing.JPanel();
+        jTabbedPane3 = new javax.swing.JTabbedPane();
+        jPanel4 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        axFetchRequestTable = new javax.swing.JTable();
+        jPanel5 = new javax.swing.JPanel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        axFetchResponseTable = new javax.swing.JTable();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -224,18 +236,71 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
 
         jTabbedPane2.addTab("Parameters", jPanel2);
 
+        jPanel3.setLayout(new java.awt.BorderLayout());
+
+        jPanel4.setLayout(new java.awt.BorderLayout());
+
+        axFetchRequestTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane3.setViewportView(axFetchRequestTable);
+
+        jPanel4.add(jScrollPane3, java.awt.BorderLayout.CENTER);
+
+        jTabbedPane3.addTab("Fetch Request", jPanel4);
+
+        jPanel5.setLayout(new java.awt.BorderLayout());
+
+        axFetchResponseTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane4.setViewportView(axFetchResponseTable);
+
+        jPanel5.add(jScrollPane4, java.awt.BorderLayout.CENTER);
+
+        jTabbedPane3.addTab("Fetch Response", jPanel5);
+
+        jPanel3.add(jTabbedPane3, java.awt.BorderLayout.CENTER);
+
+        jTabbedPane2.addTab("Attribute Exchange", jPanel3);
+
         jSplitPane1.setRightComponent(jTabbedPane2);
+        jTabbedPane2.getAccessibleContext().setAccessibleName("");
 
         add(jSplitPane1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTable axFetchRequestTable;
+    private javax.swing.JTable axFetchResponseTable;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTabbedPane jTabbedPane2;
+    private javax.swing.JTabbedPane jTabbedPane3;
     private javax.swing.JPopupMenu openIdPopupMenu;
     private javax.swing.JTable openIdTable;
     private javax.swing.JTable parametersTable;
@@ -243,9 +308,11 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
 
     private void displayOpenID(ConversationID id) {
         this.parametersTableModel.setParameters(this.openIdModel.getParameters(id));
+        this.axFetchRequestTableModel.setAttributes(this.openIdModel.getAXFetchRequestAttributes(id));
     }
 
     private void resetDisplay() {
         this.parametersTableModel.resetParameters();
+        this.axFetchRequestTableModel.resetAttributes();
     }
 }
