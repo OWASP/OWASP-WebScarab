@@ -34,6 +34,7 @@ import javax.swing.table.TableModel;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.plugin.openid.OpenId;
 import org.owasp.webscarab.plugin.openid.OpenIdModel;
+import org.owasp.webscarab.plugin.openid.PAPEResponse;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;
 import org.owasp.webscarab.ui.swing.ShowConversationAction;
@@ -46,7 +47,7 @@ import org.owasp.webscarab.util.swing.TableSorter;
  * @author Frank Cornelis
  */
 public class OpenIdPanel extends JPanel implements SwingPluginUI {
-
+    
     private final OpenId openId;
     private final OpenIdModel openIdModel;
     private final ShowConversationAction showConversationAction;
@@ -58,24 +59,24 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         this.openId = openId;
         this.openIdModel = openId.getModel();
         initComponents();
-
+        
         this.showConversationAction = new ShowConversationAction(this.openIdModel.getOpenIDConversationModel());
         this.openIdPopupMenu.add(new JMenuItem(this.showConversationAction));
         
         ConversationTableModel openIdTableModel = new ConversationTableModel(
                 this.openIdModel.getOpenIDConversationModel());
         openIdTableModel.addColumn(new ColumnDataModel() {
-
+            
             public String getColumnName() {
                 return "OpenID Type";
             }
-
+            
             public Object getValue(Object key) {
                 ConversationID conversationId = (ConversationID) key;
                 return OpenIdPanel.this.openIdModel.getReadableOpenIDMessageType(
                         conversationId);
             }
-
+            
             public Class getColumnClass() {
                 return String.class;
             }
@@ -94,10 +95,10 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         this.axFetchResponseTableModel = new AXFetchResponseTableModel();
         this.axFetchResponseTable.setModel(this.axFetchResponseTableModel);
     }
-
+    
     private void addTableListeners() {
         this.openIdTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
+            
             public void valueChanged(ListSelectionEvent e) {
                 if (e.getValueIsAdjusting()) {
                     return;
@@ -117,15 +118,15 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
             }
         });
         this.openIdTable.addMouseListener(new MouseAdapter() {
-
+            
             public void mousePressed(MouseEvent e) {
                 maybeShowPopup(e);
             }
-
+            
             public void mouseReleased(MouseEvent e) {
                 maybeShowPopup(e);
             }
-
+            
             private void maybeShowPopup(MouseEvent e) {
                 int row = OpenIdPanel.this.openIdTable.rowAtPoint(e.getPoint());
                 OpenIdPanel.this.openIdTable.getSelectionModel().setSelectionInterval(row, row);
@@ -133,7 +134,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
                     OpenIdPanel.this.openIdPopupMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
-
+            
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
                     ActionEvent actionEvent = new ActionEvent(OpenIdPanel.this.openIdTable, 0, (String) OpenIdPanel.this.showConversationAction.getValue(Action.ACTION_COMMAND_KEY));
@@ -146,23 +147,23 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     public JPanel getPanel() {
         return this;
     }
-
+    
     public Action[] getUrlActions() {
         return null;
     }
-
+    
     public ColumnDataModel[] getUrlColumns() {
         return null;
     }
-
+    
     public Action[] getConversationActions() {
         return null;
     }
-
+    
     public ColumnDataModel[] getConversationColumns() {
         return null;
     }
-
+    
     public String getPluginName() {
         return this.openId.getPluginName();
     }
@@ -195,6 +196,21 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         jPanel5 = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
         axFetchResponseTable = new javax.swing.JTable();
+        jPanel7 = new javax.swing.JPanel();
+        jTabbedPane4 = new javax.swing.JTabbedPane();
+        jPanel8 = new javax.swing.JPanel();
+        jPanel9 = new javax.swing.JPanel();
+        jLabel4 = new javax.swing.JLabel();
+        papeAuthnTimeLabel = new javax.swing.JLabel();
+        jPanel10 = new javax.swing.JPanel();
+        jLabel5 = new javax.swing.JLabel();
+        phishingResistantCheckBox = new javax.swing.JCheckBox();
+        jLabel6 = new javax.swing.JLabel();
+        multiFactorCheckBox = new javax.swing.JCheckBox();
+        jLabel7 = new javax.swing.JLabel();
+        physicalMultiFactorCheckBox = new javax.swing.JCheckBox();
+        jLabel8 = new javax.swing.JLabel();
+        papeSignedCheckBox = new javax.swing.JCheckBox();
         jPanel6 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -289,6 +305,96 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
 
         jTabbedPane2.addTab("Attribute Exchange", jPanel3);
 
+        jPanel7.setLayout(new java.awt.BorderLayout());
+
+        jPanel8.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jPanel9.setLayout(new java.awt.GridBagLayout());
+
+        jLabel4.setText("Authentication time:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.ipadx = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanel9.add(jLabel4, gridBagConstraints);
+
+        papeAuthnTimeLabel.setText("       ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel9.add(papeAuthnTimeLabel, gridBagConstraints);
+
+        jPanel10.setBorder(javax.swing.BorderFactory.createTitledBorder("Authentication Policies"));
+        jPanel10.setLayout(new java.awt.GridBagLayout());
+
+        jLabel5.setText("Phishing-Resistant Authentication:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel10.add(jLabel5, gridBagConstraints);
+
+        phishingResistantCheckBox.setEnabled(false);
+        jPanel10.add(phishingResistantCheckBox, new java.awt.GridBagConstraints());
+
+        jLabel6.setText("Multi-Factor Authentication:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel10.add(jLabel6, gridBagConstraints);
+
+        multiFactorCheckBox.setEnabled(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        jPanel10.add(multiFactorCheckBox, gridBagConstraints);
+
+        jLabel7.setText("Physical Multi-Factor Authentication:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel10.add(jLabel7, gridBagConstraints);
+
+        physicalMultiFactorCheckBox.setEnabled(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        jPanel10.add(physicalMultiFactorCheckBox, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 5, 0);
+        jPanel9.add(jPanel10, gridBagConstraints);
+
+        jLabel8.setText("Signed:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.ipadx = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel9.add(jLabel8, gridBagConstraints);
+
+        papeSignedCheckBox.setEnabled(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel9.add(papeSignedCheckBox, gridBagConstraints);
+
+        jPanel8.add(jPanel9);
+
+        jTabbedPane4.addTab("Response Parameters", jPanel8);
+
+        jPanel7.add(jTabbedPane4, java.awt.BorderLayout.CENTER);
+
+        jTabbedPane2.addTab("PAPE", jPanel7);
+
         jPanel6.setLayout(new java.awt.GridBagLayout());
 
         jLabel1.setText("WebScarab OpenID Plugin");
@@ -321,12 +427,21 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
+    private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
@@ -335,20 +450,44 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JTabbedPane jTabbedPane3;
+    private javax.swing.JTabbedPane jTabbedPane4;
+    private javax.swing.JCheckBox multiFactorCheckBox;
     private javax.swing.JPopupMenu openIdPopupMenu;
     private javax.swing.JTable openIdTable;
+    private javax.swing.JLabel papeAuthnTimeLabel;
+    private javax.swing.JCheckBox papeSignedCheckBox;
     private javax.swing.JTable parametersTable;
+    private javax.swing.JCheckBox phishingResistantCheckBox;
+    private javax.swing.JCheckBox physicalMultiFactorCheckBox;
     // End of variables declaration//GEN-END:variables
 
     private void displayOpenID(ConversationID id) {
+        resetDisplay();
         this.parametersTableModel.setParameters(this.openIdModel.getParameters(id));
         this.axFetchRequestTableModel.setAttributes(this.openIdModel.getAXFetchRequestAttributes(id));
         this.axFetchResponseTableModel.setAttributes(this.openIdModel.getAXFetchResponseAttributes(id));
+        PAPEResponse papeResponse = this.openIdModel.getPAPEResponse(id);
+        if (null != papeResponse) {
+            if (null != papeResponse.getAuthenticationTime()) {
+                this.papeAuthnTimeLabel.setText(papeResponse.getAuthenticationTime().toString());
+            } else {
+                this.papeAuthnTimeLabel.setText("Not provided.");
+            }
+            this.phishingResistantCheckBox.setSelected(papeResponse.isPhishingResistant());
+            this.multiFactorCheckBox.setSelected(papeResponse.isMultiFactor());
+            this.physicalMultiFactorCheckBox.setSelected(papeResponse.isMultiFactorPhysical());
+            this.papeSignedCheckBox.setSelected(papeResponse.isSigned());
+        }
     }
-
+    
     private void resetDisplay() {
         this.parametersTableModel.resetParameters();
         this.axFetchRequestTableModel.resetAttributes();
         this.axFetchResponseTableModel.resetAttributes();
+        this.papeAuthnTimeLabel.setText("");
+        this.phishingResistantCheckBox.setSelected(false);
+        this.multiFactorCheckBox.setSelected(false);
+        this.physicalMultiFactorCheckBox.setSelected(false);
+        this.papeSignedCheckBox.setSelected(false);
     }
 }

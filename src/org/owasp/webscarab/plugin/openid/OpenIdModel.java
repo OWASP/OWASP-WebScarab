@@ -46,37 +46,37 @@ import org.owasp.webscarab.util.Encoding;
  * @author Frank Cornelis
  */
 public class OpenIdModel extends AbstractPluginModel {
-    
+
     private Logger _logger = Logger.getLogger(getClass().getName());
     private final FrameworkModel model;
     private final ConversationModel openIdConversationModel;
-    
+
     public OpenIdModel(FrameworkModel model) {
         this.model = model;
         this.openIdConversationModel = new FilteredConversationModel(model, model.getConversationModel()) {
-            
+
             public boolean shouldFilter(ConversationID id) {
                 return !isOpenIDMessage(id);
             }
         };
     }
-    
+
     public void setOpenIDMessage(ConversationID id, String namespace) {
         this.model.setConversationProperty(id, "OPENID", namespace);
     }
-    
+
     public boolean isOpenIDMessage(ConversationID id) {
         return this.model.getConversationProperty(id, "OPENID") != null;
     }
-    
+
     public ConversationModel getOpenIDConversationModel() {
         return this.openIdConversationModel;
     }
-    
+
     public void setOpenIDMessageType(ConversationID id, String messageType) {
         this.model.setConversationProperty(id, "OPENID_MODE", messageType);
     }
-    
+
     public String getReadableOpenIDMessageType(ConversationID id) {
         String openIdMode = this.model.getConversationProperty(id, "OPENID_MODE");
         if (null == openIdMode) {
@@ -90,7 +90,7 @@ public class OpenIdModel extends AbstractPluginModel {
         }
         return "Unknown";
     }
-    
+
     public List getParameters(ConversationID id) {
         List parameters = new LinkedList();
         Request request = this.model.getRequest(id);
@@ -109,7 +109,7 @@ public class OpenIdModel extends AbstractPluginModel {
         }
         return parameters;
     }
-    
+
     public List getAXFetchRequestAttributes(ConversationID id) {
         List attributes = new LinkedList();
         Request request = this.model.getRequest(id);
@@ -185,7 +185,7 @@ public class OpenIdModel extends AbstractPluginModel {
         }
         return attributes;
     }
-    
+
     public List getAXFetchResponseAttributes(ConversationID id) {
         List attributes = new LinkedList();
         Request request = this.model.getRequest(id);
@@ -270,5 +270,73 @@ public class OpenIdModel extends AbstractPluginModel {
             }
         }
         return attributes;
+    }
+
+    public PAPEResponse getPAPEResponse(ConversationID id) {
+        Request request = this.model.getRequest(id);
+        HttpUrl url = request.getURL();
+        String query = url.getQuery();
+        if (null == query) {
+            return null;
+        }
+        NamedValue[] values = NamedValue.splitNamedValues(query, "&", "=");
+        // first locate the PAPE extension
+        String alias = null;
+        for (int i = 0; i < values.length; i++) {
+            String name = values[i].getName();
+            String value = Encoding.urlDecode(values[i].getValue());
+            if (name.startsWith("openid.ns.")) {
+                if ("http://specs.openid.net/extensions/pape/1.0".equals(value)) {
+                    alias = name.substring("openid.ns.".length());
+                    break;
+                }
+            }
+        }
+        if (null == alias) {
+            return null;
+        }
+        // signed aliases
+        Set signedAliases = new HashSet();
+        for (int i = 0; i < values.length; i++) {
+            String name = values[i].getName();
+            String value = Encoding.urlDecode(values[i].getValue());
+            if (name.equals("openid.signed")) {
+                String[] aliases = value.split(",");
+                signedAliases.addAll(Arrays.asList(aliases));
+                break;
+            }
+        }
+        PAPEResponse papeResponse = new PAPEResponse();
+        boolean signed = true;
+        for (int i = 0; i < values.length; i++) {
+            String name = values[i].getName();
+            String value = Encoding.urlDecode(values[i].getValue());
+            if (name.startsWith("openid." + alias)) {
+                String expectedSignedAlias = name.substring("openid.".length());
+                if (false == signedAliases.contains(expectedSignedAlias)) {
+                    signed = false;
+                }
+            }
+            if (name.equals("openid." + alias + ".auth_time")) {
+                papeResponse.setAuthenticationTime(value);
+            } else if (name.equals("openid." + alias + ".auth_policies")) {
+                String[] authPolicies = value.split(" ");
+                Set authPoliciesSet = new HashSet(Arrays.asList(authPolicies));
+                if (authPoliciesSet.contains("http://schemas.openid.net/pape/policies/2007/06/phishing-resistant")) {
+                    papeResponse.setPhishingResistant(true);
+                }
+                if (authPoliciesSet.contains("http://schemas.openid.net/pape/policies/2007/06/multi-factor")) {
+                    papeResponse.setMultiFactor(true);
+                }
+                if (authPoliciesSet.contains("http://schemas.openid.net/pape/policies/2007/06/multi-factor-physical")) {
+                    papeResponse.setMultiFactorPhysical(true);
+                }
+            }
+        }
+        if (false == signedAliases.contains("ns." + alias)) {
+            signed = false;
+        }
+        papeResponse.setSigned(signed);
+        return papeResponse;
     }
 }
