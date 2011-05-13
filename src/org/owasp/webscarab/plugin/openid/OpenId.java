@@ -42,10 +42,12 @@ public class OpenId implements Plugin {
 
     private Logger _logger = Logger.getLogger(getClass().getName());
     private final OpenIdModel openIdModel;
+    private final OpenIdProxy openIdProxy;
     private Thread _runThread = null;
 
-    public OpenId(Framework framework) {
+    public OpenId(Framework framework, OpenIdProxy openIdProxy) {
         this.openIdModel = new OpenIdModel(framework.getModel());
+        this.openIdProxy = openIdProxy;
     }
 
     public String getPluginName() {
@@ -133,5 +135,9 @@ public class OpenId implements Plugin {
 
     public OpenIdModel getModel() {
         return this.openIdModel;
+    }
+    
+    public OpenIdProxy getOpenIdProxy() {
+        return this.openIdProxy;
     }
 }

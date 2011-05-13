@@ -23,6 +23,7 @@
 package org.owasp.webscarab.plugin.openid.swing;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.Action;
@@ -34,6 +35,7 @@ import javax.swing.table.TableModel;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.plugin.openid.OpenId;
 import org.owasp.webscarab.plugin.openid.OpenIdModel;
+import org.owasp.webscarab.plugin.openid.OpenIdProxy;
 import org.owasp.webscarab.plugin.openid.PAPEResponse;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;
@@ -184,6 +186,10 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         openIdTable = new javax.swing.JTable();
+        jPanel11 = new javax.swing.JPanel();
+        jPanel12 = new javax.swing.JPanel();
+        jPanel13 = new javax.swing.JPanel();
+        corruptResponseSignatureCheckBox = new javax.swing.JCheckBox();
         jTabbedPane2 = new javax.swing.JTabbedPane();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -239,6 +245,27 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
         jTabbedPane1.addTab("Messages", jPanel1);
+
+        jPanel11.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jPanel12.setLayout(new java.awt.BorderLayout());
+
+        jPanel13.setBorder(javax.swing.BorderFactory.createTitledBorder("Signature Integrity Attack"));
+        jPanel13.setLayout(new java.awt.BorderLayout());
+
+        corruptResponseSignatureCheckBox.setText("Corrupt Response Signature");
+        corruptResponseSignatureCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                corruptResponseSignatureCheckBoxItemStateChanged(evt);
+            }
+        });
+        jPanel13.add(corruptResponseSignatureCheckBox, java.awt.BorderLayout.CENTER);
+
+        jPanel12.add(jPanel13, java.awt.BorderLayout.CENTER);
+
+        jPanel11.add(jPanel12);
+
+        jTabbedPane1.addTab("Signature Attacks", jPanel11);
 
         jSplitPane1.setTopComponent(jTabbedPane1);
 
@@ -421,9 +448,17 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
 
         add(jSplitPane1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void corruptResponseSignatureCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_corruptResponseSignatureCheckBoxItemStateChanged
+        boolean corruptSignature = evt.getStateChange() == ItemEvent.SELECTED;
+        OpenIdProxy openIdProxy = this.openId.getOpenIdProxy();
+        openIdProxy.setCorruptSignature(corruptSignature);
+    }//GEN-LAST:event_corruptResponseSignatureCheckBoxItemStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTable axFetchRequestTable;
     private javax.swing.JTable axFetchResponseTable;
+    private javax.swing.JCheckBox corruptResponseSignatureCheckBox;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -434,6 +469,9 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
+    private javax.swing.JPanel jPanel11;
+    private javax.swing.JPanel jPanel12;
+    private javax.swing.JPanel jPanel13;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
