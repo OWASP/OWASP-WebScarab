@@ -94,10 +94,23 @@ public class OpenIdModel extends AbstractPluginModel {
     public List getParameters(ConversationID id) {
         List parameters = new LinkedList();
         Request request = this.model.getRequest(id);
-        HttpUrl url = request.getURL();
-        String query = url.getQuery();
-        if (null != query) {
-            NamedValue[] values = NamedValue.splitNamedValues(query, "&", "=");
+        NamedValue[] values = null;
+        String method = request.getMethod();
+        if ("GET".equals(method)) {
+            HttpUrl url = request.getURL();
+            String query = url.getQuery();
+            if (null != query) {
+                values = NamedValue.splitNamedValues(query, "&", "=");
+            }
+        } else if ("POST".equals(method)) {
+            byte[] requestContent = request.getContent();
+            if (requestContent != null && requestContent.length > 0) {
+                String body = new String(requestContent);
+                values = NamedValue.splitNamedValues(
+                        body, "&", "=");
+            }
+        }
+        if (null != values) {
             for (int i = 0; i < values.length; i++) {
                 String name = values[i].getName();
                 String value = Encoding.urlDecode(values[i].getValue());
@@ -113,10 +126,23 @@ public class OpenIdModel extends AbstractPluginModel {
     public List getAXFetchRequestAttributes(ConversationID id) {
         List attributes = new LinkedList();
         Request request = this.model.getRequest(id);
-        HttpUrl url = request.getURL();
-        String query = url.getQuery();
-        if (null != query) {
-            NamedValue[] values = NamedValue.splitNamedValues(query, "&", "=");
+        String method = request.getMethod();
+        NamedValue[] values = null;
+        if ("GET".equals(method)) {
+            HttpUrl url = request.getURL();
+            String query = url.getQuery();
+            if (null != query) {
+                values = NamedValue.splitNamedValues(query, "&", "=");
+            }
+        } else if ("POST".equals(method)) {
+            byte[] requestContent = request.getContent();
+            if (requestContent != null && requestContent.length > 0) {
+                String body = new String(requestContent);
+                values = NamedValue.splitNamedValues(
+                        body, "&", "=");
+            }
+        }
+        if (null != values) {
             // first locate the AX extension
             String alias = null;
             for (int i = 0; i < values.length; i++) {
@@ -189,10 +215,23 @@ public class OpenIdModel extends AbstractPluginModel {
     public List getAXFetchResponseAttributes(ConversationID id) {
         List attributes = new LinkedList();
         Request request = this.model.getRequest(id);
-        HttpUrl url = request.getURL();
-        String query = url.getQuery();
-        if (null != query) {
-            NamedValue[] values = NamedValue.splitNamedValues(query, "&", "=");
+        String method = request.getMethod();
+        NamedValue[] values = null;
+        if ("GET".equals(method)) {
+            HttpUrl url = request.getURL();
+            String query = url.getQuery();
+            if (null != query) {
+                values = NamedValue.splitNamedValues(query, "&", "=");
+            }
+        } else if ("POST".equals(method)) {
+            byte[] requestContent = request.getContent();
+            if (requestContent != null && requestContent.length > 0) {
+                String body = new String(requestContent);
+                values = NamedValue.splitNamedValues(
+                        body, "&", "=");
+            }
+        }
+        if (null != values) {
             // first locate the AX extension
             String alias = null;
             for (int i = 0; i < values.length; i++) {
@@ -274,12 +313,25 @@ public class OpenIdModel extends AbstractPluginModel {
 
     public PAPEResponse getPAPEResponse(ConversationID id) {
         Request request = this.model.getRequest(id);
-        HttpUrl url = request.getURL();
-        String query = url.getQuery();
-        if (null == query) {
+        String method = request.getMethod();
+        NamedValue[] values = null;
+        if ("GET".equals(method)) {
+            HttpUrl url = request.getURL();
+            String query = url.getQuery();
+            if (null != query) {
+                values = NamedValue.splitNamedValues(query, "&", "=");
+            }
+        } else if ("POST".equals(method)) {
+            byte[] requestContent = request.getContent();
+            if (requestContent != null && requestContent.length > 0) {
+                String body = new String(requestContent);
+                values = NamedValue.splitNamedValues(
+                        body, "&", "=");
+            }
+        }
+        if (null == values) {
             return null;
         }
-        NamedValue[] values = NamedValue.splitNamedValues(query, "&", "=");
         // first locate the PAPE extension
         String alias = null;
         for (int i = 0; i < values.length; i++) {

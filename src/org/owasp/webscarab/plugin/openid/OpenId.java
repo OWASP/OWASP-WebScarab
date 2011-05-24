@@ -39,31 +39,31 @@ import org.owasp.webscarab.util.Encoding;
  * @author Frank Cornelis
  */
 public class OpenId implements Plugin {
-
+    
     private Logger _logger = Logger.getLogger(getClass().getName());
     private final OpenIdModel openIdModel;
     private final OpenIdProxy openIdProxy;
     private Thread _runThread = null;
-
+    
     public OpenId(Framework framework, OpenIdProxy openIdProxy) {
         this.openIdModel = new OpenIdModel(framework.getModel());
         this.openIdProxy = openIdProxy;
     }
-
+    
     public String getPluginName() {
         return "OpenID";
     }
-
+    
     public void setSession(String type, Object store, String session) throws StoreException {
         // empty
     }
-
+    
     public void run() {
         this.openIdModel.setStatus("Started");
-
+        
         this.openIdModel.setRunning(true);
         this._runThread = Thread.currentThread();
-
+        
         this.openIdModel.setStopping(false);
         while (!this.openIdModel.isStopping()) {
             try {
@@ -74,19 +74,19 @@ public class OpenId implements Plugin {
         this.openIdModel.setRunning(false);
         this.openIdModel.setStatus("Stopped");
     }
-
+    
     public boolean isRunning() {
         return this.openIdModel.isRunning();
     }
-
+    
     public boolean isBusy() {
         return this.openIdModel.isBusy();
     }
-
+    
     public String getStatus() {
         return this.openIdModel.getStatus();
     }
-
+    
     public boolean stop() {
         this.openIdModel.setStopping(true);
         try {
@@ -96,15 +96,15 @@ public class OpenId implements Plugin {
         }
         return !this.openIdModel.isRunning();
     }
-
+    
     public boolean isModified() {
         return this.openIdModel.isModified();
     }
-
+    
     public void flush() throws StoreException {
         // empty
     }
-
+    
     public void analyse(ConversationID id, Request request, Response response, String origin) {
         String method = request.getMethod();
         if ("GET".equals(method)) {
@@ -123,16 +123,33 @@ public class OpenId implements Plugin {
                 }
             }
         }
+        if ("POST".equals(method)) {
+            byte[] requestContent = request.getContent();
+            if (requestContent != null && requestContent.length > 0) {
+                String body = new String(requestContent);
+                NamedValue[] namedValues = NamedValue.splitNamedValues(
+                        body, "&", "=");
+                for (int idx = 0; idx < namedValues.length; idx++) {
+                    String name = namedValues[idx].getName();
+                    String value = Encoding.urlDecode(namedValues[idx].getValue());
+                    if ("openid.ns".equals(name)) {
+                        this.openIdModel.setOpenIDMessage(id, value);
+                    } else if ("openid.mode".equals(name)) {
+                        this.openIdModel.setOpenIDMessageType(id, value);
+                    }
+                }
+            }
+        }
     }
-
+    
     public Hook[] getScriptingHooks() {
         return new Hook[0];
     }
-
+    
     public Object getScriptableObject() {
         return null;
     }
-
+    
     public OpenIdModel getModel() {
         return this.openIdModel;
     }
