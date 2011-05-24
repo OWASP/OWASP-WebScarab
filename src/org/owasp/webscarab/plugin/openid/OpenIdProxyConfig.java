@@ -32,4 +32,6 @@ public interface OpenIdProxyConfig {
     boolean doSomething();
     
     boolean doCorruptSignature();
+    
+    boolean doRemoveSignature();
 }

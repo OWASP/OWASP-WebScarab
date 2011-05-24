@@ -190,6 +190,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         jPanel12 = new javax.swing.JPanel();
         jPanel13 = new javax.swing.JPanel();
         corruptResponseSignatureCheckBox = new javax.swing.JCheckBox();
+        removeResponseSignatureCheckBox = new javax.swing.JCheckBox();
         jTabbedPane2 = new javax.swing.JTabbedPane();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -251,7 +252,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         jPanel12.setLayout(new java.awt.BorderLayout());
 
         jPanel13.setBorder(javax.swing.BorderFactory.createTitledBorder("Signature Integrity Attack"));
-        jPanel13.setLayout(new java.awt.BorderLayout());
+        jPanel13.setLayout(new java.awt.GridBagLayout());
 
         corruptResponseSignatureCheckBox.setText("Corrupt Response Signature");
         corruptResponseSignatureCheckBox.addItemListener(new java.awt.event.ItemListener() {
@@ -259,7 +260,21 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
                 corruptResponseSignatureCheckBoxItemStateChanged(evt);
             }
         });
-        jPanel13.add(corruptResponseSignatureCheckBox, java.awt.BorderLayout.CENTER);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel13.add(corruptResponseSignatureCheckBox, gridBagConstraints);
+
+        removeResponseSignatureCheckBox.setText("Remove Response Signature");
+        removeResponseSignatureCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                removeResponseSignatureCheckBoxItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel13.add(removeResponseSignatureCheckBox, gridBagConstraints);
 
         jPanel12.add(jPanel13, java.awt.BorderLayout.CENTER);
 
@@ -455,6 +470,12 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         openIdProxy.setCorruptSignature(corruptSignature);
     }//GEN-LAST:event_corruptResponseSignatureCheckBoxItemStateChanged
 
+    private void removeResponseSignatureCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_removeResponseSignatureCheckBoxItemStateChanged
+        boolean removeSignature = evt.getStateChange() == ItemEvent.SELECTED;
+        OpenIdProxy openIdProxy = this.openId.getOpenIdProxy();
+        openIdProxy.setRemoveSignature(removeSignature);
+    }//GEN-LAST:event_removeResponseSignatureCheckBoxItemStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTable axFetchRequestTable;
     private javax.swing.JTable axFetchResponseTable;
@@ -497,6 +518,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private javax.swing.JTable parametersTable;
     private javax.swing.JCheckBox phishingResistantCheckBox;
     private javax.swing.JCheckBox physicalMultiFactorCheckBox;
+    private javax.swing.JCheckBox removeResponseSignatureCheckBox;
     // End of variables declaration//GEN-END:variables
 
     private void displayOpenID(ConversationID id) {

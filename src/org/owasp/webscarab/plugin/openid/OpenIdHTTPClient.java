@@ -59,6 +59,9 @@ public class OpenIdHTTPClient implements HTTPClient {
         if (this.openIdProxyConfig.doCorruptSignature()) {
             openIdProxyHeader += corruptSignature(request);
         }
+        if (this.openIdProxyConfig.doRemoveSignature()) {
+            openIdProxyHeader += removeSignature(request);
+        }
 
         if (false == openIdProxyHeader.isEmpty()) {
             request.addHeader("X-OpenIDProxy", openIdProxyHeader);
@@ -66,6 +69,38 @@ public class OpenIdHTTPClient implements HTTPClient {
 
         Response response = this.httpClient.fetchResponse(request);
         return response;
+    }
+
+    private String removeSignature(Request request) {
+        HttpUrl httpUrl = request.getURL();
+        String query = httpUrl.getQuery();
+        if (null == query) {
+            return "";
+        }
+        NamedValue[] values = NamedValue.splitNamedValues(query, "&", "=");
+        boolean removedSignature = false;
+        for (int i = 0; i < values.length; i++) {
+            String name = values[i].getName();
+            String value = Encoding.urlDecode(values[i].getValue());
+            if ("openid.sig".equals(name)) {
+                values[i] = null;
+                removedSignature = true;
+            }
+            if ("openid.signed".equals(name)) {
+                values[i] = null;
+                removedSignature = true;
+            }
+        }
+        if (false == removedSignature) {
+            return "";
+        }
+        try {
+            setNewUrl(httpUrl, values, request);
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
+            return "";
+        }
+        return "remove signature;";
     }
 
     private String corruptSignature(Request request) {
@@ -91,21 +126,28 @@ public class OpenIdHTTPClient implements HTTPClient {
         if (false == corruptedSignature) {
             return "";
         }
-        StringBuffer stringBuffer = new StringBuffer("?");
-        for (int i = 0; i < values.length; i++) {
-            stringBuffer.append(values[i].getName());
-            stringBuffer.append("=");
-            stringBuffer.append(values[i].getValue());
-            if (i < values.length - 1) {
-                stringBuffer.append("&");
-            }
-        }
         try {
-            request.setURL(new HttpUrl(httpUrl.getSHPP() + stringBuffer.toString()));
+            setNewUrl(httpUrl, values, request);
         } catch (MalformedURLException ex) {
             Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
             return "";
         }
         return "corrupt signature;";
+    }
+
+    public void setNewUrl(HttpUrl httpUrl, NamedValue[] values, Request request) throws MalformedURLException {
+        StringBuffer stringBuffer = new StringBuffer("?");
+        for (int i = 0; i < values.length; i++) {
+            if (null == values[i]) {
+                continue;
+            }
+            if (stringBuffer.length() > 1) {
+                stringBuffer.append("&");
+            }
+            stringBuffer.append(values[i].getName());
+            stringBuffer.append("=");
+            stringBuffer.append(values[i].getValue());
+        }
+        request.setURL(new HttpUrl(httpUrl.getSHPP() + stringBuffer.toString()));
     }
 }

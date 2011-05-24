@@ -33,6 +33,7 @@ import org.owasp.webscarab.plugin.proxy.ProxyPlugin;
 public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
     
     private boolean corruptSignature;
+    private boolean removeSignature;
     private boolean attack;
     
     public String getPluginName() {
@@ -48,7 +49,7 @@ public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
     }
     
     private void updateAttackState() {
-        this.attack = this.corruptSignature;
+        this.attack = this.corruptSignature || this.removeSignature;
     }
 
     public void setCorruptSignature(boolean corruptSignature) {
@@ -58,5 +59,14 @@ public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
 
     public boolean doCorruptSignature() {
         return this.corruptSignature;
+    }
+
+    public void setRemoveSignature(boolean removeSignature) {
+        this.removeSignature = removeSignature;
+        updateAttackState();
+    }
+
+    public boolean doRemoveSignature() {
+        return this.removeSignature;
     }
 }
