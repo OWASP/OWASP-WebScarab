@@ -97,41 +97,6 @@ public class SamlHTTPClient implements HTTPClient {
 
         changeSamlResponse(request);
 
-        String samlProxyHeader = "";
-        if (this.samlProxyConfig.doReplay()) {
-            samlProxyHeader += "replayed;";
-        }
-        
-        if (this.samlProxyConfig.doInjectAttribute()) {
-            samlProxyHeader += "injected attribute;";
-        }
-        if (this.samlProxyConfig.doInjectSubject()) {
-            samlProxyHeader += "injected subject;";
-        }
-        if (this.samlProxyConfig.doInjectPublicDoctype()) {
-            samlProxyHeader += "injected public doctype;";
-        }
-        if (this.samlProxyConfig.doInjectRelayState()) {
-            samlProxyHeader += "injected relay state;";
-        }
-        
-        if (this.samlProxyConfig.doSignSamlMessage()) {
-            samlProxyHeader += "sign;";
-        } else if (this.samlProxyConfig.doRemoveSignature()) {
-            samlProxyHeader += "removed signature;";
-        } else {
-            if (this.samlProxyConfig.doCorruptSignature()) {
-                samlProxyHeader += "corrupted signature;";
-            }
-            if (this.samlProxyConfig.doInjectRemoteReference()) {
-                samlProxyHeader += "injected remote reference;";
-            }
-        }
-
-        if (samlProxyHeader.length() > 0) {
-            request.addHeader("X-SAMLProxy", samlProxyHeader);
-        }
-
         Response response = this.in.fetchResponse(request);
         return response;
     }
@@ -159,11 +124,13 @@ public class SamlHTTPClient implements HTTPClient {
         NamedValue[] namedValues = NamedValue.splitNamedValues(
                 body, "&", "=");
         boolean samlResponseMessage = false;
+        String samlProxyHeader = "";
         for (int idx = 0; idx < namedValues.length; idx++) {
             if ("RelayState".equals(namedValues[idx].getName())) {
                 if (this.samlProxyConfig.doInjectRelayState()) {
                     String newRelayState = getInjectedRelayState();
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newRelayState);
+                    samlProxyHeader += "injected relay state;";
                 }
             }
 
@@ -176,35 +143,43 @@ public class SamlHTTPClient implements HTTPClient {
                 if (this.samlProxyConfig.doReplay()) {
                     String newSamlResponse = replaySamlResponse();
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    samlProxyHeader += "replayed;";
                 }
 
                 if (this.samlProxyConfig.doInjectAttribute()) {
                     String newSamlResponse = injectAttribute(namedValues[idx].getValue());
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    samlProxyHeader += "injected attribute;";
                 }
                 if (this.samlProxyConfig.doInjectSubject()) {
                     String newSamlResponse = injectSubject(namedValues[idx].getValue());
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    samlProxyHeader += "injected subject;";
                 }
                 if (this.samlProxyConfig.doInjectPublicDoctype()) {
                     String newSamlResponse = injectPublicDoctype(namedValues[idx].getValue());
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    samlProxyHeader += "injected public doctype;";
                 }
-                
+
                 if (this.samlProxyConfig.doSignSamlMessage()) {
                     String newSamlResponse = signSamlMessage(namedValues[idx].getValue());
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    samlProxyHeader += "sign;";
                 } else if (this.samlProxyConfig.doRemoveSignature()) {
                     String newSamlResponse = removeSamlResponseSignature(namedValues[idx].getValue());
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    samlProxyHeader += "removed signature;";
                 } else {
                     if (this.samlProxyConfig.doCorruptSignature()) {
                         String newSamlResponse = corruptSamlResponseSignature(namedValues[idx].getValue());
                         namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                        samlProxyHeader += "corrupted signature;";
                     }
                     if (this.samlProxyConfig.doInjectRemoteReference()) {
                         String newSamlResponse = injectRemoteReference(namedValues[idx].getValue());
                         namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                        samlProxyHeader += "injected remote reference;";
                     }
                 }
             } catch (Exception ex) {
@@ -227,6 +202,10 @@ public class SamlHTTPClient implements HTTPClient {
             newBody.append(namedValue.getValue());
         }
         request.setContent(newBody.toString().getBytes());
+
+        if (samlProxyHeader.length() > 0) {
+            request.addHeader("X-SAMLProxy", samlProxyHeader);
+        }
     }
 
     private String corruptSamlResponseSignature(String samlResponse) throws TransformerConfigurationException, TransformerException, IOException, ParserConfigurationException, SAXException, Base64DecodingException {
@@ -420,9 +399,9 @@ public class SamlHTTPClient implements HTTPClient {
         transforms.addTransform(Transforms.TRANSFORM_ENVELOPED_SIGNATURE);
         transforms.addTransform(Transforms.TRANSFORM_C14N_EXCL_OMIT_COMMENTS);
         xmlSignature.addDocument("", transforms, Constants.ALGO_ID_DIGEST_SHA1);
-        
+
         KeyStore.PrivateKeyEntry privateKeyEntry = this.samlProxyConfig.getPrivateKeyEntry();
-        
+
         KeyInfo keyInfo = xmlSignature.getKeyInfo();
         X509Data x509Data = new X509Data(document);
         Certificate[] certificateChain = privateKeyEntry.getCertificateChain();
@@ -431,10 +410,10 @@ public class SamlHTTPClient implements HTTPClient {
             x509Data.addCertificate((X509Certificate) certificate);
         }
         keyInfo.add(x509Data);
-        
+
         PrivateKey privateKey = privateKeyEntry.getPrivateKey();
         xmlSignature.sign(privateKey);
-        
+
         return outputDocument(document);
     }
 }
