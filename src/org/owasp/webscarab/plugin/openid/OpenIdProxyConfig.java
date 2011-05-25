@@ -34,4 +34,14 @@ public interface OpenIdProxyConfig {
     boolean doCorruptSignature();
     
     boolean doRemoveSignature();
+    
+    boolean doRemoveRequestedAttribute();
+    
+    boolean doAppendAttribute();
+    
+    String getRemoveAttributeType();
+    
+    String getAppendAttributeType();
+    String getAppendAttributeAlias();
+    String getAppendAttributeValue();
 }

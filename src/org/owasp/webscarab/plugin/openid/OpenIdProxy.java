@@ -20,7 +20,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
  */
-
 package org.owasp.webscarab.plugin.openid;
 
 import org.owasp.webscarab.httpclient.HTTPClient;
@@ -31,11 +30,17 @@ import org.owasp.webscarab.plugin.proxy.ProxyPlugin;
  * @author Frank Cornelis
  */
 public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
-    
+
     private boolean corruptSignature;
     private boolean removeSignature;
+    private boolean removeRequestedAttribute;
+    private String removeAttributeType;
+    private boolean appendAttribute;
+    private String appendAttributeType;
+    private String appendAttributeAlias;
+    private String appendAttributeValue;
     private boolean attack;
-    
+
     public String getPluginName() {
         return "OpenID Proxy";
     }
@@ -47,9 +52,9 @@ public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
     public boolean doSomething() {
         return this.attack;
     }
-    
+
     private void updateAttackState() {
-        this.attack = this.corruptSignature || this.removeSignature;
+        this.attack = this.corruptSignature || this.removeSignature || this.removeRequestedAttribute || this.appendAttribute;
     }
 
     public void setCorruptSignature(boolean corruptSignature) {
@@ -68,5 +73,55 @@ public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
 
     public boolean doRemoveSignature() {
         return this.removeSignature;
+    }
+
+    public void setRemoveRequestedAttribute(boolean removeRequestedAttribute) {
+        this.removeRequestedAttribute = removeRequestedAttribute;
+        updateAttackState();
+    }
+
+    public void setAppendAttribute(boolean appendAttribute) {
+        this.appendAttribute = appendAttribute;
+        updateAttackState();
+    }
+
+    public void setRemoveAttributeType(String removeAttributeType) {
+        this.removeAttributeType = removeAttributeType;
+    }
+
+    public void setAppendAttributeType(String appendAttributeType) {
+        this.appendAttributeType = appendAttributeType;
+    }
+
+    public void setAppendAttributeAlias(String appendAttributeAlias) {
+        this.appendAttributeAlias = appendAttributeAlias;
+    }
+
+    public void setAppendAttributeValue(String appendAttributeValue) {
+        this.appendAttributeValue = appendAttributeValue;
+    }
+
+    public boolean doRemoveRequestedAttribute() {
+        return this.removeRequestedAttribute;
+    }
+
+    public boolean doAppendAttribute() {
+        return this.appendAttribute;
+    }
+
+    public String getRemoveAttributeType() {
+        return this.removeAttributeType;
+    }
+
+    public String getAppendAttributeType() {
+        return this.appendAttributeType;
+    }
+
+    public String getAppendAttributeAlias() {
+        return this.appendAttributeAlias;
+    }
+
+    public String getAppendAttributeValue() {
+        return this.appendAttributeValue;
     }
 }

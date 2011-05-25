@@ -191,6 +191,21 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         jPanel13 = new javax.swing.JPanel();
         corruptResponseSignatureCheckBox = new javax.swing.JCheckBox();
         removeResponseSignatureCheckBox = new javax.swing.JCheckBox();
+        jPanel14 = new javax.swing.JPanel();
+        jPanel15 = new javax.swing.JPanel();
+        jPanel16 = new javax.swing.JPanel();
+        jPanel18 = new javax.swing.JPanel();
+        removeRequestedAttributeCheckBox = new javax.swing.JCheckBox();
+        jLabel9 = new javax.swing.JLabel();
+        removeAttributeTypeTextField = new javax.swing.JTextField();
+        jPanel17 = new javax.swing.JPanel();
+        appendAttributeCheckBox = new javax.swing.JCheckBox();
+        jLabel10 = new javax.swing.JLabel();
+        appendAttributeTypeTextField = new javax.swing.JTextField();
+        jLabel11 = new javax.swing.JLabel();
+        appendAttributeAliasTextField = new javax.swing.JTextField();
+        jLabel12 = new javax.swing.JLabel();
+        appendAttributeValueTextField = new javax.swing.JTextField();
         jTabbedPane2 = new javax.swing.JTabbedPane();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -281,6 +296,140 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         jPanel11.add(jPanel12);
 
         jTabbedPane1.addTab("Signature Attacks", jPanel11);
+
+        jPanel14.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jPanel15.setLayout(new java.awt.GridBagLayout());
+
+        jPanel16.setBorder(javax.swing.BorderFactory.createTitledBorder("Fetch Request Attack"));
+        jPanel16.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jPanel18.setLayout(new java.awt.GridBagLayout());
+
+        removeRequestedAttributeCheckBox.setText("Remove Requested Attribute");
+        removeRequestedAttributeCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                removeRequestedAttributeCheckBoxItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel18.add(removeRequestedAttributeCheckBox, gridBagConstraints);
+
+        jLabel9.setText("Attribute Type: ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        jPanel18.add(jLabel9, gridBagConstraints);
+
+        removeAttributeTypeTextField.setColumns(30);
+        removeAttributeTypeTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeAttributeTypeTextFieldActionPerformed(evt);
+            }
+        });
+        removeAttributeTypeTextField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                removeAttributeTypeTextFieldFocusLost(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        jPanel18.add(removeAttributeTypeTextField, gridBagConstraints);
+
+        jPanel16.add(jPanel18);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        jPanel15.add(jPanel16, gridBagConstraints);
+
+        jPanel17.setBorder(javax.swing.BorderFactory.createTitledBorder("Fetch Response Attack"));
+        jPanel17.setLayout(new java.awt.GridBagLayout());
+
+        appendAttributeCheckBox.setText("Append Attribute");
+        appendAttributeCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                appendAttributeCheckBoxItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel17.add(appendAttributeCheckBox, gridBagConstraints);
+
+        jLabel10.setText("Type: ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        jPanel17.add(jLabel10, gridBagConstraints);
+
+        appendAttributeTypeTextField.setColumns(30);
+        appendAttributeTypeTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                appendAttributeTypeTextFieldActionPerformed(evt);
+            }
+        });
+        appendAttributeTypeTextField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                appendAttributeTypeTextFieldFocusLost(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel17.add(appendAttributeTypeTextField, gridBagConstraints);
+
+        jLabel11.setText("Alias: ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        jPanel17.add(jLabel11, gridBagConstraints);
+
+        appendAttributeAliasTextField.setColumns(10);
+        appendAttributeAliasTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                appendAttributeAliasTextFieldActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel17.add(appendAttributeAliasTextField, gridBagConstraints);
+
+        jLabel12.setText("Value: ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        jPanel17.add(jLabel12, gridBagConstraints);
+
+        appendAttributeValueTextField.setColumns(30);
+        appendAttributeValueTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                appendAttributeValueTextFieldActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel17.add(appendAttributeValueTextField, gridBagConstraints);
+
+        jPanel15.add(jPanel17, new java.awt.GridBagConstraints());
+
+        jPanel14.add(jPanel15);
+
+        jTabbedPane1.addTab("AX Attacks", jPanel14);
 
         jSplitPane1.setTopComponent(jTabbedPane1);
 
@@ -476,11 +625,66 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         openIdProxy.setRemoveSignature(removeSignature);
     }//GEN-LAST:event_removeResponseSignatureCheckBoxItemStateChanged
 
+    private void removeRequestedAttributeCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_removeRequestedAttributeCheckBoxItemStateChanged
+        boolean removeRequestedAttribute = evt.getStateChange() == ItemEvent.SELECTED;
+        OpenIdProxy openIdProxy = this.openId.getOpenIdProxy();
+        openIdProxy.setRemoveRequestedAttribute(removeRequestedAttribute);
+    }//GEN-LAST:event_removeRequestedAttributeCheckBoxItemStateChanged
+
+    private void appendAttributeCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_appendAttributeCheckBoxItemStateChanged
+        boolean appendAttribute = evt.getStateChange() == ItemEvent.SELECTED;
+        OpenIdProxy openIdProxy = this.openId.getOpenIdProxy();
+        openIdProxy.setAppendAttribute(appendAttribute);
+    }//GEN-LAST:event_appendAttributeCheckBoxItemStateChanged
+
+    private void removeAttributeTypeTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeAttributeTypeTextFieldActionPerformed
+        String removeAttributeType = this.removeAttributeTypeTextField.getText();
+        OpenIdProxy openIdProxy = this.openId.getOpenIdProxy();
+        openIdProxy.setRemoveAttributeType(removeAttributeType);
+    }//GEN-LAST:event_removeAttributeTypeTextFieldActionPerformed
+
+    private void removeAttributeTypeTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_removeAttributeTypeTextFieldFocusLost
+        String removeAttributeType = this.removeAttributeTypeTextField.getText();
+        OpenIdProxy openIdProxy = this.openId.getOpenIdProxy();
+        openIdProxy.setRemoveAttributeType(removeAttributeType);
+    }//GEN-LAST:event_removeAttributeTypeTextFieldFocusLost
+
+    private void appendAttributeTypeTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_appendAttributeTypeTextFieldActionPerformed
+        String appendAttributeType = this.appendAttributeTypeTextField.getText();
+        OpenIdProxy openIdProxy = this.openId.getOpenIdProxy();
+        openIdProxy.setAppendAttributeType(appendAttributeType);
+    }//GEN-LAST:event_appendAttributeTypeTextFieldActionPerformed
+
+    private void appendAttributeTypeTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_appendAttributeTypeTextFieldFocusLost
+        String appendAttributeType = this.appendAttributeTypeTextField.getText();
+        OpenIdProxy openIdProxy = this.openId.getOpenIdProxy();
+        openIdProxy.setAppendAttributeType(appendAttributeType);
+    }//GEN-LAST:event_appendAttributeTypeTextFieldFocusLost
+
+    private void appendAttributeAliasTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_appendAttributeAliasTextFieldActionPerformed
+        String appendAttributeAlias = this.appendAttributeAliasTextField.getText();
+        OpenIdProxy openIdProxy = this.openId.getOpenIdProxy();
+        openIdProxy.setAppendAttributeAlias(appendAttributeAlias);
+    }//GEN-LAST:event_appendAttributeAliasTextFieldActionPerformed
+
+    private void appendAttributeValueTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_appendAttributeValueTextFieldActionPerformed
+        String appendAttributeValue = this.appendAttributeValueTextField.getText();
+        OpenIdProxy openIdProxy = this.openId.getOpenIdProxy();
+        openIdProxy.setAppendAttributeValue(appendAttributeValue);
+    }//GEN-LAST:event_appendAttributeValueTextFieldActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField appendAttributeAliasTextField;
+    private javax.swing.JCheckBox appendAttributeCheckBox;
+    private javax.swing.JTextField appendAttributeTypeTextField;
+    private javax.swing.JTextField appendAttributeValueTextField;
     private javax.swing.JTable axFetchRequestTable;
     private javax.swing.JTable axFetchResponseTable;
     private javax.swing.JCheckBox corruptResponseSignatureCheckBox;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -488,11 +692,17 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel11;
     private javax.swing.JPanel jPanel12;
     private javax.swing.JPanel jPanel13;
+    private javax.swing.JPanel jPanel14;
+    private javax.swing.JPanel jPanel15;
+    private javax.swing.JPanel jPanel16;
+    private javax.swing.JPanel jPanel17;
+    private javax.swing.JPanel jPanel18;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
@@ -518,6 +728,8 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private javax.swing.JTable parametersTable;
     private javax.swing.JCheckBox phishingResistantCheckBox;
     private javax.swing.JCheckBox physicalMultiFactorCheckBox;
+    private javax.swing.JTextField removeAttributeTypeTextField;
+    private javax.swing.JCheckBox removeRequestedAttributeCheckBox;
     private javax.swing.JCheckBox removeResponseSignatureCheckBox;
     // End of variables declaration//GEN-END:variables
 

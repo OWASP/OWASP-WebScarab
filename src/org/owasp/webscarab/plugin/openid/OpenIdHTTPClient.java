@@ -24,6 +24,12 @@ package org.owasp.webscarab.plugin.openid;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bouncycastle.util.encoders.Base64;
@@ -61,6 +67,12 @@ public class OpenIdHTTPClient implements HTTPClient {
         }
         if (this.openIdProxyConfig.doRemoveSignature()) {
             openIdProxyHeader += removeSignature(request);
+        }
+        if (this.openIdProxyConfig.doRemoveRequestedAttribute()) {
+            openIdProxyHeader += removeRequestedAttribute(request);
+        }
+        if (this.openIdProxyConfig.doAppendAttribute()) {
+            openIdProxyHeader += appendAttribute(request);
         }
 
         if (false == openIdProxyHeader.isEmpty()) {
@@ -135,7 +147,11 @@ public class OpenIdHTTPClient implements HTTPClient {
         return "corrupt signature;";
     }
 
-    public void setNewUrl(HttpUrl httpUrl, NamedValue[] values, Request request) throws MalformedURLException {
+    private void setNewUrl(HttpUrl httpUrl, NamedValue[] values, Request request) throws MalformedURLException {
+        setNewUrl(httpUrl, values, null, request);
+    }
+
+    private void setNewUrl(HttpUrl httpUrl, NamedValue[] values, List additionalAttributes, Request request) throws MalformedURLException {
         StringBuffer stringBuffer = new StringBuffer("?");
         for (int i = 0; i < values.length; i++) {
             if (null == values[i]) {
@@ -148,6 +164,207 @@ public class OpenIdHTTPClient implements HTTPClient {
             stringBuffer.append("=");
             stringBuffer.append(values[i].getValue());
         }
+        if (null != additionalAttributes) {
+            Iterator additionalAttributesIter = additionalAttributes.iterator();
+            while (additionalAttributesIter.hasNext()) {
+                NamedValue namedValue = (NamedValue) additionalAttributesIter.next();
+                stringBuffer.append("&");
+                stringBuffer.append(namedValue.getName());
+                stringBuffer.append("=");
+                stringBuffer.append(namedValue.getValue());
+            }
+        }
         request.setURL(new HttpUrl(httpUrl.getSHPP() + stringBuffer.toString()));
+    }
+
+    private String removeRequestedAttribute(Request request) {
+        NamedValue[] values = null;
+        String method = request.getMethod();
+        if ("GET".equals(method)) {
+            HttpUrl url = request.getURL();
+            String query = url.getQuery();
+            if (null != query) {
+                values = NamedValue.splitNamedValues(query, "&", "=");
+            }
+        } else if ("POST".equals(method)) {
+            byte[] requestContent = request.getContent();
+            if (requestContent != null && requestContent.length > 0) {
+                String body = new String(requestContent);
+                values = NamedValue.splitNamedValues(
+                        body, "&", "=");
+            }
+        }
+        if (null == values) {
+            return "";
+        }
+        // locate the AX alias
+        String axAlias = null;
+        for (int i = 0; i < values.length; i++) {
+            String name = values[i].getName();
+            String value = Encoding.urlDecode(values[i].getValue());
+            if (name.startsWith("openid.ns.")) {
+                if ("http://openid.net/srv/ax/1.0".equals(value)) {
+                    axAlias = name.substring("openid.ns.".length());
+                    break;
+                }
+            }
+        }
+        if (null == axAlias) {
+            return "null";
+        }
+        // get set of required AX aliases
+        Set requiredAttributeAliases = new HashSet();
+        int requiredIdx = -1;
+        for (int i = 0; i < values.length; i++) {
+            String name = values[i].getName();
+            String value = Encoding.urlDecode(values[i].getValue());
+            if (name.equals("openid." + axAlias + ".required")) {
+                String[] aliases = value.split(",");
+                requiredAttributeAliases.addAll(Arrays.asList(aliases));
+                requiredIdx = i;
+                break;
+            }
+        }
+        // get set of optional AX aliases
+        Set optionalAttributeAliases = new HashSet();
+        int optionalIdx = -1;
+        for (int i = 0; i < values.length; i++) {
+            String name = values[i].getName();
+            String value = Encoding.urlDecode(values[i].getValue());
+            if (name.equals("openid." + axAlias + ".if_available")) {
+                String[] aliases = value.split(",");
+                optionalAttributeAliases.addAll(Arrays.asList(aliases));
+                optionalIdx = i;
+                break;
+            }
+        }
+        // remove the attribute
+        String attributeAlias = null;
+        String attributeType = this.openIdProxyConfig.getRemoveAttributeType();
+        for (int i = 0; i < values.length; i++) {
+            String name = values[i].getName();
+            String value = Encoding.urlDecode(values[i].getValue());
+            if (name.startsWith("openid." + axAlias + ".type.")) {
+                if (value.equals(attributeType)) {
+                    attributeAlias = name.substring(("openid." + axAlias + ".type.").length());
+                    values[i] = null; // remove it
+                    break;
+                }
+            }
+        }
+        if (null == attributeAlias) {
+            return "";
+        }
+        // remove all references to the attribute alias
+        requiredAttributeAliases.remove(attributeAlias);
+        Iterator requiredIter = requiredAttributeAliases.iterator();
+        String requiredValue = "";
+        while (requiredIter.hasNext()) {
+            requiredValue += (String) requiredIter.next();
+            if (requiredIter.hasNext()) {
+                requiredValue += ",";
+            }
+        }
+        values[requiredIdx] = new NamedValue(values[requiredIdx].getName(), requiredValue);
+
+        optionalAttributeAliases.remove(attributeAlias);
+        Iterator optionalIter = optionalAttributeAliases.iterator();
+        String optionalValue = "";
+        while (optionalIter.hasNext()) {
+            optionalValue += (String) optionalIter.next();
+            if (optionalIter.hasNext()) {
+                optionalValue += ",";
+            }
+        }
+        values[optionalIdx] = new NamedValue(values[optionalIdx].getName(), optionalValue);
+
+        if ("GET".equals(method)) {
+            try {
+                HttpUrl httpUrl = request.getURL();
+                setNewUrl(httpUrl, values, request);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
+                return "";
+            }
+            return "removed attribute request;";
+        } else {
+            // POST
+            // TODO: implement me
+            return "";
+        }
+    }
+
+    private String appendAttribute(Request request) {
+        NamedValue[] values = null;
+        String method = request.getMethod();
+        if ("GET".equals(method)) {
+            HttpUrl url = request.getURL();
+            String query = url.getQuery();
+            if (null != query) {
+                values = NamedValue.splitNamedValues(query, "&", "=");
+            }
+        } else if ("POST".equals(method)) {
+            byte[] requestContent = request.getContent();
+            if (requestContent != null && requestContent.length > 0) {
+                String body = new String(requestContent);
+                values = NamedValue.splitNamedValues(
+                        body, "&", "=");
+            }
+        }
+        if (null == values) {
+            return "";
+        }
+        // check if openid response
+        boolean response = false;
+        for (int idx = 0; idx < values.length; idx++) {
+            String name = values[idx].getName();
+            String value = Encoding.urlDecode(values[idx].getValue());
+            if ("openid.mode".equals(name)) {
+                if ("id_res".equals(value)) {
+                    response = true;
+                    break;
+                }
+            }
+        }
+        if (false == response) {
+            return "";
+        }
+        // check if AX response is present
+        String axAlias = null;
+        for (int i = 0; i < values.length; i++) {
+            String name = values[i].getName();
+            String value = Encoding.urlDecode(values[i].getValue());
+            if (name.startsWith("openid.ns.")) {
+                if ("http://openid.net/srv/ax/1.0".equals(value)) {
+                    axAlias = name.substring("openid.ns.".length());
+                    break;
+                }
+            }
+        }
+        List additionalParameters = new LinkedList();
+        String attributeAlias = this.openIdProxyConfig.getAppendAttributeAlias();
+        String attributeType = this.openIdProxyConfig.getAppendAttributeType();
+        String attributeValue = this.openIdProxyConfig.getAppendAttributeValue();
+        if (null == axAlias) {
+            axAlias = "ax";
+            additionalParameters.add(new NamedValue("openid.ns." + axAlias, "http://openid.net/srv/ax/1.0"));
+            additionalParameters.add(new NamedValue("openid." + axAlias + ".mode", "fetch_response"));
+        }
+        additionalParameters.add(new NamedValue("openid." + axAlias + ".type." + attributeAlias, Encoding.urlEncode(attributeType)));
+        additionalParameters.add(new NamedValue("openid." + axAlias + ".value." + attributeAlias, Encoding.urlEncode(attributeValue)));
+        if ("GET".equals(method)) {
+            try {
+                HttpUrl httpUrl = request.getURL();
+                setNewUrl(httpUrl, values, additionalParameters, request);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
+                return "";
+            }
+            return "add attribute response;";
+        } else {
+            // POST
+            // TODO: implement me
+            return "";
+        }
     }
 }
