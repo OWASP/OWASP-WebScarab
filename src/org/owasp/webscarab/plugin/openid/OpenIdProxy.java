@@ -39,6 +39,9 @@ public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
     private String appendAttributeType;
     private String appendAttributeAlias;
     private String appendAttributeValue;
+    private boolean removeReqAssocHandle;
+    private boolean removeRespAssocHandle;
+    
     private boolean attack;
 
     public String getPluginName() {
@@ -54,7 +57,8 @@ public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
     }
 
     private void updateAttackState() {
-        this.attack = this.corruptSignature || this.removeSignature || this.removeRequestedAttribute || this.appendAttribute;
+        this.attack = this.corruptSignature || this.removeSignature || this.removeRequestedAttribute || this.appendAttribute
+                || this.removeReqAssocHandle || this.removeRespAssocHandle;
     }
 
     public void setCorruptSignature(boolean corruptSignature) {
@@ -123,5 +127,23 @@ public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
 
     public String getAppendAttributeValue() {
         return this.appendAttributeValue;
+    }
+
+    public void setRemoveRequestAssociationHandle(boolean removeReqAssocHandle) {
+        this.removeReqAssocHandle = removeReqAssocHandle;
+        updateAttackState();
+    }
+
+    public void setRemoveResponseAssociationHandle(boolean removeRespAssocHandle) {
+        this.removeRespAssocHandle = removeRespAssocHandle;
+        updateAttackState();
+    }
+
+    public boolean doRemoveRequestAssociationHandle() {
+        return this.removeReqAssocHandle;
+    }
+
+    public boolean doRemoveResponseAssociationHandle() {
+        return this.removeRespAssocHandle;
     }
 }

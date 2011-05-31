@@ -187,10 +187,14 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         jScrollPane1 = new javax.swing.JScrollPane();
         openIdTable = new javax.swing.JTable();
         jPanel11 = new javax.swing.JPanel();
+        jPanel19 = new javax.swing.JPanel();
         jPanel12 = new javax.swing.JPanel();
         jPanel13 = new javax.swing.JPanel();
         corruptResponseSignatureCheckBox = new javax.swing.JCheckBox();
         removeResponseSignatureCheckBox = new javax.swing.JCheckBox();
+        jPanel20 = new javax.swing.JPanel();
+        removeReqAssocHandleCheckBox = new javax.swing.JCheckBox();
+        removeRespAssocHandleCheckBox = new javax.swing.JCheckBox();
         jPanel14 = new javax.swing.JPanel();
         jPanel15 = new javax.swing.JPanel();
         jPanel16 = new javax.swing.JPanel();
@@ -264,6 +268,8 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
 
         jPanel11.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
+        jPanel19.setLayout(new java.awt.GridBagLayout());
+
         jPanel12.setLayout(new java.awt.BorderLayout());
 
         jPanel13.setBorder(javax.swing.BorderFactory.createTitledBorder("Signature Integrity Attack"));
@@ -293,7 +299,36 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
 
         jPanel12.add(jPanel13, java.awt.BorderLayout.CENTER);
 
-        jPanel11.add(jPanel12);
+        jPanel19.add(jPanel12, new java.awt.GridBagConstraints());
+
+        jPanel20.setBorder(javax.swing.BorderFactory.createTitledBorder("Association Attack"));
+        jPanel20.setLayout(new java.awt.GridBagLayout());
+
+        removeReqAssocHandleCheckBox.setText("Remove Request Association Handle");
+        removeReqAssocHandleCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                removeReqAssocHandleCheckBoxItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel20.add(removeReqAssocHandleCheckBox, gridBagConstraints);
+
+        removeRespAssocHandleCheckBox.setText("Remove Response Association Handle");
+        removeRespAssocHandleCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                removeRespAssocHandleCheckBoxItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel20.add(removeRespAssocHandleCheckBox, gridBagConstraints);
+
+        jPanel19.add(jPanel20, new java.awt.GridBagConstraints());
+
+        jPanel11.add(jPanel19);
 
         jTabbedPane1.addTab("Signature Attacks", jPanel11);
 
@@ -673,6 +708,18 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         openIdProxy.setAppendAttributeValue(appendAttributeValue);
     }//GEN-LAST:event_appendAttributeValueTextFieldActionPerformed
 
+    private void removeReqAssocHandleCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_removeReqAssocHandleCheckBoxItemStateChanged
+        boolean removeReqAssocHandle = evt.getStateChange() == ItemEvent.SELECTED;
+        OpenIdProxy openIdProxy = this.openId.getOpenIdProxy();
+        openIdProxy.setRemoveRequestAssociationHandle(removeReqAssocHandle);
+    }//GEN-LAST:event_removeReqAssocHandleCheckBoxItemStateChanged
+
+    private void removeRespAssocHandleCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_removeRespAssocHandleCheckBoxItemStateChanged
+        boolean removeRespAssocHandle = evt.getStateChange() == ItemEvent.SELECTED;
+        OpenIdProxy openIdProxy = this.openId.getOpenIdProxy();
+        openIdProxy.setRemoveResponseAssociationHandle(removeRespAssocHandle);
+    }//GEN-LAST:event_removeRespAssocHandleCheckBoxItemStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField appendAttributeAliasTextField;
     private javax.swing.JCheckBox appendAttributeCheckBox;
@@ -703,7 +750,9 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private javax.swing.JPanel jPanel16;
     private javax.swing.JPanel jPanel17;
     private javax.swing.JPanel jPanel18;
+    private javax.swing.JPanel jPanel19;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel20;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
@@ -729,7 +778,9 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private javax.swing.JCheckBox phishingResistantCheckBox;
     private javax.swing.JCheckBox physicalMultiFactorCheckBox;
     private javax.swing.JTextField removeAttributeTypeTextField;
+    private javax.swing.JCheckBox removeReqAssocHandleCheckBox;
     private javax.swing.JCheckBox removeRequestedAttributeCheckBox;
+    private javax.swing.JCheckBox removeRespAssocHandleCheckBox;
     private javax.swing.JCheckBox removeResponseSignatureCheckBox;
     // End of variables declaration//GEN-END:variables
 

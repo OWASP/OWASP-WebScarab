@@ -74,6 +74,12 @@ public class OpenIdHTTPClient implements HTTPClient {
         if (this.openIdProxyConfig.doAppendAttribute()) {
             openIdProxyHeader += appendAttribute(request);
         }
+        if (this.openIdProxyConfig.doRemoveRequestAssociationHandle()) {
+            openIdProxyHeader += removeRequestAssociationHandle(request);
+        }
+        if (this.openIdProxyConfig.doRemoveResponseAssociationHandle()) {
+            openIdProxyHeader += removeResponseAssociationHandle(request);
+        }
 
         if (false == openIdProxyHeader.isEmpty()) {
             request.addHeader("X-OpenIDProxy", openIdProxyHeader);
@@ -177,6 +183,136 @@ public class OpenIdHTTPClient implements HTTPClient {
         request.setURL(new HttpUrl(httpUrl.getSHPP() + stringBuffer.toString()));
     }
 
+    private String removeRequestAssociationHandle(Request request) {
+        NamedValue[] values = null;
+        String method = request.getMethod();
+        if ("GET".equals(method)) {
+            HttpUrl url = request.getURL();
+            String query = url.getQuery();
+            if (null != query) {
+                values = NamedValue.splitNamedValues(query, "&", "=");
+            }
+        } else if ("POST".equals(method)) {
+            byte[] requestContent = request.getContent();
+            if (requestContent != null && requestContent.length > 0) {
+                String body = new String(requestContent);
+                values = NamedValue.splitNamedValues(
+                        body, "&", "=");
+            }
+        }
+        if (null == values) {
+            return "";
+        }
+        // check if OpenID request
+        boolean openIdRequest = false;
+        for (int i = 0; i < values.length; i++) {
+            String name = values[i].getName();
+            String value = Encoding.urlDecode(values[i].getValue());
+            if ("openid.mode".equals(name)) {
+                if ("checkid_setup".equals(value)) {
+                    openIdRequest = true;
+                }
+                break;
+            }
+        }
+        if (false == openIdRequest) {
+            return "";
+        }
+        // remove assoc_handle
+        boolean assocHandleRemoved = false;
+        for (int i = 0; i < values.length; i++) {
+            String name = values[i].getName();
+            if ("openid.assoc_handle".equals(name)) {
+                values[i] = null;
+                assocHandleRemoved = true;
+                break;
+            }
+        }
+        if (false == assocHandleRemoved) {
+            return "";
+        }
+        // construct altered response
+        if ("GET".equals(method)) {
+            try {
+                HttpUrl httpUrl = request.getURL();
+                setNewUrl(httpUrl, values, request);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
+                return "";
+            }
+            return "removed request assoc_handle;";
+        } else {
+            // POST
+            // TODO: implement me
+            return "";
+        }
+    }
+    
+    private String removeResponseAssociationHandle(Request request) {
+        NamedValue[] values = null;
+        String method = request.getMethod();
+        if ("GET".equals(method)) {
+            HttpUrl url = request.getURL();
+            String query = url.getQuery();
+            if (null != query) {
+                values = NamedValue.splitNamedValues(query, "&", "=");
+            }
+        } else if ("POST".equals(method)) {
+            byte[] requestContent = request.getContent();
+            if (requestContent != null && requestContent.length > 0) {
+                String body = new String(requestContent);
+                values = NamedValue.splitNamedValues(
+                        body, "&", "=");
+            }
+        }
+        if (null == values) {
+            return "";
+        }
+        // check if OpenID response
+        boolean openIdResponse = false;
+        for (int i = 0; i < values.length; i++) {
+            String name = values[i].getName();
+            String value = Encoding.urlDecode(values[i].getValue());
+            if ("openid.mode".equals(name)) {
+                if ("id_res".equals(value)) {
+                    openIdResponse = true;
+                }
+                break;
+            }
+        }
+        if (false == openIdResponse) {
+            return "";
+        }
+        // remove assoc_handle
+        boolean assocHandleRemoved = false;
+        for (int i = 0; i < values.length; i++) {
+            String name = values[i].getName();
+            if ("openid.assoc_handle".equals(name)) {
+                values[i] = null;
+                assocHandleRemoved = true;
+                break;
+            }
+        }
+        if (false == assocHandleRemoved) {
+            return "";
+        }
+        // construct altered response
+        if ("GET".equals(method)) {
+            try {
+                HttpUrl httpUrl = request.getURL();
+                setNewUrl(httpUrl, values, request);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
+                return "";
+            }
+            return "removed response assoc_handle;";
+        } else {
+            // POST
+            // TODO: implement me
+            return "";
+        }
+    }
+    
     private String removeRequestedAttribute(Request request) {
         NamedValue[] values = null;
         String method = request.getMethod();

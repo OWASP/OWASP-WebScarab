@@ -44,4 +44,7 @@ public interface OpenIdProxyConfig {
     String getAppendAttributeType();
     String getAppendAttributeAlias();
     String getAppendAttributeValue();
+    
+    boolean doRemoveRequestAssociationHandle();
+    boolean doRemoveResponseAssociationHandle();
 }
