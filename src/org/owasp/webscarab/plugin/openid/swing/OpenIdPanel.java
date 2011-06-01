@@ -28,10 +28,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.Action;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
+import org.openid4java.association.Association;
+import org.openid4java.association.AssociationSessionType;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.plugin.openid.OpenId;
 import org.owasp.webscarab.plugin.openid.OpenIdModel;
@@ -42,6 +45,7 @@ import org.owasp.webscarab.ui.swing.ConversationTableModel;
 import org.owasp.webscarab.ui.swing.ShowConversationAction;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
+import org.owasp.webscarab.util.swing.SwingWorker;
 import org.owasp.webscarab.util.swing.TableSorter;
 
 /**
@@ -49,36 +53,41 @@ import org.owasp.webscarab.util.swing.TableSorter;
  * @author Frank Cornelis
  */
 public class OpenIdPanel extends JPanel implements SwingPluginUI {
-    
+
     private final OpenId openId;
     private final OpenIdModel openIdModel;
     private final ShowConversationAction showConversationAction;
     private final ParametersTableModel parametersTableModel;
     private final AXFetchRequestTableModel axFetchRequestTableModel;
     private final AXFetchResponseTableModel axFetchResponseTableModel;
-    
+    private final AssociationSessionComboBoxModel associationSessionComboBoxModel;
+    private final AssociationTableModel associationTableModel;
+    private final AssociationOPUrlAction associationOPUrlAction;
+
     public OpenIdPanel(OpenId openId) {
         this.openId = openId;
         this.openIdModel = openId.getModel();
         initComponents();
-        
+
         this.showConversationAction = new ShowConversationAction(this.openIdModel.getOpenIDConversationModel());
         this.openIdPopupMenu.add(new JMenuItem(this.showConversationAction));
-        
+        this.associationOPUrlAction = new AssociationOPUrlAction(this.opUrlTextField);
+        this.openIdPopupMenu.add(this.associationOPUrlAction);
+
         ConversationTableModel openIdTableModel = new ConversationTableModel(
                 this.openIdModel.getOpenIDConversationModel());
         openIdTableModel.addColumn(new ColumnDataModel() {
-            
+
             public String getColumnName() {
                 return "OpenID Type";
             }
-            
+
             public Object getValue(Object key) {
                 ConversationID conversationId = (ConversationID) key;
                 return OpenIdPanel.this.openIdModel.getReadableOpenIDMessageType(
                         conversationId);
             }
-            
+
             public Class getColumnClass() {
                 return String.class;
             }
@@ -87,20 +96,26 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         TableSorter sorterOpenIdTableModel = new TableSorter(openIdTableModel);
         this.openIdTable.setModel(sorterOpenIdTableModel);
         addTableListeners();
-        
+
         this.parametersTableModel = new ParametersTableModel();
         this.parametersTable.setModel(this.parametersTableModel);
-        
+
         this.axFetchRequestTableModel = new AXFetchRequestTableModel();
         this.axFetchRequestTable.setModel(this.axFetchRequestTableModel);
-        
+
         this.axFetchResponseTableModel = new AXFetchResponseTableModel();
         this.axFetchResponseTable.setModel(this.axFetchResponseTableModel);
+
+        this.associationSessionComboBoxModel = new AssociationSessionComboBoxModel();
+        this.associationSessionComboBox.setModel(this.associationSessionComboBoxModel);
+
+        this.associationTableModel = new AssociationTableModel();
+        this.associationsTable.setModel(this.associationTableModel);
     }
-    
+
     private void addTableListeners() {
         this.openIdTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            
+
             public void valueChanged(ListSelectionEvent e) {
                 if (e.getValueIsAdjusting()) {
                     return;
@@ -116,19 +131,21 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
                     id = null;
                     OpenIdPanel.this.resetDisplay();
                 }
+                String opUrl = OpenIdPanel.this.openIdModel.getOPUrl(id);
+                OpenIdPanel.this.associationOPUrlAction.putValue("OP-URL", opUrl);
                 OpenIdPanel.this.showConversationAction.putValue("CONVERSATION", id);
             }
         });
         this.openIdTable.addMouseListener(new MouseAdapter() {
-            
+
             public void mousePressed(MouseEvent e) {
                 maybeShowPopup(e);
             }
-            
+
             public void mouseReleased(MouseEvent e) {
                 maybeShowPopup(e);
             }
-            
+
             private void maybeShowPopup(MouseEvent e) {
                 int row = OpenIdPanel.this.openIdTable.rowAtPoint(e.getPoint());
                 OpenIdPanel.this.openIdTable.getSelectionModel().setSelectionInterval(row, row);
@@ -136,7 +153,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
                     OpenIdPanel.this.openIdPopupMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
-            
+
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
                     ActionEvent actionEvent = new ActionEvent(OpenIdPanel.this.openIdTable, 0, (String) OpenIdPanel.this.showConversationAction.getValue(Action.ACTION_COMMAND_KEY));
@@ -145,27 +162,27 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
             }
         });
     }
-    
+
     public JPanel getPanel() {
         return this;
     }
-    
+
     public Action[] getUrlActions() {
         return null;
     }
-    
+
     public ColumnDataModel[] getUrlColumns() {
         return null;
     }
-    
+
     public Action[] getConversationActions() {
         return null;
     }
-    
+
     public ColumnDataModel[] getConversationColumns() {
         return null;
     }
-    
+
     public String getPluginName() {
         return this.openId.getPluginName();
     }
@@ -210,6 +227,15 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         appendAttributeAliasTextField = new javax.swing.JTextField();
         jLabel12 = new javax.swing.JLabel();
         appendAttributeValueTextField = new javax.swing.JTextField();
+        jPanel21 = new javax.swing.JPanel();
+        jPanel22 = new javax.swing.JPanel();
+        jPanel23 = new javax.swing.JPanel();
+        jLabel13 = new javax.swing.JLabel();
+        opUrlTextField = new javax.swing.JTextField();
+        associationSessionComboBox = new javax.swing.JComboBox();
+        associationRequestButton = new javax.swing.JButton();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        associationsTable = new javax.swing.JTable();
         jTabbedPane2 = new javax.swing.JTabbedPane();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -466,6 +492,50 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
 
         jTabbedPane1.addTab("AX Attacks", jPanel14);
 
+        jPanel21.setLayout(new java.awt.BorderLayout());
+
+        jPanel22.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jPanel23.setBorder(javax.swing.BorderFactory.createTitledBorder("Establish Association"));
+        jPanel23.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jLabel13.setText("OP url:");
+        jPanel23.add(jLabel13);
+
+        opUrlTextField.setColumns(30);
+        jPanel23.add(opUrlTextField);
+
+        jPanel23.add(associationSessionComboBox);
+
+        associationRequestButton.setText("Request");
+        associationRequestButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                associationRequestButtonActionPerformed(evt);
+            }
+        });
+        jPanel23.add(associationRequestButton);
+
+        jPanel22.add(jPanel23);
+
+        jPanel21.add(jPanel22, java.awt.BorderLayout.PAGE_END);
+
+        associationsTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane5.setViewportView(associationsTable);
+
+        jPanel21.add(jScrollPane5, java.awt.BorderLayout.CENTER);
+
+        jTabbedPane1.addTab("Associations", jPanel21);
+
         jSplitPane1.setTopComponent(jTabbedPane1);
 
         jPanel2.setLayout(new java.awt.BorderLayout());
@@ -720,11 +790,41 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         openIdProxy.setRemoveResponseAssociationHandle(removeRespAssocHandle);
     }//GEN-LAST:event_removeRespAssocHandleCheckBoxItemStateChanged
 
+    private void associationRequestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_associationRequestButtonActionPerformed
+        final String opUrl = this.opUrlTextField.getText();
+        final AssociationSessionType associationSessionType = this.associationSessionComboBoxModel.getSelectedAssociationSessionType();
+        this.associationRequestButton.setEnabled(false);
+        new SwingWorker() {
+
+            public Object construct() {
+                try {
+                    return OpenIdPanel.this.openIdModel.establishAssociation(opUrl, associationSessionType);
+                } catch (Exception ex) {
+                    return ex;
+                }
+            }
+
+            public void finished() {
+                OpenIdPanel.this.associationRequestButton.setEnabled(true);
+                Object obj = getValue();
+                if (obj instanceof Association) {
+                    Association association = (Association) obj;
+                    OpenIdPanel.this.associationTableModel.addAssociation(association);
+                } else {
+                    Exception ex = (Exception) obj;
+                    JOptionPane.showMessageDialog(OpenIdPanel.this, ex.getMessage(), "Association Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.start();
+    }//GEN-LAST:event_associationRequestButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField appendAttributeAliasTextField;
     private javax.swing.JCheckBox appendAttributeCheckBox;
     private javax.swing.JTextField appendAttributeTypeTextField;
     private javax.swing.JTextField appendAttributeValueTextField;
+    private javax.swing.JButton associationRequestButton;
+    private javax.swing.JComboBox associationSessionComboBox;
+    private javax.swing.JTable associationsTable;
     private javax.swing.JTable axFetchRequestTable;
     private javax.swing.JTable axFetchResponseTable;
     private javax.swing.JCheckBox corruptResponseSignatureCheckBox;
@@ -732,6 +832,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -753,6 +854,9 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private javax.swing.JPanel jPanel19;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel20;
+    private javax.swing.JPanel jPanel21;
+    private javax.swing.JPanel jPanel22;
+    private javax.swing.JPanel jPanel23;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
@@ -764,12 +868,14 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JTabbedPane jTabbedPane3;
     private javax.swing.JTabbedPane jTabbedPane4;
     private javax.swing.JCheckBox multiFactorCheckBox;
+    private javax.swing.JTextField opUrlTextField;
     private javax.swing.JPopupMenu openIdPopupMenu;
     private javax.swing.JTable openIdTable;
     private javax.swing.JLabel papeAuthnTimeLabel;
@@ -802,7 +908,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
             this.papeSignedCheckBox.setSelected(papeResponse.isSigned());
         }
     }
-    
+
     private void resetDisplay() {
         this.parametersTableModel.resetParameters();
         this.axFetchRequestTableModel.resetAttributes();

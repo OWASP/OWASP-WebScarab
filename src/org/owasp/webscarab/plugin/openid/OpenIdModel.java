@@ -30,7 +30,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.spec.DHParameterSpec;
+import org.openid4java.association.Association;
+import org.openid4java.association.AssociationException;
+import org.openid4java.association.AssociationSessionType;
+import org.openid4java.association.DiffieHellmanSession;
+import org.openid4java.message.AssociationRequest;
+import org.openid4java.message.AssociationResponse;
+import org.openid4java.message.ParameterList;
+import org.owasp.webscarab.httpclient.HTTPClientFactory;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.FilteredConversationModel;
@@ -38,6 +48,7 @@ import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
+import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.plugin.AbstractPluginModel;
 import org.owasp.webscarab.util.Encoding;
 
@@ -390,5 +401,69 @@ public class OpenIdModel extends AbstractPluginModel {
         }
         papeResponse.setSigned(signed);
         return papeResponse;
+    }
+
+    public Association establishAssociation(String opUrl, AssociationSessionType associationSessionType) throws Exception {
+        DiffieHellmanSession dhSession;
+        if (null != associationSessionType.getHAlgorithm()) {
+            // Diffie-Hellman
+            DHParameterSpec dhParameterSpec = DiffieHellmanSession.getDefaultParameter();
+            dhSession = DiffieHellmanSession.create(associationSessionType,
+                    dhParameterSpec);
+        } else {
+            dhSession = null;
+        }
+        AssociationRequest associationRequest = AssociationRequest.createAssociationRequest(associationSessionType, dhSession);
+        Request request = new Request();
+        request.setMethod("POST");
+        request.setURL(new HttpUrl(opUrl));
+        request.setHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        StringBuffer body = new StringBuffer();
+        Map parameters = associationRequest.getParameterMap();
+        Set parameterEntries = parameters.entrySet();
+        Iterator parameterIterator = parameterEntries.iterator();
+        while (parameterIterator.hasNext()) {
+            if (0 != body.length()) {
+                body.append("&");
+            }
+            Map.Entry parameterEntry = (Map.Entry) parameterIterator.next();
+            body.append(parameterEntry.getKey());
+            body.append("=");
+            body.append(Encoding.urlEncode((String)parameterEntry.getValue()));
+        }
+        request.setHeader("Content-Length", Integer.toString(body.length()));
+        request.setContent(body.toString().getBytes());
+
+        Response response = HTTPClientFactory.getInstance().fetchResponse(request);
+        if (false == "200".equals(response.getStatus())) {
+            throw new RuntimeException("invalid status return code: " + response.getStatus());
+        }
+
+        byte[] responseContent = response.getContent();
+        ParameterList responseParameterList = ParameterList.createFromKeyValueForm(new String(responseContent));
+        AssociationResponse associationResponse = AssociationResponse.createAssociationResponse(responseParameterList);
+
+        Association association = associationResponse.getAssociation(dhSession);
+        return association;
+    }
+
+    public boolean isOpenIDRequestMessage(ConversationID id) {
+        String openIdMode = this.model.getConversationProperty(id, "OPENID_MODE");
+        if (null == openIdMode) {
+            return false;
+        }
+        if ("checkid_setup".equals(openIdMode)) {
+            return true;
+        }
+        return false;
+    }
+
+    public String getOPUrl(ConversationID id) {
+        if (false == isOpenIDRequestMessage(id)) {
+            return null;
+        }
+        HttpUrl httpUrl = this.model.getRequestUrl(id);
+        return httpUrl.getSHPP();
     }
 }
