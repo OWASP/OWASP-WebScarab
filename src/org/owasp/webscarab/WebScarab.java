@@ -61,6 +61,8 @@ import org.owasp.webscarab.plugin.sessionid.SessionIDAnalysis;
 import org.owasp.webscarab.plugin.sessionid.swing.SessionIDPanel;
 import org.owasp.webscarab.plugin.spider.Spider;
 import org.owasp.webscarab.plugin.spider.swing.SpiderPanel;
+import org.owasp.webscarab.plugin.wsfed.WSFederation;
+import org.owasp.webscarab.plugin.wsfed.swing.WSFederationPanel;
 import org.owasp.webscarab.plugin.xsscrlf.XSSCRLF;
 import org.owasp.webscarab.plugin.xsscrlf.swing.XSSCRLFPanel;
 import org.owasp.webscarab.ui.swing.Lite;
@@ -256,6 +258,11 @@ public class WebScarab {
         framework.addPlugin(openId);
         OpenIdPanel openIdPanel = new OpenIdPanel(openId);
         uif.addPlugin(openIdPanel);
+        
+        WSFederation wsFed = new WSFederation(framework);
+        framework.addPlugin(wsFed);
+        WSFederationPanel wsFedPanel = new WSFederationPanel(wsFed);
+        uif.addPlugin(wsFedPanel);
     }
     
     public static void loadLitePlugins(Framework framework, Lite uif) {
