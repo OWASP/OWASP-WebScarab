@@ -30,10 +30,11 @@
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
-
 package org.owasp.webscarab.plugin.wsfed;
 
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.ConversationModel;
+import org.owasp.webscarab.model.FilteredConversationModel;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.plugin.AbstractPluginModel;
 
@@ -42,18 +43,50 @@ import org.owasp.webscarab.plugin.AbstractPluginModel;
  * @author Frank Cornelis
  */
 public class WSFederationModel extends AbstractPluginModel {
-    
+
     private final FrameworkModel model;
-    
+    private final ConversationModel wsfedConversationModel;
+
     public WSFederationModel(FrameworkModel model) {
         this.model = model;
+
+        this.wsfedConversationModel = new FilteredConversationModel(model, model.getConversationModel()) {
+
+            public boolean shouldFilter(ConversationID id) {
+                return !isWSFederationMessage(id);
+            }
+        };
     }
 
-    void setRequestMessage(ConversationID id, String wtrealm) {
+    private boolean isWSFederationMessage(ConversationID id) {
+        if (null != this.model.getConversationProperty(id, "WTREALM")) {
+            return true;
+        }
+        if (null != this.model.getConversationProperty(id, "WRESULT")) {
+            return true;
+        }
+        return false;
+    }
+
+    public ConversationModel getConversationModel() {
+        return this.wsfedConversationModel;
+    }
+
+    public void setSignInRequestMessage(ConversationID id, String wtrealm) {
         this.model.setConversationProperty(id, "WTREALM", wtrealm);
     }
 
-    void setResponseMessage(ConversationID id, String wresult) {
+    public void setSignInResponseMessage(ConversationID id, String wresult) {
         this.model.setConversationProperty(id, "WRESULT", wresult);
+    }
+
+    public String getReadableMessageType(ConversationID conversationId) {
+        if (null != this.model.getConversationProperty(conversationId, "WTREALM")) {
+            return "Sign-In Request";
+        }
+        if (null != this.model.getConversationProperty(conversationId, "WRESULT")) {
+            return "Sign-In Response";
+        }
+        return "Unknown";
     }
 }

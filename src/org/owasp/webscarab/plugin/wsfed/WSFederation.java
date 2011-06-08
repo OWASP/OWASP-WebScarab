@@ -58,6 +58,10 @@ public class WSFederation implements Plugin {
         this.model = new WSFederationModel(framework.getModel());
     }
 
+    public WSFederationModel getModel() {
+        return this.model;
+    }
+
     public String getPluginName() {
         return "WS-Federation";
     }
@@ -114,35 +118,48 @@ public class WSFederation implements Plugin {
     }
 
     public void analyse(ConversationID id, Request request, Response response, String origin) {
+        boolean wsigninMessage = false;
+        String wtrealm = null;
+        String wresult = null;
+        NamedValue[] values = null;
+        
         String method = request.getMethod();
         if (method.equals("GET")) {
             HttpUrl url = request.getURL();
             String query = url.getQuery();
             if (null != query) {
-                NamedValue[] values = NamedValue.splitNamedValues(query, "&", "=");
-                boolean wsigninMessage = false;
-                String wtrealm = null;
-                String wresult = null;
-                for (int i = 0; i < values.length; i++) {
-                    String name = values[i].getName();
-                    String value = Encoding.urlDecode(values[i].getValue());
-                    if ("wa".equals(name)) {
-                        if ("signin1.0".equals(value)) {
-                            wsigninMessage = true;
-                        }
-                    } else if ("wtrealm".equals(name)) {
-                        wtrealm = value;
-                    } else if ("wresult".equals(name)) {
-                        wresult = value;
+                values = NamedValue.splitNamedValues(query, "&", "=");
+            }
+        } else if (method.equals("POST")) {
+            byte[] requestContent = request.getContent();
+            if (requestContent != null && requestContent.length > 0) {
+                String body = new String(requestContent);
+                values = NamedValue.splitNamedValues(
+                        body, "&", "=");
+            }
+        }
+
+        if (null != values) {
+            for (int i = 0; i < values.length; i++) {
+                String name = values[i].getName();
+                String value = Encoding.urlDecode(values[i].getValue());
+                if ("wa".equals(name)) {
+                    if ("wsignin1.0".equals(value)) {
+                        wsigninMessage = true;
                     }
+                } else if ("wtrealm".equals(name)) {
+                    wtrealm = value;
+                } else if ("wresult".equals(name)) {
+                    wresult = value;
                 }
-                if (wsigninMessage) {
-                    if (null != wtrealm) {
-                        this.model.setRequestMessage(id, wtrealm);
-                    } else if (null != wresult) {
-                        this.model.setResponseMessage(id, wresult);
-                    }
-                }
+            }
+        }
+
+        if (wsigninMessage) {
+            if (null != wtrealm) {
+                this.model.setSignInRequestMessage(id, wtrealm);
+            } else if (null != wresult) {
+                this.model.setSignInResponseMessage(id, wresult);
             }
         }
     }

@@ -35,9 +35,14 @@ package org.owasp.webscarab.plugin.wsfed.swing;
 
 import javax.swing.Action;
 import javax.swing.JPanel;
+import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.plugin.wsfed.WSFederation;
+import org.owasp.webscarab.plugin.wsfed.WSFederationModel;
+import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
+import org.owasp.webscarab.ui.swing.ConversationTableModel;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
+import org.owasp.webscarab.util.swing.TableSorter;
 
 /**
  *
@@ -46,12 +51,36 @@ import org.owasp.webscarab.util.swing.ColumnDataModel;
 public class WSFederationPanel extends javax.swing.JPanel implements SwingPluginUI {
 
     private final WSFederation wsfed;
+    private final WSFederationModel wsfedModel;
     
     /** Creates new form WSFederationPanel */
     public WSFederationPanel(WSFederation wsfed) {
         this.wsfed = wsfed;
+        this.wsfedModel = wsfed.getModel();
         
         initComponents();
+        
+        ConversationTableModel wsfedTableModel = new ConversationTableModel(
+                this.wsfedModel.getConversationModel());
+        wsfedTableModel.addColumn(new ColumnDataModel() {
+
+            public String getColumnName() {
+                return "WS-Federation";
+            }
+
+            public Object getValue(Object key) {
+                ConversationID conversationId = (ConversationID) key;
+                return WSFederationPanel.this.wsfedModel.getReadableMessageType(
+                        conversationId);
+            }
+
+            public Class getColumnClass() {
+                return String.class;
+            }
+        });
+        ColumnWidthTracker.getTracker("WSFederationTable").addTable(this.conversationsTable);
+        TableSorter sorterWSFederationTableModel = new TableSorter(wsfedTableModel);
+        this.conversationsTable.setModel(sorterWSFederationTableModel);
     }
 
     /** This method is called from within the constructor to
@@ -72,6 +101,8 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         jLabel3 = new javax.swing.JLabel();
         jTabbedPane2 = new javax.swing.JTabbedPane();
         jPanel2 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        conversationsTable = new javax.swing.JTable();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -102,16 +133,11 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
 
         jSplitPane1.setBottomComponent(jTabbedPane1);
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 638, Short.MAX_VALUE)
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 63, Short.MAX_VALUE)
-        );
+        jPanel2.setLayout(new java.awt.BorderLayout());
+
+        jScrollPane1.setViewportView(conversationsTable);
+
+        jPanel2.add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
         jTabbedPane2.addTab("Web Passive Requestor Messages", jPanel2);
 
@@ -120,11 +146,13 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         add(jSplitPane1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTable conversationsTable;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTabbedPane jTabbedPane2;
