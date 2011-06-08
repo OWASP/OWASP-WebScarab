@@ -32,11 +32,18 @@
  */
 package org.owasp.webscarab.plugin.wsfed;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.FilteredConversationModel;
 import org.owasp.webscarab.model.FrameworkModel;
+import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.NamedValue;
+import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.plugin.AbstractPluginModel;
+import org.owasp.webscarab.util.Encoding;
 
 /**
  *
@@ -88,5 +95,38 @@ public class WSFederationModel extends AbstractPluginModel {
             return "Sign-In Response";
         }
         return "Unknown";
+    }
+
+    public List getParameters(ConversationID id) {
+        NamedValue[] values = null;
+
+        Request request = this.model.getRequest(id);
+        String method = request.getMethod();
+        if (method.equals("GET")) {
+            HttpUrl url = request.getURL();
+            String query = url.getQuery();
+            if (null != query) {
+                values = NamedValue.splitNamedValues(query, "&", "=");
+            }
+        } else if (method.equals("POST")) {
+            byte[] requestContent = request.getContent();
+            if (requestContent != null && requestContent.length > 0) {
+                String body = new String(requestContent);
+                values = NamedValue.splitNamedValues(
+                        body, "&", "=");
+            }
+        }
+
+        if (null == values) {
+            return Collections.emptyList();
+        }
+        for (int idx = 0; idx < values.length; idx++) {
+            NamedValue namedValue = values[idx];
+            String name = namedValue.getName();
+            String value = Encoding.urlDecode(namedValue.getValue());
+            namedValue = new NamedValue(name, value);
+            values[idx] = namedValue;
+        }
+        return Arrays.asList(values);
     }
 }

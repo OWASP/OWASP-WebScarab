@@ -30,16 +30,23 @@
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
-
 package org.owasp.webscarab.plugin.wsfed.swing;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
 import javax.swing.Action;
 import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableModel;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.plugin.wsfed.WSFederation;
 import org.owasp.webscarab.plugin.wsfed.WSFederationModel;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;
+import org.owasp.webscarab.ui.swing.ShowConversationAction;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.TableSorter;
@@ -52,14 +59,18 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
 
     private final WSFederation wsfed;
     private final WSFederationModel wsfedModel;
-    
+    private final ParametersTableModel parametersTableModel;
+    private final ShowConversationAction showConversationAction;
+
     /** Creates new form WSFederationPanel */
     public WSFederationPanel(WSFederation wsfed) {
         this.wsfed = wsfed;
         this.wsfedModel = wsfed.getModel();
-        
         initComponents();
-        
+
+        this.showConversationAction = new ShowConversationAction(this.wsfedModel.getConversationModel());
+        this.wsfedPopupMenu.add(this.showConversationAction);
+
         ConversationTableModel wsfedTableModel = new ConversationTableModel(
                 this.wsfedModel.getConversationModel());
         wsfedTableModel.addColumn(new ColumnDataModel() {
@@ -81,6 +92,58 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         ColumnWidthTracker.getTracker("WSFederationTable").addTable(this.conversationsTable);
         TableSorter sorterWSFederationTableModel = new TableSorter(wsfedTableModel);
         this.conversationsTable.setModel(sorterWSFederationTableModel);
+        addTableListeners();
+
+        this.parametersTableModel = new ParametersTableModel();
+        this.parametersTable.setModel(this.parametersTableModel);
+    }
+
+    private void addTableListeners() {
+        this.conversationsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getValueIsAdjusting()) {
+                    return;
+                }
+                int row = WSFederationPanel.this.conversationsTable.getSelectedRow();
+                TableModel tm = WSFederationPanel.this.conversationsTable.getModel();
+                ConversationID id;
+                if (row > -1) {
+                    id = (ConversationID) tm.getValueAt(
+                            row, 0); // UGLY hack! FIXME!!!!
+                    WSFederationPanel.this.display(id);
+                } else {
+                    id = null;
+                    WSFederationPanel.this.resetDisplay();
+                }
+                WSFederationPanel.this.showConversationAction.putValue("CONVERSATION", id);
+            }
+        });
+        this.conversationsTable.addMouseListener(new MouseAdapter() {
+
+            public void mousePressed(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+
+            public void mouseReleased(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+
+            private void maybeShowPopup(MouseEvent e) {
+                int row = WSFederationPanel.this.conversationsTable.rowAtPoint(e.getPoint());
+                WSFederationPanel.this.conversationsTable.getSelectionModel().setSelectionInterval(row, row);
+                if (e.isPopupTrigger()) {
+                    WSFederationPanel.this.wsfedPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
+                    ActionEvent actionEvent = new ActionEvent(WSFederationPanel.this.conversationsTable, 0, (String) WSFederationPanel.this.showConversationAction.getValue(Action.ACTION_COMMAND_KEY));
+                    WSFederationPanel.this.showConversationAction.actionPerformed(actionEvent);
+                }
+            }
+        });
     }
 
     /** This method is called from within the constructor to
@@ -93,8 +156,12 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        wsfedPopupMenu = new javax.swing.JPopupMenu();
         jSplitPane1 = new javax.swing.JSplitPane();
         jTabbedPane1 = new javax.swing.JTabbedPane();
+        jPanel3 = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        parametersTable = new javax.swing.JTable();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -107,6 +174,14 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         setLayout(new java.awt.BorderLayout());
 
         jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+
+        jPanel3.setLayout(new java.awt.BorderLayout());
+
+        jScrollPane2.setViewportView(parametersTable);
+
+        jPanel3.add(jScrollPane2, java.awt.BorderLayout.CENTER);
+
+        jTabbedPane1.addTab("Parameters", jPanel3);
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
@@ -152,10 +227,14 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTabbedPane jTabbedPane2;
+    private javax.swing.JTable parametersTable;
+    private javax.swing.JPopupMenu wsfedPopupMenu;
     // End of variables declaration//GEN-END:variables
 
     public JPanel getPanel() {
@@ -180,5 +259,14 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
 
     public String getPluginName() {
         return this.wsfed.getPluginName();
+    }
+
+    private void display(ConversationID id) {
+        List parameters = this.wsfedModel.getParameters(id);
+        this.parametersTableModel.setParameters(parameters);
+    }
+
+    private void resetDisplay() {
+        this.parametersTableModel.resetParameters();
     }
 }
