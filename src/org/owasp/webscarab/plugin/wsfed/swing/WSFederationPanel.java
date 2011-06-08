@@ -35,6 +35,7 @@ package org.owasp.webscarab.plugin.wsfed.swing;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Iterator;
 import java.util.List;
 import javax.swing.Action;
 import javax.swing.JPanel;
@@ -42,6 +43,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.plugin.wsfed.WSFederation;
 import org.owasp.webscarab.plugin.wsfed.WSFederationModel;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
@@ -162,6 +164,8 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         jPanel3 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         parametersTable = new javax.swing.JTable();
+        jPanel4 = new javax.swing.JPanel();
+        xmlPanel = new org.owasp.webscarab.ui.swing.editors.XMLPanel();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -182,6 +186,11 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         jPanel3.add(jScrollPane2, java.awt.BorderLayout.CENTER);
 
         jTabbedPane1.addTab("Parameters", jPanel3);
+
+        jPanel4.setLayout(new java.awt.BorderLayout());
+        jPanel4.add(xmlPanel, java.awt.BorderLayout.CENTER);
+
+        jTabbedPane1.addTab("XML", jPanel4);
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
@@ -228,6 +237,7 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSplitPane jSplitPane1;
@@ -235,6 +245,7 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JTable parametersTable;
     private javax.swing.JPopupMenu wsfedPopupMenu;
+    private org.owasp.webscarab.ui.swing.editors.XMLPanel xmlPanel;
     // End of variables declaration//GEN-END:variables
 
     public JPanel getPanel() {
@@ -262,11 +273,26 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
     }
 
     private void display(ConversationID id) {
+        resetDisplay();
+        
         List parameters = this.wsfedModel.getParameters(id);
         this.parametersTableModel.setParameters(parameters);
+        Iterator parameterIter = parameters.iterator();
+        while (parameterIter.hasNext()) {
+            NamedValue parameter = (NamedValue) parameterIter.next();
+            if ("wreq".equals(parameter.getName())) {
+                this.xmlPanel.setBytes("text/xml", parameter.getValue().getBytes());
+                break;
+            }
+            if ("wresult".equals(parameter.getName())) {
+                this.xmlPanel.setBytes("text/xml", parameter.getValue().getBytes());
+                break;
+            }
+        }
     }
 
     private void resetDisplay() {
         this.parametersTableModel.resetParameters();
+        this.xmlPanel.setBytes(null, null);
     }
 }
