@@ -89,17 +89,41 @@ public class OpenIdHTTPClient implements HTTPClient {
         return response;
     }
 
+    private NamedValue[] getParameters(Request request) {
+        String method = request.getMethod();
+        if ("GET".equals(method)) {
+            HttpUrl httpUrl = request.getURL();
+            String query = httpUrl.getQuery();
+            if (null == query) {
+                return null;
+            }
+            NamedValue[] values = NamedValue.splitNamedValues(query, "&", "=");
+            return values;
+        } else if ("POST".equals(method)) {
+            byte[] requestContent = request.getContent();
+            if (null == requestContent) {
+                return null;
+            }
+            if (0 == requestContent.length) {
+                return null;
+            }
+            String body = new String(requestContent);
+            NamedValue[] values = NamedValue.splitNamedValues(
+                    body, "&", "=");
+            return values;
+        } else {
+            return null;
+        }
+    }
+
     private String removeSignature(Request request) {
-        HttpUrl httpUrl = request.getURL();
-        String query = httpUrl.getQuery();
-        if (null == query) {
+        NamedValue[] values = getParameters(request);
+        if (null == values) {
             return "";
         }
-        NamedValue[] values = NamedValue.splitNamedValues(query, "&", "=");
         boolean removedSignature = false;
         for (int i = 0; i < values.length; i++) {
             String name = values[i].getName();
-            String value = Encoding.urlDecode(values[i].getValue());
             if ("openid.sig".equals(name)) {
                 values[i] = null;
                 removedSignature = true;
@@ -112,37 +136,29 @@ public class OpenIdHTTPClient implements HTTPClient {
         if (false == removedSignature) {
             return "";
         }
-        try {
-            setNewUrl(httpUrl, values, request);
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
-            return "";
-        }
+        updateParameters(values, request);
         return "remove signature;";
     }
 
-    private String corruptSignature(Request request) {
+    private void updateParameters(NamedValue[] values, Request request) {
         String method = request.getMethod();
-        NamedValue[] values;
         if ("GET".equals(method)) {
-            HttpUrl httpUrl = request.getURL();
-            String query = httpUrl.getQuery();
-            if (null == query) {
-                return "";
+            try {
+                HttpUrl httpUrl = request.getURL();
+                setNewUrl(httpUrl, values, request);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
+                return;
             }
-            values = NamedValue.splitNamedValues(query, "&", "=");
-        } else if ("POST".equals(method)) {
-            byte[] requestContent = request.getContent();
-            if (null == requestContent) {
-                return "";
-            }
-            if (0 == requestContent.length) {
-                return "";
-            }
-            String body = new String(requestContent);
-            values = NamedValue.splitNamedValues(
-                    body, "&", "=");
         } else {
+            // POST
+            updateRequestPostParameters(values, request);
+        }
+    }
+
+    private String corruptSignature(Request request) {
+        NamedValue[] values = getParameters(request);
+        if (null == values) {
             return "";
         }
         boolean corruptedSignature = false;
@@ -161,18 +177,7 @@ public class OpenIdHTTPClient implements HTTPClient {
         if (false == corruptedSignature) {
             return "";
         }
-        if ("GET".equals(method)) {
-            try {
-                HttpUrl httpUrl = request.getURL();
-                setNewUrl(httpUrl, values, request);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
-                return "";
-            }
-        } else {
-            // POST
-            updateRequestPostParameters(values, request);
-        }
+        updateParameters(values, request);
         return "corrupt signature;";
     }
 
