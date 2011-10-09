@@ -139,20 +139,24 @@ public class OpenIdHTTPClient implements HTTPClient {
         updateParameters(values, request);
         return "remove signature;";
     }
-
+    
     private void updateParameters(NamedValue[] values, Request request) {
+        updateParameters(values, null, request);
+    }
+
+    private void updateParameters(NamedValue[] values, List additionalParameters, Request request) {
         String method = request.getMethod();
         if ("GET".equals(method)) {
             try {
                 HttpUrl httpUrl = request.getURL();
-                setNewUrl(httpUrl, values, request);
+                setNewUrl(httpUrl, values, additionalParameters, request);
             } catch (MalformedURLException ex) {
                 Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
                 return;
             }
         } else {
             // POST
-            updateRequestPostParameters(values, request);
+            updateRequestPostParameters(values, additionalParameters, request);
         }
     }
 
@@ -181,7 +185,7 @@ public class OpenIdHTTPClient implements HTTPClient {
         return "corrupt signature;";
     }
 
-    private void updateRequestPostParameters(NamedValue[] values, Request request) {
+    private void updateRequestPostParameters(NamedValue[] values, List additionalParameters, Request request) {
         StringBuffer stringBuffer = new StringBuffer();
         for (int i = 0; i < values.length; i++) {
             if (null == values[i]) {
@@ -193,6 +197,18 @@ public class OpenIdHTTPClient implements HTTPClient {
             stringBuffer.append(values[i].getName());
             stringBuffer.append("=");
             stringBuffer.append(values[i].getValue());
+        }
+        if (null != additionalParameters) {
+            Iterator additionalAttributesIter = additionalParameters.iterator();
+            while (additionalAttributesIter.hasNext()) {
+                NamedValue namedValue = (NamedValue) additionalAttributesIter.next();
+                if (stringBuffer.length() > 1) {
+                    stringBuffer.append("&");
+                }
+                stringBuffer.append(namedValue.getName());
+                stringBuffer.append("=");
+                stringBuffer.append(namedValue.getValue());
+            }
         }
         byte[] content = stringBuffer.toString().getBytes();
         request.setContent(content);
@@ -305,22 +321,7 @@ public class OpenIdHTTPClient implements HTTPClient {
     }
 
     private String removeRequestedAttribute(Request request) {
-        NamedValue[] values = null;
-        String method = request.getMethod();
-        if ("GET".equals(method)) {
-            HttpUrl url = request.getURL();
-            String query = url.getQuery();
-            if (null != query) {
-                values = NamedValue.splitNamedValues(query, "&", "=");
-            }
-        } else if ("POST".equals(method)) {
-            byte[] requestContent = request.getContent();
-            if (requestContent != null && requestContent.length > 0) {
-                String body = new String(requestContent);
-                values = NamedValue.splitNamedValues(
-                        body, "&", "=");
-            }
-        }
+        NamedValue[] values = getParameters(request);
         if (null == values) {
             return "";
         }
@@ -337,7 +338,7 @@ public class OpenIdHTTPClient implements HTTPClient {
             }
         }
         if (null == axAlias) {
-            return "null";
+            return "";
         }
         // get set of required AX aliases
         Set requiredAttributeAliases = new HashSet();
@@ -405,39 +406,12 @@ public class OpenIdHTTPClient implements HTTPClient {
         }
         values[optionalIdx] = new NamedValue(values[optionalIdx].getName(), optionalValue);
 
-        if ("GET".equals(method)) {
-            try {
-                HttpUrl httpUrl = request.getURL();
-                setNewUrl(httpUrl, values, request);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
-                return "";
-            }
-            return "removed attribute request;";
-        } else {
-            // POST
-            // TODO: implement me
-            return "";
-        }
+        updateParameters(values, request);
+        return "removed attribute request;";
     }
 
     private String appendAttribute(Request request) {
-        NamedValue[] values = null;
-        String method = request.getMethod();
-        if ("GET".equals(method)) {
-            HttpUrl url = request.getURL();
-            String query = url.getQuery();
-            if (null != query) {
-                values = NamedValue.splitNamedValues(query, "&", "=");
-            }
-        } else if ("POST".equals(method)) {
-            byte[] requestContent = request.getContent();
-            if (requestContent != null && requestContent.length > 0) {
-                String body = new String(requestContent);
-                values = NamedValue.splitNamedValues(
-                        body, "&", "=");
-            }
-        }
+        NamedValue[] values = getParameters(request);
         if (null == values) {
             return "";
         }
@@ -469,29 +443,18 @@ public class OpenIdHTTPClient implements HTTPClient {
             }
         }
         List additionalParameters = new LinkedList();
-        String attributeAlias = this.openIdProxyConfig.getAppendAttributeAlias();
-        String attributeType = this.openIdProxyConfig.getAppendAttributeType();
-        String attributeValue = this.openIdProxyConfig.getAppendAttributeValue();
         if (null == axAlias) {
             axAlias = "ax";
             additionalParameters.add(new NamedValue("openid.ns." + axAlias, "http://openid.net/srv/ax/1.0"));
             additionalParameters.add(new NamedValue("openid." + axAlias + ".mode", "fetch_response"));
         }
+        String attributeAlias = this.openIdProxyConfig.getAppendAttributeAlias();
+        String attributeType = this.openIdProxyConfig.getAppendAttributeType();
+        String attributeValue = this.openIdProxyConfig.getAppendAttributeValue();
         additionalParameters.add(new NamedValue("openid." + axAlias + ".type." + attributeAlias, Encoding.urlEncode(attributeType)));
         additionalParameters.add(new NamedValue("openid." + axAlias + ".value." + attributeAlias, Encoding.urlEncode(attributeValue)));
-        if ("GET".equals(method)) {
-            try {
-                HttpUrl httpUrl = request.getURL();
-                setNewUrl(httpUrl, values, additionalParameters, request);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
-                return "";
-            }
-            return "add attribute response;";
-        } else {
-            // POST
-            // TODO: implement me
-            return "";
-        }
+        
+        updateParameters(values, additionalParameters, request);
+        return "add attribute response;";
     }
 }
