@@ -229,22 +229,7 @@ public class OpenIdHTTPClient implements HTTPClient {
     }
 
     private String removeRequestAssociationHandle(Request request) {
-        NamedValue[] values = null;
-        String method = request.getMethod();
-        if ("GET".equals(method)) {
-            HttpUrl url = request.getURL();
-            String query = url.getQuery();
-            if (null != query) {
-                values = NamedValue.splitNamedValues(query, "&", "=");
-            }
-        } else if ("POST".equals(method)) {
-            byte[] requestContent = request.getContent();
-            if (requestContent != null && requestContent.length > 0) {
-                String body = new String(requestContent);
-                values = NamedValue.splitNamedValues(
-                        body, "&", "=");
-            }
-        }
+        NamedValue[] values = getParameters(request);
         if (null == values) {
             return "";
         }
@@ -277,39 +262,12 @@ public class OpenIdHTTPClient implements HTTPClient {
             return "";
         }
         // construct altered response
-        if ("GET".equals(method)) {
-            try {
-                HttpUrl httpUrl = request.getURL();
-                setNewUrl(httpUrl, values, request);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
-                return "";
-            }
-            return "removed request assoc_handle;";
-        } else {
-            // POST
-            // TODO: implement me
-            return "";
-        }
+        updateParameters(values, request);
+        return "removed request assoc_handle;";
     }
 
     private String removeResponseAssociationHandle(Request request) {
-        NamedValue[] values = null;
-        String method = request.getMethod();
-        if ("GET".equals(method)) {
-            HttpUrl url = request.getURL();
-            String query = url.getQuery();
-            if (null != query) {
-                values = NamedValue.splitNamedValues(query, "&", "=");
-            }
-        } else if ("POST".equals(method)) {
-            byte[] requestContent = request.getContent();
-            if (requestContent != null && requestContent.length > 0) {
-                String body = new String(requestContent);
-                values = NamedValue.splitNamedValues(
-                        body, "&", "=");
-            }
-        }
+        NamedValue[] values = getParameters(request);
         if (null == values) {
             return "";
         }
@@ -342,20 +300,8 @@ public class OpenIdHTTPClient implements HTTPClient {
             return "";
         }
         // construct altered response
-        if ("GET".equals(method)) {
-            try {
-                HttpUrl httpUrl = request.getURL();
-                setNewUrl(httpUrl, values, request);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
-                return "";
-            }
-            return "removed response assoc_handle;";
-        } else {
-            // POST
-            // TODO: implement me
-            return "";
-        }
+        updateParameters(values, request);
+        return "removed response assoc_handle;";
     }
 
     private String removeRequestedAttribute(Request request) {
