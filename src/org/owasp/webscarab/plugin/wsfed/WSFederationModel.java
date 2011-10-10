@@ -32,9 +32,24 @@
  */
 package org.owasp.webscarab.plugin.wsfed;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.apache.xml.security.utils.Constants;
+import org.apache.xpath.XPathAPI;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.FilteredConversationModel;
@@ -44,6 +59,10 @@ import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.plugin.AbstractPluginModel;
 import org.owasp.webscarab.util.Encoding;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -128,5 +147,28 @@ public class WSFederationModel extends AbstractPluginModel {
             values[idx] = namedValue;
         }
         return Arrays.asList(values);
+    }
+
+    public byte[] findSAMLAssertion(byte[] wresult) throws ParserConfigurationException, SAXException, IOException, TransformerException {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(wresult);
+        DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+        builderFactory.setNamespaceAware(true);
+        DocumentBuilder builder = builderFactory.newDocumentBuilder();
+        Document document = builder.parse(inputStream);
+        Element nsElement = document.createElement("nsElement");
+        nsElement.setAttributeNS(Constants.NamespaceSpecNS, "xmlns:saml2",
+                "urn:oasis:names:tc:SAML:2.0:assertion");
+        Node assertionNode = XPathAPI.selectSingleNode(document, "//saml2:Assertion", nsElement);
+        if (null == assertionNode) {
+            return null;
+        }
+        Source source = new DOMSource(assertionNode);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        Result result = new StreamResult(outputStream);
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+
+        transformer.transform(source, result);
+        return outputStream.toByteArray();
     }
 }

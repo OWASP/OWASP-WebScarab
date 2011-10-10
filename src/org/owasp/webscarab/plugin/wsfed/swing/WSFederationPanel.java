@@ -35,13 +35,18 @@ package org.owasp.webscarab.plugin.wsfed.swing;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.plugin.wsfed.WSFederation;
@@ -52,6 +57,7 @@ import org.owasp.webscarab.ui.swing.ShowConversationAction;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.TableSorter;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -166,6 +172,12 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         parametersTable = new javax.swing.JTable();
         jPanel4 = new javax.swing.JPanel();
         xmlPanel = new org.owasp.webscarab.ui.swing.editors.XMLPanel();
+        jPanel5 = new javax.swing.JPanel();
+        jTabbedPane3 = new javax.swing.JTabbedPane();
+        jPanel6 = new javax.swing.JPanel();
+        assertionPanel = new org.owasp.webscarab.ui.swing.editors.XMLPanel();
+        jPanel7 = new javax.swing.JPanel();
+        jPanel8 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -191,6 +203,19 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         jPanel4.add(xmlPanel, java.awt.BorderLayout.CENTER);
 
         jTabbedPane1.addTab("XML", jPanel4);
+
+        jPanel5.setLayout(new java.awt.BorderLayout());
+
+        jPanel6.setLayout(new java.awt.BorderLayout());
+        jPanel6.add(assertionPanel, java.awt.BorderLayout.CENTER);
+
+        jTabbedPane3.addTab("XML", jPanel6);
+        jTabbedPane3.addTab("Signature", jPanel7);
+        jTabbedPane3.addTab("Attributes", jPanel8);
+
+        jPanel5.add(jTabbedPane3, java.awt.BorderLayout.CENTER);
+
+        jTabbedPane1.addTab("SAML Assertion", jPanel5);
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
@@ -230,6 +255,7 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         add(jSplitPane1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private org.owasp.webscarab.ui.swing.editors.XMLPanel assertionPanel;
     private javax.swing.JTable conversationsTable;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -238,11 +264,16 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTabbedPane jTabbedPane2;
+    private javax.swing.JTabbedPane jTabbedPane3;
     private javax.swing.JTable parametersTable;
     private javax.swing.JPopupMenu wsfedPopupMenu;
     private org.owasp.webscarab.ui.swing.editors.XMLPanel xmlPanel;
@@ -274,7 +305,7 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
 
     private void display(ConversationID id) {
         resetDisplay();
-        
+
         List parameters = this.wsfedModel.getParameters(id);
         this.parametersTableModel.setParameters(parameters);
         Iterator parameterIter = parameters.iterator();
@@ -286,6 +317,14 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
             }
             if ("wresult".equals(parameter.getName())) {
                 this.xmlPanel.setBytes("text/xml", parameter.getValue().getBytes());
+                try {
+                    byte[] assertion = this.wsfedModel.findSAMLAssertion(parameter.getValue().getBytes());
+                    if (null != assertion) {
+                        this.assertionPanel.setBytes("text/xml", assertion);
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(WSFederationPanel.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 break;
             }
         }
@@ -294,5 +333,6 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
     private void resetDisplay() {
         this.parametersTableModel.resetParameters();
         this.xmlPanel.setBytes(null, null);
+        this.assertionPanel.setBytes(null, null);
     }
 }
