@@ -107,7 +107,7 @@ public class WebScarab {
 
             Framework framework = new Framework();
 
-            boolean lite = Boolean.valueOf(Preferences.getPreference("WebScarab.lite", "true")).booleanValue();
+            boolean lite = Boolean.valueOf(Preferences.getPreference("WebScarab.lite", "false")).booleanValue();
 
             if (args != null && args.length > 0) {
                 if (args[0].equalsIgnoreCase("lite")) {
