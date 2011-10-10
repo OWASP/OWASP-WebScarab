@@ -35,6 +35,7 @@ package org.owasp.webscarab.plugin.wsfed;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -62,6 +63,7 @@ import org.owasp.webscarab.util.Encoding;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
@@ -170,5 +172,30 @@ public class WSFederationModel extends AbstractPluginModel {
 
         transformer.transform(source, result);
         return outputStream.toByteArray();
+    }
+
+    public List getSAMLAttributes(byte[] assertion) throws ParserConfigurationException, SAXException, IOException {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(assertion);
+        DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+        builderFactory.setNamespaceAware(true);
+        DocumentBuilder builder = builderFactory.newDocumentBuilder();
+        Document document = builder.parse(inputStream);
+
+
+        List samlAttributes = new ArrayList();
+        NodeList attribute2NodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Attribute");
+        for (int idx = 0; idx < attribute2NodeList.getLength(); idx++) {
+            Element attributeElement = (Element) attribute2NodeList.item(idx);
+            String attributeName = attributeElement.getAttribute("Name");
+            NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AttributeValue");
+            if (0 == attributeValueNodeList.getLength()) {
+                continue;
+            }
+            Element attributeValueElement = (Element) attributeValueNodeList.item(0);
+            String attributeValue = attributeValueElement.getChildNodes().item(0).getNodeValue();
+            NamedValue attribute = new NamedValue(attributeName, attributeValue);
+            samlAttributes.add(attribute);
+        }
+        return samlAttributes;
     }
 }

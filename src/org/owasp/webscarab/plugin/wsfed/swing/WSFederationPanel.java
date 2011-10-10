@@ -49,6 +49,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.NamedValue;
+import org.owasp.webscarab.plugin.saml.swing.AttributesTableModel;
 import org.owasp.webscarab.plugin.wsfed.WSFederation;
 import org.owasp.webscarab.plugin.wsfed.WSFederationModel;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
@@ -69,6 +70,7 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
     private final WSFederationModel wsfedModel;
     private final ParametersTableModel parametersTableModel;
     private final ShowConversationAction showConversationAction;
+    private final AttributesTableModel samlAttributesTableModel;
 
     /** Creates new form WSFederationPanel */
     public WSFederationPanel(WSFederation wsfed) {
@@ -104,6 +106,9 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
 
         this.parametersTableModel = new ParametersTableModel();
         this.parametersTable.setModel(this.parametersTableModel);
+        
+        this.samlAttributesTableModel = new AttributesTableModel();
+        this.samlAttributesTable.setModel(this.samlAttributesTableModel);
     }
 
     private void addTableListeners() {
@@ -178,6 +183,8 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         assertionPanel = new org.owasp.webscarab.ui.swing.editors.XMLPanel();
         jPanel7 = new javax.swing.JPanel();
         jPanel8 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        samlAttributesTable = new javax.swing.JTable();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -211,6 +218,13 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
 
         jTabbedPane3.addTab("XML", jPanel6);
         jTabbedPane3.addTab("Signature", jPanel7);
+
+        jPanel8.setLayout(new java.awt.BorderLayout());
+
+        jScrollPane3.setViewportView(samlAttributesTable);
+
+        jPanel8.add(jScrollPane3, java.awt.BorderLayout.CENTER);
+
         jTabbedPane3.addTab("Attributes", jPanel8);
 
         jPanel5.add(jTabbedPane3, java.awt.BorderLayout.CENTER);
@@ -250,7 +264,7 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
 
         jTabbedPane2.addTab("Web Passive Requestor Messages", jPanel2);
 
-        jSplitPane1.setLeftComponent(jTabbedPane2);
+        jSplitPane1.setTopComponent(jTabbedPane2);
 
         add(jSplitPane1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
@@ -270,11 +284,13 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
     private javax.swing.JPanel jPanel8;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JTabbedPane jTabbedPane3;
     private javax.swing.JTable parametersTable;
+    private javax.swing.JTable samlAttributesTable;
     private javax.swing.JPopupMenu wsfedPopupMenu;
     private org.owasp.webscarab.ui.swing.editors.XMLPanel xmlPanel;
     // End of variables declaration//GEN-END:variables
@@ -321,6 +337,8 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
                     byte[] assertion = this.wsfedModel.findSAMLAssertion(parameter.getValue().getBytes());
                     if (null != assertion) {
                         this.assertionPanel.setBytes("text/xml", assertion);
+                        List samlAttributes = this.wsfedModel.getSAMLAttributes(assertion);
+                        this.samlAttributesTableModel.setAttributes(samlAttributes);
                     }
                 } catch (Exception ex) {
                     Logger.getLogger(WSFederationPanel.class.getName()).log(Level.SEVERE, null, ex);
@@ -334,5 +352,6 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         this.parametersTableModel.resetParameters();
         this.xmlPanel.setBytes(null, null);
         this.assertionPanel.setBytes(null, null);
+        this.samlAttributesTableModel.resetAttributes();
     }
 }
