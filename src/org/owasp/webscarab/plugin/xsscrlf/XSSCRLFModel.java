@@ -28,9 +28,9 @@ public class XSSCRLFModel extends AbstractPluginModel {
     
     private ConversationModel _conversationModel, _suspectedConversationModel;
         
-    private LinkedList toBeAnalyzedQueue = new LinkedList();
+    private LinkedList<Request> toBeAnalyzedQueue = new LinkedList<Request>();
     
-    private Set testedURLandParameterpairs = new HashSet();
+    private Set<String> testedURLandParameterpairs = new HashSet<String>();
     
     private String xssTestString = "><script>a=/XSS BUG/; alert(a.source)</script>";
     private String crlfTestString = "%0d%0aWebscarabXSSCRLFTest:%20OK%0d%0a";

@@ -57,8 +57,8 @@ public class SSLKeyManager implements X509KeyManager {
     private String _preferredAlias = null;
     private X509KeyManager _preferredKeyManager = null;
     
-    private Map _stores = new TreeMap();
-    private Map _managers = new TreeMap();
+    private Map<String, KeyStore> _stores = new TreeMap<String, KeyStore>();
+    private Map<String, X509KeyManager> _managers = new TreeMap<String, X509KeyManager>();
     
     private PropertyChangeSupport _changeSupport = new PropertyChangeSupport(this);
     
@@ -112,7 +112,7 @@ public class SSLKeyManager implements X509KeyManager {
             if (!(km instanceof X509KeyManager))
                 throw new KeyStoreException("KeyManager for " + description + "is not X509!");
             _stores.put(description, ks);
-            _managers.put(description, km);
+            _managers.put(description, (X509KeyManager) km);
         } catch (NoSuchAlgorithmException nsae) {
             _logger.severe("This should never happen! SunX509 algorithm not found: " + nsae.getMessage());
         }
@@ -120,7 +120,7 @@ public class SSLKeyManager implements X509KeyManager {
     }
     
     public String[] getKeyStoreDescriptions() {
-        return (String[]) _stores.keySet().toArray(new String[0]);
+        return _stores.keySet().toArray(new String[0]);
     }
     
     public synchronized void removeKeyStore(String description) {
@@ -137,29 +137,29 @@ public class SSLKeyManager implements X509KeyManager {
     }
     
     public synchronized String[] getAliases(String description) {
-        KeyStore ks = (KeyStore) _stores.get(description);
+        KeyStore ks = _stores.get(description);
         if (ks == null) {
             return null;
         }
-        List aliases = new ArrayList();
+        List<String> aliases = new ArrayList<String>();
         try {
-            Enumeration e = ks.aliases();
+            Enumeration<String> e = ks.aliases();
             while (e.hasMoreElements()) {
                 aliases.add(e.nextElement());
             }
         } catch (KeyStoreException kse) {
             _logger.severe("Error enumerating aliases: " + kse.getMessage());
         }
-        return (String[]) aliases.toArray(new String[0]);
+        return aliases.toArray(new String[0]);
     }
     
     public synchronized boolean setPreferredAlias(String description, String alias) {
         String old = String.valueOf(_preferredStore) + SEP + String.valueOf(_preferredAlias);
         if (description != null && alias != null) {
-            KeyStore ks = (KeyStore) _stores.get(description);
+            KeyStore ks = _stores.get(description);
             try {
                 if (ks.isKeyEntry(alias)) {
-                    _preferredKeyManager = (X509KeyManager) _managers.get(description);
+                    _preferredKeyManager = _managers.get(description);
                     _preferredStore = description;
                     _preferredAlias = alias;
                     String now = String.valueOf(_preferredStore) + SEP + String.valueOf(_preferredAlias);
@@ -199,10 +199,10 @@ public class SSLKeyManager implements X509KeyManager {
         if (_preferredKeyManager != null)
             return _preferredKeyManager.chooseServerAlias(keyType, issuers, socket);
         
-        Iterator it = _managers.keySet().iterator();
+        Iterator<String> it = _managers.keySet().iterator();
         while (it.hasNext()) {
-            String source = (String) it.next();
-            X509KeyManager km = (X509KeyManager) _managers.get(source);
+            String source = it.next();
+            X509KeyManager km = _managers.get(source);
             String alias = km.chooseServerAlias(keyType, issuers, socket);
             if (alias != null) return source + SEP + alias;
         }
@@ -221,11 +221,11 @@ public class SSLKeyManager implements X509KeyManager {
         if (_preferredKeyManager != null)
             return _preferredKeyManager.getClientAliases(keyType, issuers);
         
-        List allAliases = new ArrayList();
-        Iterator it = _managers.keySet().iterator();
+        List<String> allAliases = new ArrayList<String>();
+        Iterator<String> it = _managers.keySet().iterator();
         while (it.hasNext()) {
-            String source = (String) it.next();
-            X509KeyManager km = (X509KeyManager) _managers.get(source);
+            String source = it.next();
+            X509KeyManager km = _managers.get(source);
             String[] aliases = km.getClientAliases(keyType, issuers);
             if (aliases != null) {
                 for (int i=0; i<aliases.length; i++) {
@@ -233,14 +233,14 @@ public class SSLKeyManager implements X509KeyManager {
                 }
             }
         }
-        return (String[]) allAliases.toArray(new String[0]);
+        return allAliases.toArray(new String[0]);
     }
     
     public synchronized PrivateKey getPrivateKey(String alias) {
         String[] parts = alias.split(SEP, 2);
         String description = parts[0];
         alias = parts[1];
-        X509KeyManager km = (X509KeyManager) _managers.get(description);
+        X509KeyManager km = _managers.get(description);
         return km.getPrivateKey(alias);
     }
     
@@ -248,11 +248,11 @@ public class SSLKeyManager implements X509KeyManager {
         if (_preferredKeyManager != null)
             return _preferredKeyManager.getServerAliases(keyType, issuers);
         
-        List allAliases = new ArrayList();
-        Iterator it = _managers.keySet().iterator();
+        List<String> allAliases = new ArrayList<String>();
+        Iterator<String> it = _managers.keySet().iterator();
         while (it.hasNext()) {
-            String source = (String) it.next();
-            X509KeyManager km = (X509KeyManager) _managers.get(source);
+            String source = it.next();
+            X509KeyManager km = _managers.get(source);
             String[] aliases = km.getServerAliases(keyType, issuers);
             if (aliases != null) {
                 for (int i=0; i<aliases.length; i++) {
@@ -260,7 +260,7 @@ public class SSLKeyManager implements X509KeyManager {
                 }
             }
         }
-        return (String[]) allAliases.toArray(new String[0]);
+        return allAliases.toArray(new String[0]);
     }
     
 }

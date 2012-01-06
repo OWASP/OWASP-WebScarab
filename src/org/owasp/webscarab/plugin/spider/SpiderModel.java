@@ -29,7 +29,7 @@ public class SpiderModel extends AbstractPluginModel {
     private FrameworkModel _model;
     private SpiderUrlModel _urlModel;
     
-    private List _linkQueue = new LinkedList();
+    private List<Link> _linkQueue = new LinkedList<Link>();
     
     private String _allowedDomains = null;
     private String _forbiddenPaths = null;

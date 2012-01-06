@@ -61,7 +61,7 @@ import java.io.IOException;
  */
 public class FileSystemStore implements SessionIDStore {
     
-    private SortedMap _sessionIDs = new TreeMap();
+    private SortedMap<String, List<SessionID>> _sessionIDs = new TreeMap<String, List<SessionID>>();
     
     private File _dir;
     
@@ -82,7 +82,7 @@ public class FileSystemStore implements SessionIDStore {
         try {
             BufferedReader br = new BufferedReader(new FileReader(f));
             for (String key = br.readLine(); key != null; key = br.readLine()) {
-                List list = new ArrayList();
+                ArrayList<SessionID> list = new ArrayList<SessionID>();
                 _sessionIDs.put(key, list);
                 for (String line = br.readLine(); line != null && ! line.equals(""); line=br.readLine()) {
                     SessionID id = new SessionID(line);
@@ -95,9 +95,9 @@ public class FileSystemStore implements SessionIDStore {
     }
     
     public int addSessionID(String key, SessionID id) {
-        List list = (List) _sessionIDs.get(key);
+        List<SessionID> list = _sessionIDs.get(key);
         if (list == null) {
-            list = new ArrayList();
+            list = new ArrayList<SessionID>();
             _sessionIDs.put(key, list);
         }
         int insert = Collections.binarySearch(list, id);
@@ -115,9 +115,9 @@ public class FileSystemStore implements SessionIDStore {
     }
     
     public String getSessionIDName(int index) {
-        Iterator it = _sessionIDs.keySet().iterator();
+        Iterator<String> it = _sessionIDs.keySet().iterator();
         while (it.hasNext()) {
-            String key = (String) it.next();
+            String key = it.next();
             if (index==0) {
                 return key;
             } else {
@@ -128,15 +128,15 @@ public class FileSystemStore implements SessionIDStore {
     }
     
     public int getSessionIDCount(String key) {
-        List list = (List) _sessionIDs.get(key);
+        List<SessionID> list = _sessionIDs.get(key);
         if (list == null) return 0;
         return list.size();
     }
     
     public SessionID getSessionIDAt(String key, int index) {
-        List list = (List) _sessionIDs.get(key);
+        List<SessionID> list = _sessionIDs.get(key);
         if (list == null) return null;
-        return (SessionID) list.get(index);
+        return list.get(index);
     }
     
     public void flush() throws StoreException {
@@ -146,14 +146,14 @@ public class FileSystemStore implements SessionIDStore {
         }
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-            Iterator it = _sessionIDs.keySet().iterator();
+            Iterator<String> it = _sessionIDs.keySet().iterator();
             while (it.hasNext()) {
                 String key = (String) it.next();
                 bw.write(key + "\r\n");
-                List list = (List) _sessionIDs.get(key);
-                Iterator it2 = list.iterator();
+                List<SessionID> list = _sessionIDs.get(key);
+                Iterator<SessionID> it2 = list.iterator();
                 while (it2.hasNext()) {
-                    SessionID id = (SessionID) it2.next();
+                    SessionID id = it2.next();
                     bw.write(id.toString() + "\r\n");
                 }
                 bw.write("\r\n");

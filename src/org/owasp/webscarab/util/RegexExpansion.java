@@ -42,8 +42,8 @@ public class RegexExpansion {
     /** Creates a new instance of RegexExpansion */
     public RegexExpansion(String regex) throws PatternSyntaxException {
         this.regex = regex;
-        List charsets = new LinkedList();
-        List chars = new LinkedList();
+        List<List<Character>> charsets = new LinkedList<List<Character>>();
+        List<Character> chars = new LinkedList<Character>();
         
         boolean inClass = false;
         boolean quoted = false;
@@ -106,12 +106,12 @@ public class RegexExpansion {
                 }
             if (!inClass) {
                 charsets.add(chars);
-                chars = new LinkedList();
+                chars = new LinkedList<Character>();
             }
         }
         this.charsets = new char[charsets.size()][];
         for (int i=0; i<charsets.size(); i++) {
-            chars = (List) charsets.get(i);
+            chars = (List<Character>) charsets.get(i);
             char[] t = new char[chars.size()];
             for (int j=0; j<chars.size();j++) {
                 t[j] = ((Character) chars.get(j)).charValue();

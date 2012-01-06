@@ -21,7 +21,7 @@ public class Hook {
     
     private String _name;
     private String _description;
-    private List _scripts = new ArrayList();
+    private List<Script> _scripts = new ArrayList<Script>();
     protected BSFManager _bsfManager = null;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
@@ -40,7 +40,7 @@ public class Hook {
         if (_bsfManager == null) return;
         synchronized(_bsfManager) {
             for (int i=0; i<_scripts.size(); i++) {
-                Script script = (Script) _scripts.get(i);
+                Script script = _scripts.get(i);
                 if (script.isEnabled()) {
 //                    if (_scriptManager != null) _scriptManager.scriptStarted(this, script);
                     try {
@@ -68,7 +68,7 @@ public class Hook {
     }
     
     public Script getScript(int i) {
-        return (Script) _scripts.get(i);
+        return _scripts.get(i);
     }
     
     public void addScript(Script script) {
@@ -80,7 +80,7 @@ public class Hook {
     }
     
     public Script removeScript(int position) {
-        return (Script)_scripts.remove(position);
+        return _scripts.remove(position);
     }
     
 }

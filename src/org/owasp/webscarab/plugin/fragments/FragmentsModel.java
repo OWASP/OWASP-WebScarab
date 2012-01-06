@@ -214,7 +214,7 @@ public class FragmentsModel extends AbstractPluginModel {
         
         private String _type = null;
         private String _key = null;
-        private List _conversationList = new ArrayList();
+        private ArrayList<ConversationID> _conversationList = new ArrayList<ConversationID>();
         
         public FragmentConversationModel(FrameworkModel model) {
             super(model);
@@ -252,7 +252,7 @@ public class FragmentsModel extends AbstractPluginModel {
         }
         
         public ConversationID getConversationAt(int index) {
-            return (ConversationID) _conversationList.get(index);
+            return _conversationList.get(index);
         }
         
         public int getConversationCount() {

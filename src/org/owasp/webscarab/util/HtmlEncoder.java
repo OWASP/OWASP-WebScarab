@@ -5,8 +5,8 @@ import java.util.Map;
 
 public class HtmlEncoder
 {
-	static Map e2i = new HashMap();
-	static Map i2e = new HashMap();
+	static Map<Object, Object> e2i = new HashMap<Object, Object>();
+	static Map<Object, Object> i2e = new HashMap<Object, Object>();
 
 	// html entity list
 	private static Object[][] entities =

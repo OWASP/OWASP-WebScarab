@@ -70,7 +70,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
                     ConversationID id = (ConversationID) key;
                     return _model.isXSSSuspected(id) || _model.isCRLFSuspected(id)? Boolean.TRUE : Boolean.FALSE;
                 }
-                public Class getColumnClass() {
+                public Class<?> getColumnClass() {
                     return Boolean.class;
                 }
             }, 
@@ -81,7 +81,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
                 public Object getValue(Object key) {
                     return _model.isXSSVulnerable((ConversationID) key) ? Boolean.TRUE : Boolean.FALSE;
                 }
-                public Class getColumnClass() {
+                public Class<?> getColumnClass() {
                     return Boolean.class;
                 }
             }, 
@@ -92,7 +92,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
                 public Object getValue(Object key) {
                     return _model.isCRLFVulnerable((ConversationID) key) ? Boolean.TRUE : Boolean.FALSE;
                 }
-                public Class getColumnClass() {
+                public Class<?> getColumnClass() {
                     return Boolean.class;
                 }
             }
@@ -108,7 +108,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
             public Object getValue(Object key) {
                 return _model.isXSSSuspected((ConversationID) key) ? Boolean.TRUE : Boolean.FALSE;
             }
-            public Class getColumnClass() {
+            public Class<?> getColumnClass() {
                 return Boolean.class;
             }
         });
@@ -119,7 +119,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
             public Object getValue(Object key) {
                 return _model.getXSSSuspected((ConversationID) key);
             }
-            public Class getColumnClass() {
+            public Class<?> getColumnClass() {
                 return String.class;
             }
         });
@@ -130,7 +130,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
             public Object getValue(Object key) {
                 return _model.isCRLFSuspected((ConversationID) key) ? Boolean.TRUE : Boolean.FALSE;
             }
-            public Class getColumnClass() {
+            public Class<?> getColumnClass() {
                 return Boolean.class;
             }
         });
@@ -141,7 +141,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
             public Object getValue(Object key) {
                 return _model.getCRLFSuspected((ConversationID) key);
             }
-            public Class getColumnClass() {
+            public Class<?> getColumnClass() {
                 return String.class;
             }
         });
@@ -167,7 +167,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
                     HttpUrl url = (HttpUrl) key;
                     return _model.isSuspected(url) ? Boolean.TRUE :  Boolean.FALSE;
                 }
-                public Class getColumnClass() {
+                public Class<?> getColumnClass() {
                     return Boolean.class;
                 }
             }, 
@@ -179,7 +179,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
                     HttpUrl url = (HttpUrl) key;
                     return _model.isXSSVulnerable(url) || _model.isCRLFVulnerable(url)? Boolean.TRUE :  Boolean.FALSE;
                 }
-                public Class getColumnClass() {
+                public Class<?> getColumnClass() {
                     return Boolean.class;
                 }
             }

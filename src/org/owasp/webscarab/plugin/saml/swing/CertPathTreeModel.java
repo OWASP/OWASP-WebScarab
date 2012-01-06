@@ -48,9 +48,9 @@ public class CertPathTreeModel extends AbstractTreeModel {
     /**
      * List of X509 certificates.
      */
-    private final List certificateChain;
+    private final List<?> certificateChain;
 
-    public CertPathTreeModel(List certificateChain) {
+    public CertPathTreeModel(List<?> certificateChain) {
         this.certificateChain = certificateChain;
     }
 

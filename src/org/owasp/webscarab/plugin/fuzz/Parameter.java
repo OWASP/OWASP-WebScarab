@@ -80,7 +80,7 @@ public class Parameter {
     }
     
     public static Parameter[] getParameters(Request request) {
-        List parameters = new ArrayList();
+        List<Parameter> parameters = new ArrayList<Parameter>();
         String method = request.getMethod();
         HttpUrl url = request.getURL();
         
@@ -118,7 +118,7 @@ public class Parameter {
                 }
             }
         }
-        return (Parameter[]) parameters.toArray(NO_PARAMS);
+        return parameters.toArray(NO_PARAMS);
     }
     
     public static Parameter[] getParamsFromContent(String contentType, byte[] content) {

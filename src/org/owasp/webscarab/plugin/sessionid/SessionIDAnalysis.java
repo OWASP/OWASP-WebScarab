@@ -147,8 +147,8 @@ public class SessionIDAnalysis implements Plugin, ConversationHandler {
     public void responseReceived(Response response) {
         if (_count == 0) return;
         _count--;
-        Map ids = getIDsFromResponse(response, _name, _regex);
-        Iterator it = ids.keySet().iterator();
+        Map<String, SessionID> ids = getIDsFromResponse(response, _name, _regex);
+        Iterator<String> it = ids.keySet().iterator();
         while (it.hasNext()) {
             String key = (String) it.next();
             SessionID id = (SessionID) ids.get(key);
@@ -156,8 +156,8 @@ public class SessionIDAnalysis implements Plugin, ConversationHandler {
         }
     }
     
-    public Map getIDsFromResponse(Response response, String name, String regex) {
-        Map ids = new TreeMap();
+    public Map<String, SessionID> getIDsFromResponse(Response response, String name, String regex) {
+        Map<String, SessionID> ids = new TreeMap<String, SessionID>();
         Request request = response.getRequest();
         if (request == null) {
             System.out.println("Request was null?");

@@ -25,7 +25,7 @@ import org.owasp.webscarab.model.Preferences;
 public class ScriptManager {
     
     private BSFManager _bsfManager;
-    private TreeMap _hooks = new TreeMap();
+    private TreeMap<String, Hook[]> _hooks = new TreeMap<String, Hook[]>();
     private EventListenerList _listeners = new EventListenerList();
     
     private Logger _logger = Logger.getLogger(getClass().getName());
@@ -69,18 +69,18 @@ public class ScriptManager {
     }
     
     public String getPlugin(int i) {
-        String[] plugins = (String[]) _hooks.keySet().toArray(new String[0]);
+        String[] plugins = _hooks.keySet().toArray(new String[0]);
         return plugins[i];
     }
     
     public int getHookCount(String plugin) {
-        Hook[] hooks = (Hook[]) _hooks.get(plugin);
+        Hook[] hooks = _hooks.get(plugin);
         if (hooks == null) return 0;
         return hooks.length;
     }
     
     public Hook getHook(String plugin, int i) {
-        Hook[] hooks = (Hook[]) _hooks.get(plugin);
+        Hook[] hooks = _hooks.get(plugin);
         if (hooks == null) return null;
         return hooks[i];
     }
@@ -117,11 +117,11 @@ public class ScriptManager {
     }
     
     public void loadScripts() {
-        Iterator hookIt = _hooks.entrySet().iterator();
+        Iterator<Map.Entry<String, Hook[]>> hookIt = _hooks.entrySet().iterator();
         while (hookIt.hasNext()) {
-            Map.Entry entry = (Map.Entry) hookIt.next();
-            String plugin = (String) entry.getKey();
-            Hook[] hooks = (Hook[]) entry.getValue();
+            Map.Entry<String, Hook[]> entry = hookIt.next();
+            String plugin =  entry.getKey();
+            Hook[] hooks = entry.getValue();
             if (hooks != null) {
                 for (int i=0; i<hooks.length; i++) {
                     for (int j=0; j<hooks[i].getScriptCount(); j++)
@@ -151,10 +151,10 @@ public class ScriptManager {
     }
     
     public void saveScripts() {
-        Iterator hookIt = _hooks.entrySet().iterator();
+        Iterator<Map.Entry<String, Hook[]>> hookIt = _hooks.entrySet().iterator();
         while (hookIt.hasNext()) {
-            Map.Entry entry = (Map.Entry) hookIt.next();
-            Hook[] hooks = (Hook[]) entry.getValue();
+            Map.Entry<String, Hook[]> entry = hookIt.next();
+            Hook[] hooks = entry.getValue();
             if (hooks != null) {
                 for (int i=0; i<hooks.length; i++) {
                     for (int j=0; j<hooks[i].getScriptCount(); j++) {

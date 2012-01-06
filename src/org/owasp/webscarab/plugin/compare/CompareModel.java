@@ -28,8 +28,8 @@ public class CompareModel extends AbstractPluginModel {
     
     private FrameworkModel _model = null;
     
-    private Map _distances = new HashMap();
-    private ArrayList _compared = new ArrayList();
+    private Map<ConversationID, Integer> _distances = new HashMap<ConversationID, Integer>();
+    private ArrayList<ConversationID> _compared = new ArrayList<ConversationID>();
     
     private DiffModel _diffModel;
     

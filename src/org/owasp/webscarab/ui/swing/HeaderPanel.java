@@ -30,7 +30,7 @@ public class HeaderPanel extends javax.swing.JPanel {
     private boolean _modified = false;
     
     private HeaderTableModel _htm;
-    private List _headers = new ArrayList();
+    private List<NamedValue> _headers = new ArrayList<NamedValue>();
     
     /** Creates new form HeaderPanel */
     public HeaderPanel() {
@@ -75,7 +75,7 @@ public class HeaderPanel extends javax.swing.JPanel {
     
     public NamedValue[] getHeaders() {
         _modified = false;
-        return (NamedValue[]) _headers.toArray(NO_HEADERS);
+        return _headers.toArray(NO_HEADERS);
     }
     
     public void insertRow(int row) {
@@ -195,14 +195,14 @@ public class HeaderPanel extends javax.swing.JPanel {
         
         public Object getValueAt(int row, int column) {
             if (row > _headers.size()-1) return "ERROR";
-            NamedValue nv = (NamedValue) _headers.get(row);
+            NamedValue nv = _headers.get(row);
             if (column == 0) return nv.getName();
             return nv.getValue();
         }
         
         public void setValueAt(Object aValue, int row, int col) {
             if (_editable && aValue instanceof String) {
-                NamedValue nv = (NamedValue) _headers.get(row);
+                NamedValue nv = _headers.get(row);
                 if (col == 0) {
                     _headers.set(row, new NamedValue((String)aValue, nv.getValue()));
                 } else {

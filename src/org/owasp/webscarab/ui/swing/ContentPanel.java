@@ -71,7 +71,7 @@ public class ContentPanel extends javax.swing.JPanel {
     private boolean[] _upToDate = new boolean[] {false};
     
     // This list is sorted in increasing order of preference
-    private static List _preferred = new ArrayList();
+    private static List<String> _preferred = new ArrayList<String>();
     private boolean _creatingPanels = false;
     
     /** Creates new form ContentPanel */

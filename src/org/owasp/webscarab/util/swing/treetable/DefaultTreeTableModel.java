@@ -110,7 +110,7 @@ public class DefaultTreeTableModel extends DefaultTreeModel implements TreeTable
     /**
      * Returns the type for column number <code>column</code>.
      */
-    public Class getColumnClass(int column) {
+    public Class<? extends Object> getColumnClass(int column) {
         return column == 0 ? TreeTableModel.class : Object.class;
     }
 

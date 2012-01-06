@@ -46,7 +46,7 @@ import java.util.ArrayList;
 
 public class UrlTreeTableModelAdapter extends UrlTreeModelAdapter implements TreeTableModel {
     
-    private List _columns = new ArrayList();
+    private List<ColumnDataModel> _columns = new ArrayList<ColumnDataModel>();
     private ColumnDataListener _columnListener;
     
     public UrlTreeTableModelAdapter(UrlModel model) {
@@ -101,15 +101,15 @@ public class UrlTreeTableModelAdapter extends UrlTreeModelAdapter implements Tre
      */
     public String getColumnName(int column) {
         if (column == 0) return "Url";
-        return ((ColumnDataModel) _columns.get(column-1)).getColumnName();
+        return _columns.get(column-1).getColumnName();
     }
     
     /**
      * Returns the class for the particular column.
      */
-    public Class getColumnClass(int column) {
+    public Class<?> getColumnClass(int column) {
         if (column == 0) return TreeTableModel.class;
-        return ((ColumnDataModel) _columns.get(column-1)).getColumnClass();
+        return _columns.get(column-1).getColumnClass();
     }
     
     /**
@@ -119,7 +119,7 @@ public class UrlTreeTableModelAdapter extends UrlTreeModelAdapter implements Tre
         if (! (node instanceof HttpUrl)) return null;
         HttpUrl url = (HttpUrl) node;
         if (column == 0) return url;
-        return ((ColumnDataModel) _columns.get(column-1)).getValue(url);
+        return _columns.get(column-1).getValue(url);
     }
     
     /** By default, make the column with the Tree in it the only editable one.

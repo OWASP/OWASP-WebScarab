@@ -162,7 +162,7 @@ public class ChunkedInputStream extends FilterInputStream {
     
     private void readTrailer() throws IOException {
         String line = readLine();
-        ArrayList trailer = new ArrayList();
+        ArrayList<String[]> trailer = new ArrayList<String[]>();
         while (!line.equals("")) {
             String[] pair = line.split(": *",2);
             if (pair.length == 2) {

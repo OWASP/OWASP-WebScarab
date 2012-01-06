@@ -161,7 +161,7 @@ public class Extensions implements Plugin, ConversationHandler {
     }
     
     public synchronized String[] loadStrings(File file) throws IOException {
-        List strings = new ArrayList();
+        List<String> strings = new ArrayList<String>();
         String line;
         
         BufferedReader input = new BufferedReader(new FileReader(file));
@@ -178,13 +178,13 @@ public class Extensions implements Plugin, ConversationHandler {
     }
     
     public void checkExtensionsUnder(HttpUrl url) {
-        List links = new LinkedList();        
+        List<HttpUrl> links = new LinkedList<HttpUrl>();        
         
         queueLinksUnder(url, links, MAXLINKS);        
         while (links.size() > 0) _model.enqueueURL((HttpUrl)links.remove(0));        
     }
     
-    private void queueLinksUnder(HttpUrl url, List links, int max) {
+    private void queueLinksUnder(HttpUrl url, List<HttpUrl> links, int max) {
                 
         if (!_model.isTested(url)) {
             links.add(url);

@@ -84,7 +84,7 @@ public class ConversationTableModel extends ExtensibleTableModel {
                 return _model.getConversationDate((ConversationID) key);
             }
             public String getColumnName() { return "Date"; }
-            public Class getColumnClass() { return Date.class; }
+            public Class<?> getColumnClass() { return Date.class; }
         };
         addColumn(cdm);
         
@@ -94,7 +94,7 @@ public class ConversationTableModel extends ExtensibleTableModel {
                 return _model.getRequestMethod((ConversationID) key);
             }
             public String getColumnName() { return "Method"; }
-            public Class getColumnClass() { return String.class; }
+            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
         
@@ -105,7 +105,7 @@ public class ConversationTableModel extends ExtensibleTableModel {
                 return url.getScheme() + "://" + url.getHost() + ":" + url.getPort();
             }
             public String getColumnName() { return "Host"; }
-            public Class getColumnClass() { return String.class; }
+            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
         
@@ -116,7 +116,7 @@ public class ConversationTableModel extends ExtensibleTableModel {
                 return url.getPath();
             }
             public String getColumnName() { return "Path"; }
-            public Class getColumnClass() { return String.class; }
+            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
         
@@ -127,7 +127,7 @@ public class ConversationTableModel extends ExtensibleTableModel {
                 return url.getParameters();
             }
             public String getColumnName() { return "Parameters"; }
-            public Class getColumnClass() { return String.class; }
+            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
         
@@ -137,7 +137,7 @@ public class ConversationTableModel extends ExtensibleTableModel {
                 return _model.getResponseStatus((ConversationID) key);
             }
             public String getColumnName() { return "Status"; }
-            public Class getColumnClass() { return String.class; }
+            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
         
@@ -147,7 +147,7 @@ public class ConversationTableModel extends ExtensibleTableModel {
                 return _model.getConversationOrigin((ConversationID) key);
             }
             public String getColumnName() { return "Origin"; }
-            public Class getColumnClass() { return String.class; }
+            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
 
@@ -157,7 +157,7 @@ public class ConversationTableModel extends ExtensibleTableModel {
                 return _model.getConversationProperty((ConversationID) key, "TAG");
             }
             public String getColumnName() { return "Tag"; }
-            public Class getColumnClass() { return String.class; }
+            public Class<?> getColumnClass() { return String.class; }
 			public boolean isEditable(Object key) { 
 				return true; 
 			}
@@ -174,7 +174,7 @@ public class ConversationTableModel extends ExtensibleTableModel {
                 return _model.getConversationProperty((ConversationID) key, "RESPONSE_SIZE");
             }
             public String getColumnName() { return "Size"; }
-            public Class getColumnClass() { return String.class; }
+            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
 
@@ -224,7 +224,7 @@ public class ConversationTableModel extends ExtensibleTableModel {
      * @param column the index of the column
      * @return the common ancestor class of the object values in the model.
      */
-    public Class getColumnClass(int column) {
+    public Class<?> getColumnClass(int column) {
         if (column == 0) return ConversationID.class;
         return super.getColumnClass(column-1);
     }

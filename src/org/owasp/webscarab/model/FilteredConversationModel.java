@@ -24,7 +24,7 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
     private ReentrantReaderPreferenceReadWriteLock _rwl = new ReentrantReaderPreferenceReadWriteLock();
     
     // contains conversations that should be visible
-    private List _conversations = new ArrayList();
+    private List<ConversationID> _conversations = new ArrayList<ConversationID>();
     
     /** Creates a new instance of FilteredConversationModel */
     public FilteredConversationModel(FrameworkModel model, ConversationModel cmodel) {
@@ -71,7 +71,7 @@ public abstract class FilteredConversationModel extends AbstractConversationMode
     public ConversationID getConversationAt(int index) {
         try {
             _rwl.readLock().acquire();
-            return (ConversationID) _conversations.get(index);
+            return _conversations.get(index);
         } catch (InterruptedException ie) {
             // _logger.warning("Interrupted waiting for the read lock! " + ie.getMessage());
             return null;

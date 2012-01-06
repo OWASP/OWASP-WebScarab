@@ -57,11 +57,11 @@ public class DefaultCalculator implements Calculator {
     
     private Pattern _pattern;
     
-    private Map _cache = new HashMap();
+    private Map<SessionID, BigInteger> _cache = new HashMap<SessionID, BigInteger>();
     
     Logger _logger = Logger.getLogger(this.getClass().getName());
     
-    private ArrayList _chars = new ArrayList();
+    private ArrayList<String> _chars = new ArrayList<String>();
     
     private BigInteger _min = null;
     private BigInteger _max = null;

@@ -56,10 +56,10 @@ public class FuzzerModel extends AbstractPluginModel {
     private String _fuzzUrl = "http://localhost:8080/test";
     private String _fuzzVersion = "HTTP/1.0";
     
-    private List _fuzzHeaders = new ArrayList();
-    private List _fuzzParameters = new ArrayList();
-    private List _fuzzSources = new ArrayList();
-    private List _parameterPriorities = new ArrayList();
+    private List<NamedValue> _fuzzHeaders = new ArrayList<NamedValue>();
+    private List<Parameter> _fuzzParameters = new ArrayList<Parameter>();
+    private List<FuzzSource> _fuzzSources = new ArrayList<FuzzSource>();
+    private List<Integer> _parameterPriorities = new ArrayList<Integer>();
     
     private int _maxPriority = 0;
     private int _requestIndex = 0;
@@ -211,7 +211,7 @@ public class FuzzerModel extends AbstractPluginModel {
     }
     
     public void resetFuzzer() {
-        Map sizes = new HashMap();
+        Map<Integer, Integer> sizes = new HashMap<Integer, Integer>();
         _maxPriority = 0;
         int count = getFuzzParameterCount();
         for (int i=0; i<count; i++) {
@@ -221,7 +221,7 @@ public class FuzzerModel extends AbstractPluginModel {
                 Integer priority = new Integer(getFuzzParameterPriority(i));
                 _maxPriority = Math.max(priority.intValue(), _maxPriority);
                 int size = source.size();
-                Integer s = (Integer) sizes.get(priority);
+                Integer s = sizes.get(priority);
                 if (s == null) {
                     sizes.put(priority, new Integer(size));
                 } else {
@@ -230,9 +230,9 @@ public class FuzzerModel extends AbstractPluginModel {
             }
         }
         int totalsize = 1;
-        Iterator it = sizes.values().iterator();
+        Iterator<Integer> it = sizes.values().iterator();
         while (it.hasNext()) {
-            Integer size = (Integer) it.next();
+            Integer size = it.next();
             totalsize = totalsize * size.intValue();
         }
         setRequestIndex(0);
@@ -477,7 +477,7 @@ public class FuzzerModel extends AbstractPluginModel {
     
     private class FuzzConversationModel extends AbstractConversationModel {
         
-        private List _conversations = new ArrayList();
+        private List<ConversationID> _conversations = new ArrayList<ConversationID>();
         
         public FuzzConversationModel(FrameworkModel model) {
             super(model);

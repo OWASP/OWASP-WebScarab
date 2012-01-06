@@ -45,8 +45,6 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
-import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -81,14 +79,14 @@ public class SummaryPanel extends JPanel {
     private UrlFilteredConversationModel _conversationModel;
     private FilteredUrlModel _urlModel;
     private JTreeTable _urlTreeTable;
-    private ArrayList _urlActions = new ArrayList();
+    private ArrayList<Action> _urlActions = new ArrayList<Action>();
     private HttpUrl _treeURL = null;
     private TableSorter _conversationTableSorter;
     private ConversationTableModel _conversationTableModel;
     private UrlTreeTableModelAdapter _urlTreeTableModel;
-    private ArrayList _conversationActions = new ArrayList();
+    private ArrayList<Action> _conversationActions = new ArrayList<Action>();
     
-    private Map _urlColumns = new HashMap();
+    private HashMap<String, ColumnDataModel> _urlColumns = new HashMap<String, ColumnDataModel>();
     
     /** Creates new form SummaryPanel */
     public SummaryPanel(FrameworkModel model) {
@@ -124,7 +122,7 @@ public class SummaryPanel extends JPanel {
                 return _model.getUrlProperty((HttpUrl) key, "METHODS");
             }
             public String getColumnName() { return "Methods"; }
-            public Class getColumnClass() { return String.class; }
+            public Class<String> getColumnClass() { return String.class; }
         };
         _urlColumns.put("METHODS", cdm);
         _urlTreeTableModel.addColumn(cdm);
@@ -135,7 +133,7 @@ public class SummaryPanel extends JPanel {
                 return _model.getUrlProperty((HttpUrl) key, "STATUS");
             }
             public String getColumnName() { return "Status"; }
-            public Class getColumnClass() { return String.class; }
+            public Class<String> getColumnClass() { return String.class; }
         };
         _urlColumns.put("STATUS", cdm);
         _urlTreeTableModel.addColumn(cdm);
@@ -169,7 +167,7 @@ public class SummaryPanel extends JPanel {
                 }
                 synchronized (_urlActions) {
                     for (int i=0; i<_urlActions.size(); i++) {
-                        AbstractAction action = (AbstractAction) _urlActions.get(i);
+                        Action action = _urlActions.get(i);
                         action.putValue("URL", _treeURL);
                     }
                 }
@@ -231,7 +229,7 @@ public class SummaryPanel extends JPanel {
                     id = (ConversationID) tm.getValueAt(row, 0); // UGLY hack! FIXME!!!!
                 synchronized (_conversationActions) {
                     for (int i=0; i<_conversationActions.size(); i++) {
-                        Action action = (Action) _conversationActions.get(i);
+                        Action action = _conversationActions.get(i);
                         action.putValue("CONVERSATION", id);
                     }
                 }
@@ -255,7 +253,7 @@ public class SummaryPanel extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
                     if (_conversationActions.size()>0) {
-                        Action action = (Action) _conversationActions.get(0);
+                        Action action = _conversationActions.get(0);
                         ActionEvent evt = new ActionEvent(conversationTable, 0, (String) action.getValue(Action.ACTION_COMMAND_KEY));
                         if (action.isEnabled()) {
                             action.actionPerformed(evt);

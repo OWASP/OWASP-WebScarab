@@ -69,9 +69,9 @@ public class SSLSocketFactoryFactory {
 
 	private boolean reuseKeys = false;
 
-	private Map contextCache = new HashMap();
+	private Map<String, SSLContext> contextCache = new HashMap<String, SSLContext>();
 
-	private Set serials = new HashSet();
+	private Set<BigInteger> serials = new HashSet<BigInteger>();
 
 	public SSLSocketFactoryFactory() throws GeneralSecurityException,
 			IOException {
@@ -212,7 +212,7 @@ public class SSLSocketFactoryFactory {
 	}
 
 	private void initSerials() throws GeneralSecurityException {
-		Enumeration e = keystore.aliases();
+		Enumeration<?> e = keystore.aliases();
 		while (e.hasMoreElements()) {
 			String alias = (String) e.nextElement();
 			X509Certificate cert = (X509Certificate) keystore

@@ -219,14 +219,14 @@ public class Spider implements Plugin, ConversationHandler {
     }
     
     public void requestLinksUnder(HttpUrl url) {
-        List links = new LinkedList();
+        List<Link> links = new LinkedList<Link>();
         // build up a list of links
         queueLinksUnder(url, links, 50);
         // queue them
         while (links.size()>0) _model.queueLink((Link) links.remove(0));
     }
     
-    private void queueLinksUnder(HttpUrl url, List links, int max) {
+    private void queueLinksUnder(HttpUrl url, List<Link> links, int max) {
         String referer;
         if (_model.isUnseen(url)) {
         	if (! _model.isForbidden(url) && !url.toString().matches(_framework.getDropPattern())) {

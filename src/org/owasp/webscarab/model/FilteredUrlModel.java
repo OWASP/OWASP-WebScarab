@@ -26,10 +26,10 @@ import org.owasp.webscarab.util.MRUCache;
 public abstract class FilteredUrlModel extends AbstractUrlModel {
     
     protected UrlModel _urlModel;
-    private Set _filteredUrls = null;
-    private Set _implicitUrls = null;
+    private Set<HttpUrl> _filteredUrls = null;
+    private Set<HttpUrl> _implicitUrls = null;
     
-    private MRUCache _cache = new MRUCache(16);
+    private MRUCache<HttpUrl, ArrayList<HttpUrl>> _cache = new MRUCache<HttpUrl, ArrayList<HttpUrl>>(16);
     
     protected EventListenerList _listenerList = new EventListenerList();
     
@@ -59,8 +59,8 @@ public abstract class FilteredUrlModel extends AbstractUrlModel {
     }
     
     protected void initFilters() {
-        _filteredUrls = new HashSet();
-        _implicitUrls = new HashSet();
+        _filteredUrls = new HashSet<HttpUrl>();
+        _implicitUrls = new HashSet<HttpUrl>();
     }
     
     protected abstract boolean shouldFilter(HttpUrl url);
@@ -82,7 +82,7 @@ public abstract class FilteredUrlModel extends AbstractUrlModel {
     }
     
     protected void setImplicit(HttpUrl url, boolean filtered) {
-        if (_implicitUrls == null) _implicitUrls = new HashSet();
+        if (_implicitUrls == null) _implicitUrls = new HashSet<HttpUrl>();
         if (filtered) {
             _implicitUrls.add(url);
         } else {
@@ -108,14 +108,14 @@ public abstract class FilteredUrlModel extends AbstractUrlModel {
         recurseTree(null);
     }
     
-    private ArrayList getFilteredChildren(HttpUrl parent) {
-        ArrayList childList = (ArrayList) _cache.get(parent);
+    private ArrayList<HttpUrl> getFilteredChildren(HttpUrl parent) {
+        ArrayList<HttpUrl> childList = _cache.get(parent);
         if (childList != null) {
             hit++;
             return childList;
         }
         try {
-            childList = new ArrayList();
+            childList = new ArrayList<HttpUrl>();
             _urlModel.readLock().acquire();
             int count = _urlModel.getChildCount(parent);
             for (int i=0; i<count; i++) {

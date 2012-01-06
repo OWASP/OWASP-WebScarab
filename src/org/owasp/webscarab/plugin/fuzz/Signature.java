@@ -40,7 +40,7 @@ public class Signature {
         _contentType = parts[2].substring(1, parts[2].length()-1);
         if (_contentType.equals("null")) 
             _contentType = null;
-        List parameters = new ArrayList();
+        List<Parameter> parameters = new ArrayList<Parameter>();
         for (int i=3; i<parts.length; i++) {
             int colon = parts[i].indexOf(":");
             String location = parts[i].substring(0, colon);
@@ -50,7 +50,7 @@ public class Signature {
             Parameter param = new Parameter(location, name, type, "");
             parameters.add(param);
         }
-        _parameters = (Parameter[]) parameters.toArray(Parameter.NO_PARAMS);
+        _parameters = parameters.toArray(Parameter.NO_PARAMS);
     }
     
     public String getMethod() {

@@ -81,7 +81,7 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
 	protected UndoManager undo = new UndoManager();
     protected UndoAction undoAction;
     protected RedoAction redoAction;
-    private Hashtable actions;
+    private Hashtable<Object, Action> actions;
     
     /** Creates new form TranscoderFrame */
     public TranscoderFrame() {
@@ -119,7 +119,7 @@ public class TranscoderFrame extends javax.swing.JFrame implements ClipboardOwne
     //The following two methods allow us to find an
     //action provided by the editor kit by its name.
     private void createActionTable(JTextComponent textComponent) {
-        actions = new Hashtable();
+        actions = new Hashtable<Object, Action>();
         Action[] actionsArray = textComponent.getActions();
         for (int i = 0; i < actionsArray.length; i++) {
             Action a = actionsArray[i];

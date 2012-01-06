@@ -43,7 +43,7 @@ package org.owasp.webscarab.model;
  * provides a link to a conversation in the model
  * @author knoppix
  */
-public class ConversationID implements Comparable {
+public class ConversationID implements Comparable<ConversationID> {
     
     private static Object _lock = new Object();
     private static int _next = 1;
@@ -124,12 +124,9 @@ public class ConversationID implements Comparable {
      * @param o the other ConversationID to compare to
      * @return -1, 0 or 1 if this ConversationID is less than, equal to, or greater than the supplied parameter
      */    
-    public int compareTo(Object o) {
-        if (o instanceof ConversationID) {
-            int thatid = ((ConversationID)o).getID();
-            return _id - thatid;
-        }
-        return 1;
+    public int compareTo(ConversationID o) {
+        int thatid = o.getID();
+        return _id - thatid;
     }
     
 }

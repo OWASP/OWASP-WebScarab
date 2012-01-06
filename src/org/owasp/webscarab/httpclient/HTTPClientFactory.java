@@ -70,8 +70,8 @@ public class HTTPClientFactory {
     
     private Authenticator _authenticator = null;
     
-    private List _clientList = new ArrayList();
-    private List _availableClients = new ArrayList();
+    private List<HTTPClient> _clientList = new ArrayList<HTTPClient>();
+    private List<HTTPClient> _availableClients = new ArrayList<HTTPClient>();
     
     /** Creates a new instance of HttpClientFactory */
     protected HTTPClientFactory() {

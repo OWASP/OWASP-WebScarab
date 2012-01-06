@@ -27,11 +27,11 @@ import org.owasp.webscarab.model.Preferences;
  */
 public class ColumnWidthTracker implements PropertyChangeListener, TableColumnModelListener {
     
-    private static HashMap _trackers = new HashMap();
+    private static HashMap<String, ColumnWidthTracker> _trackers = new HashMap<String, ColumnWidthTracker>();
     
     private String _key;
     
-    private List _tracked = new LinkedList();
+    private List<TableColumnModel> _tracked = new LinkedList<TableColumnModel>();
     
     public static ColumnWidthTracker getTracker(String key) {
         ColumnWidthTracker tracker = (ColumnWidthTracker) _trackers.get(key);
@@ -75,7 +75,7 @@ public class ColumnWidthTracker implements PropertyChangeListener, TableColumnMo
         String name = String.valueOf(tc.getHeaderValue());
         int width = tc.getPreferredWidth();
         Preferences.setPreference(_key + "." + name + ".width", String.valueOf(width));
-        Iterator it = _tracked.iterator();
+        Iterator<TableColumnModel> it = _tracked.iterator();
         while (it.hasNext()) {
             TableColumnModel tcm = (TableColumnModel) it.next();
             for (int i=0; i<tcm.getColumnCount(); i++) {

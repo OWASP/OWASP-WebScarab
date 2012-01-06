@@ -24,9 +24,9 @@ import org.xml.sax.ext.LexicalHandler;
 public class DOMHandler implements ContentHandler, LexicalHandler {
     
     private Document _document = null;
-    private Stack _stack = new Stack();
+    private Stack<Node> _stack = new Stack<Node>();
     private Node _last = null;
-    private List _namespaces = null;
+    private List<String> _namespaces = null;
     
     public static final String XMLNS_PREFIX = "xmlns";
     public static final String XMLNS_STRING = "xmlns:";
@@ -109,7 +109,7 @@ public class DOMHandler implements ContentHandler, LexicalHandler {
     
     public void startPrefixMapping(String prefix, String uri) {
         if (_namespaces == null) {
-            _namespaces = new ArrayList();
+            _namespaces = new ArrayList<String>();
         }
         _namespaces.add(prefix);
         _namespaces.add(uri);

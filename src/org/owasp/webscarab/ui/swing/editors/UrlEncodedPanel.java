@@ -42,7 +42,6 @@ package org.owasp.webscarab.ui.swing.editors;
 import java.awt.Color;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.table.AbstractTableModel;
@@ -69,7 +68,7 @@ public class UrlEncodedPanel extends JPanel implements ByteArrayEditor {
     private NamedValueTableModel _tableModel;
     private String _data = null;
     
-    private List _values = new ArrayList();
+    private ArrayList<NamedValue> _values = new ArrayList<NamedValue>();
     
     /** Creates new form MessagePanel */
     public UrlEncodedPanel() {
@@ -110,7 +109,7 @@ public class UrlEncodedPanel extends JPanel implements ByteArrayEditor {
         if (_editable && isModified()) {
             StringBuffer buff = new StringBuffer();
             for (int i=0; i<_values.size(); i++) {
-                NamedValue value = (NamedValue) _values.get(i);
+                NamedValue value = _values.get(i);
                 if (value.getName() == null || value.getName().equals("")) continue;
                 if (i>0) buff.append("&");
                 buff.append(Encoding.urlEncode(value.getName())).append("=");
@@ -276,14 +275,14 @@ public class UrlEncodedPanel extends JPanel implements ByteArrayEditor {
         
         public Object getValueAt(int row, int column) {
             if (row > _values.size()-1) return "ERROR";
-            NamedValue nv = (NamedValue) _values.get(row);
+            NamedValue nv = _values.get(row);
             if (column == 0) return nv.getName();
             return nv.getValue();
         }
         
         public void setValueAt(Object aValue, int row, int col) {
             if (_editable && aValue instanceof String) {
-                NamedValue nv = (NamedValue) _values.get(row);
+                NamedValue nv = _values.get(row);
                 if (col == 0) {
                     _values.set(row, new NamedValue((String)aValue, nv.getValue()));
                 } else {

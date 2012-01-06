@@ -54,7 +54,7 @@ public abstract class ExtensibleTableModel extends AbstractTableModel {
 	 * 
 	 */
 	private static final long serialVersionUID = -2783690695443856742L;
-	private List _columns = new ArrayList();
+	private List<ColumnDataModel> _columns = new ArrayList<ColumnDataModel>();
     private ColumnDataListener _columnListener;
     
     /** Creates a new instance of ExtensibleTableModel */
@@ -110,7 +110,7 @@ public abstract class ExtensibleTableModel extends AbstractTableModel {
      * @return  the name of the column
      */
     public String getColumnName(int column) {
-        return ((ColumnDataModel) _columns.get(column)).getColumnName();
+        return _columns.get(column).getColumnName();
     }
     
     /**
@@ -121,12 +121,12 @@ public abstract class ExtensibleTableModel extends AbstractTableModel {
      * @param column  the index of the column
      * @return the common ancestor class of the object values in the model.
      */
-    public Class getColumnClass(int column) {
-        return ((ColumnDataModel) _columns.get(column)).getColumnClass();
+    public Class<?> getColumnClass(int column) {
+        return _columns.get(column).getColumnClass();
     }
     
     protected Object getValueAt(Object key, int column) {
-        return ((ColumnDataModel) _columns.get(column)).getValue(key);
+        return _columns.get(column).getValue(key);
     }
     
     public Object getValueAt(int row, int column) {
@@ -135,7 +135,7 @@ public abstract class ExtensibleTableModel extends AbstractTableModel {
     }
     
     protected boolean isCellEditable(Object key, int column) {
-    	return ((ColumnDataModel) _columns.get(column)).isEditable(key);
+    	return _columns.get(column).isEditable(key);
     }
     
     public boolean isCellEditable(int row, int column) {
@@ -144,7 +144,7 @@ public abstract class ExtensibleTableModel extends AbstractTableModel {
     }
     
     protected void setValueAt(Object aValue, Object key, int column) {
-        ((ColumnDataModel) _columns.get(column)).setValue(aValue, key);
+        _columns.get(column).setValue(aValue, key);
     }
     
     public void setValueAt(Object aValue, int row, int column) {

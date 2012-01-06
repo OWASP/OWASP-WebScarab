@@ -57,13 +57,13 @@ public class ListenerTableModel extends AbstractTableModel {
 	 */
 	private static final long serialVersionUID = -8353819323669374935L;
 
-	private ArrayList _listeners = new ArrayList();
+	private ArrayList<ListenerSpec> _listeners = new ArrayList<ListenerSpec>();
     
     protected String [] columnNames = {
         "Address", "Port", "Base URL", "Primary"
     };
     
-    protected Class[] columnClass = {
+    protected Class<?>[] columnClass = {
         String.class, Integer.class, String.class, Boolean.class
     };
     
@@ -77,7 +77,7 @@ public class ListenerTableModel extends AbstractTableModel {
         return "";
     }
     
-    public Class getColumnClass(int column) {
+    public Class<?> getColumnClass(int column) {
         return columnClass[column];
     }
     
@@ -110,7 +110,7 @@ public class ListenerTableModel extends AbstractTableModel {
     }
     
     public ListenerSpec getListener(int index) {
-        return (ListenerSpec) _listeners.get(index);
+        return _listeners.get(index);
     }
     
     public void proxyRemoved(ListenerSpec spec) {

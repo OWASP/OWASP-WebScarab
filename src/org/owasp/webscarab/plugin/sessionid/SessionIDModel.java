@@ -32,7 +32,7 @@ public class SessionIDModel extends AbstractPluginModel {
     private FrameworkModel _model;
     private SessionIDStore _store = null;
     
-    private Map _calculators = new TreeMap();
+    private Map<String, Calculator> _calculators = new TreeMap<String, Calculator>();
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     

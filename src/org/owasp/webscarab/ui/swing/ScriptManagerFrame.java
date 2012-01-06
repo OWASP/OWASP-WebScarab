@@ -354,7 +354,7 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
         
         Object _root = new String("RooT");
         
-        public Class getColumnClass(int column) {
+        public Class<?> getColumnClass(int column) {
             if (column == 0) return super.getColumnClass(column);
             return Boolean.class;
         }

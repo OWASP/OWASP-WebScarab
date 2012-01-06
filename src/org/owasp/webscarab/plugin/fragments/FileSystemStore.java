@@ -39,23 +39,21 @@
 
 package org.owasp.webscarab.plugin.fragments;
 
-import org.owasp.webscarab.model.StoreException;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.FileNotFoundException;
-
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.Iterator;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import org.owasp.webscarab.model.StoreException;
 
 /**
  *
@@ -67,7 +65,7 @@ public class FileSystemStore implements FragmentsStore {
     
     private static final String[] NONE = new String[0];
     
-    private Map _types = new TreeMap();
+    private SortedMap<String, List<String>> _types = new TreeMap<String, List<String>>();
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -95,14 +93,14 @@ public class FileSystemStore implements FragmentsStore {
         try {
             String type = null;
             String line;
-            List list = null;
+            List<String> list = null;
             BufferedReader br = new BufferedReader(new FileReader(index));
             while ((line = br.readLine()) != null) {
                 if (line.equals("")) {
                     type = null;
                 } else if (type == null) {
                     type = line;
-                    list = new ArrayList();
+                    list = new ArrayList<String>();
                     _types.put(type, list);
                 } else {
                     list.add(line);
@@ -154,9 +152,9 @@ public class FileSystemStore implements FragmentsStore {
      */
     
     public int putFragment(String type, String key, String fragment) {
-        List list = (List) _types.get(type);
+        List<String> list = _types.get(type);
         if (list == null) {
-            list = new ArrayList();
+            list = new ArrayList<String>();
             _types.put(type, list);
         }
         if (list.indexOf(key)>-1) return -1;
@@ -179,16 +177,16 @@ public class FileSystemStore implements FragmentsStore {
         if (_types.size() == 0) return;
         try {
             String type = null;
-            List list;
+            List<String> list;
             BufferedWriter bw = new BufferedWriter(new FileWriter(index));
-            Iterator it = _types.keySet().iterator();
+            Iterator<String> it = _types.keySet().iterator();
             while (it.hasNext()) {
-                type = (String) it.next();
+                type = it.next();
                 bw.write(type + "\r\n");
-                list = (List) _types.get(type);
-                Iterator it2 = list.iterator();
+                list = _types.get(type);
+                Iterator<String> it2 = list.iterator();
                 while (it2.hasNext()) {
-                    String fragment = (String) it2.next();
+                    String fragment = it2.next();
                     bw.write(fragment + "\r\n");
                 }
                 bw.write("\r\n");
@@ -201,19 +199,19 @@ public class FileSystemStore implements FragmentsStore {
     }
     
     public int getFragmentCount(String type) {
-        List fragments = (List) _types.get(type);
+        List<String> fragments = _types.get(type);
         if (fragments == null) return 0;
         return fragments.size();
     }
     
     public String getFragmentKeyAt(String type, int position) {
-        List fragments = (List) _types.get(type);
+        List<String> fragments = _types.get(type);
         if (fragments == null) return null;
-        return (String) fragments.get(position);
+        return fragments.get(position);
     }
     
     public String getFragmentType(int index) {
-        return ((String[]) _types.keySet().toArray(NONE))[index];
+        return _types.keySet().toArray(NONE)[index];
     }
     
     public int getFragmentTypeCount() {
@@ -221,7 +219,7 @@ public class FileSystemStore implements FragmentsStore {
     }
     
     public int indexOfFragment(String type, String key) {
-        List list = (List) _types.get(type);
+        List<String> list = _types.get(type);
         if (list == null) return -1;
         return list.indexOf(key);
     }

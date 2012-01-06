@@ -31,7 +31,7 @@ public class FuzzFactory {
     
     public static final String SOURCES = "Sources";
     
-    private Map _sources = new TreeMap();
+    private Map<String, FuzzSource> _sources = new TreeMap<String, FuzzSource>();
     private PropertyChangeSupport _changeSupport = new PropertyChangeSupport(this);
     
     /** Creates a new instance of FuzzFactory */
@@ -92,7 +92,7 @@ public class FuzzFactory {
             _description = description;
             BufferedReader br = new BufferedReader(reader);
             String line;
-            List items = new LinkedList();
+            List<String> items = new LinkedList<String>();
             while ((line = br.readLine()) != null) {
                 items.add(line);
             }

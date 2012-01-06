@@ -36,7 +36,7 @@ public class ExtensionsModel extends AbstractPluginModel {
     private String[] _directoryExtensions = { ".zip", ".arj", ".tar", ".tar.gz", ".tar.bz2", ".tgz", ".exe", ".rar", ".tbz"};
     private String[] _fileExtensions = { ".bak", "~", ".old", ".rej", ".orig", ".inc"};
         
-    private LinkedList toBeAnalyzedQueue = new LinkedList();
+    private LinkedList<HttpUrl> toBeAnalyzedQueue = new LinkedList<HttpUrl>();
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     

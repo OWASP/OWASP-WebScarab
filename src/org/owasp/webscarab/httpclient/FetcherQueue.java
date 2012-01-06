@@ -30,7 +30,7 @@ public class FetcherQueue {
     private Fetcher[] _fetchers;
     private int _requestDelay;
     private long _lastRequest = 0;
-    private List _requestQueue = new ArrayList();
+    private List<Request> _requestQueue = new ArrayList<Request>();
     private boolean _running = true;
     private int _pending = 0;
     

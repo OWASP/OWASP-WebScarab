@@ -76,7 +76,7 @@ public class ReentrantReaderPreferenceReadWriteLock extends ReentrantWriterPrefe
     }
     
     public void debug() {
-        Iterator it = readers_.keySet().iterator();
+        Iterator<?> it = readers_.keySet().iterator();
         System.err.println("Readers:");
         while(it.hasNext()) {
             Object key = it.next();

@@ -23,14 +23,14 @@ import java.io.UnsupportedEncodingException;
 public class MultiPartContent {
     
     private byte[] _boundary;
-    private List _parts;
+    private List<Message> _parts;
     
     private static final byte[] CRLF = new byte[] { '\r', '\n' };
     
     /** Creates a new instance of MultiPartContent */
     public MultiPartContent(String contentType, byte[] content) {
         try {
-            _parts = new ArrayList();
+            _parts = new ArrayList<Message>();
             if (contentType != null && contentType.trim().startsWith("multipart/form-data")) {
                 int pos = contentType.indexOf("boundary=");
                 int semi = contentType.indexOf(";", pos);
@@ -128,7 +128,7 @@ public class MultiPartContent {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             baos.write(_boundary);
             baos.write(CRLF);
-            Iterator it = _parts.iterator();
+            Iterator<Message> it = _parts.iterator();
             while (it.hasNext()) {
                 Message message = (Message) it.next();
                 message.write(baos);

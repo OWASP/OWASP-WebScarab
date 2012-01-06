@@ -117,8 +117,8 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
     private SessionIDDataset _sidd;
     private SessionIDTableModel _tableModel;
     private ConversationListModel _conversationList;
-    private Map _conversationColumns = new HashMap();
-    private Map _urlColumns = new HashMap();
+    private Map<String, ColumnDataModel> _conversationColumns = new HashMap<String, ColumnDataModel>();
+    private Map<String, ColumnDataModel> _urlColumns = new HashMap<String, ColumnDataModel>();
     
     private DefaultListModel _sessionIDNames = new DefaultListModel();
     
@@ -193,7 +193,7 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
                 return _model.getRequestCookies((ConversationID) key);
             }
             public String getColumnName() { return "Cookie"; }
-            public Class getColumnClass() { return String.class; }
+            public Class<?> getColumnClass() { return String.class; }
         };
         _conversationColumns.put("COOKIE", cdm);
         
@@ -203,7 +203,7 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
                 return _model.getResponseCookies((ConversationID) key);
             }
             public String getColumnName() { return "Set-Cookie"; }
-            public Class getColumnClass() { return String.class; }
+            public Class<?> getColumnClass() { return String.class; }
         };
         _conversationColumns.put("SET-COOKIE", cdm);
         
@@ -214,7 +214,7 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
                 return Boolean.valueOf(value != null);
             }
             public String getColumnName() { return "Set-Cookie"; }
-            public Class getColumnClass() { return Boolean.class; }
+            public Class<?> getColumnClass() { return Boolean.class; }
         };
         _urlColumns.put("SET-COOKIE", cdm);
     }
@@ -570,7 +570,7 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
                             String name = nameTextField.getText();
                             String regex = regexTextField.getText();
                             try {
-                                Map ids = _sa.getIDsFromResponse(response, name, regex);
+                                Map<?, ?> ids = _sa.getIDsFromResponse(response, name, regex);
                                 String[] keys = (String[]) ids.keySet().toArray(new String[0]);
                                 for (int i=0; i<keys.length; i++) {
                                     SessionID id = (SessionID) ids.get(keys[i]);
@@ -895,7 +895,7 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
 		 */
 		private static final long serialVersionUID = 1799339015349456174L;
 		private String[] _columnNames = new String[] { "Date", "Value", "Numeric", "Difference" };
-        private Class[] _columnClass = new Class[] { Date.class, String.class, BigInteger.class, BigInteger.class };
+        private Class<?>[] _columnClass = new Class[] { Date.class, String.class, BigInteger.class, BigInteger.class };
         
         public int getColumnCount() {
             return _columnNames.length;
@@ -934,7 +934,7 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
             return _columnNames[columnIndex];
         }
         
-        public Class getColumnClass(int columnIndex) {
+        public Class<?> getColumnClass(int columnIndex) {
             return _columnClass[columnIndex];
         }
         

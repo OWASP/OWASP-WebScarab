@@ -13,7 +13,7 @@ import org.owasp.webscarab.model.HttpUrl;
  * @author rdawes
  *
  */
-public class ListenerSpec implements Comparable {
+public class ListenerSpec implements Comparable<Object> {
 
     private String _address;
     private int _port;

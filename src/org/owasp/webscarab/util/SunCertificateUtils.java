@@ -144,7 +144,7 @@ public class SunCertificateUtils {
 		ObjectIdentifier serverAuthOid = new ObjectIdentifier(serverAuthOidData);
 		int[] clientAuthOidData = { 1, 3, 6, 1, 5, 5, 7, 3, 2 };
 		ObjectIdentifier clientAuthOid = new ObjectIdentifier(clientAuthOidData);
-		Vector v = new Vector();
+		Vector<ObjectIdentifier> v = new Vector<ObjectIdentifier>();
 		v.add(serverAuthOid);
 		v.add(clientAuthOid);
 		ExtendedKeyUsageExtension ekue = new ExtendedKeyUsageExtension(Boolean.FALSE, v);

@@ -64,6 +64,7 @@ import javax.swing.table.*;
  *  first appeared in the swing table demos in 1997. This version was 
  *  last updated on: 25:2:2004 
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class TableSorter extends AbstractTableModel {
     /**
 	 * 
@@ -78,7 +79,7 @@ public class TableSorter extends AbstractTableModel {
 
     private static Directive EMPTY_DIRECTIVE = new Directive(-1, NOT_SORTED);
     
-    public static final Comparator COMPARABLE_COMPARATOR = new Comparator() {
+	public static final Comparator COMPARABLE_COMPARATOR = new Comparator() {
         public int compare(Object o1, Object o2) {
             return ((Comparable) o1).compareTo(o2);
         }
@@ -187,7 +188,7 @@ public class TableSorter extends AbstractTableModel {
         tableHeader.repaint();
     }
 
-    public void setSortingStatus(int column, int status) {
+	public void setSortingStatus(int column, int status) {
         Directive directive = getDirective(column); 
         if (directive != EMPTY_DIRECTIVE) {
             sortingColumns.remove(directive); 

@@ -82,15 +82,15 @@ public class Proxy implements Plugin {
 
 	private ProxyUI _ui = null;
 
-	private ArrayList _plugins = new ArrayList();
-	private TreeMap _listeners = new TreeMap();
+	private ArrayList<ProxyPlugin> _plugins = new ArrayList<ProxyPlugin>();
+	private TreeMap<ListenerSpec, Listener> _listeners = new TreeMap<ListenerSpec, Listener>();
 
 	private Logger _logger = Logger.getLogger(getClass().getName());
 
 	private String _status = "Stopped";
 	private int _pending = 0;
 
-	private static HashMap _factoryMap = new HashMap();
+	private static HashMap<String, SSLSocketFactory> _factoryMap = new HashMap<String, SSLSocketFactory>();
 
 	private static char[] _keystorepass = "password".toCharArray();
 	private static char[] _keypassword = "password".toCharArray();
@@ -189,9 +189,9 @@ public class Proxy implements Plugin {
 	 */
 	public ProxyPlugin getPlugin(String name) {
 		ProxyPlugin plugin = null;
-		Iterator it = _plugins.iterator();
+		Iterator<ProxyPlugin> it = _plugins.iterator();
 		while (it.hasNext()) {
-			plugin = (ProxyPlugin) it.next();
+			plugin = it.next();
 			if (plugin.getPluginName().equals(name))
 				return plugin;
 		}
@@ -229,7 +229,7 @@ public class Proxy implements Plugin {
 	protected ProxyPlugin[] getPlugins() {
 		ProxyPlugin[] plugins = new ProxyPlugin[_plugins.size()];
 		for (int i = 0; i < _plugins.size(); i++) {
-			plugins[i] = (ProxyPlugin) _plugins.get(i);
+			plugins[i] = _plugins.get(i);
 		}
 		return plugins;
 	}
@@ -246,7 +246,7 @@ public class Proxy implements Plugin {
 
 	public void addListener(ListenerSpec spec) {
 		createListener(spec);
-		startListener((Listener) _listeners.get(spec));
+		startListener(_listeners.get(spec));
 
 		String key = getKey(spec);
 		Preferences.setPreference("Proxy.listener." + key + ".base", spec
@@ -255,9 +255,9 @@ public class Proxy implements Plugin {
 				.isPrimaryProxy() == true ? "yes" : "no");
 
 		String value = null;
-		Iterator i = _listeners.keySet().iterator();
+		Iterator<ListenerSpec> i = _listeners.keySet().iterator();
 		while (i.hasNext()) {
-			key = getKey((ListenerSpec) i.next());
+			key = getKey(i.next());
 			if (value == null) {
 				value = key;
 			} else {
@@ -294,7 +294,7 @@ public class Proxy implements Plugin {
 	 * @return true if the proxy was successfully stopped, false otherwise
 	 */
 	public boolean removeListener(ListenerSpec spec) {
-		Listener l = (Listener) _listeners.get(spec);
+		Listener l = _listeners.get(spec);
 		if (l == null)
 			return false;
 		if (stopListener(l)) {
@@ -306,9 +306,9 @@ public class Proxy implements Plugin {
 			Preferences.remove("Proxy.listener." + key + ".simulator");
 			Preferences.remove("Proxy.listener." + key + ".primary");
 			String value = null;
-			Iterator i = _listeners.keySet().iterator();
+			Iterator<ListenerSpec> i = _listeners.keySet().iterator();
 			while (i.hasNext()) {
-				key = getKey((ListenerSpec) i.next());
+				key = getKey(i.next());
 				if (value == null) {
 					value = key;
 				} else {
@@ -329,15 +329,15 @@ public class Proxy implements Plugin {
 	 * Starts the Listeners
 	 */
 	public void run() {
-		Iterator it = _listeners.keySet().iterator();
+		Iterator<ListenerSpec> it = _listeners.keySet().iterator();
 		while (it.hasNext()) {
-			ListenerSpec spec = (ListenerSpec) it.next();
+			ListenerSpec spec = it.next();
 			try {
 				spec.verifyAvailable();
-				Listener l = (Listener) _listeners.get(spec);
+				Listener l = _listeners.get(spec);
 				if (l == null) {
 					createListener(spec);
-					l = (Listener) _listeners.get(spec);
+					l = _listeners.get(spec);
 				}
 				startListener(l);
 			} catch (IOException ioe) {
@@ -360,10 +360,10 @@ public class Proxy implements Plugin {
 	 */
 	public boolean stop() {
 		_running = false;
-		Iterator it = _listeners.keySet().iterator();
+		Iterator<ListenerSpec> it = _listeners.keySet().iterator();
 		while (it.hasNext()) {
-			ListenerSpec spec = (ListenerSpec) it.next();
-			Listener l = (Listener) _listeners.get(spec);
+			ListenerSpec spec = it.next();
+			Listener l = _listeners.get(spec);
 			if (l != null && !stopListener(l)) {
 				_logger
 						.severe("Failed to stop Listener-"
@@ -587,9 +587,9 @@ public class Proxy implements Plugin {
 
 	public void flush() throws StoreException {
 		// we do not run our own store, but our plugins might
-		Iterator it = _plugins.iterator();
+		Iterator<ProxyPlugin> it = _plugins.iterator();
 		while (it.hasNext()) {
-			ProxyPlugin plugin = (ProxyPlugin) it.next();
+			ProxyPlugin plugin = it.next();
 			plugin.flush();
 		}
 	}
@@ -614,9 +614,9 @@ public class Proxy implements Plugin {
 	public void setSession(String type, Object store, String session)
 			throws StoreException {
 		// we have no listeners to remove
-		Iterator it = _plugins.iterator();
+		Iterator<ProxyPlugin> it = _plugins.iterator();
 		while (it.hasNext()) {
-			ProxyPlugin plugin = (ProxyPlugin) it.next();
+			ProxyPlugin plugin = it.next();
 			plugin.setSession(type, store, session);
 		}
 	}

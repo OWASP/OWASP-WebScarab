@@ -57,10 +57,10 @@ import java.util.Iterator;
  */
 public class Parser {
     
-    private static List _parsers = new ArrayList();
+    private static List<ContentParser> _parsers = new ArrayList<ContentParser>();
     
     // we cache the 8 most recent messages and their parsed versions
-    private static MRUCache _cache = new MRUCache(8);
+    private static MRUCache<Message, Object> _cache = new MRUCache<Message, Object>(8);
     
     static {
         _parsers.add(new HTMLParser());
@@ -78,11 +78,11 @@ public class Parser {
         if (_cache.containsKey(message)) {
             return _cache.get(message);
         }
-        Iterator it = _parsers.iterator();
+        Iterator<ContentParser> it = _parsers.iterator();
         Object parsed = null;
         ContentParser parser;
         while(it.hasNext()) {
-            parser = (ContentParser) it.next();
+            parser = it.next();
             parsed = parser.parseMessage(url, message);
             if (parsed != null) break;
         }

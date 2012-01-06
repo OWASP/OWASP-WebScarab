@@ -89,8 +89,8 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
     
     private Action[] _conversationActions;
     private Action[] _urlActions;
-    private Map _conversationColumns = new HashMap();
-    private Map _urlColumns = new HashMap();
+    private Map<String, ColumnDataModel> _conversationColumns = new HashMap<String, ColumnDataModel>();
+    private Map<String, ColumnDataModel> _urlColumns = new HashMap<String, ColumnDataModel>();
     
     private DefaultListModel _typeListModel = new DefaultListModel();
     private FragmentListModel _flm = new FragmentListModel();
@@ -166,9 +166,8 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
             	}
             }
             public String getColumnName() { return _name; }
-            public Class getColumnClass() { return Boolean.class; }
+            public Class<Boolean> getColumnClass() { return Boolean.class; }
         }
-        InnerCDM cdm = null;
 
 		_conversationColumns.put(FragmentsModel.KEY_COMMENTS, new InnerCDM(
 				FragmentsModel.KEY_COMMENTS, "Comments"));

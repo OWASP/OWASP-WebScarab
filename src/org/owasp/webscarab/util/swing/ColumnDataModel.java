@@ -64,7 +64,7 @@ public abstract class ColumnDataModel {
      * column objects is.
      * @return the default class of objects in this column
      */
-    public Class getColumnClass() {
+    public Class<?> getColumnClass() {
         return Object.class;
     }
     

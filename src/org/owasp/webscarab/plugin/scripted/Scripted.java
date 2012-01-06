@@ -72,7 +72,7 @@ public class Scripted implements Plugin, ConversationHandler {
     
     private int _threads = 4;
     private FetcherQueue _fetcherQueue = null;
-    private List _responseQueue = new ArrayList();
+    private List<Object> _responseQueue = new ArrayList<Object>();
     
     private PrintStream _out = System.out;
     private PrintStream _err = System.err;

@@ -44,7 +44,7 @@ import java.net.MalformedURLException;
  * Represents a http or https url
  * @author knoppix
  */
-public class HttpUrl implements Comparable {
+public class HttpUrl implements Comparable<HttpUrl> {
     
     private static final HttpUrl[] nullPath = new HttpUrl[0];
     
@@ -279,14 +279,14 @@ public class HttpUrl implements Comparable {
      * @return an array of the Url hierarchy
      */    
     public HttpUrl[] getUrlHierarchy() {
-        ArrayList list = new ArrayList();
+        ArrayList<HttpUrl> list = new ArrayList<HttpUrl>();
         list.add(this);
         HttpUrl url = getParentUrl();
         while (url != null) {
             list.add(0, url);
             url = url.getParentUrl();
         }
-        return (HttpUrl[]) list.toArray(nullPath);
+        return list.toArray(nullPath);
     }
     
     /**
@@ -370,7 +370,7 @@ public class HttpUrl implements Comparable {
     public boolean equals(Object o) {
         if (! (o instanceof HttpUrl)) return false;
         if (_hashcode != o.hashCode()) return false;
-        return compareTo(o) == 0;
+        return compareTo((HttpUrl) o) == 0;
     }
     
     /**
@@ -407,12 +407,9 @@ public class HttpUrl implements Comparable {
      * @return a negative integer, zero, or a positive integer as this object
      * 		is less than, equal to, or greater than the specified object.
      */
-    public int compareTo(Object o) {
-        if (o == null) return 1;
+    public int compareTo(HttpUrl url) {
+        if (url == null) return 1;
         
-        if (! (o instanceof HttpUrl)) throw new ClassCastException("Can only compare HttpUrls, not a " + o.getClass().getName());
-        
-        HttpUrl url = (HttpUrl) o;
         int result;
         
         result = _scheme.compareTo(url.getScheme());

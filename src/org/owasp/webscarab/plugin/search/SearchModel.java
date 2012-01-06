@@ -30,7 +30,7 @@ public class SearchModel extends AbstractPluginModel {
     private FrameworkModel _model;
     private SearchConversationModel _conversationModel;
     
-    private Map _searches = new TreeMap();
+    private Map<String, String> _searches = new TreeMap<String, String>();
     
     private String _description = null;
     
@@ -131,7 +131,7 @@ public class SearchModel extends AbstractPluginModel {
     
     private class SearchConversationModel extends AbstractConversationModel {
         
-        private List _conversations = new ArrayList();
+        private List<ConversationID> _conversations = new ArrayList<ConversationID>();
         
         public SearchConversationModel(FrameworkModel model) {
             super(model);
@@ -153,7 +153,7 @@ public class SearchModel extends AbstractPluginModel {
         }
         
         public ConversationID getConversationAt(int index) {
-            return (ConversationID) _conversations.get(index);
+            return _conversations.get(index);
         }
         
         public int getConversationCount() {

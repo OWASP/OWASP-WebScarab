@@ -563,7 +563,7 @@ public class CertificateManager extends javax.swing.JFrame {
 		 */
 		private static final long serialVersionUID = 7086599198379703765L;
 		private int _ks = -1;
-        private List _aliases = new ArrayList();
+        private List<String> _aliases = new ArrayList<String>();
         
         public void setKeystore(int ks) {
             _ks = ks;

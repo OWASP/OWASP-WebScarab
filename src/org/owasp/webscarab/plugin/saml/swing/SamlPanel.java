@@ -107,7 +107,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
                         conversationId);
             }
 
-            public Class getColumnClass() {
+            public Class<String> getColumnClass() {
                 return String.class;
             }
         });
@@ -297,7 +297,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     }
 
     private void displaySignature(ConversationID id) {
-        List certificateChain;
+        List<?> certificateChain;
         try {
             certificateChain = this.samlModel.verifySAMLProtocolSignature(id);
         } catch (SamlSignatureException ex) {

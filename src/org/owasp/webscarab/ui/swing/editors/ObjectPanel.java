@@ -233,13 +233,14 @@ public class ObjectPanel extends javax.swing.JPanel {
         if (userObject instanceof Map) {
             Object key = JOptionPane.showInputDialog("Please input a key value");
             if (key == null) return;
-            Map map = (Map) userObject;
+            @SuppressWarnings("unchecked")
+			Map<Object, ?> map = (Map<Object, ?>) userObject;
             if (map.containsKey(key)) {
                 JOptionPane.showMessageDialog(null, "The Map already contains " + key, "Key exists", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             map.put(key, null);
-            Iterator it = map.keySet().iterator();
+            Iterator<Object> it = map.keySet().iterator();
             int position = 0;
             while (it.hasNext() && it.next() != key) {
                 position++;
@@ -249,7 +250,7 @@ public class ObjectPanel extends javax.swing.JPanel {
             selected.insert(newNode, position);
             _ottm.nodesWereInserted(selected, new int[] {position});
         } else if (userObject instanceof List) {
-            List list = (List) userObject;
+            List<?> list = (List<?>) userObject;
             int position = list.size();
             list.add(position, null);
             ObjectTreeNode newNode = new ObjectTreeNode(null);
@@ -273,7 +274,7 @@ public class ObjectPanel extends javax.swing.JPanel {
         }
         Object parentObject = parent.getUserObject();
         if (parentObject instanceof List) {
-            List list = (List) parentObject;
+            List<?> list = (List<?>) parentObject;
             int position = ((Integer) selected.getParentKey()).intValue();
             list.add(position, null);
             ObjectTreeNode newNode = new ObjectTreeNode(null);
@@ -312,7 +313,7 @@ public class ObjectPanel extends javax.swing.JPanel {
             return;
         }
         if (parentObject instanceof Map) {
-            Map map = (Map) parentObject;
+            Map<?, ?> map = (Map<?, ?>) parentObject;
             Object key = selected.getParentKey();
             int position = parent.getIndex(selected);
             try {
@@ -324,7 +325,7 @@ public class ObjectPanel extends javax.swing.JPanel {
             parent.remove(position);
             _ottm.nodesWereRemoved(parent, new int[] {position}, new Object[] {selected});
         } else if (parentObject instanceof List) {
-            List list = (List) parentObject;
+            List<?> list = (List<?>) parentObject;
             int position = parent.getIndex(selected);
             try {
                 list.remove(position);
@@ -338,19 +339,19 @@ public class ObjectPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_deleteButtonActionPerformed
     
     public static void main(String[] args) {
-        java.util.ArrayList a = new java.util.ArrayList();
+        java.util.ArrayList<Object> a = new java.util.ArrayList<Object>();
         a.add(new String("the string"));
         a.add(new Integer(123));
         a.add(new Boolean(true));
-        Map m = new java.util.TreeMap();
+        Map<String, Object> m = new java.util.TreeMap<String, Object>();
         m.put("a string", new String("value 1"));
         m.put("a boolean", new Boolean(false));
         m.put("a byte array", new byte[] {0x00, 0x01});
         a.add(m);
         a.add(new int[] { 1001, 1002, 1003 });
-        a.add(new java.util.ArrayList());
+        a.add(new java.util.ArrayList<Object>());
         a.add(null);
-        java.util.Set s = new java.util.HashSet();
+        java.util.Set<Object> s = new java.util.HashSet<Object>();
         s.add(new Integer(7));
         s.add(new Boolean(true));
         s.add(new String("a new String"));
@@ -441,8 +442,8 @@ public class ObjectPanel extends javax.swing.JPanel {
             if (object == null) {
                 return otn;
             } else if (object instanceof Collection) {
-                Collection collection = (Collection) object;
-                Iterator it = collection.iterator();
+                Collection<?> collection = (Collection<?>) object;
+                Iterator<?> it = collection.iterator();
                 int count = 0;
                 while (it.hasNext()) {
                     ObjectTreeNode child = createObjectTree(it.next());
@@ -450,8 +451,8 @@ public class ObjectPanel extends javax.swing.JPanel {
                     otn.add(child);
                 }
             } else if (object instanceof Map) {
-                Map map = (Map) object;
-                Iterator it = map.keySet().iterator();
+                Map<?, ?> map = (Map<?, ?>) object;
+                Iterator<?> it = map.keySet().iterator();
                 while (it.hasNext()) {
                     Object key = it.next();
                     ObjectTreeNode child = createObjectTree(map.get(key));
@@ -505,10 +506,10 @@ public class ObjectPanel extends javax.swing.JPanel {
             if (object == null) {
                 return "";
             } else if (object instanceof Map) {
-                int size = ((Map)object).size();
+                int size = ((Map<?, ?>)object).size();
                 return size + " item" + (size != 1 ? "s" : "");
             } else if (object instanceof Collection) {
-                int size = ((Collection)object).size();
+                int size = ((Collection<?>)object).size();
                 return size + " item" + (size != 1 ? "s" : "");
             } else if (object.getClass().isArray()) {
                 int size = java.lang.reflect.Array.getLength(object);
@@ -555,8 +556,8 @@ public class ObjectPanel extends javax.swing.JPanel {
         
         private Object newObjectOfClass(String theClass) {
             try {
-                Class aClass = Class.forName(theClass);
-                java.lang.reflect.Constructor[] constructors = aClass.getConstructors();
+                Class<?> aClass = Class.forName(theClass);
+                java.lang.reflect.Constructor<?>[] constructors = aClass.getConstructors();
                 if (constructors.length == 0) {
                     System.err.println(theClass + " has no constructors");
                     return null;
@@ -565,7 +566,7 @@ public class ObjectPanel extends javax.swing.JPanel {
                     if (! java.lang.reflect.Modifier.isPublic(constructors[i].getModifiers())) {
                         continue;
                     }
-                    Class[] params = constructors[i].getParameterTypes();
+                    Class<?>[] params = constructors[i].getParameterTypes();
                     if (params.length == 0) {
                         return constructors[i].newInstance(new Object[0]);
                     }
@@ -574,7 +575,7 @@ public class ObjectPanel extends javax.swing.JPanel {
                     if (! java.lang.reflect.Modifier.isPublic(constructors[i].getModifiers())) {
                         continue;
                     }
-                    Class[] params = constructors[i].getParameterTypes();
+                    Class<?>[] params = constructors[i].getParameterTypes();
                     if (params.length == 1) {
                         if (params[0] == boolean.class) {
                             return constructors[i].newInstance(new Object[] {new Boolean(false)});
@@ -587,7 +588,7 @@ public class ObjectPanel extends javax.swing.JPanel {
                 }
                 StringBuffer buff = new StringBuffer();
                 for (int i=0; i<constructors.length; i++) {
-                    Class[] params = constructors[i].getParameterTypes();
+                    Class<?>[] params = constructors[i].getParameterTypes();
                     buff.append(java.lang.reflect.Modifier.toString(constructors[i].getModifiers()) + " " + theClass + "(" + params[0].getName());
                     for (int j=1; j<params.length; j++) {
                         buff.append(", " + params[j].getName());
@@ -603,7 +604,7 @@ public class ObjectPanel extends javax.swing.JPanel {
             return null;
         }
         
-        private Object convertValueToClass(Object value, Class theClass) {
+        private Object convertValueToClass(Object value, Class<? extends Object> theClass) {
             if (theClass == value.getClass()) { // The editor did any conversion for us
                 return value;
             } else if (value instanceof String) {
@@ -702,10 +703,12 @@ public class ObjectPanel extends javax.swing.JPanel {
             child.setParentKey(key);
             if (parent != null) { // we are not at the root
                 if (parentObject instanceof List) {
-                    List list = (List) parentObject;
+                    @SuppressWarnings("unchecked")
+					List<Object> list = (List<Object>) parentObject;
                     list.set(childPosition, childObject);
                 } else if (parentObject instanceof Map) {
-                    Map map = (Map) parentObject;
+                    @SuppressWarnings("unchecked")
+					Map<Object, Object> map = (Map<Object, Object>) parentObject;
                     map.put(key, childObject);
                 } else if (parentObject.getClass().isArray()) {
                     java.lang.reflect.Array.set(parentObject, ((Integer) key).intValue(), childObject);

@@ -439,7 +439,7 @@ public class CookieJarViewer extends javax.swing.JFrame {
         };
         
         private String[] _columnNames = new String[] { "Domain", "Path", "Name", "Date", "Value", "Secure", "Max age", "Comment" };
-        private Class[] _columnClass = new Class[] { String.class, String.class, String.class, Date.class, String.class, Boolean.class, String.class, String.class };
+        private Class<?>[] _columnClass = new Class[] { String.class, String.class, String.class, Date.class, String.class, Boolean.class, String.class, String.class };
         
         public CookieTableModel(FrameworkModel model) {
             this._model = model;
@@ -475,7 +475,7 @@ public class CookieJarViewer extends javax.swing.JFrame {
             return _columnNames[columnIndex];
         }
         
-        public Class getColumnClass(int columnIndex) {
+        public Class<?> getColumnClass(int columnIndex) {
             return _columnClass[columnIndex];
         }
         
@@ -519,7 +519,7 @@ public class CookieJarViewer extends javax.swing.JFrame {
         };
         
         private String[] _columnNames = new String[] { "Date", "Value", "Secure", "Max age", "Comment" };
-        private Class[] _columnClass = new Class[] { Date.class, String.class, Boolean.class, String.class, String.class };
+        private Class<?>[] _columnClass = new Class[] { Date.class, String.class, Boolean.class, String.class, String.class };
         
         public HistoricalCookieTableModel(FrameworkModel model) {
             this._model = model;
@@ -557,7 +557,7 @@ public class CookieJarViewer extends javax.swing.JFrame {
             return _columnNames[columnIndex];
         }
         
-        public Class getColumnClass(int columnIndex) {
+        public Class<?> getColumnClass(int columnIndex) {
             return _columnClass[columnIndex];
         }
         

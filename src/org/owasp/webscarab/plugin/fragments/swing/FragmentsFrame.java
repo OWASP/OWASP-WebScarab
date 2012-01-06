@@ -156,7 +156,7 @@ public class FragmentsFrame extends javax.swing.JFrame {
             return 1;
         }
         
-        public Class getColumnClass(int columnIndex) {
+        public Class<String> getColumnClass(int columnIndex) {
             return String.class;
         }
         

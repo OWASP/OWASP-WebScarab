@@ -81,18 +81,18 @@ public class FileSystemStore implements SiteModelStore {
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
-    private List _conversations = new ArrayList();
-    private SortedMap _conversationProperties = new TreeMap(new NullComparator());
-    private SortedMap _urlProperties = new TreeMap(new NullComparator());
+    private List<ConversationID> _conversations = new ArrayList<ConversationID>();
+    private SortedMap<ConversationID, Map<String, Object>> _conversationProperties = new TreeMap<ConversationID, Map<String, Object>>(new NullComparator<ConversationID>());
+    private SortedMap<HttpUrl, Map<String, Object>> _urlProperties = new TreeMap<HttpUrl, Map<String, Object>>(new NullComparator<HttpUrl>());
     
-    private SortedMap _urlConversations = new TreeMap(new NullComparator());
-    private SortedMap _urls = new TreeMap(new NullComparator());
+    private SortedMap<HttpUrl, List<ConversationID>> _urlConversations = new TreeMap<HttpUrl, List<ConversationID>>(new NullComparator<HttpUrl>());
+    private SortedMap<HttpUrl, SortedSet<HttpUrl>> _urls = new TreeMap<HttpUrl, SortedSet<HttpUrl>>(new NullComparator<HttpUrl>());
     
-    private Map _requestCache = new MRUCache(16);
-    private Map _responseCache = new MRUCache(16);
-    private Map _urlCache = new MRUCache(32);
+    private Map<ConversationID, Request> _requestCache = new MRUCache<ConversationID, Request>(16);
+    private Map<ConversationID, Response> _responseCache = new MRUCache<ConversationID, Response>(16);
+    private Map<HttpUrl, HttpUrl[]> _urlCache = new MRUCache<HttpUrl, HttpUrl[]>(32);
     
-    private SortedMap _cookies = new TreeMap();
+    private SortedMap<String, List<Cookie>> _cookies = new TreeMap<String, List<Cookie>>();
     
     public static boolean isExistingSession(File dir) {
         File f = new File(dir, "conversations");
@@ -135,7 +135,7 @@ public class FileSystemStore implements SiteModelStore {
             BufferedReader br = new BufferedReader(new FileReader(f));
             int linecount = 0;
             String line;
-            Map map = null;
+            Map<String, Object> map = null;
             ConversationID id = null;
             while ((line = br.readLine()) != null) {
                 linecount++;
@@ -143,7 +143,7 @@ public class FileSystemStore implements SiteModelStore {
                     String cid = line.substring(line.indexOf(":")+2);
                     try {
                         id = new ConversationID(cid);
-                        map = new HashMap();
+                        map = new HashMap<String, Object>();
                         _conversations.add(id);
                         _conversationProperties.put(id, map);
                     } catch (NumberFormatException nfe) {
@@ -177,7 +177,7 @@ public class FileSystemStore implements SiteModelStore {
             BufferedReader br = new BufferedReader(new FileReader(f));
             int linecount = 0;
             String line;
-            Map map = null;
+            Map<String, Object> map = null;
             HttpUrl url = null;
             while ((line = br.readLine()) != null) {
                 linecount++;
@@ -186,7 +186,7 @@ public class FileSystemStore implements SiteModelStore {
                     try {
                         url = new HttpUrl(urlstr);
                         addUrl(url);
-                        map = (Map) _urlProperties.get(url);
+                        map = _urlProperties.get(url);
                     } catch (MalformedURLException mue) {
                         throw new StoreException("Malformed URL " + urlstr + " at line " + linecount + " in urlinfo");
                     }
@@ -236,7 +236,7 @@ public class FileSystemStore implements SiteModelStore {
     public int addConversation(ConversationID id, Date when, Request request, Response response) {
         setRequest(id, request);
         setResponse(id, response);
-        Map map = new HashMap();
+        Map<String, Object> map = new HashMap<String, Object>();
         _conversationProperties.put(id, map);
         
         addConversationForUrl(request.getURL(), id);
@@ -249,9 +249,9 @@ public class FileSystemStore implements SiteModelStore {
     }
     
     private void addConversationForUrl(HttpUrl url, ConversationID id) {
-        List clist = (List) _urlConversations.get(url);
+        List<ConversationID> clist = _urlConversations.get(url);
         if (clist == null) {
-            clist = new ArrayList();
+            clist = new ArrayList<ConversationID>();
             _urlConversations.put(url, clist);
         }
         int index = Collections.binarySearch(clist, id);
@@ -266,7 +266,7 @@ public class FileSystemStore implements SiteModelStore {
      * @param value the value to set
      */
     public void setConversationProperty(ConversationID id, String property, String value) {
-        Map map = (Map) _conversationProperties.get(id);
+        Map<String, Object> map = _conversationProperties.get(id);
         if (map == null) throw new NullPointerException("No conversation Map for " + id);
         map.put(property, value);
     }
@@ -278,12 +278,12 @@ public class FileSystemStore implements SiteModelStore {
      * @param value the value to add
      */
     public boolean addConversationProperty(ConversationID id, String property, String value) {
-        Map map = (Map) _conversationProperties.get(id);
+        Map<String, Object> map = _conversationProperties.get(id);
         if (map == null) throw new NullPointerException("No conversation Map for " + id);
         return addProperty(map, property, value);
     }
     
-    private boolean addProperty(Map map, String property, String value) {
+    private boolean addProperty(Map<String, Object> map, String property, String value) {
         Object previous = map.get(property);
         if (previous == null) {
             map.put(property, value);
@@ -316,12 +316,12 @@ public class FileSystemStore implements SiteModelStore {
      * @return the property values
      */
     public String[] getConversationProperties(ConversationID id, String property) {
-        Map map = (Map) _conversationProperties.get(id);
+        Map<String, Object> map = _conversationProperties.get(id);
         if (map == null) throw new NullPointerException("No conversation Map for " + id);
         return getProperties(map, property);
     }
     
-    private String[] getProperties(Map map, String property) {
+    private String[] getProperties(Map<String, Object> map, String property) {
         Object value = map.get(property);
         if (value == null) {
             return new String[0];
@@ -344,14 +344,14 @@ public class FileSystemStore implements SiteModelStore {
      */
     public void addUrl(HttpUrl url) {
         if (_urlProperties.get(url) != null) throw new IllegalStateException("Adding an URL that is already there " + url);
-        Map map = new HashMap();
+        Map<String, Object> map = new HashMap<String, Object>();
         _urlProperties.put(url, map);
         
         HttpUrl parent = url.getParentUrl();
         _urlCache.remove(parent);
-        SortedSet childSet = (SortedSet) _urls.get(parent);
+        SortedSet<HttpUrl> childSet = _urls.get(parent);
         if (childSet == null) {
-            childSet = new TreeSet();
+            childSet = new TreeSet<HttpUrl>();
             _urls.put(parent, childSet);
         }
         childSet.add(url);
@@ -373,7 +373,7 @@ public class FileSystemStore implements SiteModelStore {
      * @param value the value to set
      */
     public void setUrlProperty(HttpUrl url, String property, String value) {
-        Map map = (Map) _urlProperties.get(url);
+        Map<String, Object> map = _urlProperties.get(url);
         if (map == null) throw new NullPointerException("No URL Map for " + url);
         map.put(property, value);
     }
@@ -385,7 +385,7 @@ public class FileSystemStore implements SiteModelStore {
      * @param value the value to add
      */
     public boolean addUrlProperty(HttpUrl url, String property, String value) {
-        Map map = (Map) _urlProperties.get(url);
+        Map<String, Object> map = _urlProperties.get(url);
         if (map == null) throw new NullPointerException("No URL Map for " + url);
         return addProperty(map, property, value);
     }
@@ -398,7 +398,7 @@ public class FileSystemStore implements SiteModelStore {
      * @return the property values
      */
     public String[] getUrlProperties(HttpUrl url, String property) {
-        Map map = (Map) _urlProperties.get(url);
+        Map<String, Object> map = _urlProperties.get(url);
         if (map == null) return new String[0];
         return getProperties(map, property);
     }
@@ -409,7 +409,7 @@ public class FileSystemStore implements SiteModelStore {
      * @return the number of children of the supplied url.
      */
     public int getChildCount(HttpUrl url) {
-        SortedSet childSet = (SortedSet) _urls.get(url);
+        SortedSet<HttpUrl> childSet = _urls.get(url);
         if (childSet == null) return 0;
         return childSet.size();
     }
@@ -421,14 +421,14 @@ public class FileSystemStore implements SiteModelStore {
      * @return the child at position index.
      */
     public HttpUrl getChildAt(HttpUrl url, int index) {
-        HttpUrl[] children = (HttpUrl[]) _urlCache.get(url);
+        HttpUrl[] children = _urlCache.get(url);
         if (children == null) {
-            SortedSet childSet = (SortedSet) _urls.get(url);
+            SortedSet<HttpUrl> childSet = _urls.get(url);
             if (childSet == null)
                 throw new IndexOutOfBoundsException(url + " has no children");
             if (index >= childSet.size())
                 throw new IndexOutOfBoundsException(url + " has only " + childSet.size() + " children, not " + index);
-            children = ((HttpUrl[]) childSet.toArray(NO_CHILDREN));
+            children = childSet.toArray(NO_CHILDREN);
             _urlCache.put(url, children);
         }
         return children[index];
@@ -436,12 +436,12 @@ public class FileSystemStore implements SiteModelStore {
     
     public int getIndexOf(HttpUrl url) {
         HttpUrl parent = url.getParentUrl();
-        HttpUrl[] children = (HttpUrl[]) _urlCache.get(parent);
+        HttpUrl[] children = _urlCache.get(parent);
         if (children == null) {
-            SortedSet childSet = (SortedSet) _urls.get(parent);
+            SortedSet<HttpUrl> childSet = _urls.get(parent);
             if (childSet == null)
                 throw new IndexOutOfBoundsException(url + " has no children");
-            children = ((HttpUrl[]) childSet.toArray(NO_CHILDREN));
+            children = childSet.toArray(NO_CHILDREN);
             _urlCache.put(parent, children);
         }
         return Arrays.binarySearch(children, url);
@@ -454,7 +454,7 @@ public class FileSystemStore implements SiteModelStore {
      */
     public int getConversationCount(HttpUrl url) {
         if (url == null) return _conversationProperties.size();
-        List list = (List) _urlConversations.get(url);
+        List<ConversationID> list = _urlConversations.get(url);
         if (list == null) return 0;
         return list.size();
     }
@@ -468,15 +468,15 @@ public class FileSystemStore implements SiteModelStore {
      * @return the conversation id
      */
     public ConversationID getConversationAt(HttpUrl url, int index) {
-        List list;
+        List<ConversationID> list;
         if (url == null) {
-            list = new ArrayList(_conversationProperties.keySet());
+            list = new ArrayList<ConversationID>(_conversationProperties.keySet());
         } else {
-            list = (List) _urlConversations.get(url);
+            list = _urlConversations.get(url);
         }
         if (list == null) throw new NullPointerException(url + " does not have any conversations");
         if (list.size() < index) throw new ArrayIndexOutOfBoundsException(url + " does not have " + index + " conversations");
-        return (ConversationID) list.get(index);
+        return list.get(index);
     }
     
     /**
@@ -489,11 +489,11 @@ public class FileSystemStore implements SiteModelStore {
      * @return the position in the list, or the insertion point if it is not in the list
      */
     public int getIndexOfConversation(HttpUrl url, ConversationID id) {
-        List list;
+        List<ConversationID> list;
         if (url == null) {
             list = _conversations;
         } else {
-            list = (List) _urlConversations.get(url);
+            list = _urlConversations.get(url);
         }
         if (list == null) throw new NullPointerException(url + " has no conversations");
         int index =  Collections.binarySearch(list, id);
@@ -525,8 +525,8 @@ public class FileSystemStore implements SiteModelStore {
      * retrieves the request associated with the specified conversation id
      */
     public Request getRequest(ConversationID id) {
-        Object o = _requestCache.get(id);
-        if (o != null) return (Request) o;
+        Request o = _requestCache.get(id);
+        if (o != null) return o;
         
         File f = new File(_conversationDir, id + "-request");
         FileInputStream fis = null;
@@ -540,6 +540,7 @@ public class FileSystemStore implements SiteModelStore {
             r.read(fis);
             r.getContent();
             fis.close();
+            _requestCache.put(id, r);
             return r;
         } catch (IOException ioe) {
             _logger.severe("IOException reading request(" +id + ") : " + ioe);
@@ -572,8 +573,8 @@ public class FileSystemStore implements SiteModelStore {
      * retrieves the response associated with the specified conversation id
      */
     public Response getResponse(ConversationID id) {
-        Object o = _responseCache.get(id);
-        if (o != null) return (Response) o;
+        Response o = _responseCache.get(id);
+        if (o != null) return o;
         
         File f = new File(_conversationDir, id + "-response");
         FileInputStream fis = null;
@@ -587,6 +588,7 @@ public class FileSystemStore implements SiteModelStore {
             r.read(fis);
             r.getContent();
             fis.close();
+            _responseCache.put(id, r);
             return r;
         } catch (IOException ioe) {
             _logger.severe("IOException reading response(" +id + ") : " + ioe);
@@ -604,16 +606,16 @@ public class FileSystemStore implements SiteModelStore {
         try {
             File f = new File(_dir, "conversationlog");
             BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-            Iterator it = _conversationProperties.keySet().iterator();
+            Iterator<ConversationID> it = _conversationProperties.keySet().iterator();
             ConversationID id;
-            Map map;
+            Map<String, Object> map;
             while (it.hasNext()) {
-                id = (ConversationID) it.next();
-                map = (Map) _conversationProperties.get(id);
+                id = it.next();
+                map = _conversationProperties.get(id);
                 bw.write("### Conversation : " + id + "\n");
-                Iterator props = map.keySet().iterator();
+                Iterator<String> props = map.keySet().iterator();
                 while(props.hasNext()) {
-                    String property = (String) props.next();
+                    String property = props.next();
                     String[] values = getProperties(map,  property);
                     if (values != null && values.length > 0) {
                         for (int i=0; i< values.length; i++) {
@@ -633,16 +635,16 @@ public class FileSystemStore implements SiteModelStore {
         try {
             File f = new File(_dir, "urlinfo");
             BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-            Iterator it = _urlProperties.keySet().iterator();
+            Iterator<HttpUrl> it = _urlProperties.keySet().iterator();
             HttpUrl url;
-            Map map;
+            Map<String, Object> map;
             while (it.hasNext()) {
-                url = (HttpUrl) it.next();
-                map = (Map) _urlProperties.get(url);
+                url = it.next();
+                map = _urlProperties.get(url);
                 bw.write("### URL : " + url + "\n");
-                Iterator props = map.keySet().iterator();
+                Iterator<String> props = map.keySet().iterator();
                 while(props.hasNext()) {
-                    String property = (String) props.next();
+                    String property = props.next();
                     String[] values = getProperties(map,  property);
                     if (values != null && values.length > 0) {
                         for (int i=0; i< values.length; i++) {
@@ -663,33 +665,33 @@ public class FileSystemStore implements SiteModelStore {
     }
     
     public int getCookieCount(String key) {
-        List list = (List) _cookies.get(key);
+        List<Cookie> list = _cookies.get(key);
         if (list == null) return 0;
         return list.size();
     }
     
     public String getCookieAt(int index) {
-        return (String) new ArrayList(_cookies.keySet()).get(index);
+        return new ArrayList<String>(_cookies.keySet()).get(index);
     }
     
     public Cookie getCookieAt(String key, int index) {
-        List list = (List) _cookies.get(key);
+        List<Cookie> list =  _cookies.get(key);
         if (list == null) throw new NullPointerException("No such cookie! " + key);
-        return (Cookie) list.get(index);
+        return list.get(index);
     }
     
     public Cookie getCurrentCookie(String key) {
-        List list = (List) _cookies.get(key);
+        List<Cookie> list = _cookies.get(key);
         if (list == null) throw new NullPointerException("No such cookie! " + key);
-        return (Cookie) list.get(list.size()-1);
+        return list.get(list.size()-1);
     }
     
     public int getIndexOfCookie(Cookie cookie) {
-        return new ArrayList(_cookies.keySet()).indexOf(cookie.getKey());
+        return new ArrayList<String>(_cookies.keySet()).indexOf(cookie.getKey());
     }
     
     public int getIndexOfCookie(String key, Cookie cookie) {
-        List list = (List) _cookies.get(key);
+        List<Cookie> list = _cookies.get(key);
         if (list == null) throw new NullPointerException("No such cookie! " + key);
         return list.indexOf(cookie);
     }
@@ -701,9 +703,9 @@ public class FileSystemStore implements SiteModelStore {
      */
     public boolean addCookie(Cookie cookie) {
         String key = cookie.getKey();
-        List list = (List) _cookies.get(key);
+        List<Cookie> list = _cookies.get(key);
         if (list == null) {
-            list = new ArrayList();
+            list = new ArrayList<Cookie>();
             _cookies.put(key, list);
         }
         if (list.indexOf(cookie) > -1) return false;
@@ -718,7 +720,7 @@ public class FileSystemStore implements SiteModelStore {
      */
     public boolean removeCookie(Cookie cookie) {
         String key = cookie.getKey();
-        List list = (List) _cookies.get(key);
+        List<Cookie> list = _cookies.get(key);
         if (list == null) return false;
         boolean deleted = list.remove(cookie);
         if (list.size() == 0) _cookies.remove(key);
@@ -733,14 +735,14 @@ public class FileSystemStore implements SiteModelStore {
             BufferedReader br = new BufferedReader(new FileReader(f));
             int linecount = 0;
             String line;
-            List list = null;
+            List<Cookie> list = null;
             String name = null;
             Cookie cookie = null;
             while ((line = br.readLine()) != null) {
                 linecount++;
                 if (line.startsWith("### Cookie :")) {
                     name = line.substring(line.indexOf(":")+2);
-                    list = new ArrayList();
+                    list = new ArrayList<Cookie>();
                     _cookies.put(name, list);
                 } else if (line.equals("")) {
                     name = null;
@@ -766,14 +768,14 @@ public class FileSystemStore implements SiteModelStore {
         try {
             File f = new File(_dir, "cookies");
             BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-            Iterator it = _cookies.keySet().iterator();
+            Iterator<String> it = _cookies.keySet().iterator();
             String name;
-            List list;
+            List<Cookie> list;
             while (it.hasNext()) {
-                name = (String) it.next();
-                list = (List) _cookies.get(name);
+                name = it.next();
+                list = _cookies.get(name);
                 bw.write("### Cookie : " + name + "\n");
-                Iterator cookies = list.iterator();
+                Iterator<Cookie> cookies = list.iterator();
                 while(cookies.hasNext()) {
                     Cookie cookie = (Cookie) cookies.next();
                     bw.write(cookie.toString() + "\n");
@@ -786,14 +788,13 @@ public class FileSystemStore implements SiteModelStore {
         }
     }
     
-    private class NullComparator implements Comparator {
+    private class NullComparator<T extends Comparable<T>> implements Comparator<T> {
         
-        public int compare(Object o1, Object o2) {
+        public int compare(T o1, T o2) {
             if (o1 == null && o2 == null) return 0;
             if (o1 == null && o2 != null) return 1;
             if (o1 != null && o2 == null) return -1;
-            if (o1 instanceof Comparable) return ((Comparable)o1).compareTo(o2);
-            throw new ClassCastException("Incomparable objects " + o1.getClass().getName() + " and " + o2.getClass().getName());
+            return o1.compareTo(o2);
         }
         
     }

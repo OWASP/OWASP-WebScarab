@@ -45,7 +45,7 @@ import java.util.Date;
  *
  * @author  rdawes
  */
-public class SessionID implements Comparable {
+public class SessionID implements Comparable<SessionID> {
     
     private Date _date;
     private String _value;
@@ -71,10 +71,9 @@ public class SessionID implements Comparable {
         return _value;
     }
     
-    public int compareTo(Object o) {
+    public int compareTo(SessionID o) {
         if (o == null) return -1;
-        if (!(o instanceof SessionID)) return -1;
-        return _date.compareTo(((SessionID)o).getDate());
+        return _date.compareTo(o.getDate());
     }
     
     public String toString() {

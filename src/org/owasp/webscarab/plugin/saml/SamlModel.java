@@ -87,7 +87,7 @@ public class SamlModel extends AbstractPluginModel {
     private Logger _logger = Logger.getLogger(getClass().getName());
     private final FrameworkModel model;
     private final ConversationModel samlConversationModel;
-    private final MRUCache parsedDocuments;
+    private final MRUCache<ConversationID, Document> parsedDocuments;
     private final DocumentBuilder builder;
 
     public SamlModel(FrameworkModel model) {
@@ -98,7 +98,7 @@ public class SamlModel extends AbstractPluginModel {
                 return !isSAMLMessage(id);
             }
         };
-        this.parsedDocuments = new MRUCache(8);
+        this.parsedDocuments = new MRUCache<ConversationID, Document>(8);
 
         DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
         builderFactory.setNamespaceAware(true);
@@ -302,7 +302,7 @@ public class SamlModel extends AbstractPluginModel {
         return null;
     }
 
-    public List verifySAMLProtocolSignature(ConversationID id) throws SamlSignatureException {
+    public List<X509Certificate> verifySAMLProtocolSignature(ConversationID id) throws SamlSignatureException {
         Document document = getSAMLDocument(id);
         if (null == document) {
             throw new SamlSignatureException("DOM parser error");
@@ -335,7 +335,7 @@ public class SamlModel extends AbstractPluginModel {
         if (false == signatureValid) {
             throw new SamlSignatureException("invalid");
         }
-        List certificateChain = new LinkedList();
+        List<X509Certificate> certificateChain = new LinkedList<X509Certificate>();
         if (false == keyInfo.containsX509Data()) {
             throw new SamlSignatureException("no X509 data in KeyInfo");
         }
@@ -535,8 +535,8 @@ public class SamlModel extends AbstractPluginModel {
         return true;
     }
 
-    public List getSAMLAttributes(ConversationID id) {
-        List samlAttributes = new ArrayList();
+    public List<NamedValue> getSAMLAttributes(ConversationID id) {
+        List<NamedValue> samlAttributes = new ArrayList<NamedValue>();
 
         Document document = getSAMLDocument(id);
         if (null == document) {

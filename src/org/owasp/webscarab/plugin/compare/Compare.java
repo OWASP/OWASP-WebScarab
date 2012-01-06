@@ -34,7 +34,7 @@ public class Compare implements Plugin {
     private ConversationID _selected = null;
     private Thread _runThread = null;
     private Object _lock = new Object();
-    private LevenshteinDistance _diff = null;
+    private LevenshteinDistance<String> _diff = null;
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
@@ -115,8 +115,8 @@ public class Compare implements Plugin {
                         _logger.warning("Base response is not text, skipping!");
                         return;
                     }
-                    List baseline = tokenize(baseBytes);
-                    _diff = new LevenshteinDistance(baseline);
+                    List<String> baseline = tokenize(baseBytes);
+                    _diff = new LevenshteinDistance<String>(baseline);
                     
                     count = cmodel.getConversationCount();
                     _logger.info("Checking " + count + " conversaitons");
@@ -136,7 +136,7 @@ public class Compare implements Plugin {
                             _logger.info("Content-type is " + ctype);
                             if (ctype != null && ctype.startsWith("text")) {
                                 byte[] bytes = response.getContent();
-                                List target = tokenize(bytes);
+                                List<String> target = tokenize(bytes);
                                 _model.setDistance(cid, _diff.getDistance(target));
                             }
                         }
@@ -162,9 +162,9 @@ public class Compare implements Plugin {
         return ! _model.isRunning();
     }
     
-    private List tokenize(byte[] bytes) {
+    private List<String> tokenize(byte[] bytes) {
         if (bytes == null)
-            return new ArrayList();
+            return new ArrayList<String>();
 //        List byteList = new ArrayList();
 //        for (int i=0; i<bytes.length; i++) {
 //            byteList.add(new Byte(bytes[i]));
@@ -172,7 +172,7 @@ public class Compare implements Plugin {
 //        return byteList;
 //        
         String[] words = new String(bytes).split("\\s");
-        List tokens = Arrays.asList(words);
+        List<String> tokens = Arrays.asList(words);
         return tokens;
     }
     

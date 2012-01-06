@@ -70,7 +70,7 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
                 return _model.getDistance((ConversationID) key);
             }
             public String getColumnName() { return "Distance"; }
-            public Class getColumnClass() { return Integer.class; }
+            public Class<Integer> getColumnClass() { return Integer.class; }
         });
         
         conversationTable.setDefaultRenderer(Date.class, new DateRenderer());
@@ -130,7 +130,7 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
                         return Diff.getEdits(_base, dst);
                     }
                     public void finished() {
-                        List edits = (List) get();
+                        List<?> edits = (List<?>) get();
                         _diffPanel.showDifferences(_base, dst, edits);
                     }
                 }.start();

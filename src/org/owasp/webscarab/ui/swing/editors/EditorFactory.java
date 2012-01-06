@@ -21,7 +21,7 @@ import java.awt.Component;
  */
 public class EditorFactory {
     
-    private static Map _editors = null;
+    private static Map<String, List<String>> _editors = null;
     
     private static ByteArrayEditor[] NONE = new ByteArrayEditor[0];
     
@@ -32,7 +32,7 @@ public class EditorFactory {
     }
     
     static {
-        _editors = new LinkedHashMap(); // this helps to maintainthe order of the editors
+        _editors = new LinkedHashMap<String, List<String>>(); // this helps to maintain the order of the editors
         registerEditor("multipart/form-data; *.*", "org.owasp.webscarab.ui.swing.editors.MultiPartPanel");
         registerEditor("application/x-serialized-object", "org.owasp.webscarab.ui.swing.editors.SerializedObjectPanel");
         registerEditor("image/.*", "org.owasp.webscarab.ui.swing.editors.ImagePanel");
@@ -49,9 +49,9 @@ public class EditorFactory {
     }
     
     public static void registerEditor(String contentType, String editorClass) {
-        List list = (List) _editors.get(contentType);
+        List<String> list = _editors.get(contentType);
         if (list == null) {
-            list = new ArrayList();
+            list = new ArrayList<String>();
             _editors.put(contentType, list);
         }
         if (list.indexOf(editorClass)<0) list.add(editorClass);
@@ -59,19 +59,19 @@ public class EditorFactory {
     
     public static ByteArrayEditor[] getEditors(String contentType) {
         if (contentType == null) return new ByteArrayEditor[] { new HexPanel() };
-        Iterator it = _editors.keySet().iterator();
-        List editors = new ArrayList();
+        Iterator<String> it = _editors.keySet().iterator();
+        List<ByteArrayEditor> editors = new ArrayList<ByteArrayEditor>();
         while (it.hasNext()) {
-            String type = (String) it.next();
+            String type = it.next();
             if (contentType.matches(type)) {
-                List list = (List) _editors.get(type);
-                Iterator it2 = list.iterator();
+                List<String> list = _editors.get(type);
+                Iterator<String> it2 = list.iterator();
                 while (it2.hasNext()) {
-                    String className = (String) it2.next();
+                    String className = it2.next();
                     try {
                         Object ed = Class.forName(className).newInstance();
                         if (ed instanceof ByteArrayEditor && ed instanceof Component) {
-                            editors.add(ed);
+                            editors.add((ByteArrayEditor) ed);
                         } else {
                             _logger.warning("Editor " + className + " must implement ByteArrayEditor and Component");
                         }
@@ -81,7 +81,7 @@ public class EditorFactory {
                 }
             }
         }
-        return (ByteArrayEditor[]) editors.toArray(NONE);
+        return editors.toArray(NONE);
     }
     
 }

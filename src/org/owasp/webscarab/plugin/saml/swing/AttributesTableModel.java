@@ -46,13 +46,13 @@ public class AttributesTableModel extends AbstractTableModel {
 
     private static String[] columnNames = {"Name", "Value"};
 
-    private List attributes;
+    private List<?> attributes;
 
     public AttributesTableModel() {
         this.attributes = null;
     }
 
-    public void setAttributes(List attributes) {
+    public void setAttributes(List<?> attributes) {
         this.attributes = attributes;
         int lastRowIndex = getLastRowIndex();
         fireTableRowsInserted(0, lastRowIndex);

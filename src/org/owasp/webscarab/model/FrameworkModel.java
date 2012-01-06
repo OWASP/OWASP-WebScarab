@@ -69,7 +69,7 @@ public class FrameworkModel {
     private EventListenerList _listenerList = new EventListenerList();
     
     // keeps a fairly small cache of recently used HttpUrl objects
-    private Map _urlCache = new MRUCache(200);
+    private Map<ConversationID, HttpUrl> _urlCache = new MRUCache<ConversationID, HttpUrl>(200);
     
     private SiteModelStore _store = null;
     
@@ -717,7 +717,7 @@ public class FrameworkModel {
         try {
             _rwl.readLock().acquire();
             try {
-                List cookies = new ArrayList();
+                List<Cookie> cookies = new ArrayList<Cookie>();
                 
                 String host = url.getHost();
                 String path = url.getPath();
@@ -733,7 +733,7 @@ public class FrameworkModel {
                         }
                     }
                 }
-                return (Cookie[]) cookies.toArray(NO_COOKIES);
+                return cookies.toArray(NO_COOKIES);
             } finally {
                 _rwl.readLock().release();
             }

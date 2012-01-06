@@ -12,11 +12,11 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 		File dir = new File("./plugins/");
-		List urls = new ArrayList();
+		List<URL> urls = new ArrayList<URL>();
 		findJars(dir, urls);
 		ClassLoader loader = ClassLoader.getSystemClassLoader();
 		if (urls.size() > 0) {
-			URL[] u = (URL[]) urls.toArray(new URL[urls.size()]);
+			URL[] u = urls.toArray(new URL[urls.size()]);
 			System.out.println("Creating new ClassLoader");
 			Thread.currentThread().setContextClassLoader(new URLClassLoader(u, loader));
 		} else {
@@ -25,7 +25,7 @@ public class Main {
 		WebScarab.main(args);
 	}
 	
-	private static void findJars(File dir, List urls) {
+	private static void findJars(File dir, List<URL> urls) {
 		if (!dir.isDirectory())
 			return;
 		FilenameFilter filter = new FilenameFilter() {

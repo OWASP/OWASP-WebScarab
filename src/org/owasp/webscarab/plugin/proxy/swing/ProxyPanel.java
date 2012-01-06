@@ -78,7 +78,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
     private ListenerTableModel _ltm;
     private MessageTableModel _mtm;
     
-    private ArrayList _plugins;
+    private ArrayList<ProxyPluginUI> _plugins;
     private ProxyPluginUI[] _pluginArray = new ProxyPluginUI[0];
     
     private Logger _logger = Logger.getLogger(getClass().getName());
@@ -134,10 +134,10 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
     
     public void addPlugin(ProxyPluginUI plugin) {
         if (_plugins == null) {
-            _plugins = new ArrayList();
+            _plugins = new ArrayList<ProxyPluginUI>();
         }
         _plugins.add(plugin);
-        _pluginArray = (ProxyPluginUI[]) _plugins.toArray(_pluginArray);
+        _pluginArray = _plugins.toArray(_pluginArray);
         mainTabbedPane.add(plugin.getPanel(), plugin.getPluginName());
         if (plugin instanceof ManualEditPanel)
             mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount()-1);
@@ -534,7 +534,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
 		 * 
 		 */
 		private static final long serialVersionUID = 3090029861017879230L;
-		private ArrayList _rows = new ArrayList();
+		private ArrayList<Object[]> _rows = new ArrayList<Object[]>();
         private Timer _timer = new Timer(true);
         
         private String[] _columns = new String [] {
@@ -554,7 +554,7 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         }
         
         public Object getValueAt(int rowIndex, int columnIndex) {
-            Object[] row = (Object[]) _rows.get(rowIndex);
+            Object[] row = _rows.get(rowIndex);
             return row[columnIndex];
         }
         

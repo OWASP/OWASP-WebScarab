@@ -17,18 +17,18 @@ package org.owasp.webscarab.util;
 import java.util.List;
 import java.util.Iterator;
 
-public class LevenshteinDistance {
+public class LevenshteinDistance<T> {
     
-    private List _baseline;
+    private List<T> _baseline;
     private int[] _current, _previous;
     
-    public LevenshteinDistance(List baseline) {
+    public LevenshteinDistance(List<T> baseline) {
         _baseline = baseline;
         _current = new int[_baseline.size()+1];
         _previous = new int[_baseline.size()+1];
     }
     
-    public synchronized int getDistance(List target) {
+    public synchronized int getDistance(List<T> target) {
         if (_baseline.size() == 0)
             return target.size();
         if (target.size() == 0)
@@ -38,10 +38,10 @@ public class LevenshteinDistance {
             _current[i] = i;
         }
         
-        Iterator targIt = target.iterator();
+        Iterator<T> targIt = target.iterator();
         int j=0;
         while(targIt.hasNext()) {
-            Object targObj = targIt.next();
+            T targObj = targIt.next();
             j++;
             
             int[] t = _previous;
@@ -50,10 +50,10 @@ public class LevenshteinDistance {
             
             _current[0] = _previous[0]+1;
             
-            Iterator baseIt = _baseline.iterator();
+            Iterator<T> baseIt = _baseline.iterator();
             int i=0;
             while(baseIt.hasNext()) {
-                Object baseObj = baseIt.next();
+                T baseObj = baseIt.next();
                 i++;
                 
                 int cost;
@@ -69,7 +69,7 @@ public class LevenshteinDistance {
     }
 
     public static void main(String[] args) {
-        List baseline = new java.util.ArrayList();
+        List<Character> baseline = new java.util.ArrayList<Character>();
         baseline.add(new Character('l'));
         baseline.add(new Character('e'));
         baseline.add(new Character('v'));
@@ -79,8 +79,8 @@ public class LevenshteinDistance {
         baseline.add(new Character('h'));
         baseline.add(new Character('t'));
         baseline.add(new Character('e'));
-        LevenshteinDistance ld = new LevenshteinDistance(baseline);
-        List target = new java.util.ArrayList();
+        LevenshteinDistance<Character> ld = new LevenshteinDistance<Character>(baseline);
+        List<Character> target = new java.util.ArrayList<Character>();
         target.add(new Character('m'));
         target.add(new Character('e'));
         target.add(new Character('i'));
