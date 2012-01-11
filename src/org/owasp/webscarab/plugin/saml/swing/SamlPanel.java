@@ -297,7 +297,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     }
 
     private void displaySignature(ConversationID id) {
-        List<?> certificateChain;
+        List<X509Certificate> certificateChain;
         try {
             certificateChain = this.samlModel.verifySAMLProtocolSignature(id);
         } catch (SamlSignatureException ex) {

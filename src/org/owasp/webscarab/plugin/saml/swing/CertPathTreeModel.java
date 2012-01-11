@@ -48,9 +48,9 @@ public class CertPathTreeModel extends AbstractTreeModel {
     /**
      * List of X509 certificates.
      */
-    private final List<?> certificateChain;
+    private final List<X509Certificate> certificateChain;
 
-    public CertPathTreeModel(List<?> certificateChain) {
+    public CertPathTreeModel(List<X509Certificate> certificateChain) {
         this.certificateChain = certificateChain;
     }
 
@@ -108,7 +108,7 @@ public class CertPathTreeModel extends AbstractTreeModel {
         }
 
         public X509Certificate getCertificate() {
-            return (X509Certificate) CertPathTreeModel.this.certificateChain.get(this.certificateIdx);
+            return CertPathTreeModel.this.certificateChain.get(this.certificateIdx);
         }
 
         public String toString() {

@@ -570,10 +570,10 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
                             String name = nameTextField.getText();
                             String regex = regexTextField.getText();
                             try {
-                                Map<?, ?> ids = _sa.getIDsFromResponse(response, name, regex);
-                                String[] keys = (String[]) ids.keySet().toArray(new String[0]);
+                                Map<String, SessionID> ids = _sa.getIDsFromResponse(response, name, regex);
+                                String[] keys = ids.keySet().toArray(new String[0]);
                                 for (int i=0; i<keys.length; i++) {
-                                    SessionID id = (SessionID) ids.get(keys[i]);
+                                    SessionID id = ids.get(keys[i]);
                                     keys[i] = keys[i] + " = " + id.getValue();
                                 }
                                 if (keys.length == 0) keys = new String[] { "No session identifiers found!" };

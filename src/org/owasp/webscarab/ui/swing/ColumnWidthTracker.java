@@ -34,7 +34,7 @@ public class ColumnWidthTracker implements PropertyChangeListener, TableColumnMo
     private List<TableColumnModel> _tracked = new LinkedList<TableColumnModel>();
     
     public static ColumnWidthTracker getTracker(String key) {
-        ColumnWidthTracker tracker = (ColumnWidthTracker) _trackers.get(key);
+        ColumnWidthTracker tracker = _trackers.get(key);
         if (tracker == null) {
             tracker = new ColumnWidthTracker(key);
             _trackers.put(key, tracker);
@@ -77,7 +77,7 @@ public class ColumnWidthTracker implements PropertyChangeListener, TableColumnMo
         Preferences.setPreference(_key + "." + name + ".width", String.valueOf(width));
         Iterator<TableColumnModel> it = _tracked.iterator();
         while (it.hasNext()) {
-            TableColumnModel tcm = (TableColumnModel) it.next();
+            TableColumnModel tcm = it.next();
             for (int i=0; i<tcm.getColumnCount(); i++) {
                 TableColumn tc2 = tcm.getColumn(i);
                 String name2 = String.valueOf(tc2.getHeaderValue());

@@ -137,7 +137,7 @@ public class SSLSocketFactoryFactory {
 	 */
 	public synchronized SSLSocketFactory getSocketFactory(String host)
 			throws IOException, GeneralSecurityException {
-		SSLContext sslcontext = (SSLContext) contextCache.get(host);
+		SSLContext sslcontext = contextCache.get(host);
 		if (sslcontext == null) {
 			X509KeyManager km;
 			if (!keystore.containsAlias(host)) {
@@ -212,9 +212,9 @@ public class SSLSocketFactoryFactory {
 	}
 
 	private void initSerials() throws GeneralSecurityException {
-		Enumeration<?> e = keystore.aliases();
+		Enumeration<String> e = keystore.aliases();
 		while (e.hasMoreElements()) {
-			String alias = (String) e.nextElement();
+			String alias = e.nextElement();
 			X509Certificate cert = (X509Certificate) keystore
 					.getCertificate(alias);
 			BigInteger serial = cert.getSerialNumber();

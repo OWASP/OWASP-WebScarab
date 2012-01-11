@@ -19,6 +19,7 @@ import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.ui.swing.ConversationListModel;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;
 import org.owasp.webscarab.util.Diff;
+import org.owasp.webscarab.util.Diff.Edit;
 
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.SwingWorker;
@@ -130,7 +131,8 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
                         return Diff.getEdits(_base, dst);
                     }
                     public void finished() {
-                        List<?> edits = (List<?>) get();
+                        @SuppressWarnings("unchecked")
+						List<Edit> edits = (List<Edit>) get();
                         _diffPanel.showDifferences(_base, dst, edits);
                     }
                 }.start();

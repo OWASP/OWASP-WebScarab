@@ -77,7 +77,7 @@ public class SessionIDModel extends AbstractPluginModel {
     public void addSessionID(String key, SessionID id) {
         setModified(true);
         int insert = _store.addSessionID(key, id);
-        Calculator calc = (Calculator) _calculators.get(key);
+        Calculator calc = _calculators.get(key);
         if (calc == null) {
             calc = new DefaultCalculator();
             _calculators.put(key, calc);
@@ -112,19 +112,19 @@ public class SessionIDModel extends AbstractPluginModel {
     }
     
     public BigInteger getSessionIDValue(String key, SessionID id) {
-        Calculator calc = (Calculator) _calculators.get(key);
+        Calculator calc = _calculators.get(key);
         if (calc == null) return null;
         return calc.calculate(id);
     }
     
     public BigInteger getMinimumValue(String key) {
-        Calculator calc = (Calculator) _calculators.get(key);
+        Calculator calc = _calculators.get(key);
         if (calc == null) return null;
         return calc.min();
     }
     
     public BigInteger getMaximumValue(String key) {
-        Calculator calc = (Calculator) _calculators.get(key);
+        Calculator calc = _calculators.get(key);
         if (calc == null) return null;
         return calc.max();
     }

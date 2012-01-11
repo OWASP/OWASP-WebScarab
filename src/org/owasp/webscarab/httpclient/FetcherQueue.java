@@ -100,7 +100,7 @@ public class FetcherQueue {
     				// check again
     			}
     		}
-    		nextRequest = (Request) _requestQueue.remove(0);
+    		nextRequest = _requestQueue.remove(0);
     	}
         if (_requestDelay > 0) {
         	long currentTimeMillis = System.currentTimeMillis();

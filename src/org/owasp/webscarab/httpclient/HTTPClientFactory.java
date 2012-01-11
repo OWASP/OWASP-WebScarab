@@ -153,7 +153,7 @@ public class HTTPClientFactory {
         HTTPClient hc = null;
         synchronized (_availableClients) {
             if (_availableClients.size()>0) {
-                hc = (HTTPClient) _availableClients.remove(0);
+                hc = _availableClients.remove(0);
             } else {
                 _logger.info("Creating a new Fetcher");
                 hc = getHTTPClient();

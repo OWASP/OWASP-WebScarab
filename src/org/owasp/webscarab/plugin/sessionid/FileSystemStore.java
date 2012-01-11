@@ -148,7 +148,7 @@ public class FileSystemStore implements SessionIDStore {
             BufferedWriter bw = new BufferedWriter(new FileWriter(f));
             Iterator<String> it = _sessionIDs.keySet().iterator();
             while (it.hasNext()) {
-                String key = (String) it.next();
+                String key = it.next();
                 bw.write(key + "\r\n");
                 List<SessionID> list = _sessionIDs.get(key);
                 Iterator<SessionID> it2 = list.iterator();

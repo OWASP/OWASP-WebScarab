@@ -124,7 +124,7 @@ public class Diff {
 		int srcLast = 0, dstLast = 0;
 		int srcOffset = 0, dstOffset = 0;
 		while (it.hasNext()) {
-			ArrayEdit edit = (ArrayEdit) it.next();
+			ArrayEdit edit = it.next();
 			// catch up things in between edits
 			while(srcLast<edit.getSrcStart())
 				srcOffset += src[srcLast++].length();
@@ -206,11 +206,11 @@ public class Diff {
 		return edits;
 	}
 
-	public static List<Edit> refine(CharSequence src, CharSequence dst, List<?> edits) {
+	public static List<Edit> refine(CharSequence src, CharSequence dst, List<Edit> edits) {
 		List<Edit> refined = new LinkedList<Edit>();
-		Iterator<?> it = edits.iterator();
+		Iterator<Edit> it = edits.iterator();
 		while(it.hasNext()) {
-			Edit edit = (Edit) it.next();
+			Edit edit = it.next();
 			int srcStart = edit.getSrcLocation();
 			int srcEnd = srcStart + edit.getSrc().length();
 			int dstStart = edit.getDstLocation();
@@ -220,10 +220,10 @@ public class Diff {
 		return refined;
 	}
 	
-	public static int getDistance(List<?> edits) {
+	public static int getDistance(List<Edit> edits) {
 		int distance = 0;
 		for (int i = 0; i < edits.size(); i++) {
-			Edit edit = (Edit) edits.get(i);
+			Edit edit = edits.get(i);
 			distance += edit.getSrc().length() + edit.getDst().length();
 		}
 		return distance;
@@ -237,7 +237,7 @@ public class Diff {
 		StringBuffer buff = new StringBuffer();
 		int last = 0;
 		while (it.hasNext()) {
-			Edit edit = (Edit) it.next();
+			Edit edit = it.next();
 			// System.out.println(edit);
 			if (edit.getSrcLocation() > last) {
 				// catch up things in between edits
@@ -262,7 +262,7 @@ public class Diff {
 		StringBuffer buff = new StringBuffer();
 		int last = 0;
 		while (it.hasNext()) {
-			Edit edit = (Edit) it.next();
+			Edit edit = it.next();
 			if (edit.getDstLocation() > last) {
 				// catch up things in between edits
 				buff.append(dst.subSequence(last, edit.getDstLocation()));

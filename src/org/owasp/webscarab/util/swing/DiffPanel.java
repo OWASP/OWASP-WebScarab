@@ -63,7 +63,7 @@ public class DiffPanel extends JPanel {
     
     private CharSequence src = null, dst = null;
     
-    private List<?> edits = null;
+    private List<Edit> edits = null;
     
     private Color changedColor, addedColor, deletedColor;
     
@@ -196,7 +196,7 @@ public class DiffPanel extends JPanel {
     }
     
     public void showDifferences(CharSequence src, CharSequence dst,
-            List<?> edits) {
+            List<Edit> edits) {
         this.src = src;
         this.dst = dst;
         this.edits = edits;
@@ -219,12 +219,12 @@ public class DiffPanel extends JPanel {
         combinedDoc = new DefaultStyledDocument();
         srcDoc = new DefaultStyledDocument();
         dstDoc = new DefaultStyledDocument();
-        Iterator<?> it = edits.iterator();
+        Iterator<Edit> it = edits.iterator();
         int srcLast = 0;
         int dstLast = 0;
         try {
             while (it.hasNext()) {
-                Edit edit = (Edit) it.next();
+                Edit edit = it.next();
                 if (edit.getSrcLocation() > srcLast) {
                     // catch up common items in between edits
                     String s = src.subSequence(srcLast, edit.getSrcLocation())
@@ -325,7 +325,7 @@ public class DiffPanel extends JPanel {
             reader.close();
             dst = buff.toString();
         }
-        List<?> edits = Diff.getEdits(src, dst, '\n');
+        List<Edit> edits = Diff.getEdits(src, dst, '\n');
         System.out.println("Distance: " + Diff.getDistance(edits));
         edits = Diff.refine(src, dst, edits);
         System.out.println("Distance: " + Diff.getDistance(edits));

@@ -46,13 +46,13 @@ public class AttributesTableModel extends AbstractTableModel {
 
     private static String[] columnNames = {"Name", "Value"};
 
-    private List<?> attributes;
+    private List<NamedValue> attributes;
 
     public AttributesTableModel() {
         this.attributes = null;
     }
 
-    public void setAttributes(List<?> attributes) {
+    public void setAttributes(List<NamedValue> attributes) {
         this.attributes = attributes;
         int lastRowIndex = getLastRowIndex();
         fireTableRowsInserted(0, lastRowIndex);
@@ -92,7 +92,7 @@ public class AttributesTableModel extends AbstractTableModel {
         if (rowIndex >= this.attributes.size()) {
             return null;
         }
-        NamedValue namedValue = (NamedValue) this.attributes.get(rowIndex);
+        NamedValue namedValue = this.attributes.get(rowIndex);
         switch (columnIndex) {
             case 0:
                 return namedValue.getName();

@@ -96,7 +96,7 @@ public class SpiderModel extends AbstractPluginModel {
         try {
             _model.readLock().acquire();
             if (_linkQueue.size() > 0) 
-                link = (Link) _linkQueue.remove(0);
+                link = _linkQueue.remove(0);
             if (_linkQueue.size() == 0) {
                 setStatus("Idle");
             } else {

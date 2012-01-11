@@ -39,7 +39,7 @@ public class FuzzFactory {
     }
     
     public String[] getSourceDescriptions() {
-        return (String[]) _sources.keySet().toArray(new String[_sources.size()]);
+        return _sources.keySet().toArray(new String[_sources.size()]);
     }
     
     public void addSource(FuzzSource source) {
@@ -66,7 +66,7 @@ public class FuzzFactory {
     }
     
     public FuzzSource getSource(String name) {
-        FuzzSource source = (FuzzSource) _sources.get(name);
+        FuzzSource source = _sources.get(name);
         if (source == null) {
             return null;
         } else {

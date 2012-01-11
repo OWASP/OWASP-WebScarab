@@ -191,11 +191,11 @@ public class FuzzerModel extends AbstractPluginModel {
     }
     
     public FuzzSource getParameterFuzzSource(int index) {
-        return (FuzzSource) _fuzzSources.get(index);
+        return _fuzzSources.get(index);
     }
     
     public int getFuzzParameterPriority(int index) {
-        Integer p = (Integer)_parameterPriorities.get(index);
+        Integer p = _parameterPriorities.get(index);
         if (p == null)
             return 0;
         return p.intValue();

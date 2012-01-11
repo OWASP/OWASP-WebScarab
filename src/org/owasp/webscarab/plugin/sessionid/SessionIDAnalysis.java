@@ -150,8 +150,8 @@ public class SessionIDAnalysis implements Plugin, ConversationHandler {
         Map<String, SessionID> ids = getIDsFromResponse(response, _name, _regex);
         Iterator<String> it = ids.keySet().iterator();
         while (it.hasNext()) {
-            String key = (String) it.next();
-            SessionID id = (SessionID) ids.get(key);
+            String key = it.next();
+            SessionID id = ids.get(key);
             _model.addSessionID(key, id);
         }
     }

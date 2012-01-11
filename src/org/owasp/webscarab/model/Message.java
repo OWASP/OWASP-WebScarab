@@ -146,7 +146,7 @@ public class Message {
     public void write(OutputStream os, String crlf) throws IOException {
         if (_headers != null) {
             for (int i=0; i<_headers.size(); i++) {
-                NamedValue nv = (NamedValue) _headers.get(i);
+                NamedValue nv = _headers.get(i);
                 os.write(new String(nv.getName() + ": " + nv.getValue() + crlf).getBytes());
                 _logger.finest("Header: " + nv);
             }
@@ -229,7 +229,7 @@ public class Message {
         StringBuffer buff = new StringBuffer();
         if (_headers != null) {
             for (int i=0; i<_headers.size(); i++) {
-                NamedValue nv = (NamedValue) _headers.get(i);
+                NamedValue nv = _headers.get(i);
                 if (nv.getName().equalsIgnoreCase("Transfer-Encoding") && nv.getValue().indexOf("chunked")>-1) {
                     buff.append("X-" + nv.getName() + ": " + nv.getValue() + crlf);
                 } else if (nv.getName().equalsIgnoreCase("Content-Encoding") && nv.getValue().indexOf("gzip")>-1) {

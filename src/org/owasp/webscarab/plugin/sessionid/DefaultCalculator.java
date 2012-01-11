@@ -94,7 +94,7 @@ public class DefaultCalculator implements Calculator {
             char ch = value.charAt(value.length() - 1 - i);
             _logger.fine("Working on position " + i + ", character '" + ch + "'");
             String set = null;
-            if (_chars.size() > i) set = (String) _chars.get(i);
+            if (_chars.size() > i) set = _chars.get(i);
             if (set == null) set = new String();
             _logger.fine("Character set was '" + set + "'");
             String updset = insertCharacter(set, ch);
@@ -124,7 +124,7 @@ public class DefaultCalculator implements Calculator {
     }
     
     public BigInteger calculate(SessionID id) {
-        if (_cache.containsKey(id)) return (BigInteger) _cache.get(id);
+        if (_cache.containsKey(id)) return _cache.get(id);
         String value = id.getValue();
         Matcher matcher = _pattern.matcher(value);
         if(matcher.matches() && matcher.groupCount()>=1) {
@@ -137,7 +137,7 @@ public class DefaultCalculator implements Calculator {
         int length = value.length();
         _logger.fine("Calculating '" + value + "'");
         for (int i=0; i<length; i++) {
-            String charset = (String) _chars.get(i);
+            String charset = _chars.get(i);
             char ch = value.charAt(length - 1 - i);
             int pos = charset.indexOf(ch);
             _logger.fine("Working on position " + i + ", character '" + ch + "'");

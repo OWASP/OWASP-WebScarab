@@ -345,9 +345,9 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
             try {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
-                        ColumnDataModel cdm = (ColumnDataModel) _urlColumns.get(type);
+                        ColumnDataModel cdm = _urlColumns.get(type);
                         if (cdm != null) cdm.fireValueChanged(url);
-                        cdm = (ColumnDataModel) _conversationColumns.get(type);
+                        cdm = _conversationColumns.get(type);
                         if (cdm != null) cdm.fireValueChanged(id);
                     }
                 });
