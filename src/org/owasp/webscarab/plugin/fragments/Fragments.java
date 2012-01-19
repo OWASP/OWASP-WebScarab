@@ -41,12 +41,10 @@ package org.owasp.webscarab.plugin.fragments;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.htmlparser.Node;
 import org.htmlparser.nodes.RemarkNode;
 import org.htmlparser.tags.FormTag;
 import org.htmlparser.tags.InputTag;
@@ -54,17 +52,15 @@ import org.htmlparser.tags.ScriptTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
-
-import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.parser.Parser;
-
 import org.owasp.webscarab.plugin.Framework;
-import org.owasp.webscarab.plugin.Plugin;
 import org.owasp.webscarab.plugin.Hook;
+import org.owasp.webscarab.plugin.Plugin;
 
 /**
  * This plugin looks for comments and scripts in the source of HTML pages.

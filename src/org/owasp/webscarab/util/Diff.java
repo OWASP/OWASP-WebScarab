@@ -7,9 +7,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.owasp.webscarab.util.Diff.ArrayEdit;
-import org.owasp.webscarab.util.Diff.Edit;
-
 /**
  * This class calculates the edits necessary to convert a source document to a
  * target document It does this by finding the longest common substring, then

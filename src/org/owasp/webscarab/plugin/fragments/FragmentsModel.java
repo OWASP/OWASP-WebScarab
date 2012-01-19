@@ -6,25 +6,22 @@
 
 package org.owasp.webscarab.plugin.fragments;
 
-import EDU.oswego.cs.dl.util.concurrent.Sync;
-import org.owasp.webscarab.model.FrameworkModel;
-import org.owasp.webscarab.model.ConversationModel;
-import org.owasp.webscarab.model.AbstractConversationModel;
-import org.owasp.webscarab.model.HttpUrl;
-import org.owasp.webscarab.model.ConversationID;
-import org.owasp.webscarab.model.StoreException;
-
-import org.owasp.webscarab.plugin.AbstractPluginModel;
-
-import org.owasp.webscarab.util.Encoding;
-
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
-
 import java.util.logging.Logger;
 
 import javax.swing.event.EventListenerList;
+
+import org.owasp.webscarab.model.AbstractConversationModel;
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.ConversationModel;
+import org.owasp.webscarab.model.FrameworkModel;
+import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.StoreException;
+import org.owasp.webscarab.plugin.AbstractPluginModel;
+import org.owasp.webscarab.util.Encoding;
+
+import EDU.oswego.cs.dl.util.concurrent.Sync;
 
 /**
  * 

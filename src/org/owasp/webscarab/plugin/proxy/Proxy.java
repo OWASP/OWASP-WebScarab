@@ -39,35 +39,30 @@ package org.owasp.webscarab.plugin.proxy;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-
-import java.lang.NumberFormatException;
+import java.net.MalformedURLException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.TreeMap;
 import java.util.Iterator;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import org.owasp.webscarab.model.StoreException;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-
+import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.plugin.Framework;
-import org.owasp.webscarab.plugin.Plugin;
 import org.owasp.webscarab.plugin.Hook;
-import java.net.MalformedURLException;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
+import org.owasp.webscarab.plugin.Plugin;
 
 /**
  * The Proxy plugin supports multiple Listeners, and starts and stops them as
