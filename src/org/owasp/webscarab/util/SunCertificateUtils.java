@@ -1,157 +1,123 @@
+/***********************************************************************
+ *
+ * $CVSHeader$
+ *
+ * This file is part of WebScarab, an Open Web Application Security
+ * Project utility. For details, please see http://www.owasp.org/
+ *
+ * Copyright (c) 2011 Frank Cornelis <info@frankcornelis.be>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Getting Source
+ * ==============
+ *
+ * Source for this application is maintained at Sourceforge.net, a
+ * repository for free software projects.
+ *
+ * For details, please see http://www.sourceforge.net/projects/owasp
+ *
+ */
+
 package org.owasp.webscarab.util;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.Signature;
-import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.Vector;
 
 import javax.security.auth.x500.X500Principal;
-
-import sun.security.util.ObjectIdentifier;
-import sun.security.x509.AlgorithmId;
-import sun.security.x509.AuthorityKeyIdentifierExtension;
-import sun.security.x509.BasicConstraintsExtension;
-import sun.security.x509.CertificateAlgorithmId;
-import sun.security.x509.CertificateExtensions;
-import sun.security.x509.CertificateIssuerName;
-import sun.security.x509.CertificateSerialNumber;
-import sun.security.x509.CertificateSubjectName;
-import sun.security.x509.CertificateValidity;
-import sun.security.x509.CertificateVersion;
-import sun.security.x509.CertificateX509Key;
-import sun.security.x509.ExtendedKeyUsageExtension;
-import sun.security.x509.KeyIdentifier;
-import sun.security.x509.KeyUsageExtension;
-import sun.security.x509.NetscapeCertTypeExtension;
-import sun.security.x509.SubjectKeyIdentifierExtension;
-import sun.security.x509.X500Name;
-import sun.security.x509.X500Signer;
-import sun.security.x509.X509CertImpl;
-import sun.security.x509.X509CertInfo;
+import org.bouncycastle.asn1.misc.MiscObjectIdentifiers;
+import org.bouncycastle.asn1.misc.NetscapeCertType;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
+import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.X509Extensions;
+import org.bouncycastle.x509.X509V3CertificateGenerator;
+import org.bouncycastle.x509.extension.AuthorityKeyIdentifierStructure;
+import org.bouncycastle.x509.extension.SubjectKeyIdentifierStructure;
 
 public class SunCertificateUtils {
 
-	private static final String SIGALG = "SHA1withRSA";
+    private static final String SIGALG = "SHA1withRSA";
 
-	public static X509Certificate sign(X500Principal subject, PublicKey pubKey,
-			X500Principal issuer, PublicKey caPubKey, PrivateKey caKey,
-			Date begin, Date ends, BigInteger serialNo)
-			throws GeneralSecurityException {
+    public static X509Certificate sign(X500Principal subject, PublicKey pubKey,
+            X500Principal issuer, PublicKey caPubKey, PrivateKey caKey,
+            Date begin, Date ends, BigInteger serialNo)
+            throws GeneralSecurityException {
 
-		try {
-			X500Name subjectName = new X500Name(subject.getName());
-			X500Name issuerName = new X500Name(issuer.getName());
-			Signature signature = Signature.getInstance(SIGALG);
+        X509V3CertificateGenerator certificateGenerator = new X509V3CertificateGenerator();
+        certificateGenerator.reset();
+        certificateGenerator.setPublicKey(pubKey);
+        certificateGenerator.setSignatureAlgorithm(SIGALG);
+        certificateGenerator.setNotBefore(begin);
+        certificateGenerator.setNotAfter(ends);
+        certificateGenerator.setIssuerDN(issuer);
+        certificateGenerator.setSubjectDN(subject);
+        certificateGenerator.setSerialNumber(serialNo);
 
-			signature.initSign(caKey);
-			X500Signer signer = new X500Signer(signature, issuerName);
+        if (subject.equals(issuer)) {
+            certificateGenerator.addExtension(
+                    X509Extensions.BasicConstraints, true,
+                    new BasicConstraints(5));
+        } else {
+            SubjectKeyIdentifierStructure subjectKeyIdentifier = new SubjectKeyIdentifierStructure(pubKey);
+            certificateGenerator.addExtension(
+                    X509Extensions.SubjectKeyIdentifier, false, subjectKeyIdentifier);
 
-			CertificateValidity valid = new CertificateValidity(begin, ends);
+            AuthorityKeyIdentifierStructure authorityKeyIdentifier = new AuthorityKeyIdentifierStructure(caPubKey);
+            certificateGenerator.addExtension(
+                    X509Extensions.AuthorityKeyIdentifier, false,
+                    authorityKeyIdentifier);
 
-			X509CertInfo info = new X509CertInfo();
-			// Add all mandatory attributes
-			info.set(X509CertInfo.VERSION, new CertificateVersion(
-					CertificateVersion.V3));
-			info.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(
-					serialNo));
-			AlgorithmId algID = signer.getAlgorithmId();
-			info.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(
-					algID));
-			info.set(X509CertInfo.SUBJECT, new CertificateSubjectName(
-					subjectName));
-			info.set(X509CertInfo.KEY, new CertificateX509Key(pubKey));
-			info.set(X509CertInfo.VALIDITY, valid);
-			info.set(X509CertInfo.ISSUER, new CertificateIssuerName(signer
-					.getSigner()));
+            certificateGenerator.addExtension(
+                    X509Extensions.BasicConstraints, true,
+                    new BasicConstraints(false));
 
-			// add Extensions
-			CertificateExtensions ext = (subject == issuer) ? getCACertificateExtensions()
-					: getCertificateExtensions(pubKey, caPubKey);
-			info.set(X509CertInfo.EXTENSIONS, ext);
+            NetscapeCertType netscapeCertType = new NetscapeCertType(NetscapeCertType.sslClient | NetscapeCertType.sslServer);
+            certificateGenerator.addExtension(
+                    MiscObjectIdentifiers.netscapeCertType, false,
+                    netscapeCertType);
 
-			X509CertImpl cert = new X509CertImpl(info);
-			cert.sign(caKey, SIGALG);
+            KeyUsage keyUsage = new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment);
+            certificateGenerator.addExtension(X509Extensions.KeyUsage, true,
+                    keyUsage);
 
-			return cert;
-		} catch (IOException e) {
-			CertificateEncodingException cee = new CertificateEncodingException("generate: "
-					+ e.getMessage());
-			cee.initCause(e);
-			throw cee;
-		}
-	}
+            Vector keyPurposeIds = new Vector();
+            keyPurposeIds.add(KeyPurposeId.id_kp_clientAuth);
+            keyPurposeIds.add(KeyPurposeId.id_kp_serverAuth);
+            ExtendedKeyUsage extendedKeyUsage = new ExtendedKeyUsage(keyPurposeIds);
+            certificateGenerator.addExtension(X509Extensions.ExtendedKeyUsage, false,
+                    extendedKeyUsage);
+        }
 
-	private static CertificateExtensions getCACertificateExtensions()
-			throws IOException {
-		CertificateExtensions ext = new CertificateExtensions();
-
-		// Basic Constraints
-		ext.set(BasicConstraintsExtension.NAME, new BasicConstraintsExtension(
-		/* isCritical */Boolean.TRUE, /* isCA */true, 0));
-
-		return ext;
-	}
-
-	private static CertificateExtensions getCertificateExtensions(
-			PublicKey pubKey, PublicKey caPubKey) throws IOException {
-		CertificateExtensions ext = new CertificateExtensions();
-
-		ext.set(SubjectKeyIdentifierExtension.NAME,
-				new SubjectKeyIdentifierExtension(new KeyIdentifier(pubKey)
-						.getIdentifier()));
-
-		ext.set(AuthorityKeyIdentifierExtension.NAME,
-				new AuthorityKeyIdentifierExtension(
-						new KeyIdentifier(caPubKey), null, null));
-
-		// Basic Constraints
-		ext.set(BasicConstraintsExtension.NAME, new BasicConstraintsExtension(
-		/* isCritical */Boolean.TRUE, /* isCA */false, /* pathLen */5));
-
-		// Netscape Cert Type Extension
-		boolean[] ncteOk = new boolean[8];
-		ncteOk[0] = true; // SSL_CLIENT
-		ncteOk[1] = true; // SSL_SERVER
-		NetscapeCertTypeExtension ncte = new NetscapeCertTypeExtension(ncteOk);
-		ncte = new NetscapeCertTypeExtension(Boolean.FALSE, ncte.getExtensionValue());
-		ext.set(NetscapeCertTypeExtension.NAME, ncte);
-
-		// Key Usage Extension
-		boolean[] kueOk = new boolean[9];
-		kueOk[0] = true;
-		kueOk[2] = true;
-		// "digitalSignature", // (0),
-		// "nonRepudiation", // (1)
-		// "keyEncipherment", // (2),
-		// "dataEncipherment", // (3),
-		// "keyAgreement", // (4),
-		// "keyCertSign", // (5),
-		// "cRLSign", // (6),
-		// "encipherOnly", // (7),
-		// "decipherOnly", // (8)
-		// "contentCommitment" // also (1)
-		KeyUsageExtension kue = new KeyUsageExtension(kueOk);
-		ext.set(KeyUsageExtension.NAME, kue);
-
-		// Extended Key Usage Extension
-		int[] serverAuthOidData = { 1, 3, 6, 1, 5, 5, 7, 3, 1 };
-		ObjectIdentifier serverAuthOid = new ObjectIdentifier(serverAuthOidData);
-		int[] clientAuthOidData = { 1, 3, 6, 1, 5, 5, 7, 3, 2 };
-		ObjectIdentifier clientAuthOid = new ObjectIdentifier(clientAuthOidData);
-		Vector<ObjectIdentifier> v = new Vector<ObjectIdentifier>();
-		v.add(serverAuthOid);
-		v.add(clientAuthOid);
-		ExtendedKeyUsageExtension ekue = new ExtendedKeyUsageExtension(Boolean.FALSE, v);
-		ext.set(ExtendedKeyUsageExtension.NAME, ekue);
-
-		return ext;
-
-	}
-
+        X509Certificate certificate = certificateGenerator.generate(caKey);
+        /*
+         * Next certificate factory trick is needed to make sure that the
+         * certificate delivered to the caller is provided by the default
+         * security provider instead of BouncyCastle. If we don't do this trick
+         * we might run into trouble when trying to use the CertPath validator.
+         */
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+        certificate = (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(certificate.getEncoded()));
+        return certificate;
+    }
 }

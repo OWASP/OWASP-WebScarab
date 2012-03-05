@@ -39,11 +39,12 @@
 
 package org.owasp.webscarab.plugin;
 
+import EDU.oswego.cs.dl.util.concurrent.QueuedExecutor;
+import EDU.oswego.cs.dl.util.concurrent.ThreadFactory;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.LinkedList;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -55,6 +56,7 @@ import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.StoreException;
+import org.owasp.webscarab.plugin.fragments.Fragments;
 
 /**
  * creates a class that contains and controls the plugins.
@@ -63,7 +65,8 @@ import org.owasp.webscarab.model.StoreException;
 public class Framework {
     
     private ArrayList<Plugin> _plugins = new ArrayList<Plugin>();
-    private List<ConversationID> _analysisQueue = new LinkedList<ConversationID>();
+    private final QueuedExecutor analysisQueuedExecutor;
+    private final QueuedExecutor analysisLongRunningQueuedExecutor;
     
     private FrameworkModel _model;
     private FrameworkModelWrapper _wrapper;
@@ -78,9 +81,6 @@ public class Framework {
     private AddConversationHook _allowAddConversation;
     
     private AnalyseConversationHook _analyseConversation;
-    
-    private Thread _queueThread = null;
-    private QueueProcessor _qp = null;
     
     private Pattern dropPattern = null;
     private Pattern whitelistPattern = null;
@@ -110,11 +110,27 @@ public class Framework {
         } catch (PatternSyntaxException pse) {
         	_logger.warning("Got an invalid regular expression for conversations to whitelist: " + whitelistRegex + " results in " + pse.toString());
         }
-        _qp = new Framework.QueueProcessor();
-        _queueThread = new Thread(_qp, "QueueProcessor");
-        _queueThread.setDaemon(true);
-        _queueThread.setPriority(Thread.MIN_PRIORITY);
-        _queueThread.start();
+        this.analysisQueuedExecutor = new QueuedExecutor();
+        this.analysisQueuedExecutor.setThreadFactory(new QueueProcessorThreadFactory("QueueProcessor"));
+        this.analysisLongRunningQueuedExecutor = new QueuedExecutor();
+        this.analysisLongRunningQueuedExecutor.setThreadFactory(new QueueProcessorThreadFactory("Long Running QueueProcessor"));
+    }
+    
+    private static final class QueueProcessorThreadFactory implements ThreadFactory {
+
+        private final String threadName;
+        
+        public QueueProcessorThreadFactory(String threadName) {
+            this.threadName = threadName;
+        }
+        
+        public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r);
+            thread.setName(this.threadName);
+            thread.setDaemon(true);
+            thread.setPriority(Thread.MIN_PRIORITY);
+            return thread;
+        }
     }
     
     public ScriptManager getScriptManager() {
@@ -345,8 +361,11 @@ public class Framework {
         _model.addConversation(id, when, request, response, origin);
         if (!conversation.shouldAnalyse()) return;
         _analyseConversation.runScripts(conversation);
-        synchronized(_analysisQueue) {
-            _analysisQueue.add(id);
+        try {
+            this.analysisQueuedExecutor.execute(new QueueProcessor(id));
+            this.analysisLongRunningQueuedExecutor.execute(new QueueProcessor(id, true));
+        } catch (InterruptedException ex) {
+            _logger.severe("error scheduling analysis task: " + ex.getMessage());
         }
     }
     
@@ -409,37 +428,55 @@ public class Framework {
     
     private class QueueProcessor implements Runnable {
         
+        private final ConversationID id;
+        
+        private final boolean longRunning;
+        
+        public QueueProcessor(ConversationID id) {
+            this(id, false);
+        }
+        
+        public QueueProcessor(ConversationID id, boolean longRunning) {
+            this.id = id;
+            this.longRunning = longRunning;
+        }
+        
         public void run() {
-            while (true) {
-                ConversationID id = null;
-                synchronized (_analysisQueue) {
-                    if (_analysisQueue.size()>0)
-                        id = _analysisQueue.remove(0);
-                }
-                if (id != null) {
-                    Request request = _model.getRequest(id);
-                    Response response = _model.getResponse(id);
-                    String origin = _model.getConversationOrigin(id);
-                    Iterator<Plugin> it = _plugins.iterator();
-                    while (it.hasNext()) {
-                        Plugin plugin = it.next();
-                        if (plugin.isRunning()) {
-                            try {
-                                plugin.analyse(id, request, response, origin);
-                            } catch (Exception e) {
-                                _logger.warning(plugin.getPluginName() + " failed to process " + id + ": " + e);
-                                e.printStackTrace();
-                            }
-                        }
+            if (null == this.id) {
+                return;
+            }
+            Request request = _model.getRequest(id);
+            Response response = _model.getResponse(id);
+            String origin = _model.getConversationOrigin(id);
+            Iterator<Plugin> it = _plugins.iterator();
+            while (it.hasNext()) {
+                Plugin plugin = it.next();
+                if (this.longRunning) {
+                    if (false == plugin instanceof Fragments) {
+                        continue;
                     }
+                    _logger.info("running long running analysis: " + plugin.getPluginName());
                 } else {
+                    if (plugin instanceof Fragments) {
+                        continue;
+                    }
+                }
+                if (plugin.isRunning()) {
                     try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException ie) {}
+                        long t0 = System.currentTimeMillis();
+                        plugin.analyse(id, request, response, origin);
+                        long t1 = System.currentTimeMillis();
+                        long dt = t1 - t0;
+                        if (dt > 1000 * 10) {
+                            _logger.warning("plugin " + plugin.getPluginName() + " is taking a long time to analyse conversation " + id + " (" + dt + " milliseconds)");
+                        }
+                    } catch (Exception e) {
+                        _logger.warning(plugin.getPluginName() + " failed to process " + id + ": " + e);
+                        e.printStackTrace();
+                    }
                 }
             }
         }
-        
     }
     
     private class AddConversationHook extends Hook {

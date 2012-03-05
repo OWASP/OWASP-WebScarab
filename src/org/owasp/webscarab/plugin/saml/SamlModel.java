@@ -42,10 +42,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.spec.SecretKeySpec;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.xml.security.Init;
+import org.apache.xml.security.encryption.XMLCipher;
+import org.apache.xml.security.encryption.XMLEncryptionException;
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.keys.KeyInfo;
@@ -56,6 +59,7 @@ import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureException;
 import org.apache.xml.security.utils.Base64;
+import org.bouncycastle.util.encoders.Hex;
 import org.htmlparser.tags.FormTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.ParserException;
@@ -620,5 +624,62 @@ public class SamlModel extends AbstractPluginModel {
         }
 
         return false;
+    }
+
+    public boolean hasEncryptedAttributes(ConversationID id) {
+        Document document = getSAMLDocument(id);
+        if (null == document) {
+            return false;
+        }
+
+        NodeList encryptedAttributeNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "EncryptedAttribute");
+        if (0 != encryptedAttributeNodeList.getLength()) {
+            return true;
+        }
+        return false;
+    }
+
+    public List getDecryptedAttributes(ConversationID id, String hexKey) throws Exception {
+        List samlAttributes = new ArrayList();
+
+        /*
+         * We create a new DOM tree as XMLCipher will change the tree.
+         */
+        String encodedSamlMessage = getEncodedSAMLMessage(id);
+        String decodedSamlMessage = getDecodedSAMLMessage(encodedSamlMessage);
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(decodedSamlMessage.getBytes());
+        Document document = this.builder.parse(inputStream);
+
+        byte[] keyBytes = Hex.decode(hexKey);
+        SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "AES");
+        XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_128);
+        xmlCipher.init(XMLCipher.DECRYPT_MODE, secretKeySpec);
+
+        NodeList encryptedAttributeNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "EncryptedAttribute");
+        for (int encryptedAttributeIdx = 0; encryptedAttributeIdx < encryptedAttributeNodeList.getLength(); encryptedAttributeIdx++) {
+            Element encryptedAttributeElement = (Element) encryptedAttributeNodeList.item(encryptedAttributeIdx);
+            NodeList encryptedDataNodeList = encryptedAttributeElement.getElementsByTagNameNS("http://www.w3.org/2001/04/xmlenc#", "EncryptedData");
+            if (1 != encryptedDataNodeList.getLength()) {
+                continue;
+            }
+            Element encryptedDataElement = (Element) encryptedDataNodeList.item(0);
+            xmlCipher.doFinal(document, encryptedDataElement);
+            NodeList attributeNodeList = encryptedAttributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Attribute");
+            if (1 != attributeNodeList.getLength()) {
+                continue;
+            }
+            Element attributeElement = (Element) attributeNodeList.item(0);
+            String attributeName = attributeElement.getAttribute("Name");
+            NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AttributeValue");
+            if (0 == attributeValueNodeList.getLength()) {
+                continue;
+            }
+            Element attributeValueElement = (Element) attributeValueNodeList.item(0);
+            String attributeValue = attributeValueElement.getChildNodes().item(0).getNodeValue();
+            NamedValue attribute = new NamedValue(attributeName, attributeValue);
+            samlAttributes.add(attribute);
+        }
+
+        return samlAttributes;
     }
 }
