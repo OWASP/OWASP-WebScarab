@@ -194,9 +194,12 @@ public class ConnectionHandler implements Runnable {
 				if (from != null) {
 					request.addHeader("X-Forwarded-For", from);
 				}
+				try {
 				_logger.fine("Browser requested : " + request.getMethod() + " "
 						+ request.getURL().toString());
-
+				} catch (NullPointerException npe) {
+					System.out.println("Request is: " + request);
+				}
 				// report the request to the listener, and get the allocated ID
 				id = _proxy.gotRequest(request);
 

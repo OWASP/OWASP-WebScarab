@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+
 import no.geosoft.cc.ui.SplashScreen;
 
 import org.owasp.webscarab.model.ConversationID;
@@ -33,6 +34,8 @@ import org.owasp.webscarab.plugin.fragments.Fragments;
 import org.owasp.webscarab.plugin.fragments.swing.FragmentsPanel;
 import org.owasp.webscarab.plugin.fuzz.Fuzzer;
 import org.owasp.webscarab.plugin.fuzz.swing.FuzzerPanel;
+import org.owasp.webscarab.plugin.identity.Identity;
+import org.owasp.webscarab.plugin.identity.swing.IdentityPanel;
 import org.owasp.webscarab.plugin.manualrequest.ManualRequest;
 import org.owasp.webscarab.plugin.manualrequest.swing.ManualRequestPanel;
 import org.owasp.webscarab.plugin.proxy.BeanShell;
@@ -102,7 +105,7 @@ public class WebScarab {
 
             Framework framework = new Framework();
 
-            boolean lite = Boolean.valueOf(Preferences.getPreference("WebScarab.lite", "true")).booleanValue();
+            boolean lite = Boolean.valueOf(Preferences.getPreference("WebScarab.lite", "false")).booleanValue();
 
             if (args != null && args.length > 0) {
                 if (args[0].equalsIgnoreCase("lite")) {
@@ -243,9 +246,14 @@ public class WebScarab {
         uif.addPlugin(searchPanel);
         
         Saml saml = new Saml(framework, samlProxy);
-	framework.addPlugin(saml);
-	SamlPanel samlPanel = new SamlPanel(saml);
-	uif.addPlugin(samlPanel);
+		framework.addPlugin(saml);
+		SamlPanel samlPanel = new SamlPanel(saml);
+		uif.addPlugin(samlPanel);
+		
+		Identity identity = new Identity(framework);
+		framework.addPlugin(identity);
+		IdentityPanel identityPanel = new IdentityPanel(identity);
+		uif.addPlugin(identityPanel);
     }
     
     public static void loadLitePlugins(Framework framework, Lite uif) {
