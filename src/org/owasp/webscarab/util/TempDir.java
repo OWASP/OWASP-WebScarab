@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.Random;
 import java.security.AccessController;
 import java.security.AccessControlException;
-import sun.security.action.GetPropertyAction;
 
 /**
  *
@@ -44,8 +43,7 @@ public class TempDir {
     
     private static String getTempDir() {
         if (tmpdir == null) {
-            GetPropertyAction a = new GetPropertyAction("java.io.tmpdir");
-            tmpdir = ((String) AccessController.doPrivileged(a));
+            tmpdir = System.getProperty("java.io.tmpdir");
         }
         return tmpdir;
     }
