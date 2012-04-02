@@ -231,6 +231,7 @@ public class SummaryPanel extends JPanel {
                     for (int i=0; i<_conversationActions.size(); i++) {
                         Action action = _conversationActions.get(i);
                         action.putValue("CONVERSATION", id);
+                        action.putValue("COMPONENT", conversationTable);
                     }
                 }
             }
