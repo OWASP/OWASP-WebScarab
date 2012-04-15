@@ -139,7 +139,6 @@ public class UrlTreeModelAdapter extends AbstractTreeModel {
                 int index = getIndexOfChild(parent, url);
                 fireChildChanged(urlTreePath(parent), index, url);
             } else {
-                if (true) return;
                 try {
                     SwingUtilities.invokeAndWait(new Runnable() {
                         public void run() {
