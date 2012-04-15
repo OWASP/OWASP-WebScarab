@@ -35,7 +35,6 @@ package org.owasp.webscarab.plugin.wsfed.swing;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -45,8 +44,6 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.plugin.saml.swing.AttributesTableModel;
@@ -58,7 +55,6 @@ import org.owasp.webscarab.ui.swing.ShowConversationAction;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.TableSorter;
-import org.xml.sax.SAXException;
 
 /**
  *
