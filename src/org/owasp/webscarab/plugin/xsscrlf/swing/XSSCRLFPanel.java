@@ -26,6 +26,7 @@ import org.owasp.webscarab.plugin.xsscrlf.XSSCRLFModel;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;
 import org.owasp.webscarab.ui.swing.DateRenderer;
+import org.owasp.webscarab.ui.swing.EnabledBooleanTableCellRenderer;
 import org.owasp.webscarab.ui.swing.ShowConversationAction;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
@@ -58,6 +59,10 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         _xsscrlf = xsscrlf;
         _model = xsscrlf.getModel();
         initComponents();
+        conversationTable.setDefaultRenderer(Boolean.class, 
+        		new EnabledBooleanTableCellRenderer());
+        suspectedTable.setDefaultRenderer(Boolean.class, 
+        		new EnabledBooleanTableCellRenderer());
         
         _vulnerableConversationColumns = new ColumnDataModel[2];
         ConversationTableModel vtm = new ConversationTableModel(_model.getVulnerableConversationModel());

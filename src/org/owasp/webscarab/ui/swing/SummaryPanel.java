@@ -66,311 +66,353 @@ import org.owasp.webscarab.util.swing.JTreeTable;
 import org.owasp.webscarab.util.swing.TableSorter;
 
 /**
- *
- * @author  rdawes
+ * 
+ * @author rdawes
  */
 public class SummaryPanel extends JPanel {
-    
-    /**
+
+	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -653352257745170107L;
 	private FrameworkModel _model;
-    private UrlFilteredConversationModel _conversationModel;
-    private FilteredUrlModel _urlModel;
-    private JTreeTable _urlTreeTable;
-    private ArrayList<Action> _urlActions = new ArrayList<Action>();
-    private HttpUrl _treeURL = null;
-    private TableSorter _conversationTableSorter;
-    private ConversationTableModel _conversationTableModel;
-    private UrlTreeTableModelAdapter _urlTreeTableModel;
-    private ArrayList<Action> _conversationActions = new ArrayList<Action>();
-    
-    private HashMap<String, ColumnDataModel> _urlColumns = new HashMap<String, ColumnDataModel>();
-    
-    /** Creates new form SummaryPanel */
-    public SummaryPanel(FrameworkModel model) {
-        _model = model;
-        _conversationModel = new UrlFilteredConversationModel(_model, _model.getConversationModel());
-        // FIXME this is the wrong place for this, I think?
-        _urlModel = new FilteredUrlModel(model.getUrlModel()) {
-            protected boolean shouldFilter(HttpUrl url) {
-                return _model.getUrlProperty(url, "METHODS") == null;
-            }
-        };
-        initComponents();
-        
-        initTree();
-        addTreeListeners();
-        
-        initTable();
-        addTableListeners();
-        addConversationActions(new Action[] {
-            new ShowConversationAction(_conversationModel)
-        });
-    }
-    
-    private void initTree() {
-        _urlTreeTableModel = new UrlTreeTableModelAdapter(_urlModel);
-        _urlTreeTable = new JTreeTable(_urlTreeTableModel);
-        _urlTreeTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        ColumnWidthTracker.getTracker("UrlTree").addTable(_urlTreeTable);
-        
-        ColumnDataModel cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
-                return _model.getUrlProperty((HttpUrl) key, "METHODS");
-            }
-            public String getColumnName() { return "Methods"; }
-            public Class<String> getColumnClass() { return String.class; }
-        };
-        _urlColumns.put("METHODS", cdm);
-        _urlTreeTableModel.addColumn(cdm);
-        
-        cdm = new ColumnDataModel() {
-            public Object getValue(Object key) {
-                if (_model == null) return null;
-                return _model.getUrlProperty((HttpUrl) key, "STATUS");
-            }
-            public String getColumnName() { return "Status"; }
-            public Class<String> getColumnClass() { return String.class; }
-        };
-        _urlColumns.put("STATUS", cdm);
-        _urlTreeTableModel.addColumn(cdm);
-        
-        JTree urlTree = _urlTreeTable.getTree();
-        urlTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        urlTree.setRootVisible(false);
-        urlTree.setShowsRootHandles(true);
-        urlTree.setCellRenderer(new UrlTreeRenderer());
-        
-        treeScrollPane.setViewportView(_urlTreeTable);
-    }
-    
-    private void addTreeListeners() {
-        // Listen for when the selection changes.
-        // We use this to set the selected URLInfo for each action, and
-        // to filter the conversation list
-        final JTree urlTree = _urlTreeTable.getTree();
-        urlTree.addTreeSelectionListener(new TreeSelectionListener() {
-            public void valueChanged(TreeSelectionEvent e) {
-                TreePath selection = urlTree.getSelectionPath();
-                _treeURL = null;
-                if (selection != null) {
-                    Object o = selection.getLastPathComponent();
-                    if (o instanceof HttpUrl) {
-                        _treeURL = (HttpUrl) o;
-                    }
-                }
-                if (treeCheckBox.isSelected()) {
-                    _conversationModel.setUrl(_treeURL);
-                }
-                synchronized (_urlActions) {
-                    for (int i=0; i<_urlActions.size(); i++) {
-                        Action action = _urlActions.get(i);
-                        action.putValue("URL", _treeURL);
-                    }
-                }
-            }
-        });
-        _urlTreeTable.addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                maybeShowPopup(e);
-            }
-            public void mouseReleased(MouseEvent e) {
-                maybeShowPopup(e);
-            }
-            private void maybeShowPopup(MouseEvent e) {
-                if (e.isPopupTrigger() && _urlActions.size() > 0) {
-                    int row = _urlTreeTable.rowAtPoint(e.getPoint());
-                    _urlTreeTable.getSelectionModel().setSelectionInterval(row,row);
-                    urlPopupMenu.show(e.getComponent(), e.getX(), e.getY());
-                }
-            }
-        });
-    }
-    
-    public void addUrlActions(Action[] actions) {
-        if (actions == null) return;
-        for (int i=0; i<actions.length; i++) {
-            _urlActions.add(actions[i]);
-        }
-        for (int i=0; i<actions.length; i++) {
-            urlPopupMenu.add(new JMenuItem(actions[i]));
-        }
-    }
-    
-    public void addUrlColumns(ColumnDataModel[] columns) {
-        if (columns == null) return;
-        for (int i=0; i<columns.length; i++) {
-            _urlTreeTableModel.addColumn(columns[i]);
-        }
-    }
-    
-    private void initTable() {
-        _conversationTableModel = new ConversationTableModel(_conversationModel);
-        ColumnWidthTracker.getTracker("ConversationTable").addTable(conversationTable);
-        
-        _conversationTableSorter = new TableSorter(_conversationTableModel, conversationTable.getTableHeader());
-        conversationTable.setModel(_conversationTableSorter);
-        
-        conversationTable.setDefaultRenderer(Date.class, new DateRenderer());
-    }
-    
-    private void addTableListeners() {
-        // This listener updates the registered actions with the selected Conversation
-        conversationTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent e) {
-                if (e.getValueIsAdjusting()) return;
-                int row = conversationTable.getSelectedRow();
-                TableModel tm = conversationTable.getModel();
-                ConversationID id = null;
-                if (row >-1)
-                    id = (ConversationID) tm.getValueAt(row, 0); // UGLY hack! FIXME!!!!
-                synchronized (_conversationActions) {
-                    for (int i=0; i<_conversationActions.size(); i++) {
-                        Action action = _conversationActions.get(i);
-                        action.putValue("CONVERSATION", id);
-                        action.putValue("COMPONENT", conversationTable);
-                    }
-                }
-            }
-        });
-        
-        conversationTable.addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                maybeShowPopup(e);
-            }
-            public void mouseReleased(MouseEvent e) {
-                maybeShowPopup(e);
-            }
-            private void maybeShowPopup(MouseEvent e) {
-                int row = conversationTable.rowAtPoint(e.getPoint());
-                conversationTable.getSelectionModel().setSelectionInterval(row,row);
-                if (e.isPopupTrigger() && _conversationActions.size() > 0) {
-                    conversationPopupMenu.show(e.getComponent(), e.getX(), e.getY());
-                }
-            }
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
-                    if (_conversationActions.size()>0) {
-                        Action action = _conversationActions.get(0);
-                        ActionEvent evt = new ActionEvent(conversationTable, 0, (String) action.getValue(Action.ACTION_COMMAND_KEY));
-                        if (action.isEnabled()) {
-                            action.actionPerformed(evt);
-                        }
-                    }
-                }
-            }
-        });
-        
-    }
-    
-    public void addConversationActions(Action[] actions) {
-        if (actions == null) return;
-        for (int i=0; i<actions.length; i++) {
-            _conversationActions.add(actions[i]);
-        }
-        for (int i=0; i<actions.length; i++) {
-            conversationPopupMenu.add(new JMenuItem(actions[i]));
-        }
-    }
-    
-    public void addConversationColumns(ColumnDataModel[] columns) {
-        if (columns == null) return;
-        for (int i=0; i<columns.length; i++) {
-            _conversationTableModel.addColumn(columns[i]);
-        }
-        _conversationTableSorter.setSortingStatus(0, TableSorter.DESCENDING);
-    }
-    
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
-     */
-    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
-    private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
+	private UrlFilteredConversationModel _conversationModel;
+	private FilteredUrlModel _urlModel;
+	private JTreeTable _urlTreeTable;
+	private ArrayList<Action> _urlActions = new ArrayList<Action>();
+	private HttpUrl _treeURL = null;
+	private TableSorter _conversationTableSorter;
+	private ConversationTableModel _conversationTableModel;
+	private UrlTreeTableModelAdapter _urlTreeTableModel;
+	private ArrayList<Action> _conversationActions = new ArrayList<Action>();
 
-        urlPopupMenu = new javax.swing.JPopupMenu();
-        conversationPopupMenu = new javax.swing.JPopupMenu();
-        summarySplitPane = new javax.swing.JSplitPane();
-        urlPanel = new javax.swing.JPanel();
-        treeCheckBox = new javax.swing.JCheckBox();
-        treeScrollPane = new javax.swing.JScrollPane();
-        conversationScrollPane = new javax.swing.JScrollPane();
-        conversationTable = new javax.swing.JTable();
+	private HashMap<String, ColumnDataModel> _urlColumns = new HashMap<String, ColumnDataModel>();
 
-        urlPopupMenu.setLabel("URL Actions");
-        conversationPopupMenu.setLabel("Conversation Actions");
+	/** Creates new form SummaryPanel */
+	public SummaryPanel(FrameworkModel model) {
+		_model = model;
+		_conversationModel = new UrlFilteredConversationModel(_model,
+				_model.getConversationModel());
+		// FIXME this is the wrong place for this, I think?
+		_urlModel = new FilteredUrlModel(model.getUrlModel()) {
+			protected boolean shouldFilter(HttpUrl url) {
+				return _model.getUrlProperty(url, "METHODS") == null;
+			}
+		};
+		initComponents();
 
-        setLayout(new java.awt.BorderLayout());
+		initTree();
+		addTreeListeners();
 
-        summarySplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        summarySplitPane.setResizeWeight(0.5);
-        summarySplitPane.setOneTouchExpandable(true);
-        urlPanel.setLayout(new java.awt.GridBagLayout());
+		initTable();
+		addTableListeners();
+		addConversationActions(new Action[] { new ShowConversationAction(
+				_conversationModel) });
+	}
 
-        urlPanel.setMinimumSize(new java.awt.Dimension(283, 100));
-        urlPanel.setPreferredSize(new java.awt.Dimension(264, 100));
-        treeCheckBox.setText("Tree Selection filters conversation list");
-        treeCheckBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                treeCheckBoxActionPerformed(evt);
-            }
-        });
+	private void initTree() {
+		_urlTreeTableModel = new UrlTreeTableModelAdapter(_urlModel);
+		_urlTreeTable = new JTreeTable(_urlTreeTableModel);
+		_urlTreeTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		_urlTreeTable.setDefaultRenderer(
+				Boolean.class,
+				new EnabledBooleanTableCellRenderer());
+		System.out.println(_urlTreeTable.getDefaultRenderer(Boolean.class));
+		ColumnWidthTracker.getTracker("UrlTree").addTable(_urlTreeTable);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        urlPanel.add(treeCheckBox, gridBagConstraints);
+		ColumnDataModel cdm = new ColumnDataModel() {
+			public Object getValue(Object key) {
+				if (_model == null)
+					return null;
+				return _model.getUrlProperty((HttpUrl) key, "METHODS");
+			}
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        urlPanel.add(treeScrollPane, gridBagConstraints);
+			public String getColumnName() {
+				return "Methods";
+			}
 
-        summarySplitPane.setLeftComponent(urlPanel);
+			public Class<String> getColumnClass() {
+				return String.class;
+			}
+		};
+		_urlColumns.put("METHODS", cdm);
+		_urlTreeTableModel.addColumn(cdm);
 
-        conversationTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
+		cdm = new ColumnDataModel() {
+			public Object getValue(Object key) {
+				if (_model == null)
+					return null;
+				return _model.getUrlProperty((HttpUrl) key, "STATUS");
+			}
 
-            },
-            new String [] {
+			public String getColumnName() {
+				return "Status";
+			}
 
-            }
-        ));
-        conversationTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
-        conversationTable.setCellSelectionEnabled(true);
-        conversationScrollPane.setViewportView(conversationTable);
+			public Class<String> getColumnClass() {
+				return String.class;
+			}
+		};
+		_urlColumns.put("STATUS", cdm);
+		_urlTreeTableModel.addColumn(cdm);
 
-        summarySplitPane.setRightComponent(conversationScrollPane);
+		JTree urlTree = _urlTreeTable.getTree();
+		urlTree.getSelectionModel().setSelectionMode(
+				TreeSelectionModel.SINGLE_TREE_SELECTION);
+		urlTree.setRootVisible(false);
+		urlTree.setShowsRootHandles(true);
+		urlTree.setCellRenderer(new UrlTreeRenderer());
 
-        add(summarySplitPane, java.awt.BorderLayout.CENTER);
+		treeScrollPane.setViewportView(_urlTreeTable);
+	}
 
-    }// </editor-fold>//GEN-END:initComponents
-    
-    private void treeCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_treeCheckBoxActionPerformed
-        if (treeCheckBox.isSelected() && _treeURL != null) {
-            _conversationModel.setUrl(_treeURL);
-        } else {
-            _conversationModel.setUrl(null);
-        }
-    }//GEN-LAST:event_treeCheckBoxActionPerformed
-    
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPopupMenu conversationPopupMenu;
-    private javax.swing.JScrollPane conversationScrollPane;
-    private javax.swing.JTable conversationTable;
-    private javax.swing.JSplitPane summarySplitPane;
-    private javax.swing.JCheckBox treeCheckBox;
-    private javax.swing.JScrollPane treeScrollPane;
-    private javax.swing.JPanel urlPanel;
-    private javax.swing.JPopupMenu urlPopupMenu;
-    // End of variables declaration//GEN-END:variables
-    
-    
+	private void addTreeListeners() {
+		// Listen for when the selection changes.
+		// We use this to set the selected URLInfo for each action, and
+		// to filter the conversation list
+		final JTree urlTree = _urlTreeTable.getTree();
+		urlTree.addTreeSelectionListener(new TreeSelectionListener() {
+			public void valueChanged(TreeSelectionEvent e) {
+				TreePath selection = urlTree.getSelectionPath();
+				_treeURL = null;
+				if (selection != null) {
+					Object o = selection.getLastPathComponent();
+					if (o instanceof HttpUrl) {
+						_treeURL = (HttpUrl) o;
+					}
+				}
+				if (treeCheckBox.isSelected()) {
+					_conversationModel.setUrl(_treeURL);
+				}
+				synchronized (_urlActions) {
+					for (int i = 0; i < _urlActions.size(); i++) {
+						Action action = _urlActions.get(i);
+						action.putValue("URL", _treeURL);
+					}
+				}
+			}
+		});
+		_urlTreeTable.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				maybeShowPopup(e);
+			}
+
+			public void mouseReleased(MouseEvent e) {
+				maybeShowPopup(e);
+			}
+
+			private void maybeShowPopup(MouseEvent e) {
+				if (e.isPopupTrigger() && _urlActions.size() > 0) {
+					int row = _urlTreeTable.rowAtPoint(e.getPoint());
+					_urlTreeTable.getSelectionModel().setSelectionInterval(row,
+							row);
+					urlPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+				}
+			}
+		});
+	}
+
+	public void addUrlActions(Action[] actions) {
+		if (actions == null)
+			return;
+		for (int i = 0; i < actions.length; i++) {
+			_urlActions.add(actions[i]);
+		}
+		for (int i = 0; i < actions.length; i++) {
+			urlPopupMenu.add(new JMenuItem(actions[i]));
+		}
+	}
+
+	public void addUrlColumns(ColumnDataModel[] columns) {
+		if (columns == null)
+			return;
+		for (int i = 0; i < columns.length; i++) {
+			_urlTreeTableModel.addColumn(columns[i]);
+		}
+	}
+
+	private void initTable() {
+		_conversationTableModel = new ConversationTableModel(_conversationModel);
+		ColumnWidthTracker.getTracker("ConversationTable").addTable(
+				conversationTable);
+
+		_conversationTableSorter = new TableSorter(_conversationTableModel,
+				conversationTable.getTableHeader());
+		conversationTable.setModel(_conversationTableSorter);
+		conversationTable.setDefaultRenderer(
+				Boolean.class,
+				new EnabledBooleanTableCellRenderer());
+
+		conversationTable.setDefaultRenderer(Date.class, new DateRenderer());
+	}
+
+	private void addTableListeners() {
+		// This listener updates the registered actions with the selected
+		// Conversation
+		conversationTable.getSelectionModel().addListSelectionListener(
+				new ListSelectionListener() {
+					public void valueChanged(ListSelectionEvent e) {
+						if (e.getValueIsAdjusting())
+							return;
+						int row = conversationTable.getSelectedRow();
+						TableModel tm = conversationTable.getModel();
+						ConversationID id = null;
+						if (row > -1)
+							id = (ConversationID) tm.getValueAt(row, 0); // UGLY
+																			// hack!
+																			// FIXME!!!!
+						synchronized (_conversationActions) {
+							for (int i = 0; i < _conversationActions.size(); i++) {
+								Action action = _conversationActions.get(i);
+								action.putValue("CONVERSATION", id);
+								action.putValue("COMPONENT", conversationTable);
+							}
+						}
+					}
+				});
+
+		conversationTable.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				maybeShowPopup(e);
+			}
+
+			public void mouseReleased(MouseEvent e) {
+				maybeShowPopup(e);
+			}
+
+			private void maybeShowPopup(MouseEvent e) {
+				int row = conversationTable.rowAtPoint(e.getPoint());
+				conversationTable.getSelectionModel().setSelectionInterval(row,
+						row);
+				if (e.isPopupTrigger() && _conversationActions.size() > 0) {
+					conversationPopupMenu.show(e.getComponent(), e.getX(),
+							e.getY());
+				}
+			}
+
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2
+						&& e.getButton() == MouseEvent.BUTTON1) {
+					if (_conversationActions.size() > 0) {
+						Action action = _conversationActions.get(0);
+						ActionEvent evt = new ActionEvent(conversationTable, 0,
+								(String) action
+										.getValue(Action.ACTION_COMMAND_KEY));
+						if (action.isEnabled()) {
+							action.actionPerformed(evt);
+						}
+					}
+				}
+			}
+		});
+
+	}
+
+	public void addConversationActions(Action[] actions) {
+		if (actions == null)
+			return;
+		for (int i = 0; i < actions.length; i++) {
+			_conversationActions.add(actions[i]);
+		}
+		for (int i = 0; i < actions.length; i++) {
+			conversationPopupMenu.add(new JMenuItem(actions[i]));
+		}
+	}
+
+	public void addConversationColumns(ColumnDataModel[] columns) {
+		if (columns == null)
+			return;
+		for (int i = 0; i < columns.length; i++) {
+			_conversationTableModel.addColumn(columns[i]);
+		}
+		_conversationTableSorter.setSortingStatus(0, TableSorter.DESCENDING);
+	}
+
+	/**
+	 * This method is called from within the constructor to initialize the form.
+	 * WARNING: Do NOT modify this code. The content of this method is always
+	 * regenerated by the Form Editor.
+	 */
+	// <editor-fold defaultstate="collapsed"
+	// desc=" Generated Code ">//GEN-BEGIN:initComponents
+	private void initComponents() {
+		java.awt.GridBagConstraints gridBagConstraints;
+
+		urlPopupMenu = new javax.swing.JPopupMenu();
+		conversationPopupMenu = new javax.swing.JPopupMenu();
+		summarySplitPane = new javax.swing.JSplitPane();
+		urlPanel = new javax.swing.JPanel();
+		treeCheckBox = new javax.swing.JCheckBox();
+		treeScrollPane = new javax.swing.JScrollPane();
+		conversationScrollPane = new javax.swing.JScrollPane();
+		conversationTable = new javax.swing.JTable();
+
+		urlPopupMenu.setLabel("URL Actions");
+		conversationPopupMenu.setLabel("Conversation Actions");
+
+		setLayout(new java.awt.BorderLayout());
+
+		summarySplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+		summarySplitPane.setResizeWeight(0.5);
+		summarySplitPane.setOneTouchExpandable(true);
+		urlPanel.setLayout(new java.awt.GridBagLayout());
+
+		urlPanel.setMinimumSize(new java.awt.Dimension(283, 100));
+		urlPanel.setPreferredSize(new java.awt.Dimension(264, 100));
+		treeCheckBox.setText("Tree Selection filters conversation list");
+		treeCheckBox.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				treeCheckBoxActionPerformed(evt);
+			}
+		});
+
+		gridBagConstraints = new java.awt.GridBagConstraints();
+		gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+		urlPanel.add(treeCheckBox, gridBagConstraints);
+
+		gridBagConstraints = new java.awt.GridBagConstraints();
+		gridBagConstraints.gridx = 0;
+		gridBagConstraints.gridy = 1;
+		gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+		gridBagConstraints.weightx = 1.0;
+		gridBagConstraints.weighty = 1.0;
+		urlPanel.add(treeScrollPane, gridBagConstraints);
+
+		summarySplitPane.setLeftComponent(urlPanel);
+
+		conversationTable.setModel(new javax.swing.table.DefaultTableModel(
+				new Object[][] {
+
+				}, new String[] {
+
+				}));
+		conversationTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+		conversationTable.setCellSelectionEnabled(true);
+		conversationScrollPane.setViewportView(conversationTable);
+
+		summarySplitPane.setRightComponent(conversationScrollPane);
+
+		add(summarySplitPane, java.awt.BorderLayout.CENTER);
+
+	}// </editor-fold>//GEN-END:initComponents
+
+	private void treeCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_treeCheckBoxActionPerformed
+		if (treeCheckBox.isSelected() && _treeURL != null) {
+			_conversationModel.setUrl(_treeURL);
+		} else {
+			_conversationModel.setUrl(null);
+		}
+	}// GEN-LAST:event_treeCheckBoxActionPerformed
+
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JPopupMenu conversationPopupMenu;
+	private javax.swing.JScrollPane conversationScrollPane;
+	private javax.swing.JTable conversationTable;
+	private javax.swing.JSplitPane summarySplitPane;
+	private javax.swing.JCheckBox treeCheckBox;
+	private javax.swing.JScrollPane treeScrollPane;
+	private javax.swing.JPanel urlPanel;
+	private javax.swing.JPopupMenu urlPopupMenu;
+	// End of variables declaration//GEN-END:variables
+
 }

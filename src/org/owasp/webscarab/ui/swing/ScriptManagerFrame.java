@@ -51,6 +51,7 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
         _treeModel = new HookScriptTreeModel();
         initComponents();
         _hookTree = new JTreeTable(_treeModel);
+        _hookTree.setDefaultRenderer(Boolean.class, new EnabledBooleanTableCellRenderer());
         hookScrollPane.getViewport().add(_hookTree);
         _hookTree.setModel(_treeModel);
         final JTree hookTree = _hookTree.getTree();
@@ -355,8 +356,8 @@ public class ScriptManagerFrame extends javax.swing.JFrame implements ScriptList
         Object _root = new String("RooT");
         
         public Class<?> getColumnClass(int column) {
-            if (column == 0) return super.getColumnClass(column);
-            return Boolean.class;
+            if (column == 1) return Boolean.class;
+            return super.getColumnClass(column);
         }
         
         public int getColumnCount() {
