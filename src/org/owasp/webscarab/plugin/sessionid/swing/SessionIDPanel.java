@@ -187,34 +187,28 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
     }
     
     private void createColumns() {
-        ColumnDataModel cdm = new ColumnDataModel() {
+        ColumnDataModel cdm = new ColumnDataModel("Cookie", String.class) {
             public Object getValue(Object key) {
                 if (_model == null) return null;
                 return _model.getRequestCookies((ConversationID) key);
             }
-            public String getColumnName() { return "Cookie"; }
-            public Class<?> getColumnClass() { return String.class; }
         };
         _conversationColumns.put("COOKIE", cdm);
         
-        cdm = new ColumnDataModel() {
+        cdm = new ColumnDataModel("Set-Cookie", String.class) {
             public Object getValue(Object key) {
                 if (_model == null) return null;
                 return _model.getResponseCookies((ConversationID) key);
             }
-            public String getColumnName() { return "Set-Cookie"; }
-            public Class<?> getColumnClass() { return String.class; }
         };
         _conversationColumns.put("SET-COOKIE", cdm);
         
-        cdm = new ColumnDataModel() {
+        cdm = new ColumnDataModel("Set-Cookie", String.class) {
             public Object getValue(Object key) {
                 if (_model == null) return null;
                 String value = _model.getResponseCookies((HttpUrl) key);
                 return Boolean.valueOf(value != null);
             }
-            public String getColumnName() { return "Set-Cookie"; }
-            public Class<?> getColumnClass() { return Boolean.class; }
         };
         _urlColumns.put("SET-COOKIE", cdm);
     }

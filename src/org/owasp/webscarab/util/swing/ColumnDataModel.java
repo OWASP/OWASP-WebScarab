@@ -53,26 +53,32 @@ public abstract class ColumnDataModel {
      */
     protected EventListenerList _listenerList = new EventListenerList();
     
+    private String name = null;
+    private Class<?> clazz = Object.class;
+    
     /**
      * Creates a new ColumnDataModel
      */
-    protected ColumnDataModel() {
+    protected ColumnDataModel(String name, Class<?> clazz) {
+    	this.name = name;
+    	this.clazz = clazz;
     }
-    
     /**
      * Used by the "composing" table model to determine what the class of the
      * column objects is.
      * @return the default class of objects in this column
      */
     public Class<?> getColumnClass() {
-        return Object.class;
+        return clazz;
     }
     
     /**
      * used to determine the name of this column
      * @return The name of the column
      */
-    public abstract String getColumnName();
+    public String getColumnName() {
+    	return name;
+    }
     
     /**
      * Used to determine the value of the particular cell of the column,

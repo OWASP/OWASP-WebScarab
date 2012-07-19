@@ -97,20 +97,11 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         ConversationTableModel samlTableModel = new ConversationTableModel(
                 this.samlModel.getSamlConversationModel());
         ColumnWidthTracker.getTracker("SAMLTable").addTable(this.samlTable);
-        samlTableModel.addColumn(new ColumnDataModel() {
-
-            public String getColumnName() {
-                return "SAML Type";
-            }
-
+        samlTableModel.addColumn(new ColumnDataModel("SAML Type", String.class) {
             public Object getValue(Object key) {
                 ConversationID conversationId = (ConversationID) key;
                 return SamlPanel.this.samlModel.getSAMLType(
                         conversationId);
-            }
-
-            public Class<String> getColumnClass() {
-                return String.class;
             }
         });
         TableSorter sorterSamlTableModel = new TableSorter(samlTableModel);

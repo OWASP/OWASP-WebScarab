@@ -79,20 +79,11 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
 
         ConversationTableModel wsfedTableModel = new ConversationTableModel(
                 this.wsfedModel.getConversationModel());
-        wsfedTableModel.addColumn(new ColumnDataModel() {
-
-            public String getColumnName() {
-                return "WS-Federation";
-            }
-
+        wsfedTableModel.addColumn(new ColumnDataModel("WS-Federation", String.class) {
             public Object getValue(Object key) {
                 ConversationID conversationId = (ConversationID) key;
                 return WSFederationPanel.this.wsfedModel.getReadableMessageType(
                         conversationId);
-            }
-
-            public Class getColumnClass() {
-                return String.class;
             }
         });
         ColumnWidthTracker.getTracker("WSFederationTable").addTable(this.conversationsTable);

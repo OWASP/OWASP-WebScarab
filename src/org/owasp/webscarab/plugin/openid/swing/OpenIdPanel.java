@@ -76,20 +76,11 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
 
         ConversationTableModel openIdTableModel = new ConversationTableModel(
                 this.openIdModel.getOpenIDConversationModel());
-        openIdTableModel.addColumn(new ColumnDataModel() {
-
-            public String getColumnName() {
-                return "OpenID Type";
-            }
-
+        openIdTableModel.addColumn(new ColumnDataModel("OpenID Type", String.class) {
             public Object getValue(Object key) {
                 ConversationID conversationId = (ConversationID) key;
                 return OpenIdPanel.this.openIdModel.getReadableOpenIDMessageType(
                         conversationId);
-            }
-
-            public Class getColumnClass() {
-                return String.class;
             }
         });
         ColumnWidthTracker.getTracker("OpenIDTable").addTable(this.openIdTable);

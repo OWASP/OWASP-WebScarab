@@ -120,37 +120,21 @@ public class SummaryPanel extends JPanel {
 		System.out.println(_urlTreeTable.getDefaultRenderer(Boolean.class));
 		ColumnWidthTracker.getTracker("UrlTree").addTable(_urlTreeTable);
 
-		ColumnDataModel cdm = new ColumnDataModel() {
+		ColumnDataModel cdm = new ColumnDataModel("Methods", String.class) {
 			public Object getValue(Object key) {
 				if (_model == null)
 					return null;
 				return _model.getUrlProperty((HttpUrl) key, "METHODS");
 			}
-
-			public String getColumnName() {
-				return "Methods";
-			}
-
-			public Class<String> getColumnClass() {
-				return String.class;
-			}
 		};
 		_urlColumns.put("METHODS", cdm);
 		_urlTreeTableModel.addColumn(cdm);
 
-		cdm = new ColumnDataModel() {
+		cdm = new ColumnDataModel("Status", String.class) {
 			public Object getValue(Object key) {
 				if (_model == null)
 					return null;
 				return _model.getUrlProperty((HttpUrl) key, "STATUS");
-			}
-
-			public String getColumnName() {
-				return "Status";
-			}
-
-			public Class<String> getColumnClass() {
-				return String.class;
 			}
 		};
 		_urlColumns.put("STATUS", cdm);

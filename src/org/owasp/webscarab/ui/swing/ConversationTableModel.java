@@ -78,86 +78,70 @@ public class ConversationTableModel extends ExtensibleTableModel {
     }
     
     private void addStandardColumns() {
-        ColumnDataModel cdm = new ColumnDataModel() {
+        ColumnDataModel cdm = new ColumnDataModel("Date", Date.class) {
             public Object getValue(Object key) {
                 if (_model == null) return null;
                 return _model.getConversationDate((ConversationID) key);
             }
-            public String getColumnName() { return "Date"; }
-            public Class<?> getColumnClass() { return Date.class; }
         };
         addColumn(cdm);
         
-        cdm = new ColumnDataModel() {
+        cdm = new ColumnDataModel("Method", String.class) {
             public Object getValue(Object key) {
                 if (_model == null) return null;
                 return _model.getRequestMethod((ConversationID) key);
             }
-            public String getColumnName() { return "Method"; }
-            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
         
-        cdm = new ColumnDataModel() {
+        cdm = new ColumnDataModel("Host", String.class) {
             public Object getValue(Object key) {
                 if (_model == null) return null;
                 HttpUrl url = _model.getRequestUrl((ConversationID) key);
                 return url.getScheme() + "://" + url.getHost() + ":" + url.getPort();
             }
-            public String getColumnName() { return "Host"; }
-            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
         
-        cdm = new ColumnDataModel() {
+        cdm = new ColumnDataModel("Path", String.class) {
             public Object getValue(Object key) {
                 if (_model == null) return null;
                 HttpUrl url = _model.getRequestUrl((ConversationID) key);
                 return url.getPath();
             }
-            public String getColumnName() { return "Path"; }
-            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
         
-        cdm = new ColumnDataModel() {
+        cdm = new ColumnDataModel("Parameters", String.class) {
             public Object getValue(Object key) {
                 if (_model == null) return null;
                 HttpUrl url = _model.getRequestUrl((ConversationID) key);
                 return url.getParameters();
             }
-            public String getColumnName() { return "Parameters"; }
-            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
         
-        cdm = new ColumnDataModel() {
+        cdm = new ColumnDataModel("Status", String.class) {
             public Object getValue(Object key) {
                 if (_model == null) return null;
                 return _model.getResponseStatus((ConversationID) key);
             }
-            public String getColumnName() { return "Status"; }
-            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
         
-        cdm = new ColumnDataModel() {
+        cdm = new ColumnDataModel("Origin", String.class) {
             public Object getValue(Object key) {
                 if (_model == null) return null;
                 return _model.getConversationOrigin((ConversationID) key);
             }
-            public String getColumnName() { return "Origin"; }
-            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
 
-        cdm = new ColumnDataModel() {
+        cdm = new ColumnDataModel("Tag", String.class) {
             public Object getValue(Object key) {
                 if (_model == null) return null;
                 return _model.getConversationProperty((ConversationID) key, "TAG");
             }
-            public String getColumnName() { return "Tag"; }
-            public Class<?> getColumnClass() { return String.class; }
 			public boolean isEditable(Object key) { 
 				return true; 
 			}
@@ -168,13 +152,11 @@ public class ConversationTableModel extends ExtensibleTableModel {
         };
         addColumn(cdm);
 
-        cdm = new ColumnDataModel() {
+        cdm = new ColumnDataModel("Size", String.class) {
             public Object getValue(Object key) {
                 if (_model == null) return null;
                 return _model.getConversationProperty((ConversationID) key, "RESPONSE_SIZE");
             }
-            public String getColumnName() { return "Size"; }
-            public Class<?> getColumnClass() { return String.class; }
         };
         addColumn(cdm);
 

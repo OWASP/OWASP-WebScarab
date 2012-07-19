@@ -65,13 +65,11 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
         baseComboBox.setModel(new ListComboBoxModel(new ConversationListModel(_model.getConversationModel())));
         baseComboBox.setRenderer(new ConversationRenderer(_model.getConversationModel()));
         _tableModel = new ConversationTableModel(_model.getComparisonModel());
-        _tableModel.addColumn(new ColumnDataModel() {
+        _tableModel.addColumn(new ColumnDataModel("Distance", Integer.class) {
             public Object getValue(Object key) {
                 if (_model == null) return null;
                 return _model.getDistance((ConversationID) key);
             }
-            public String getColumnName() { return "Distance"; }
-            public Class<Integer> getColumnClass() { return Integer.class; }
         });
         
         conversationTable.setDefaultRenderer(Date.class, new DateRenderer());

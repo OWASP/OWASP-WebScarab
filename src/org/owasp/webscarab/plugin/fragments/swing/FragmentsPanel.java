@@ -147,11 +147,10 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
         class InnerCDM extends ColumnDataModel
         {
         	private String _key;
-        	private String _name;
-        	public InnerCDM(String key, String name )
+        	public InnerCDM(String key, String name)
         	{
+        		super(name, Boolean.class);
         		this._key = key;
-        		this._name = name;
         	}
             public Object getValue(Object key) {
             	if (_model == null) return null;
@@ -165,8 +164,6 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
                     return Boolean.valueOf(keys != null && keys.length > 0);
             	}
             }
-            public String getColumnName() { return _name; }
-            public Class<Boolean> getColumnClass() { return Boolean.class; }
         }
 
 		_conversationColumns.put(FragmentsModel.KEY_COMMENTS, new InnerCDM(
