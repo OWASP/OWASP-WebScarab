@@ -117,8 +117,8 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
     private SessionIDDataset _sidd;
     private SessionIDTableModel _tableModel;
     private ConversationListModel _conversationList;
-    private Map<String, ColumnDataModel> _conversationColumns = new HashMap<String, ColumnDataModel>();
-    private Map<String, ColumnDataModel> _urlColumns = new HashMap<String, ColumnDataModel>();
+    private Map<String, ColumnDataModel<ConversationID>> _conversationColumns = new HashMap<String, ColumnDataModel<ConversationID>>();
+    private Map<String, ColumnDataModel<HttpUrl>> _urlColumns = new HashMap<String, ColumnDataModel<HttpUrl>>();
     
     private DefaultListModel _sessionIDNames = new DefaultListModel();
     
@@ -187,30 +187,30 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
     }
     
     private void createColumns() {
-        ColumnDataModel cdm = new ColumnDataModel("Cookie", String.class) {
-            public Object getValue(Object key) {
+        ColumnDataModel<ConversationID> ccdm = new ColumnDataModel<ConversationID>("Cookie", String.class) {
+            public Object getValue(ConversationID key) {
                 if (_model == null) return null;
-                return _model.getRequestCookies((ConversationID) key);
+                return _model.getRequestCookies(key);
             }
         };
-        _conversationColumns.put("COOKIE", cdm);
+        _conversationColumns.put("COOKIE", ccdm);
         
-        cdm = new ColumnDataModel("Set-Cookie", String.class) {
-            public Object getValue(Object key) {
+        ccdm = new ColumnDataModel<ConversationID>("Set-Cookie", String.class) {
+            public Object getValue(ConversationID key) {
                 if (_model == null) return null;
-                return _model.getResponseCookies((ConversationID) key);
+                return _model.getResponseCookies(key);
             }
         };
-        _conversationColumns.put("SET-COOKIE", cdm);
+        _conversationColumns.put("SET-COOKIE", ccdm);
         
-        cdm = new ColumnDataModel("Set-Cookie", String.class) {
-            public Object getValue(Object key) {
+        ColumnDataModel<HttpUrl> ucdm = new ColumnDataModel<HttpUrl>("Set-Cookie", String.class) {
+            public Object getValue(HttpUrl key) {
                 if (_model == null) return null;
-                String value = _model.getResponseCookies((HttpUrl) key);
+                String value = _model.getResponseCookies(key);
                 return Boolean.valueOf(value != null);
             }
         };
-        _urlColumns.put("SET-COOKIE", cdm);
+        _urlColumns.put("SET-COOKIE", ucdm);
     }
     
     /** This method is called from within the constructor to
@@ -769,12 +769,12 @@ public class SessionIDPanel extends JPanel implements SwingPluginUI, SessionIDLi
         }
     }
     
-    public ColumnDataModel[] getConversationColumns() {
-        return (ColumnDataModel[]) _conversationColumns.values().toArray(CDM);
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
+        return (ColumnDataModel<ConversationID>[]) _conversationColumns.values().toArray(CDM);
     }
     
-    public ColumnDataModel[] getUrlColumns() {
-        return (ColumnDataModel[]) _urlColumns.values().toArray(CDM);
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
+        return (ColumnDataModel<HttpUrl>[]) _urlColumns.values().toArray(CDM);
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

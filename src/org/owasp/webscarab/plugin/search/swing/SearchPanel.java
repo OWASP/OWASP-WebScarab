@@ -6,12 +6,13 @@
 
 package org.owasp.webscarab.plugin.search.swing;
 
-import java.util.Date;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Date;
+
 import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JPanel;
@@ -22,13 +23,14 @@ import javax.swing.table.TableModel;
 
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.plugin.search.Search;
 import org.owasp.webscarab.plugin.search.SearchModel;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;
+import org.owasp.webscarab.ui.swing.DateRenderer;
 import org.owasp.webscarab.ui.swing.ShowConversationAction;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
-import org.owasp.webscarab.ui.swing.DateRenderer;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.SwingWorker;
 import org.owasp.webscarab.util.swing.TableSorter;
@@ -314,8 +316,8 @@ public class SearchPanel extends JPanel implements SwingPluginUI {
         return new Action[0];
     }
     
-    public ColumnDataModel[] getConversationColumns() {
-        return new ColumnDataModel[0];
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
+        return null;
     }
     
     public JPanel getPanel() {
@@ -330,8 +332,8 @@ public class SearchPanel extends JPanel implements SwingPluginUI {
         return new Action[0];
     }
     
-    public ColumnDataModel[] getUrlColumns() {
-        return new ColumnDataModel[0];
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
+        return null;
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

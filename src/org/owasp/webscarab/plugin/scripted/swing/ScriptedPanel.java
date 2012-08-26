@@ -6,26 +6,26 @@
 
 package org.owasp.webscarab.plugin.scripted.swing;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.logging.Logger;
+
+import javax.swing.Action;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.plugin.scripted.Scripted;
 import org.owasp.webscarab.plugin.scripted.ScriptedUI;
-
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.DocumentOutputStream;
-
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-import javax.swing.Action;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-
-import java.io.PrintStream;
-import java.io.File;
-import java.io.IOException;
-
-import java.util.logging.Logger;
 
 /**
  *
@@ -37,7 +37,6 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
 	 * 
 	 */
 	private static final long serialVersionUID = -5126009853771604406L;
-	private static ColumnDataModel[] NO_COLUMNS = new ColumnDataModel[0];
     private static Action[] NO_ACTIONS = new Action[0];
     
     private Scripted _scripted = null;
@@ -268,16 +267,16 @@ public class ScriptedPanel extends javax.swing.JPanel implements ScriptedUI, Swi
         return NO_ACTIONS;
     }
     
-    public ColumnDataModel[] getConversationColumns() {
-        return NO_COLUMNS;
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
+        return null;
     }
     
     public Action[] getUrlActions() {
         return NO_ACTIONS;
     }
     
-    public ColumnDataModel[] getUrlColumns() {
-        return NO_COLUMNS;
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
+        return null;
     }
     
     public PrintStream getErrorStream() {

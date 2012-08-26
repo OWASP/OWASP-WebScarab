@@ -42,6 +42,7 @@ import java.beans.PropertyChangeListener;
 import java.security.KeyStore.PrivateKeyEntry;
 import java.security.cert.X509Certificate;
 import java.util.List;
+
 import javax.swing.Action;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -54,7 +55,9 @@ import javax.swing.table.TableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
+
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.plugin.saml.Saml;
 import org.owasp.webscarab.plugin.saml.SamlCertificateRepository;
 import org.owasp.webscarab.plugin.saml.SamlModel;
@@ -97,11 +100,9 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         ConversationTableModel samlTableModel = new ConversationTableModel(
                 this.samlModel.getSamlConversationModel());
         ColumnWidthTracker.getTracker("SAMLTable").addTable(this.samlTable);
-        samlTableModel.addColumn(new ColumnDataModel("SAML Type", String.class) {
-            public Object getValue(Object key) {
-                ConversationID conversationId = (ConversationID) key;
-                return SamlPanel.this.samlModel.getSAMLType(
-                        conversationId);
+        samlTableModel.addColumn(new ColumnDataModel<ConversationID>("SAML Type", String.class) {
+            public Object getValue(ConversationID key) {
+                return SamlPanel.this.samlModel.getSAMLType(key);
             }
         });
         TableSorter sorterSamlTableModel = new TableSorter(samlTableModel);
@@ -1363,7 +1364,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         return null;
     }
 
-    public ColumnDataModel[] getConversationColumns() {
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
         return null;
     }
 
@@ -1375,7 +1376,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         return null;
     }
 
-    public ColumnDataModel[] getUrlColumns() {
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
         return null;
     }
 

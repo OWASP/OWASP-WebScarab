@@ -1,6 +1,7 @@
 package org.owasp.webscarab.plugin.identity;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.Date;
@@ -149,11 +150,13 @@ public class Identity implements Plugin {
 	}
 
 	@Override
-	public void setSession(String type, Object store, String session)
-			throws StoreException {
-		// TODO Auto-generated method stub
-
-	}
+    public void setSession(String type, Object store, String session) throws StoreException {
+        if (type.equals("FileSystem") && (store instanceof File)) {
+            model.setStore(new FileSystemStore((File) store, session));
+        } else {
+            throw new StoreException("Store type '" + type + "' is not supported in " + getClass().getName());
+        }
+    }
 
 	@Override
 	public void run() {

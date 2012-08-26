@@ -10,11 +10,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Logger;
+
 import javax.swing.Action;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.table.TableModel;
 import javax.swing.tree.TreePath;
+
+import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.plugin.extensions.Extensions;
@@ -277,7 +280,7 @@ public class ExtensionsPanel extends javax.swing.JPanel implements SwingPluginUI
         return null;
     }
 
-    public ColumnDataModel[] getConversationColumns() {
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
         return null;
     }
 
@@ -293,7 +296,7 @@ public class ExtensionsPanel extends javax.swing.JPanel implements SwingPluginUI
         return null;
     }
 
-    public ColumnDataModel[] getUrlColumns() {
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
         return null;
     }
 

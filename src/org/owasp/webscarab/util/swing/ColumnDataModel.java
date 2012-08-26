@@ -46,7 +46,7 @@ import javax.swing.event.EventListenerList;
  * Object as a key
  * @author rogan
  */
-public abstract class ColumnDataModel {
+public abstract class ColumnDataModel<T> {
     
     /**
      * Maintains the list of listeners
@@ -86,20 +86,20 @@ public abstract class ColumnDataModel {
      * @param key the "index" object
      * @return the value
      */
-    public abstract Object getValue(Object key);
+    public abstract Object getValue(T key);
     
-    public boolean isEditable(Object key) {
+    public boolean isEditable(T key) {
     	return false;
     }
     
-    public void setValue(Object aValue, Object key) {
+    public void setValue(Object aValue, T key) {
     }
     
     /**
      * Adds a listener to the column model
      * @param l the listener to add
      */
-    public void addColumnDataListener(ColumnDataListener l) {
+    public void addColumnDataListener(ColumnDataListener<T> l) {
         _listenerList.add(ColumnDataListener.class, l);
     }
     
@@ -107,7 +107,7 @@ public abstract class ColumnDataModel {
      * removes a listener from the column model
      * @param l the listener to remove
      */
-    public void removeColumnDataListener(ColumnDataListener l) {
+    public void removeColumnDataListener(ColumnDataListener<T> l) {
         _listenerList.remove(ColumnDataListener.class, l);
     }
     
@@ -121,17 +121,17 @@ public abstract class ColumnDataModel {
      * table should update its cells
      * @param key the index object that has changed
      */
-    public void fireValueChanged(Object key) {
+    public void fireValueChanged(T key) {
         // Guaranteed to return a non-null array
         Object[] listeners = _listenerList.getListenerList();
         // Process the listeners last to first, notifying
         // those that are interested in this event
-        ColumnDataEvent columnEvent = null;
+        ColumnDataEvent<T> columnEvent = null;
         for (int i = listeners.length-2; i>=0; i-=2) {
             if (listeners[i]==ColumnDataListener.class) {
                 // Lazily create the event:
                 if (columnEvent == null)
-                    columnEvent = new ColumnDataEvent(this, key);
+                    columnEvent = new ColumnDataEvent<T>(this, key);
                 ((ColumnDataListener)listeners[i+1]).dataChanged(columnEvent);
             }
         }
@@ -146,12 +146,12 @@ public abstract class ColumnDataModel {
         Object[] listeners = _listenerList.getListenerList();
         // Process the listeners last to first, notifying
         // those that are interested in this event
-        ColumnDataEvent columnEvent = null;
+        ColumnDataEvent<T> columnEvent = null;
         for (int i = listeners.length-2; i>=0; i-=2) {
             if (listeners[i]==ColumnDataListener.class) {
                 // Lazily create the event:
                 if (columnEvent == null)
-                    columnEvent = new ColumnDataEvent(this, null);
+                    columnEvent = new ColumnDataEvent<T>(this, null);
                 ((ColumnDataListener)listeners[i+1]).dataChanged(columnEvent);
             }
         }

@@ -12,6 +12,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.FrameworkListener;
 import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.plugin.AbstractPluginModel;
 import org.owasp.webscarab.util.NullComparator;
@@ -26,10 +27,16 @@ public class IdentityModel extends AbstractPluginModel {
 
 	private SortedSet<String> identities = new TreeSet<String>(new NullComparator());
 
+	private Map<String, Map<String, List<ConversationID>>> conversations;
+	
 	public IdentityModel(FrameworkModel model) {
 		this.model = model;
 	}
 
+	public void setStore(IdentityStore store) {
+		
+	}
+	
 	public void addTransition(Transition transition) {
 		Map<String, SortedMap<ConversationID, Transition>> values = transitions
 				.get(transition.getTokenName());
@@ -79,6 +86,28 @@ public class IdentityModel extends AbstractPluginModel {
 			}
 		}
 		return null;
+	}
+	
+	public Map<String, List<ConversationID>> getConversationsWithToken(String name) {
+		return conversations.get(name);
+	}
+	
+	public List<ConversationID> getConversationsWithTokenValue(String name, String value) {
+		Map<String, List<ConversationID>> tokenMap = getConversationsWithToken(name);
+		if (tokenMap == null)
+			return null;
+		return tokenMap.get(value);
+	}
+	
+	public List<String> getTokens() {
+		return new ArrayList<String>(conversations.keySet());
+	}
+	
+	public List<String> getTokenValues(String name) {
+		Map<String, List<ConversationID>> tokenMap = getConversationsWithToken(name);
+		if (tokenMap == null)
+			return null;
+		return new ArrayList<String>(tokenMap.keySet());
 	}
 	
 	public List<String> getIdentities() {

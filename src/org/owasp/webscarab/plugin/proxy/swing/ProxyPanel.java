@@ -496,11 +496,11 @@ public class ProxyPanel extends javax.swing.JPanel implements SwingPluginUI, Pro
         }
     }
     
-    public ColumnDataModel[] getConversationColumns() {
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
         return null;
     }
     
-    public ColumnDataModel[] getUrlColumns() {
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
         return null;
     }
     

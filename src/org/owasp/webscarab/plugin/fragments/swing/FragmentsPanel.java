@@ -89,8 +89,8 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
     
     private Action[] _conversationActions;
     private Action[] _urlActions;
-    private Map<String, ColumnDataModel> _conversationColumns = new HashMap<String, ColumnDataModel>();
-    private Map<String, ColumnDataModel> _urlColumns = new HashMap<String, ColumnDataModel>();
+    private Map<String, ColumnDataModel<ConversationID>> _conversationColumns = new HashMap<String, ColumnDataModel<ConversationID>>();
+    private Map<String, ColumnDataModel<HttpUrl>> _urlColumns = new HashMap<String, ColumnDataModel<HttpUrl>>();
     
     private DefaultListModel _typeListModel = new DefaultListModel();
     private FragmentListModel _flm = new FragmentListModel();
@@ -144,51 +144,58 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
             new FragmentsAction("URL", FragmentsModel.KEY_SCRIPTS),
             new FragmentsAction("URL",FragmentsModel.KEY_COMMENTS)
         };
-        class InnerCDM extends ColumnDataModel
+        class ConversationCDM extends ColumnDataModel<ConversationID>
         {
         	private String _key;
-        	public InnerCDM(String key, String name)
+        	public ConversationCDM(String key, String name)
         	{
         		super(name, Boolean.class);
         		this._key = key;
         	}
-            public Object getValue(Object key) {
+            public Object getValue(ConversationID key) {
             	if (_model == null) return null;
-            	if (key instanceof ConversationID)
-            	{
-            		String[] value = _model.getConversationFragmentKeys((ConversationID) key, _key);
-            		return Boolean.valueOf(value != null && value.length > 0);
-            	}else // if key instanceof HttpUrl
-            	{
-                    String[] keys = _model.getUrlFragmentKeys((HttpUrl) key, _key);
-                    return Boolean.valueOf(keys != null && keys.length > 0);
-            	}
+        		String[] value = _model.getConversationFragmentKeys(key, _key);
+        		return Boolean.valueOf(value != null && value.length > 0);
+            }
+        }
+        class UrlCDM extends ColumnDataModel<HttpUrl>
+        {
+        	private String _key;
+        	public UrlCDM(String key, String name)
+        	{
+        		super(name, Boolean.class);
+        		this._key = key;
+        	}
+            public Object getValue(HttpUrl key) {
+            	if (_model == null) return null;
+                String[] keys = _model.getUrlFragmentKeys(key, _key);
+                return Boolean.valueOf(keys != null && keys.length > 0);
             }
         }
 
-		_conversationColumns.put(FragmentsModel.KEY_COMMENTS, new InnerCDM(
+		_conversationColumns.put(FragmentsModel.KEY_COMMENTS, new ConversationCDM(
 				FragmentsModel.KEY_COMMENTS, "Comments"));
-		_urlColumns.put(FragmentsModel.KEY_COMMENTS, new InnerCDM(
+		_urlColumns.put(FragmentsModel.KEY_COMMENTS, new UrlCDM(
 				FragmentsModel.KEY_COMMENTS, "Comments"));
-		_conversationColumns.put(FragmentsModel.KEY_SCRIPTS, new InnerCDM(
+		_conversationColumns.put(FragmentsModel.KEY_SCRIPTS, new ConversationCDM(
 				FragmentsModel.KEY_SCRIPTS, "Scripts"));
-		_urlColumns.put(FragmentsModel.KEY_SCRIPTS, new InnerCDM(
+		_urlColumns.put(FragmentsModel.KEY_SCRIPTS, new UrlCDM(
 				FragmentsModel.KEY_SCRIPTS, "Scripts"));
-		_conversationColumns.put(FragmentsModel.KEY_FILEUPLOAD, new InnerCDM(
+		_conversationColumns.put(FragmentsModel.KEY_FILEUPLOAD, new ConversationCDM(
 				FragmentsModel.KEY_FILEUPLOAD, "File upload"));
-		_urlColumns.put(FragmentsModel.KEY_FILEUPLOAD, new InnerCDM(
+		_urlColumns.put(FragmentsModel.KEY_FILEUPLOAD, new UrlCDM(
 				FragmentsModel.KEY_FILEUPLOAD, "File upload"));
-		_conversationColumns.put(FragmentsModel.KEY_DOMXSS, new InnerCDM(
+		_conversationColumns.put(FragmentsModel.KEY_DOMXSS, new ConversationCDM(
 				FragmentsModel.KEY_DOMXSS, "DomXss"));
-		_urlColumns.put(FragmentsModel.KEY_DOMXSS, new InnerCDM(
+		_urlColumns.put(FragmentsModel.KEY_DOMXSS, new UrlCDM(
 				FragmentsModel.KEY_DOMXSS, "DomXss"));
-		_conversationColumns.put(FragmentsModel.KEY_FORMS, new InnerCDM(
+		_conversationColumns.put(FragmentsModel.KEY_FORMS, new ConversationCDM(
 				FragmentsModel.KEY_FORMS, "Forms"));
-		_urlColumns.put(FragmentsModel.KEY_FORMS, new InnerCDM(
+		_urlColumns.put(FragmentsModel.KEY_FORMS, new UrlCDM(
 				FragmentsModel.KEY_FORMS, "Forms"));
-		_conversationColumns.put(FragmentsModel.KEY_HIDDENFIELD, new InnerCDM(
+		_conversationColumns.put(FragmentsModel.KEY_HIDDENFIELD, new ConversationCDM(
 				FragmentsModel.KEY_HIDDENFIELD, "Hidden fields"));
-		_urlColumns.put(FragmentsModel.KEY_HIDDENFIELD, new InnerCDM(
+		_urlColumns.put(FragmentsModel.KEY_HIDDENFIELD, new UrlCDM(
 				FragmentsModel.KEY_HIDDENFIELD, "Hidden fields"));
 	}
     
@@ -261,12 +268,12 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
         return _urlActions;
     }
     
-    public ColumnDataModel[] getConversationColumns() {
-        return (ColumnDataModel[]) _conversationColumns.values().toArray(CDM);
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
+        return _conversationColumns.values().toArray(CDM);
     }
     
-    public ColumnDataModel[] getUrlColumns() {
-        return (ColumnDataModel[]) _urlColumns.values().toArray(CDM);
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
+        return _urlColumns.values().toArray(CDM);
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -342,10 +349,10 @@ public class FragmentsPanel extends javax.swing.JPanel implements SwingPluginUI 
             try {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
-                        ColumnDataModel cdm = _urlColumns.get(type);
-                        if (cdm != null) cdm.fireValueChanged(url);
-                        cdm = _conversationColumns.get(type);
-                        if (cdm != null) cdm.fireValueChanged(id);
+                        ColumnDataModel<HttpUrl> ucdm = _urlColumns.get(type);
+                        if (ucdm != null) ucdm.fireValueChanged(url);
+                        ColumnDataModel<ConversationID> ccdm = _conversationColumns.get(type);
+                        if (ccdm != null) ccdm.fireValueChanged(id);
                     }
                 });
             } catch (Exception e) {

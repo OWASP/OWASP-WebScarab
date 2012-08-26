@@ -13,6 +13,7 @@ import javax.swing.SwingUtilities;
 
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.FrameworkModel;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
@@ -23,7 +24,7 @@ import org.owasp.webscarab.util.swing.ColumnDataModel;
 public class IdentityPanel extends javax.swing.JPanel implements SwingPluginUI {
 
 	private Identity identity;
-	private ColumnDataModel[] conversationColumns;
+	private ColumnDataModel<ConversationID>[] conversationColumns;
 	private Action[] conversationActions;
 	private SelectTokenDialog std;
 
@@ -48,7 +49,7 @@ public class IdentityPanel extends javax.swing.JPanel implements SwingPluginUI {
 	}
 
 	@Override
-	public ColumnDataModel[] getUrlColumns() {
+	public ColumnDataModel<HttpUrl>[] getUrlColumns() {
 		return null;
 	}
 
@@ -61,29 +62,22 @@ public class IdentityPanel extends javax.swing.JPanel implements SwingPluginUI {
 	}
 
 	@Override
-	public ColumnDataModel[] getConversationColumns() {
+	public ColumnDataModel<ConversationID>[] getConversationColumns() {
 		if (conversationColumns == null) {
 			conversationColumns = new ColumnDataModel[] {
 
-			new ColumnDataModel() {
-				public Object getValue(Object key) {
+			new ColumnDataModel<ConversationID>("Identity", String.class) {
+				public Object getValue(ConversationID key) {
 					if (identity == null)
 						return null;
 					return identity
 							.getFramework()
 							.getModel()
 							.getConversationModel()
-							.getConversationProperty((ConversationID) key,
+							.getConversationProperty(key,
 									"IDENTITY");
 				}
 
-				public String getColumnName() {
-					return "Identity";
-				}
-
-				public Class<?> getColumnClass() {
-					return String.class;
-				}
 			} };
 		}
 		return conversationColumns;

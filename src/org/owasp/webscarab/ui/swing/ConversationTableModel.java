@@ -57,7 +57,7 @@ import java.util.Date;
  *
  * @author  knoppix
  */
-public class ConversationTableModel extends ExtensibleTableModel {
+public class ConversationTableModel extends ExtensibleTableModel<ConversationID> {
     
     /**
 	 * 
@@ -78,95 +78,95 @@ public class ConversationTableModel extends ExtensibleTableModel {
     }
     
     private void addStandardColumns() {
-        ColumnDataModel cdm = new ColumnDataModel("Date", Date.class) {
-            public Object getValue(Object key) {
+        ColumnDataModel<ConversationID> cdm = new ColumnDataModel<ConversationID>("Date", Date.class) {
+            public Object getValue(ConversationID key) {
                 if (_model == null) return null;
-                return _model.getConversationDate((ConversationID) key);
+                return _model.getConversationDate(key);
             }
         };
         addColumn(cdm);
         
-        cdm = new ColumnDataModel("Method", String.class) {
-            public Object getValue(Object key) {
+        cdm = new ColumnDataModel<ConversationID>("Method", String.class) {
+            public Object getValue(ConversationID key) {
                 if (_model == null) return null;
-                return _model.getRequestMethod((ConversationID) key);
+                return _model.getRequestMethod(key);
             }
         };
         addColumn(cdm);
         
-        cdm = new ColumnDataModel("Host", String.class) {
-            public Object getValue(Object key) {
+        cdm = new ColumnDataModel<ConversationID>("Host", String.class) {
+            public Object getValue(ConversationID key) {
                 if (_model == null) return null;
-                HttpUrl url = _model.getRequestUrl((ConversationID) key);
+                HttpUrl url = _model.getRequestUrl(key);
                 return url.getScheme() + "://" + url.getHost() + ":" + url.getPort();
             }
         };
         addColumn(cdm);
         
-        cdm = new ColumnDataModel("Path", String.class) {
-            public Object getValue(Object key) {
+        cdm = new ColumnDataModel<ConversationID>("Path", String.class) {
+            public Object getValue(ConversationID key) {
                 if (_model == null) return null;
-                HttpUrl url = _model.getRequestUrl((ConversationID) key);
+                HttpUrl url = _model.getRequestUrl(key);
                 return url.getPath();
             }
         };
         addColumn(cdm);
         
-        cdm = new ColumnDataModel("Parameters", String.class) {
-            public Object getValue(Object key) {
+        cdm = new ColumnDataModel<ConversationID>("Parameters", String.class) {
+            public Object getValue(ConversationID key) {
                 if (_model == null) return null;
-                HttpUrl url = _model.getRequestUrl((ConversationID) key);
+                HttpUrl url = _model.getRequestUrl(key);
                 return url.getParameters();
             }
         };
         addColumn(cdm);
         
-        cdm = new ColumnDataModel("Status", String.class) {
-            public Object getValue(Object key) {
+        cdm = new ColumnDataModel<ConversationID>("Status", String.class) {
+            public Object getValue(ConversationID key) {
                 if (_model == null) return null;
-                return _model.getResponseStatus((ConversationID) key);
+                return _model.getResponseStatus(key);
             }
         };
         addColumn(cdm);
         
-        cdm = new ColumnDataModel("Origin", String.class) {
-            public Object getValue(Object key) {
+        cdm = new ColumnDataModel<ConversationID>("Origin", String.class) {
+            public Object getValue(ConversationID key) {
                 if (_model == null) return null;
-                return _model.getConversationOrigin((ConversationID) key);
+                return _model.getConversationOrigin(key);
             }
         };
         addColumn(cdm);
 
-        cdm = new ColumnDataModel("Tag", String.class) {
-            public Object getValue(Object key) {
+        cdm = new ColumnDataModel<ConversationID>("Tag", String.class) {
+            public Object getValue(ConversationID key) {
                 if (_model == null) return null;
-                return _model.getConversationProperty((ConversationID) key, "TAG");
+                return _model.getConversationProperty(key, "TAG");
             }
-			public boolean isEditable(Object key) { 
+			public boolean isEditable(ConversationID key) { 
 				return true; 
 			}
-            public void setValue(Object aValue, Object key) { 
+            public void setValue(Object aValue, ConversationID key) { 
             	String value = aValue == null ? null : aValue.toString();
-            	_model.setConversationProperty((ConversationID) key, "TAG", value);
+            	_model.setConversationProperty(key, "TAG", value);
             }
         };
         addColumn(cdm);
 
-        cdm = new ColumnDataModel("Size", String.class) {
-            public Object getValue(Object key) {
+        cdm = new ColumnDataModel<ConversationID>("Size", String.class) {
+            public Object getValue(ConversationID key) {
                 if (_model == null) return null;
-                return _model.getConversationProperty((ConversationID) key, "RESPONSE_SIZE");
+                return _model.getConversationProperty(key, "RESPONSE_SIZE");
             }
         };
         addColumn(cdm);
 
     }
     
-    public Object getKeyAt(int row) {
+    public ConversationID getKeyAt(int row) {
         return _model.getConversationAt(row);
     }
     
-    public int indexOfKey(Object key) {
+    public int indexOfKey(ConversationID key) {
         return _model.getIndexOfConversation((ConversationID) key);
     }
     
@@ -180,7 +180,7 @@ public class ConversationTableModel extends ExtensibleTableModel {
     }
     
     public Object getValueAt(int row, int column) {
-        Object key = getKeyAt(row);
+    	ConversationID key = getKeyAt(row);
         if (column == 0) return key;
         return super.getValueAt(key, column-1);
     }

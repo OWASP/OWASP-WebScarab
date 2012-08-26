@@ -6,38 +6,35 @@
 
 package org.owasp.webscarab.plugin.compare.swing;
 
-import java.util.List;
-import javax.swing.JOptionPane;
-import org.owasp.webscarab.model.ConversationID;
-import org.owasp.webscarab.model.ConversationModel;
-import org.owasp.webscarab.model.Response;
-
-import org.owasp.webscarab.plugin.compare.Compare;
-import org.owasp.webscarab.plugin.compare.CompareModel;
-
-import org.owasp.webscarab.ui.swing.SwingPluginUI;
-import org.owasp.webscarab.ui.swing.ConversationListModel;
-import org.owasp.webscarab.ui.swing.ConversationTableModel;
-import org.owasp.webscarab.util.Diff;
-import org.owasp.webscarab.util.Diff.Edit;
-
-import org.owasp.webscarab.util.swing.ColumnDataModel;
-import org.owasp.webscarab.util.swing.SwingWorker;
-import org.owasp.webscarab.util.swing.TableSorter;
-import org.owasp.webscarab.util.swing.ListComboBoxModel;
-import org.owasp.webscarab.util.swing.DiffPanel;
-import org.owasp.webscarab.ui.swing.ConversationRenderer;
-import org.owasp.webscarab.ui.swing.DateRenderer;
-
-import javax.swing.JPanel;
-import javax.swing.Action;
-
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Date;
+import java.util.List;
+
+import javax.swing.Action;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import java.util.Date;
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.ConversationModel;
+import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.Response;
+import org.owasp.webscarab.plugin.compare.Compare;
+import org.owasp.webscarab.plugin.compare.CompareModel;
+import org.owasp.webscarab.ui.swing.ConversationListModel;
+import org.owasp.webscarab.ui.swing.ConversationRenderer;
+import org.owasp.webscarab.ui.swing.ConversationTableModel;
+import org.owasp.webscarab.ui.swing.DateRenderer;
+import org.owasp.webscarab.ui.swing.SwingPluginUI;
+import org.owasp.webscarab.util.Diff;
+import org.owasp.webscarab.util.Diff.Edit;
+import org.owasp.webscarab.util.swing.ColumnDataModel;
+import org.owasp.webscarab.util.swing.DiffPanel;
+import org.owasp.webscarab.util.swing.ListComboBoxModel;
+import org.owasp.webscarab.util.swing.SwingWorker;
+import org.owasp.webscarab.util.swing.TableSorter;
 
 /**
  *
@@ -65,10 +62,10 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
         baseComboBox.setModel(new ListComboBoxModel(new ConversationListModel(_model.getConversationModel())));
         baseComboBox.setRenderer(new ConversationRenderer(_model.getConversationModel()));
         _tableModel = new ConversationTableModel(_model.getComparisonModel());
-        _tableModel.addColumn(new ColumnDataModel("Distance", Integer.class) {
-            public Object getValue(Object key) {
+        _tableModel.addColumn(new ColumnDataModel<ConversationID>("Distance", Integer.class) {
+            public Object getValue(ConversationID key) {
                 if (_model == null) return null;
-                return _model.getDistance((ConversationID) key);
+                return _model.getDistance(key);
             }
         });
         
@@ -178,8 +175,8 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
         return new Action[0];
     }    
     
-    public ColumnDataModel[] getConversationColumns() {
-        return new ColumnDataModel[0];
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
+    	return null;
     }    
     
     public JPanel getPanel() {
@@ -194,8 +191,8 @@ public class ComparePanel extends javax.swing.JPanel implements SwingPluginUI {
         return new Action[0];
     }
     
-    public ColumnDataModel[] getUrlColumns() {
-        return new ColumnDataModel[0];
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
+    	return null;
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

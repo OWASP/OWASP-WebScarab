@@ -48,23 +48,23 @@ import java.util.ArrayList;
  *
  * @author  knoppix
  */
-public abstract class ExtensibleTableModel extends AbstractTableModel {
+public abstract class ExtensibleTableModel<T> extends AbstractTableModel {
     
     /**
 	 * 
 	 */
 	private static final long serialVersionUID = -2783690695443856742L;
-	private List<ColumnDataModel> _columns = new ArrayList<ColumnDataModel>();
-    private ColumnDataListener _columnListener;
+	private List<ColumnDataModel<T>> _columns = new ArrayList<ColumnDataModel<T>>();
+    private ColumnDataListener<T> _columnListener;
     
     /** Creates a new instance of ExtensibleTableModel */
     public ExtensibleTableModel() {
-        _columnListener = new ColumnDataListener() {
-            public void dataChanged(ColumnDataEvent cde) {
+        _columnListener = new ColumnDataListener<T>() {
+            public void dataChanged(ColumnDataEvent<T> cde) {
                 Object column = cde.getSource();
                 int col = _columns.indexOf(column);
                 if (col < 0) return;
-                Object key = cde.getKey();
+                T key = cde.getKey();
                 if (key == null) {
                     fireTableStructureChanged();
                 } else {
@@ -79,17 +79,17 @@ public abstract class ExtensibleTableModel extends AbstractTableModel {
     
     public abstract int getRowCount();
     
-    public abstract Object getKeyAt(int row);
+    public abstract T getKeyAt(int row);
     
-    public abstract int indexOfKey(Object key);
+    public abstract int indexOfKey(T key);
     
-    public void addColumn(ColumnDataModel column) {
+    public void addColumn(ColumnDataModel<T> column) {
         _columns.add(column);
         column.addColumnDataListener(_columnListener);
         fireTableStructureChanged();
     }
     
-    public void removeColumn(ColumnDataModel column) {
+    public void removeColumn(ColumnDataModel<T> column) {
         int index = _columns.indexOf(column);
         if (index < 0) return;
         column.removeColumnDataListener(_columnListener);
@@ -125,30 +125,30 @@ public abstract class ExtensibleTableModel extends AbstractTableModel {
         return _columns.get(column).getColumnClass();
     }
     
-    protected Object getValueAt(Object key, int column) {
+    protected Object getValueAt(T key, int column) {
         return _columns.get(column).getValue(key);
     }
     
     public Object getValueAt(int row, int column) {
-        Object key = getKeyAt(row);
+        T key = getKeyAt(row);
         return getValueAt(key, column);
     }
     
-    protected boolean isCellEditable(Object key, int column) {
+    protected boolean isCellEditable(T key, int column) {
     	return _columns.get(column).isEditable(key);
     }
     
     public boolean isCellEditable(int row, int column) {
-        Object key = getKeyAt(row);
+        T key = getKeyAt(row);
         return isCellEditable(key, column);
     }
     
-    protected void setValueAt(Object aValue, Object key, int column) {
+    protected void setValueAt(Object aValue, T key, int column) {
         _columns.get(column).setValue(aValue, key);
     }
     
     public void setValueAt(Object aValue, int row, int column) {
-        Object key = getKeyAt(row);
+        T key = getKeyAt(row);
         setValueAt(aValue, key, column);
     }
     

@@ -39,12 +39,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
+
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.plugin.saml.swing.AttributesTableModel;
 import org.owasp.webscarab.plugin.wsfed.WSFederation;
@@ -79,11 +82,9 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
 
         ConversationTableModel wsfedTableModel = new ConversationTableModel(
                 this.wsfedModel.getConversationModel());
-        wsfedTableModel.addColumn(new ColumnDataModel("WS-Federation", String.class) {
-            public Object getValue(Object key) {
-                ConversationID conversationId = (ConversationID) key;
-                return WSFederationPanel.this.wsfedModel.getReadableMessageType(
-                        conversationId);
+        wsfedTableModel.addColumn(new ColumnDataModel<ConversationID>("WS-Federation", String.class) {
+            public Object getValue(ConversationID key) {
+                return WSFederationPanel.this.wsfedModel.getReadableMessageType(key);
             }
         });
         ColumnWidthTracker.getTracker("WSFederationTable").addTable(this.conversationsTable);
@@ -290,7 +291,7 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         return null;
     }
 
-    public ColumnDataModel[] getUrlColumns() {
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
         return null;
     }
 
@@ -298,7 +299,7 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         return null;
     }
 
-    public ColumnDataModel[] getConversationColumns() {
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
         return null;
     }
 

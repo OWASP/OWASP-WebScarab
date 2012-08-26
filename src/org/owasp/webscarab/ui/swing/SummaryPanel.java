@@ -86,7 +86,7 @@ public class SummaryPanel extends JPanel {
 	private UrlTreeTableModelAdapter _urlTreeTableModel;
 	private ArrayList<Action> _conversationActions = new ArrayList<Action>();
 
-	private HashMap<String, ColumnDataModel> _urlColumns = new HashMap<String, ColumnDataModel>();
+	private HashMap<String, ColumnDataModel<HttpUrl>> _urlColumns = new HashMap<String, ColumnDataModel<HttpUrl>>();
 
 	/** Creates new form SummaryPanel */
 	public SummaryPanel(FrameworkModel model) {
@@ -120,21 +120,21 @@ public class SummaryPanel extends JPanel {
 		System.out.println(_urlTreeTable.getDefaultRenderer(Boolean.class));
 		ColumnWidthTracker.getTracker("UrlTree").addTable(_urlTreeTable);
 
-		ColumnDataModel cdm = new ColumnDataModel("Methods", String.class) {
-			public Object getValue(Object key) {
+		ColumnDataModel<HttpUrl> cdm = new ColumnDataModel<HttpUrl>("Methods", String.class) {
+			public Object getValue(HttpUrl key) {
 				if (_model == null)
 					return null;
-				return _model.getUrlProperty((HttpUrl) key, "METHODS");
+				return _model.getUrlProperty(key, "METHODS");
 			}
 		};
 		_urlColumns.put("METHODS", cdm);
 		_urlTreeTableModel.addColumn(cdm);
 
-		cdm = new ColumnDataModel("Status", String.class) {
-			public Object getValue(Object key) {
+		cdm = new ColumnDataModel<HttpUrl>("Status", String.class) {
+			public Object getValue(HttpUrl key) {
 				if (_model == null)
 					return null;
-				return _model.getUrlProperty((HttpUrl) key, "STATUS");
+				return _model.getUrlProperty(key, "STATUS");
 			}
 		};
 		_urlColumns.put("STATUS", cdm);
@@ -207,7 +207,7 @@ public class SummaryPanel extends JPanel {
 		}
 	}
 
-	public void addUrlColumns(ColumnDataModel[] columns) {
+	public void addUrlColumns(ColumnDataModel<HttpUrl>[] columns) {
 		if (columns == null)
 			return;
 		for (int i = 0; i < columns.length; i++) {
@@ -303,7 +303,7 @@ public class SummaryPanel extends JPanel {
 		}
 	}
 
-	public void addConversationColumns(ColumnDataModel[] columns) {
+	public void addConversationColumns(ColumnDataModel<ConversationID>[] columns) {
 		if (columns == null)
 			return;
 		for (int i = 0; i < columns.length; i++) {

@@ -42,47 +42,45 @@ package org.owasp.webscarab.plugin.fuzz.swing;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
+import java.util.logging.Logger;
 import java.util.regex.PatternSyntaxException;
-import javax.swing.AbstractAction;
-import javax.swing.table.TableModel;
-import org.owasp.webscarab.model.ConversationID;
-import org.owasp.webscarab.model.NamedValue;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.DefaultCellEditor;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.model.NamedValue;
+import org.owasp.webscarab.plugin.fuzz.FuzzFactory;
+import org.owasp.webscarab.plugin.fuzz.FuzzSource;
 import org.owasp.webscarab.plugin.fuzz.Fuzzer;
 import org.owasp.webscarab.plugin.fuzz.FuzzerEvent;
 import org.owasp.webscarab.plugin.fuzz.FuzzerListener;
 import org.owasp.webscarab.plugin.fuzz.FuzzerModel;
-import org.owasp.webscarab.plugin.fuzz.FuzzSource;
 import org.owasp.webscarab.plugin.fuzz.Parameter;
-import org.owasp.webscarab.plugin.fuzz.FuzzFactory;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;
 import org.owasp.webscarab.ui.swing.DateRenderer;
 import org.owasp.webscarab.ui.swing.ShowConversationAction;
-
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
-
-import javax.swing.Action;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableColumn;
-import javax.swing.SwingUtilities;
-import javax.swing.DefaultCellEditor;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListModel;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.ListSelectionEvent;
-
-import java.util.logging.Logger;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-
-import java.io.File;
-import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import java.io.IOException;
 
 /**
  *
@@ -871,8 +869,8 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         return new Action[] { new FuzzConversationAction() };
     }
     
-    public ColumnDataModel[] getConversationColumns() {
-        return new ColumnDataModel[0];
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
+        return null;
     }
     
     public javax.swing.JPanel getPanel() {
@@ -887,8 +885,8 @@ public class FuzzerPanel extends javax.swing.JPanel implements SwingPluginUI {
         return new Action[0];
     }
     
-    public ColumnDataModel[] getUrlColumns() {
-        return new ColumnDataModel[0];
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
+        return null;
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

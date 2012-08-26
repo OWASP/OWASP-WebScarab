@@ -39,11 +39,13 @@
 
 package org.owasp.webscarab.ui.swing;
 
+import javax.swing.Action;
+import javax.swing.JPanel;
+
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.plugin.PluginUI;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
-
-import javax.swing.JPanel;
-import javax.swing.Action;
 
 /**
  *
@@ -55,11 +57,11 @@ public interface SwingPluginUI extends PluginUI {
     
     Action[] getUrlActions();
     
-    ColumnDataModel[] getUrlColumns();
+    ColumnDataModel<HttpUrl>[] getUrlColumns();
     
     Action[] getConversationActions();
     
-    ColumnDataModel[] getConversationColumns();
+    ColumnDataModel<ConversationID>[] getConversationColumns();
     
     
 }

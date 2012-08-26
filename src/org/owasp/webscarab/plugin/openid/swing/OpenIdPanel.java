@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
 import javax.swing.Action;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -33,9 +34,11 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
+
 import org.openid4java.association.Association;
 import org.openid4java.association.AssociationSessionType;
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.plugin.openid.OpenId;
 import org.owasp.webscarab.plugin.openid.OpenIdModel;
 import org.owasp.webscarab.plugin.openid.OpenIdProxy;
@@ -76,11 +79,9 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
 
         ConversationTableModel openIdTableModel = new ConversationTableModel(
                 this.openIdModel.getOpenIDConversationModel());
-        openIdTableModel.addColumn(new ColumnDataModel("OpenID Type", String.class) {
-            public Object getValue(Object key) {
-                ConversationID conversationId = (ConversationID) key;
-                return OpenIdPanel.this.openIdModel.getReadableOpenIDMessageType(
-                        conversationId);
+        openIdTableModel.addColumn(new ColumnDataModel<ConversationID>("OpenID Type", String.class) {
+            public Object getValue(ConversationID key) {
+                return OpenIdPanel.this.openIdModel.getReadableOpenIDMessageType(key);
             }
         });
         ColumnWidthTracker.getTracker("OpenIDTable").addTable(this.openIdTable);
@@ -162,7 +163,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         return null;
     }
 
-    public ColumnDataModel[] getUrlColumns() {
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
         return null;
     }
 
@@ -170,7 +171,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         return null;
     }
 
-    public ColumnDataModel[] getConversationColumns() {
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
         return null;
     }
 

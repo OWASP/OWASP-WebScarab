@@ -45,8 +45,8 @@ import java.util.EventListener;
  *
  * @author  rogan
  */
-public interface ColumnDataListener extends EventListener {
+public interface ColumnDataListener<T> extends EventListener {
     
-    public void dataChanged(ColumnDataEvent cde);
+    public void dataChanged(ColumnDataEvent<T> cde);
     
 }

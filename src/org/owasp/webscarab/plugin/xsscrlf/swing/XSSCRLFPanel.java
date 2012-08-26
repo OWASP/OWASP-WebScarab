@@ -48,9 +48,9 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
     
     private Logger _logger = Logger.getLogger(getClass().getName());
     
-    private ColumnDataModel[] _vulnerableConversationColumns;
+    private ColumnDataModel<ConversationID>[] _vulnerableConversationColumns;
     
-    private ColumnDataModel[] _vulnerableUrlColumns;
+    private ColumnDataModel<HttpUrl>[] _vulnerableUrlColumns;
     
     private ShowConversationAction _showAction;
     
@@ -64,23 +64,21 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         suspectedTable.setDefaultRenderer(Boolean.class, 
         		new EnabledBooleanTableCellRenderer());
         
-        _vulnerableConversationColumns = new ColumnDataModel[2];
         ConversationTableModel vtm = new ConversationTableModel(_model.getVulnerableConversationModel());
         _vulnerableConversationColumns = new ColumnDataModel[] {
-            new ColumnDataModel("Possible Injection", Boolean.class) {
-                public Object getValue(Object key) {
-                    ConversationID id = (ConversationID) key;
-                    return _model.isXSSSuspected(id) || _model.isCRLFSuspected(id)? Boolean.TRUE : Boolean.FALSE;
+            new ColumnDataModel<ConversationID>("Possible Injection", Boolean.class) {
+                public Object getValue(ConversationID key) {
+                    return _model.isXSSSuspected(key) || _model.isCRLFSuspected(key)? Boolean.TRUE : Boolean.FALSE;
                 }
             }, 
-            new ColumnDataModel("XSS", Boolean.class) {
-                public Object getValue(Object key) {
-                    return _model.isXSSVulnerable((ConversationID) key) ? Boolean.TRUE : Boolean.FALSE;
+            new ColumnDataModel<ConversationID>("XSS", Boolean.class) {
+                public Object getValue(ConversationID key) {
+                    return _model.isXSSVulnerable(key) ? Boolean.TRUE : Boolean.FALSE;
                 }
             }, 
-            new ColumnDataModel("CRLF", Boolean.class) {
-                public Object getValue(Object key) {
-                    return _model.isCRLFVulnerable((ConversationID) key) ? Boolean.TRUE : Boolean.FALSE;
+            new ColumnDataModel<ConversationID>("CRLF", Boolean.class) {
+                public Object getValue(ConversationID key) {
+                    return _model.isCRLFVulnerable(key) ? Boolean.TRUE : Boolean.FALSE;
                 }
             }
         };
@@ -88,24 +86,24 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         vtm.addColumn(_vulnerableConversationColumns[1]);
         
         ConversationTableModel stm = new ConversationTableModel(_model.getSuspectedConversationModel());
-        stm.addColumn(new ColumnDataModel("XSS", Boolean.class) {
-            public Object getValue(Object key) {
-                return _model.isXSSSuspected((ConversationID) key) ? Boolean.TRUE : Boolean.FALSE;
+        stm.addColumn(new ColumnDataModel<ConversationID>("XSS", Boolean.class) {
+            public Object getValue(ConversationID key) {
+                return _model.isXSSSuspected(key) ? Boolean.TRUE : Boolean.FALSE;
             }
         });
-        stm.addColumn(new ColumnDataModel("XSS parameters", Boolean.class) {
-            public Object getValue(Object key) {
-                return _model.getXSSSuspected((ConversationID) key);
+        stm.addColumn(new ColumnDataModel<ConversationID>("XSS parameters", Boolean.class) {
+            public Object getValue(ConversationID key) {
+                return _model.getXSSSuspected(key);
             }
         });
-        stm.addColumn(new ColumnDataModel("CRLF", Boolean.class) {
-            public Object getValue(Object key) {
-                return _model.isCRLFSuspected((ConversationID) key) ? Boolean.TRUE : Boolean.FALSE;
+        stm.addColumn(new ColumnDataModel<ConversationID>("CRLF", Boolean.class) {
+            public Object getValue(ConversationID key) {
+                return _model.isCRLFSuspected(key) ? Boolean.TRUE : Boolean.FALSE;
             }
         });
-        stm.addColumn(new ColumnDataModel("CRLF parameters", Boolean.class) {
-            public Object getValue(Object key) {
-                return _model.getCRLFSuspected((ConversationID) key);
+        stm.addColumn(new ColumnDataModel<ConversationID>("CRLF parameters", Boolean.class) {
+            public Object getValue(ConversationID key) {
+                return _model.getCRLFSuspected(key);
             }
         });
         
@@ -122,16 +120,14 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         suspectedTable.setDefaultRenderer(Date.class, new DateRenderer());
         
         _vulnerableUrlColumns = new ColumnDataModel[] { 
-            new ColumnDataModel("Possible Injection", Boolean.class) {
-                public Object getValue(Object key) {
-                    HttpUrl url = (HttpUrl) key;
-                    return _model.isSuspected(url) ? Boolean.TRUE :  Boolean.FALSE;
+            new ColumnDataModel<HttpUrl>("Possible Injection", Boolean.class) {
+                public Object getValue(HttpUrl key) {
+                    return _model.isSuspected(key) ? Boolean.TRUE :  Boolean.FALSE;
                 }
             }, 
-            new ColumnDataModel("Injection", Boolean.class) {
-                public Object getValue(Object key) {
-                    HttpUrl url = (HttpUrl) key;
-                    return _model.isXSSVulnerable(url) || _model.isCRLFVulnerable(url)? Boolean.TRUE :  Boolean.FALSE;
+            new ColumnDataModel<HttpUrl>("Injection", Boolean.class) {
+                public Object getValue(HttpUrl key) {
+                    return _model.isXSSVulnerable(key) || _model.isCRLFVulnerable(key)? Boolean.TRUE :  Boolean.FALSE;
                 }
             }
 
@@ -413,7 +409,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         return null;
     }
 
-    public ColumnDataModel[] getConversationColumns() {
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
         return _vulnerableConversationColumns;
     }
 
@@ -429,7 +425,7 @@ public class XSSCRLFPanel extends javax.swing.JPanel implements SwingPluginUI {
         return null;
     }
 
-    public ColumnDataModel[] getUrlColumns() {
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
         return _vulnerableUrlColumns;
     }
 

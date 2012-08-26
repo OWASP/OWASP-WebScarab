@@ -7,7 +7,7 @@ import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 
-public class ProgrammaticConversationColumnDataModel extends ColumnDataModel {
+public class ProgrammaticConversationColumnDataModel extends ColumnDataModel<ConversationID> {
 
 	private BSFManager manager = new BSFManager();
 	
@@ -24,13 +24,12 @@ public class ProgrammaticConversationColumnDataModel extends ColumnDataModel {
 	}
 	
 	@Override
-	public Object getValue(Object key) {
+	public Object getValue(ConversationID key) {
 		try {
-			ConversationID id = (ConversationID) key;
-			manager.declareBean("id", id, ConversationID.class);
-			Request request = model.getRequest(id);
+			manager.declareBean("id", key, ConversationID.class);
+			Request request = model.getRequest(key);
 			manager.declareBean("request", request, Request.class);
-			Response response = model.getResponse(id);
+			Response response = model.getResponse(key);
 			manager.declareBean("response", response, Response.class);
 			Object result = manager.eval(language, name, 0, 0, expression);
 			manager.undeclareBean("id");

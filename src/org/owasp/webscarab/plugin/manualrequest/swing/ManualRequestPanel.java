@@ -39,37 +39,33 @@
 
 package org.owasp.webscarab.plugin.manualrequest.swing;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
 import java.text.ParseException;
+import java.util.logging.Logger;
+
+import javax.swing.ComboBoxModel;
+import javax.swing.JOptionPane;
+import javax.swing.ListModel;
+import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
+
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.model.ConversationID;
-
 import org.owasp.webscarab.plugin.manualrequest.ManualRequest;
 import org.owasp.webscarab.plugin.manualrequest.ManualRequestModel;
 import org.owasp.webscarab.plugin.manualrequest.ManualRequestUI;
-
-import org.owasp.webscarab.ui.swing.SwingPluginUI;
 import org.owasp.webscarab.ui.swing.ConversationListModel;
 import org.owasp.webscarab.ui.swing.ConversationRenderer;
 import org.owasp.webscarab.ui.swing.RequestPanel;
 import org.owasp.webscarab.ui.swing.ResponsePanel;
-
+import org.owasp.webscarab.ui.swing.SwingPluginUI;
+import org.owasp.webscarab.util.swing.ColumnDataModel;
 import org.owasp.webscarab.util.swing.ListComboBoxModel;
 import org.owasp.webscarab.util.swing.SwingWorker;
-import org.owasp.webscarab.util.swing.ColumnDataModel;
-
-import javax.swing.border.TitledBorder;
-import javax.swing.SwingUtilities;
-
-import javax.swing.JOptionPane;
-import javax.swing.ComboBoxModel;
-import javax.swing.ListModel;
-
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-
-import java.util.logging.Logger;
 
 /**
  *
@@ -308,11 +304,11 @@ public class ManualRequestPanel extends javax.swing.JPanel implements SwingPlugi
         }
     }
     
-    public ColumnDataModel[] getConversationColumns() {
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
         return null;
     }
     
-    public ColumnDataModel[] getUrlColumns() {
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
         return null;
     }
     

@@ -39,27 +39,26 @@
 
 package org.owasp.webscarab.plugin.spider.swing;
 
-import org.owasp.webscarab.model.HttpUrl;
+import java.util.logging.Logger;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
+
+import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.plugin.spider.Link;
 import org.owasp.webscarab.plugin.spider.Spider;
 import org.owasp.webscarab.plugin.spider.SpiderModel;
 import org.owasp.webscarab.plugin.spider.SpiderUI;
-import org.owasp.webscarab.plugin.spider.Link;
-
 import org.owasp.webscarab.ui.swing.HeaderPanel;
-import org.owasp.webscarab.ui.swing.UrlTreeRenderer;
-import org.owasp.webscarab.ui.swing.UrlTreeModelAdapter;
 import org.owasp.webscarab.ui.swing.SwingPluginUI;
+import org.owasp.webscarab.ui.swing.UrlTreeModelAdapter;
+import org.owasp.webscarab.ui.swing.UrlTreeRenderer;
 import org.owasp.webscarab.util.swing.ColumnDataModel;
-
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeModel;
-import javax.swing.Action;
-import javax.swing.AbstractAction;
-import javax.swing.SwingUtilities;
-import javax.swing.JOptionPane;
-
-import java.util.logging.Logger;
 
 /**
  *
@@ -401,11 +400,11 @@ public class SpiderPanel extends javax.swing.JPanel implements SwingPluginUI, Sp
         }
     }
     
-    public ColumnDataModel[] getConversationColumns() {
+    public ColumnDataModel<ConversationID>[] getConversationColumns() {
         return null;
     }
     
-    public ColumnDataModel[] getUrlColumns() {
+    public ColumnDataModel<HttpUrl>[] getUrlColumns() {
         return null;
     }
     

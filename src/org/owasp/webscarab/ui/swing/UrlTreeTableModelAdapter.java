@@ -46,8 +46,8 @@ import java.util.ArrayList;
 
 public class UrlTreeTableModelAdapter extends UrlTreeModelAdapter implements TreeTableModel {
     
-    private List<ColumnDataModel> _columns = new ArrayList<ColumnDataModel>();
-    private ColumnDataListener _columnListener;
+    private List<ColumnDataModel<HttpUrl>> _columns = new ArrayList<ColumnDataModel<HttpUrl>>();
+    private ColumnDataListener<HttpUrl> _columnListener;
     
     public UrlTreeTableModelAdapter(UrlModel model) {
         super(model);
@@ -55,29 +55,28 @@ public class UrlTreeTableModelAdapter extends UrlTreeModelAdapter implements Tre
     }
     
     private void createListener() {
-        _columnListener = new ColumnDataListener() {
-            public void dataChanged(ColumnDataEvent cde) {
+        _columnListener = new ColumnDataListener<HttpUrl>() {
+            public void dataChanged(ColumnDataEvent<HttpUrl> cde) {
                 Object column = cde.getSource();
                 int col = _columns.indexOf(column);
                 if (col < 0) return;
-                Object key = cde.getKey();
+                HttpUrl key = cde.getKey();
                 if (key == null) {
                     fireStructureChanged();
                 } else {
-                    HttpUrl url = (HttpUrl) key;
-                    firePathChanged(urlTreePath(url));
+                    firePathChanged(urlTreePath(key));
                 }
             }
         };
     }
     
-    public void addColumn(ColumnDataModel column) {
+    public void addColumn(ColumnDataModel<HttpUrl> column) {
         _columns.add(column);
         column.addColumnDataListener(_columnListener);
         fireStructureChanged();
     }
     
-    public void removeColumn(ColumnDataModel column) {
+    public void removeColumn(ColumnDataModel<HttpUrl> column) {
         int index = _columns.indexOf(column);
         if (index < 0) return;
         column.removeColumnDataListener(_columnListener);
