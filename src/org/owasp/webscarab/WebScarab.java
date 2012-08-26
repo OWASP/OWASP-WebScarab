@@ -11,12 +11,14 @@
 package org.owasp.webscarab;
 
 import java.awt.Toolkit;
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
@@ -70,6 +72,7 @@ import org.owasp.webscarab.plugin.xsscrlf.XSSCRLF;
 import org.owasp.webscarab.plugin.xsscrlf.swing.XSSCRLFPanel;
 import org.owasp.webscarab.ui.swing.Lite;
 import org.owasp.webscarab.ui.swing.UIFramework;
+import org.owasp.webscarab.ui.swing.WebScarabUI;
 import org.owasp.webscarab.util.TextFormatter;
 import org.owasp.webscarab.util.swing.ExceptionHandler;
 import org.owasp.webscarab.util.swing.TextComponentContextMenu;
@@ -112,57 +115,41 @@ public class WebScarab {
 
             boolean lite = Boolean.valueOf(Preferences.getPreference("WebScarab.lite", "false")).booleanValue();
 
-            if (args != null && args.length > 0) {
-                if (args[0].equalsIgnoreCase("lite")) {
-                    lite = true;
-                    if (args.length>1) {
-                        String[] trim = new String[args.length-1];
-                        System.arraycopy(args, 1, trim, 0, args.length-1);
-                        args = trim;
-                    } else {
-                        args = new String[0];
-                    }
-                }
+            File t = null;
+            if (args != null && args.length == 1) {
+            	t = new File(args[0]);
             }
-
+            final File session = t;
+            
+            final WebScarabUI ui;
+            
             if (! lite) {
-                final UIFramework uif = new UIFramework(framework);
-                ExceptionHandler.setParentComponent(uif);
+            	UIFramework uif = new UIFramework(framework);
                 loadAllPlugins(framework, uif);
-                try {
-                    SwingUtilities.invokeAndWait(new Runnable() {
-                        public void run() {
-                            uif.setVisible(true);
-                            uif.toFront();
-                            uif.requestFocus();
-                            splash.close();
-                        }
-                    });
-                } catch (Exception e) {
-                    System.err.println("Error loading GUI: " + e.getMessage());
-                    e.printStackTrace();
-                    System.exit(1);
-                }
-                uif.run();
+                ui = uif;
             } else {
-                final Lite uif = new Lite(framework);
-                ExceptionHandler.setParentComponent(uif);
+            	Lite uif = new Lite(framework);
                 loadLitePlugins(framework, uif);
-                try {
-                    SwingUtilities.invokeAndWait(new Runnable() {
-                        public void run() {
-                            uif.setVisible(true);
-                            uif.toFront();
-                            uif.requestFocus();
-                            splash.close();
-                        }
-                    });
-                } catch (Exception e) {
-                    System.err.println("Error loading GUI: " + e.getMessage());
-                    e.printStackTrace();
-                    System.exit(1);
-                }
-                uif.run();
+                ui = uif;
+            }
+            try {
+            	ExceptionHandler.setParentComponent(ui.getFrame());
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                    	JFrame frame = ui.getFrame();
+                        frame.setVisible(true);
+                        frame.toFront();
+                        frame.requestFocus();
+                        splash.close();
+                        if (session != null && session.isDirectory())
+                        	ui.loadSession(session);
+                    }
+                });
+                ui.run();
+            } catch (Exception e) {
+                System.err.println("Error loading GUI: " + e.getMessage());
+                e.printStackTrace();
+                System.exit(1);
             }
         } catch (Throwable t) {
             t.printStackTrace();
@@ -185,7 +172,7 @@ public class WebScarab {
         ch.setLevel(Level.FINE);
     }
     
-    public static void loadAllPlugins(Framework framework, UIFramework uif) {
+    public static void loadAllPlugins(Framework framework, WebScarabUI uif) {
         Proxy proxy = new Proxy(framework);
         framework.addPlugin(proxy);
         ProxyPanel proxyPanel = new ProxyPanel(proxy);
@@ -283,7 +270,7 @@ public class WebScarab {
         
         RevealHidden rh = new RevealHidden();
         proxy.addPlugin(rh);
-        uif.setRevealHiddean(rh);
+        uif.setRevealHidden(rh);
         
         SessionIDAnalysis sessionIDAnalysis = new SessionIDAnalysis(framework);
         framework.addPlugin(sessionIDAnalysis);
@@ -296,9 +283,9 @@ public class WebScarab {
     
     private static class LiteProxyUI implements ProxyUI {
 
-        private Lite lite;
+        private WebScarabUI lite;
         
-        public LiteProxyUI(Lite lite) {
+        public LiteProxyUI(WebScarabUI lite) {
             this.lite = lite;
         }
         public void aborted(ConversationID id, String reason) {
@@ -315,7 +302,7 @@ public class WebScarab {
 
         public void proxyStartError(final ListenerSpec spec, final IOException ioe) {
             if (SwingUtilities.isEventDispatchThread()) {
-                JOptionPane.showMessageDialog(lite, new String[] {"Error starting proxy listener: ", spec.toString(), ioe.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(lite.getFrame(), new String[] {"Error starting proxy listener: ", spec.toString(), ioe.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
             } else {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {

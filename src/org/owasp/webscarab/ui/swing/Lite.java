@@ -75,7 +75,7 @@ import java.net.URL;
  *
  * @author  rdawes
  */
-public class Lite extends JFrame {
+public class Lite extends JFrame implements WebScarabUI {
     
     /**
 	 * 
@@ -118,6 +118,10 @@ public class Lite extends JFrame {
         
         initEditorViews();
         initHelp();
+    }
+    
+    public JFrame getFrame() {
+    	return this;
     }
     
     private void initHelp() {
@@ -564,7 +568,7 @@ public class Lite extends JFrame {
         exit();
     }//GEN-LAST:event_formWindowClosing
     
-    public void setRevealHiddean(RevealHidden revealHidden) {
+    public void setRevealHidden(RevealHidden revealHidden) {
         _revealHidden = revealHidden;
         hiddenCheckBoxMenuItem.setEnabled(_revealHidden != null);
         hiddenCheckBoxMenuItem.setSelected(_revealHidden != null && _revealHidden.getEnabled());
@@ -578,7 +582,7 @@ public class Lite extends JFrame {
         Preferences.setPreference("TextPanel.wrap", Boolean.toString(wrapTextCheckBoxMenuItem.isSelected()));
     }//GEN-LAST:event_wrapTextCheckBoxMenuItemActionPerformed
     
-    private void loadSession(final File sessionDir) {
+    public void loadSession(final File sessionDir) {
         new SwingWorker() {
             public Object construct() {
                 try {

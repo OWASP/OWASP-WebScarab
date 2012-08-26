@@ -84,7 +84,7 @@ import org.owasp.webscarab.util.swing.SwingWorker;
  *
  * @author  rdawes
  */
-public class UIFramework extends JFrame {
+public class UIFramework extends JFrame implements WebScarabUI {
     
     /**
 	 * 
@@ -139,6 +139,10 @@ public class UIFramework extends JFrame {
         initEditorViews();
         initHelp();
         
+    }
+    
+    public JFrame getFrame() {
+    	return this;
     }
     
     private void initHelp() {
@@ -675,7 +679,7 @@ public class UIFramework extends JFrame {
         Preferences.setPreference("TextPanel.wrap", Boolean.toString(wrapTextCheckBoxMenuItem.isSelected()));
     }//GEN-LAST:event_wrapTextCheckBoxMenuItemActionPerformed
     
-    private void loadSession(final File sessionDir) {
+    public void loadSession(final File sessionDir) {
         new SwingWorker() {
             public Object construct() {
                 try {
