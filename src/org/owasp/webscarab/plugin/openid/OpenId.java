@@ -50,14 +50,17 @@ public class OpenId implements Plugin {
         this.openIdProxy = openIdProxy;
     }
     
+    @Override
     public String getPluginName() {
         return "OpenID";
     }
     
+    @Override
     public void setSession(String type, Object store, String session) throws StoreException {
         // empty
     }
     
+    @Override
     public void run() {
         this.openIdModel.setStatus("Started");
         
@@ -75,18 +78,22 @@ public class OpenId implements Plugin {
         this.openIdModel.setStatus("Stopped");
     }
     
+    @Override
     public boolean isRunning() {
         return this.openIdModel.isRunning();
     }
     
+    @Override
     public boolean isBusy() {
         return this.openIdModel.isBusy();
     }
     
+    @Override
     public String getStatus() {
         return this.openIdModel.getStatus();
     }
     
+    @Override
     public boolean stop() {
         this.openIdModel.setStopping(true);
         try {
@@ -97,14 +104,17 @@ public class OpenId implements Plugin {
         return !this.openIdModel.isRunning();
     }
     
+    @Override
     public boolean isModified() {
         return this.openIdModel.isModified();
     }
     
+    @Override
     public void flush() throws StoreException {
         // empty
     }
     
+    @Override
     public void analyse(ConversationID id, Request request, Response response, String origin) {
         String method = request.getMethod();
         if ("GET".equals(method)) {
@@ -142,10 +152,12 @@ public class OpenId implements Plugin {
         }
     }
     
+    @Override
     public Hook[] getScriptingHooks() {
         return new Hook[0];
     }
     
+    @Override
     public Object getScriptableObject() {
         return null;
     }

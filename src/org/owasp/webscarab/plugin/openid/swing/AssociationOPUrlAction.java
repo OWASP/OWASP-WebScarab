@@ -40,11 +40,13 @@ public class AssociationOPUrlAction extends AbstractAction {
         putValue(NAME, "Use as OP URL for association establishment");
     }
     
+    @Override
     public void actionPerformed(ActionEvent e) {
         String opUrl = (String) getValue("OP-URL");
         this.opUrlTextField.setText(opUrl);
     }
     
+    @Override
     public void putValue(String key, Object value) {
         super.putValue(key, value);
         if (null == key) {

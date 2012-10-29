@@ -52,6 +52,7 @@ public final class SamlReplayConversationAction extends AbstractAction {
         putValue(SHORT_DESCRIPTION, "Use this SAML Response for replay attack");
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {
         Object o = getValue("SAML-RESPONSE");
         if (o == null || !(o instanceof ConversationID)) {
@@ -61,6 +62,7 @@ public final class SamlReplayConversationAction extends AbstractAction {
         this.samlProxy.setReplaySamlResponse(id);
     }
 
+    @Override
     public void putValue(String key, Object value) {
         super.putValue(key, value);
         if (null == key) {

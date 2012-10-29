@@ -86,6 +86,7 @@ public class SamlHTTPClient implements HTTPClient {
         this.samlProxyConfig = samlProxyConfig;
     }
 
+    @Override
     public Response fetchResponse(Request request) throws IOException {
         /*
          * We want a very fast fall-through in case nothing needs to be done.
@@ -191,7 +192,7 @@ public class SamlHTTPClient implements HTTPClient {
             return;
         }
 
-        StringBuffer newBody = new StringBuffer();
+        StringBuilder newBody = new StringBuilder();
         for (int idx = 0; idx < namedValues.length; idx++) {
             NamedValue namedValue = namedValues[idx];
             if (0 != newBody.length()) {

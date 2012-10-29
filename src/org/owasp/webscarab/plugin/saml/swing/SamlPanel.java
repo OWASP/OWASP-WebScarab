@@ -42,7 +42,6 @@ import java.beans.PropertyChangeListener;
 import java.security.KeyStore.PrivateKeyEntry;
 import java.security.cert.X509Certificate;
 import java.util.List;
-
 import javax.swing.Action;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -55,7 +54,6 @@ import javax.swing.table.TableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
-
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.plugin.saml.Saml;
@@ -101,6 +99,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
                 this.samlModel.getSamlConversationModel());
         ColumnWidthTracker.getTracker("SAMLTable").addTable(this.samlTable);
         samlTableModel.addColumn(new ColumnDataModel<ConversationID>("SAML Type", String.class) {
+            @Override
             public Object getValue(ConversationID key) {
                 return SamlPanel.this.samlModel.getSAMLType(key);
             }
@@ -126,6 +125,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         this.samlCertificateRepository = new SamlCertificateRepository();
         this.samlCertificateRepository.addPropertyChangeListener(new PropertyChangeListener() {
 
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 String propertyName = event.getPropertyName();
                 if (propertyName.equals(SamlCertificateRepository.SELECTED_KEY)) {
@@ -149,6 +149,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         this.certPathTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         this.certPathTree.addTreeSelectionListener(new TreeSelectionListener() {
 
+            @Override
             public void valueChanged(TreeSelectionEvent e) {
                 Object node = SamlPanel.this.certPathTree.getLastSelectedPathComponent();
                 if (null == node) {
@@ -166,6 +167,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private void addTableListeners() {
         this.samlTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
+            @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (e.getValueIsAdjusting()) {
                     return;
@@ -196,10 +198,12 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         this.samlTable.addMouseListener(new MouseAdapter() {
 
+            @Override
             public void mousePressed(MouseEvent e) {
                 maybeShowPopup(e);
             }
 
+            @Override
             public void mouseReleased(MouseEvent e) {
                 maybeShowPopup(e);
             }
@@ -212,6 +216,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
                 }
             }
 
+            @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
                     ActionEvent actionEvent = new ActionEvent(SamlPanel.this.samlTable, 0, (String) SamlPanel.this.showConversationAction.getValue(Action.ACTION_COMMAND_KEY));
@@ -1360,30 +1365,37 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private org.owasp.webscarab.ui.swing.editors.XMLPanel xmlPanel;
     // End of variables declaration//GEN-END:variables
 
+    @Override
     public Action[] getConversationActions() {
         return null;
     }
 
+    @Override
     public ColumnDataModel<ConversationID>[] getConversationColumns() {
         return null;
     }
 
+    @Override
     public JPanel getPanel() {
         return this;
     }
 
+    @Override
     public Action[] getUrlActions() {
         return null;
     }
 
+    @Override
     public ColumnDataModel<HttpUrl>[] getUrlColumns() {
         return null;
     }
 
+    @Override
     public String getPluginName() {
         return this.saml.getPluginName();
     }
 
+    @Override
     public void replayChanged(ConversationID replayId) {
         this.samlReplayLabel.setText(replayId.toString());
     }

@@ -62,7 +62,6 @@ import org.bouncycastle.util.encoders.Hex;
 import org.htmlparser.tags.FormTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.ParserException;
-
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
 import org.owasp.webscarab.model.FilteredConversationModel;
@@ -97,6 +96,7 @@ public class SamlModel extends AbstractPluginModel {
         this.model = model;
         this.samlConversationModel = new FilteredConversationModel(model, model.getConversationModel()) {
 
+            @Override
             public boolean shouldFilter(ConversationID id) {
                 return !isSAMLMessage(id);
             }

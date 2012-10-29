@@ -44,14 +44,17 @@ public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
     
     private boolean attack;
 
+    @Override
     public String getPluginName() {
         return "OpenID Proxy";
     }
 
+    @Override
     public HTTPClient getProxyPlugin(HTTPClient in) {
         return new OpenIdHTTPClient(in, this);
     }
 
+    @Override
     public boolean doSomething() {
         return this.attack;
     }
@@ -66,6 +69,7 @@ public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
         updateAttackState();
     }
 
+    @Override
     public boolean doCorruptSignature() {
         return this.corruptSignature;
     }
@@ -75,6 +79,7 @@ public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
         updateAttackState();
     }
 
+    @Override
     public boolean doRemoveSignature() {
         return this.removeSignature;
     }
@@ -105,26 +110,32 @@ public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
         this.appendAttributeValue = appendAttributeValue;
     }
 
+    @Override
     public boolean doRemoveRequestedAttribute() {
         return this.removeRequestedAttribute;
     }
 
+    @Override
     public boolean doAppendAttribute() {
         return this.appendAttribute;
     }
 
+    @Override
     public String getRemoveAttributeType() {
         return this.removeAttributeType;
     }
 
+    @Override
     public String getAppendAttributeType() {
         return this.appendAttributeType;
     }
 
+    @Override
     public String getAppendAttributeAlias() {
         return this.appendAttributeAlias;
     }
 
+    @Override
     public String getAppendAttributeValue() {
         return this.appendAttributeValue;
     }
@@ -139,10 +150,12 @@ public class OpenIdProxy extends ProxyPlugin implements OpenIdProxyConfig {
         updateAttackState();
     }
 
+    @Override
     public boolean doRemoveRequestAssociationHandle() {
         return this.removeReqAssocHandle;
     }
 
+    @Override
     public boolean doRemoveResponseAssociationHandle() {
         return this.removeRespAssocHandle;
     }

@@ -64,6 +64,7 @@ public class OpenIdModel extends AbstractPluginModel {
         this.model = model;
         this.openIdConversationModel = new FilteredConversationModel(model, model.getConversationModel()) {
 
+            @Override
             public boolean shouldFilter(ConversationID id) {
                 return !isOpenIDMessage(id);
             }
@@ -417,7 +418,7 @@ public class OpenIdModel extends AbstractPluginModel {
         request.setURL(new HttpUrl(opUrl));
         request.setHeader("Content-Type", "application/x-www-form-urlencoded");
 
-        StringBuffer body = new StringBuffer();
+        StringBuilder body = new StringBuilder();
         Map parameters = associationRequest.getParameterMap();
         Set parameterEntries = parameters.entrySet();
         Iterator parameterIterator = parameterEntries.iterator();

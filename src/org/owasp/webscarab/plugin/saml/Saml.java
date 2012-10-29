@@ -35,7 +35,6 @@
 package org.owasp.webscarab.plugin.saml;
 
 import java.util.logging.Logger;
-
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
@@ -68,6 +67,7 @@ public class Saml implements Plugin {
         return this.samlProxy;
     }
 
+    @Override
     public void analyse(ConversationID id, Request request, Response response,
             String origin) {
         String method = request.getMethod();
@@ -96,37 +96,46 @@ public class Saml implements Plugin {
         }
     }
 
+    @Override
     public void flush() throws StoreException {
     }
 
+    @Override
     public String getPluginName() {
         return "SAML";
     }
 
+    @Override
     public Object getScriptableObject() {
         return null;
     }
 
+    @Override
     public Hook[] getScriptingHooks() {
         return new Hook[0];
     }
 
+    @Override
     public String getStatus() {
         return this._model.getStatus();
     }
 
+    @Override
     public boolean isBusy() {
         return this._model.isBusy();
     }
 
+    @Override
     public boolean isModified() {
         return this._model.isModified();
     }
 
+    @Override
     public boolean isRunning() {
         return this._model.isRunning();
     }
 
+    @Override
     public void run() {
         _model.setStatus("Started");
 
@@ -144,10 +153,12 @@ public class Saml implements Plugin {
         _model.setStatus("Stopped");
     }
 
+    @Override
     public void setSession(String type, Object store, String session)
             throws StoreException {
     }
 
+    @Override
     public boolean stop() {
         _model.setStopping(true);
         try {

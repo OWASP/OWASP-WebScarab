@@ -33,8 +33,8 @@
 
 package org.owasp.webscarab.plugin.saml;
 
-import java.beans.PropertyChangeSupport;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStore.PrivateKeyEntry;
@@ -56,6 +56,7 @@ public class SamlCertificateRepository extends AbstractCertificateRepository {
     
     private PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
     
+    @Override
     public void unlockKey(int keystoreIndex, int aliasIndex, String keyPassword) throws KeyStoreException, KeyManagementException {
         String fingerprint = getFingerPrint(getCertificate(keystoreIndex, aliasIndex));
         this.propertyChangeSupport.firePropertyChange(SELECTED_KEY, null, fingerprint);

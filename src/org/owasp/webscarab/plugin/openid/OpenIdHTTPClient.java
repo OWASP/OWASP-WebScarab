@@ -54,6 +54,7 @@ public class OpenIdHTTPClient implements HTTPClient {
         this.openIdProxyConfig = openIdProxyConfig;
     }
 
+    @Override
     public Response fetchResponse(Request request) throws IOException {
         if (false == this.openIdProxyConfig.doSomething()) {
             Response response = this.httpClient.fetchResponse(request);
@@ -152,7 +153,6 @@ public class OpenIdHTTPClient implements HTTPClient {
                 setNewUrl(httpUrl, values, additionalParameters, request);
             } catch (MalformedURLException ex) {
                 Logger.getLogger(OpenIdHTTPClient.class.getName()).log(Level.SEVERE, null, ex);
-                return;
             }
         } else {
             // POST
@@ -186,7 +186,7 @@ public class OpenIdHTTPClient implements HTTPClient {
     }
 
     private void updateRequestPostParameters(NamedValue[] values, List additionalParameters, Request request) {
-        StringBuffer stringBuffer = new StringBuffer();
+        StringBuilder stringBuffer = new StringBuilder();
         for (int i = 0; i < values.length; i++) {
             if (null == values[i]) {
                 continue;
@@ -219,7 +219,7 @@ public class OpenIdHTTPClient implements HTTPClient {
     }
 
     private void setNewUrl(HttpUrl httpUrl, NamedValue[] values, List additionalAttributes, Request request) throws MalformedURLException {
-        StringBuffer stringBuffer = new StringBuffer("?");
+        StringBuilder stringBuffer = new StringBuilder("?");
         for (int i = 0; i < values.length; i++) {
             if (null == values[i]) {
                 continue;
