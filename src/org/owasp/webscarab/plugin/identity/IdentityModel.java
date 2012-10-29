@@ -37,6 +37,13 @@ public class IdentityModel extends AbstractPluginModel {
 		
 	}
 	
+	public void removeTransitions() {
+		transitions.clear();
+		cache.clear();
+		identities.clear();
+		conversations.clear();
+	}
+	
 	public void addTransition(Transition transition) {
 		Map<String, SortedMap<ConversationID, Transition>> values = transitions
 				.get(transition.getTokenName());

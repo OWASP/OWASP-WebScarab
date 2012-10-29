@@ -1,8 +1,6 @@
 package org.owasp.webscarab.plugin.identity;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Iterator;
@@ -10,10 +8,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedMap;
 
-import javax.swing.SwingUtilities;
-
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.ConversationModel;
+import org.owasp.webscarab.model.FrameworkModel;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
@@ -22,10 +19,6 @@ import org.owasp.webscarab.model.StoreException;
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.Hook;
 import org.owasp.webscarab.plugin.Plugin;
-import org.owasp.webscarab.plugin.identity.swing.IdentityPanel;
-import org.owasp.webscarab.plugin.proxy.Proxy;
-import org.owasp.webscarab.plugin.proxy.swing.ProxyPanel;
-import org.owasp.webscarab.ui.swing.UIFramework;
 import org.owasp.webscarab.util.RFC2822;
 
 public class Identity implements Plugin {
@@ -44,6 +37,10 @@ public class Identity implements Plugin {
 		return framework;
 	}
 
+	public void removeTransitions() {
+		model.removeTransitions();
+	}
+	
 	public void addTransition(ConversationID conversation, String tokenName,
 			String tokenValue, String identity) {
 		Date date = getConversationDate(conversation);
@@ -161,6 +158,40 @@ public class Identity implements Plugin {
 	@Override
 	public void run() {
 		model.setRunning(true);
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException ie) {}
+		FrameworkModel fm = framework.getModel();
+		ConversationModel cm = fm.getConversationModel();
+		int c = cm.getConversationCount();
+		for (int i=0; i < c; i++) {
+			ConversationID cid = cm.getConversationAt(i);
+			Request req = cm.getRequest(cid);
+			HttpUrl url = req.getURL();
+			List<NamedValue> tokens = getRequestTokens(req);
+			if (url.toString().endsWith("logout.php")) {
+				String sessid = tokens.get(0).getValue();
+				addTransition(cid, "PHPSESSID", sessid, null);
+			} else if (req.getMethod().equals("POST") && url.toString().endsWith("login.php")) {
+				String sessid = null;
+				if (tokens.size() > 0)
+					sessid = tokens.get(0).getValue();
+				Response response = cm.getResponse(cid);
+				if (response.getStatus().equals("302")) {
+					String who = null;
+					tokens = getResponseTokens(response);
+					if (tokens.size() > 0)
+						sessid = tokens.get(0).getValue();
+					String content = new String(req.getContent());
+					NamedValue[] params = NamedValue.splitNamedValues(content, "&", "=");
+					for (int j = 0; j<params.length; j++)
+						if (params[j].getName().equals("user"))
+							who = params[j].getValue();
+					addTransition(cid, "PHPSESSID", sessid, who);
+				}
+			}
+			
+		}
 	}
 
 	@Override
@@ -213,147 +244,4 @@ public class Identity implements Plugin {
 	}
 
 	private static Identity identity;
-
-	public static void main(String[] args) throws Exception {
-		final Framework framework = new Framework();
-
-		final UIFramework uif = new UIFramework(framework);
-
-		loadAllPlugins(framework, uif);
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				public void run() {
-					uif.setVisible(true);
-					uif.toFront();
-					uif.requestFocus();
-				}
-			});
-		} catch (Exception e) {
-			System.err.println("Error loading GUI: " + e.getMessage());
-			e.printStackTrace();
-			System.exit(1);
-		}
-		new Thread() {
-			public void run() {
-				try {
-					BufferedReader br = new BufferedReader(
-							new InputStreamReader(System.in));
-					System.out.println("Press Enter to add conversations");
-					br.read();
-					addConversations1(framework);
-					System.out.println("Press Enter to add an identity");
-					br.read();
-					System.out.println("Adding identity to 2");
-					addIdentity(framework);
-					System.out.println("Press Enter to continue");
-					br.read();
-					System.out.println("Remove identity from 4");
-					removeIdentity(framework);
-					System.out.println("Press Enter to continue");
-					br.read();
-					addConversation3(framework);
-					System.out.println("Press Enter to exit");
-					br.read();
-					System.exit(0);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}.start();
-		uif.run();
-		System.exit(0);
-	}
-
-	public static void loadAllPlugins(Framework framework, UIFramework uif) {
-		Proxy proxy = new Proxy(framework);
-		framework.addPlugin(proxy);
-		ProxyPanel proxyPanel = new ProxyPanel(proxy);
-		uif.addPlugin(proxyPanel);
-
-		identity = new Identity(framework);
-		framework.addPlugin(identity);
-		IdentityPanel identityPanel = new IdentityPanel(identity);
-		uif.addPlugin(identityPanel);
-	}
-
-	private static void addConversations1(Framework f) throws Exception {
-		Request req = new Request();
-		req.setMethod("GET");
-		req.setURL(new HttpUrl("http://localhost/"));
-		req.setVersion("HTTP/1.0");
-
-		Response resp = new Response();
-		resp.setVersion("HTTP/1.0");
-		resp.setStatus("302");
-		resp.setMessage("Moved");
-		resp.setHeader("Location", "/auth?userid=joe");
-
-		f.addConversation(new ConversationID(1), req, resp, "Identity");
-
-		req = new Request();
-		req.setMethod("GET");
-		req.setURL(new HttpUrl("http://localhost/auth?userid=joe"));
-		req.setVersion("HTTP/1.0");
-
-		resp = new Response();
-		resp.setVersion("HTTP/1.0");
-		resp.setStatus("200");
-		resp.setMessage("Ok");
-		resp.setHeader("Set-Cookie", "session=abc");
-
-		f.addConversation(new ConversationID(2), req, resp, "Identity");
-
-		req = new Request();
-		req.setMethod("GET");
-		req.setURL(new HttpUrl("http://localhost/index"));
-		req.setVersion("HTTP/1.0");
-		req.setHeader("Cookie", "session=abc");
-
-		resp = new Response();
-		resp.setVersion("HTTP/1.0");
-		resp.setStatus("200");
-		resp.setMessage("Ok");
-
-		f.addConversation(new ConversationID(3), req, resp, "Identity");
-
-		req = new Request();
-		req.setMethod("GET");
-		req.setURL(new HttpUrl("http://localhost/logout"));
-		req.setVersion("HTTP/1.0");
-		req.setHeader("Cookie", "session=abc");
-
-		resp = new Response();
-		resp.setVersion("HTTP/1.0");
-		resp.setStatus("200");
-		resp.setMessage("Ok");
-
-		f.addConversation(new ConversationID(4), req, resp, "Identity");
-
-		req = new Request();
-		req.setMethod("GET");
-		req.setURL(new HttpUrl("http://localhost/index"));
-		req.setVersion("HTTP/1.0");
-		req.setHeader("Cookie", "session=abc");
-
-		resp = new Response();
-		resp.setVersion("HTTP/1.0");
-		resp.setStatus("200");
-		resp.setMessage("Ok");
-
-		f.addConversation(new ConversationID(5), req, resp, "Identity");
-}
-
-	private static void addIdentity(Framework f) throws Exception {
-		identity.addTransition(new ConversationID(2), "session", "abc", "joe");
-		
-	}
-
-	private static void removeIdentity(Framework f) throws Exception {
-		identity.addTransition(new ConversationID(4), "session", "abc", null);
-		
-	}
-
-	private static void addConversation3(Framework f) throws Exception {
-
-	}
 }
