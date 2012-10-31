@@ -61,6 +61,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private String attributeName;
     private String attributeValue;
     private boolean injectSubject;
+    private Occurences subjectOccurences;
     private String subject;
     private boolean injectPublicDoctype;
     private String dtdUri;
@@ -69,6 +70,11 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private String relayState;
     private boolean signSamlMessage;
     private KeyStore.PrivateKeyEntry privateKeyEntry;
+    private boolean signWrapAttack;
+    private Wrapper wrapper;
+    private boolean renameTopId;
+    private boolean removeAssertionSignature;
+    
     private EventListenerList _listenerList = new EventListenerList();
     private SamlModel samlModel;
 
@@ -224,7 +230,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private void updateAttackState() {
         this.attack = this.corruptSignature | this.injectAttribute | this.injectRemoteReference
                 | this.injectSubject | this.removeSignature | this.replay | this.injectPublicDoctype |
-                this.injectRelayState | this.signSamlMessage;
+                this.injectRelayState | this.signSamlMessage | this.signWrapAttack | this.removeAssertionSignature;
     }
 
     public void setInjectPublicDoctype(boolean injectPublicDoctype) {
@@ -282,5 +288,58 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     
     public void setPrivateKeyEntry(PrivateKeyEntry privateKeyEntry) {
         this.privateKeyEntry = privateKeyEntry;
+    }
+
+    public void setSignWrapAttack(boolean signWrapAttack) {
+        this.signWrapAttack = signWrapAttack;
+        updateAttackState();
+    }
+
+    @Override
+    public boolean doSignWrapAttack() {
+        return this.signWrapAttack;
+    }
+
+    public void setSubjectOccurences(Occurences occurences) {
+        this.subjectOccurences = occurences;
+    }
+
+    @Override
+    public Occurences getSubjectOccurences() {
+        if (null == this.subjectOccurences) {
+            return Occurences.ALL;
+        }
+        return this.subjectOccurences;
+    }
+
+    public void setRenameTopId(boolean renameTopId) {
+        this.renameTopId = renameTopId;
+    }
+
+    @Override
+    public boolean doRenameTopId() {
+        return this.renameTopId;
+    }
+
+    public void setRemoveAssertionSignature(boolean removeAssertionSignature) {
+        this.removeAssertionSignature = removeAssertionSignature;
+        updateAttackState();
+    }
+
+    @Override
+    public boolean doRemoveAssertionSignature() {
+        return this.removeAssertionSignature;
+    }
+
+    public void setWrapper(Wrapper wrapper) {
+        this.wrapper = wrapper;
+    }
+
+    @Override
+    public Wrapper getWrapper() {
+        if (null == this.wrapper) {
+            return Wrapper.DS_OBJECT;
+        }
+        return this.wrapper;
     }
 }

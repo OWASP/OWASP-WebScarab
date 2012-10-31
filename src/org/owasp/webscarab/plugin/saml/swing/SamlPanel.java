@@ -1,32 +1,32 @@
-/***********************************************************************
+/**
+ * *********************************************************************
  *
  * $CVSHeader$
  *
- * This file is part of WebScarab, an Open Web Application Security
- * Project utility. For details, please see http://www.owasp.org/
+ * This file is part of WebScarab, an Open Web Application Security Project
+ * utility. For details, please see http://www.owasp.org/
  *
- * Copyright (c) 2010 FedICT
- * Copyright (c) 2010 Frank Cornelis <info@frankcornelis.be>
+ * Copyright (c) 2010 FedICT Copyright (c) 2010 Frank Cornelis
+ * <info@frankcornelis.be>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA.
  *
- * Getting Source
- * ==============
+ * Getting Source ==============
  *
- * Source for this application is maintained at Sourceforge.net, a
- * repository for free software projects.
+ * Source for this application is maintained at Sourceforge.net, a repository
+ * for free software projects.
  *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
@@ -56,12 +56,14 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
+import org.owasp.webscarab.plugin.saml.Occurences;
 import org.owasp.webscarab.plugin.saml.Saml;
 import org.owasp.webscarab.plugin.saml.SamlCertificateRepository;
 import org.owasp.webscarab.plugin.saml.SamlModel;
 import org.owasp.webscarab.plugin.saml.SamlProxy;
 import org.owasp.webscarab.plugin.saml.SamlProxyListener;
 import org.owasp.webscarab.plugin.saml.SamlSignatureException;
+import org.owasp.webscarab.plugin.saml.Wrapper;
 import org.owasp.webscarab.ui.swing.CertificateManager;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
 import org.owasp.webscarab.ui.swing.ConversationTableModel;
@@ -80,16 +82,18 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
     private final Saml saml;
     private final SamlModel samlModel;
-
     private final ShowConversationAction showConversationAction;
     private final SamlReplayConversationAction samlReplayConversationAction;
     private final SamlExportConversationAction samlExportConversationAction;
+    private final OpenBrowserAction openBrowserAction;
     private final AttributesTableModel attributesTableModel;
     private final AttributesTableModel encryptedAttributesTableModel;
     private final SamlCertificateRepository samlCertificateRepository;
     private final CertificateManager certificateManager;
 
-    /** Creates new form SamlPanel */
+    /**
+     * Creates new form SamlPanel
+     */
     public SamlPanel(Saml saml) {
         this.saml = saml;
         this.samlModel = saml.getModel();
@@ -113,18 +117,19 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         this.samlPopupMenu.add(new JMenuItem(this.samlReplayConversationAction));
         this.samlExportConversationAction = new SamlExportConversationAction(this.saml.getModel());
         this.samlPopupMenu.add(new JMenuItem(this.samlExportConversationAction));
+        this.openBrowserAction = new OpenBrowserAction(this.saml.getModel());
+        this.samlPopupMenu.add(new JMenuItem(this.openBrowserAction));
 
         this.saml.getSamlProxy().addSamlProxyListener(this);
 
         this.attributesTableModel = new AttributesTableModel();
         this.attributesTable.setModel(this.attributesTableModel);
-        
+
         this.encryptedAttributesTableModel = new AttributesTableModel();
         this.encryptedAttributesTable.setModel(this.encryptedAttributesTableModel);
-        
+
         this.samlCertificateRepository = new SamlCertificateRepository();
         this.samlCertificateRepository.addPropertyChangeListener(new PropertyChangeListener() {
-
             @Override
             public void propertyChange(PropertyChangeEvent event) {
                 String propertyName = event.getPropertyName();
@@ -136,7 +141,6 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
                     SamlPanel.this.saml.getSamlProxy().setPrivateKeyEntry(privateKeyEntry);
                 }
             }
-            
         });
         this.certificateManager = new CertificateManager(this.samlCertificateRepository);
 
@@ -148,7 +152,6 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private void addTreeListeners() {
         this.certPathTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         this.certPathTree.addTreeSelectionListener(new TreeSelectionListener() {
-
             @Override
             public void valueChanged(TreeSelectionEvent e) {
                 Object node = SamlPanel.this.certPathTree.getLastSelectedPathComponent();
@@ -166,7 +169,6 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
     private void addTableListeners() {
         this.samlTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (e.getValueIsAdjusting()) {
@@ -193,11 +195,11 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
                 }
                 SamlPanel.this.samlReplayConversationAction.putValue("SAML-RESPONSE", samlResponseId);
                 SamlPanel.this.samlExportConversationAction.putValue("CONVERSATION", id);
+                SamlPanel.this.openBrowserAction.putValue("CONVERSATION", id);
             }
         });
 
         this.samlTable.addMouseListener(new MouseAdapter() {
-
             @Override
             public void mousePressed(MouseEvent e) {
                 maybeShowPopup(e);
@@ -319,16 +321,18 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         TreeUtil.expandAll(this.certPathTree, true);
     }
 
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
         samlPopupMenu = new javax.swing.JPopupMenu();
+        subjectButtonGroup = new javax.swing.ButtonGroup();
+        wrapperButtonGroup = new javax.swing.ButtonGroup();
         jSplitPane1 = new javax.swing.JSplitPane();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         rawPanel = new org.owasp.webscarab.ui.swing.editors.TextPanel();
@@ -394,6 +398,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel11 = new javax.swing.JPanel();
         corruptSignatureCheckBox = new javax.swing.JCheckBox();
         removeSignatureCheckBox = new javax.swing.JCheckBox();
+        removeAssertionSignatureCheckBox = new javax.swing.JCheckBox();
         jPanel13 = new javax.swing.JPanel();
         jPanel14 = new javax.swing.JPanel();
         injectRemoteReferenceCheckBox = new javax.swing.JCheckBox();
@@ -405,6 +410,14 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jLabel21 = new javax.swing.JLabel();
         selectKeyButton = new javax.swing.JButton();
         keyTextField = new javax.swing.JTextField();
+        jPanel30 = new javax.swing.JPanel();
+        jPanel32 = new javax.swing.JPanel();
+        signWrapAttackCheckBox = new javax.swing.JCheckBox();
+        jPanel34 = new javax.swing.JPanel();
+        dsObjectWrapperRadioButton = new javax.swing.JRadioButton();
+        samlpExtWrapperRadioButton = new javax.swing.JRadioButton();
+        jPanel33 = new javax.swing.JPanel();
+        renameIdCheckBox = new javax.swing.JCheckBox();
         jPanel19 = new javax.swing.JPanel();
         jPanel20 = new javax.swing.JPanel();
         jPanel15 = new javax.swing.JPanel();
@@ -419,6 +432,11 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         injectSubjectCheckBox = new javax.swing.JCheckBox();
         jLabel17 = new javax.swing.JLabel();
         injectionSubjectTextField = new javax.swing.JTextField();
+        jPanel31 = new javax.swing.JPanel();
+        allSubjectRadioButton = new javax.swing.JRadioButton();
+        firstSubjectRadioButton = new javax.swing.JRadioButton();
+        lastSubjectRadioButton = new javax.swing.JRadioButton();
+        jLabel23 = new javax.swing.JLabel();
         jPanel23 = new javax.swing.JPanel();
         jPanel24 = new javax.swing.JPanel();
         injectPublicDoctypeCheckBox = new javax.swing.JCheckBox();
@@ -673,7 +691,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 19, 0);
         aboutPanel.add(jLabel2, gridBagConstraints);
 
-        jLabel3.setText("Copyright (C) 2010-2011 FedICT");
+        jLabel3.setText("Copyright (C) 2010-2012 FedICT");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -742,6 +760,18 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel11.add(removeSignatureCheckBox, gridBagConstraints);
+
+        removeAssertionSignatureCheckBox.setText("Remove SAML Assertion Signature");
+        removeAssertionSignatureCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                removeAssertionSignatureCheckBoxItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel11.add(removeAssertionSignatureCheckBox, gridBagConstraints);
 
         jPanel7.add(jPanel11);
 
@@ -850,6 +880,69 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel6.add(jPanel10);
 
         jTabbedPane3.addTab("Signature Attacks", jPanel6);
+
+        jPanel30.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jPanel32.setLayout(new java.awt.GridBagLayout());
+
+        signWrapAttackCheckBox.setText("Signature Wrapping Attack");
+        signWrapAttackCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                signWrapAttackCheckBoxItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel32.add(signWrapAttackCheckBox, gridBagConstraints);
+
+        jPanel34.setBorder(javax.swing.BorderFactory.createTitledBorder("Wrapper Element"));
+        jPanel34.setLayout(new javax.swing.BoxLayout(jPanel34, javax.swing.BoxLayout.PAGE_AXIS));
+
+        wrapperButtonGroup.add(dsObjectWrapperRadioButton);
+        dsObjectWrapperRadioButton.setSelected(true);
+        dsObjectWrapperRadioButton.setText("ds:Object");
+        dsObjectWrapperRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                dsObjectWrapperRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel34.add(dsObjectWrapperRadioButton);
+
+        wrapperButtonGroup.add(samlpExtWrapperRadioButton);
+        samlpExtWrapperRadioButton.setText("samlp:Extensions");
+        samlpExtWrapperRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                samlpExtWrapperRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel34.add(samlpExtWrapperRadioButton);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        jPanel32.add(jPanel34, gridBagConstraints);
+
+        jPanel33.setBorder(javax.swing.BorderFactory.createTitledBorder("References Settings"));
+        jPanel33.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        renameIdCheckBox.setText("Rename top Response Id");
+        renameIdCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                renameIdCheckBoxItemStateChanged(evt);
+            }
+        });
+        jPanel33.add(renameIdCheckBox);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        jPanel32.add(jPanel33, gridBagConstraints);
+
+        jPanel30.add(jPanel32);
+
+        jTabbedPane3.addTab("Signature Wrapping Attacks", jPanel30);
 
         jPanel19.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
@@ -964,6 +1057,48 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         jPanel18.add(injectionSubjectTextField, gridBagConstraints);
+
+        jPanel31.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        subjectButtonGroup.add(allSubjectRadioButton);
+        allSubjectRadioButton.setSelected(true);
+        allSubjectRadioButton.setText("All");
+        allSubjectRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                allSubjectRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel31.add(allSubjectRadioButton);
+
+        subjectButtonGroup.add(firstSubjectRadioButton);
+        firstSubjectRadioButton.setText("First");
+        firstSubjectRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                firstSubjectRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel31.add(firstSubjectRadioButton);
+
+        subjectButtonGroup.add(lastSubjectRadioButton);
+        lastSubjectRadioButton.setText("Last");
+        lastSubjectRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                lastSubjectRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel31.add(lastSubjectRadioButton);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel18.add(jPanel31, gridBagConstraints);
+
+        jLabel23.setText("Occurences:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        jPanel18.add(jLabel23, gridBagConstraints);
 
         jPanel17.add(jPanel18);
 
@@ -1111,7 +1246,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         jTabbedPane3.addTab("Replay Attacks", jPanel21);
 
-        jPanel1.add(jTabbedPane3, java.awt.BorderLayout.CENTER);
+        jPanel1.add(jTabbedPane3, java.awt.BorderLayout.PAGE_START);
 
         jSplitPane1.setLeftComponent(jPanel1);
 
@@ -1254,8 +1389,67 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         }
     }//GEN-LAST:event_decryptButtonActionPerformed
 
+    private void signWrapAttackCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_signWrapAttackCheckBoxItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean signWrapAttack = evt.getStateChange() == ItemEvent.SELECTED;
+        samlProxy.setSignWrapAttack(signWrapAttack);
+    }//GEN-LAST:event_signWrapAttackCheckBoxItemStateChanged
+
+    private void allSubjectRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_allSubjectRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean allOccurences = evt.getStateChange() == ItemEvent.SELECTED;
+        if (allOccurences) {
+            samlProxy.setSubjectOccurences(Occurences.ALL);
+        }
+    }//GEN-LAST:event_allSubjectRadioButtonItemStateChanged
+
+    private void firstSubjectRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_firstSubjectRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean firstOccurences = evt.getStateChange() == ItemEvent.SELECTED;
+        if (firstOccurences) {
+            samlProxy.setSubjectOccurences(Occurences.FIRST);
+        }
+    }//GEN-LAST:event_firstSubjectRadioButtonItemStateChanged
+
+    private void lastSubjectRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_lastSubjectRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean lastOccurences = evt.getStateChange() == ItemEvent.SELECTED;
+        if (lastOccurences) {
+            samlProxy.setSubjectOccurences(Occurences.LAST);
+        }
+    }//GEN-LAST:event_lastSubjectRadioButtonItemStateChanged
+
+    private void renameIdCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_renameIdCheckBoxItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean renameTopId = evt.getStateChange() == ItemEvent.SELECTED;
+        samlProxy.setRenameTopId(renameTopId);
+    }//GEN-LAST:event_renameIdCheckBoxItemStateChanged
+
+    private void removeAssertionSignatureCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_removeAssertionSignatureCheckBoxItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean removeAssertionSignature = evt.getStateChange() == ItemEvent.SELECTED;
+        samlProxy.setRemoveAssertionSignature(removeAssertionSignature);
+    }//GEN-LAST:event_removeAssertionSignatureCheckBoxItemStateChanged
+
+    private void dsObjectWrapperRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_dsObjectWrapperRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean dsObjectWrapper = evt.getStateChange() == ItemEvent.SELECTED;
+        if (dsObjectWrapper) {
+            samlProxy.setWrapper(Wrapper.DS_OBJECT);
+        }
+    }//GEN-LAST:event_dsObjectWrapperRadioButtonItemStateChanged
+
+    private void samlpExtWrapperRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_samlpExtWrapperRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean samlpExtWrapper = evt.getStateChange() == ItemEvent.SELECTED;
+        if (samlpExtWrapper) {
+            samlProxy.setWrapper(Wrapper.SAMLP_EXTENSIONS);
+        }
+    }//GEN-LAST:event_samlpExtWrapperRadioButtonItemStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel aboutPanel;
+    private javax.swing.JRadioButton allSubjectRadioButton;
     private javax.swing.JPanel analysisDataPanel;
     private javax.swing.JPanel analysisPanel;
     private javax.swing.JCheckBox assertionsDigestedCheckBox;
@@ -1270,9 +1464,11 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JCheckBox corruptSignatureCheckBox;
     private javax.swing.JButton decryptButton;
     private javax.swing.JCheckBox destinationIndicationCheckBox;
+    private javax.swing.JRadioButton dsObjectWrapperRadioButton;
     private javax.swing.JTextField dtdUriTextField;
     private javax.swing.JPanel encryptedAttributesPanel;
     private javax.swing.JTable encryptedAttributesTable;
+    private javax.swing.JRadioButton firstSubjectRadioButton;
     private javax.swing.JLabel htmlFormConversationIdLabel;
     private javax.swing.JPanel htmlFormPanel;
     private javax.swing.JCheckBox htmlFormSslCheckBox;
@@ -1300,6 +1496,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
+    private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -1330,6 +1527,11 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JPanel jPanel28;
     private javax.swing.JPanel jPanel29;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel30;
+    private javax.swing.JPanel jPanel31;
+    private javax.swing.JPanel jPanel32;
+    private javax.swing.JPanel jPanel33;
+    private javax.swing.JPanel jPanel34;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
@@ -1346,22 +1548,29 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JTabbedPane jTabbedPane3;
     private javax.swing.JTextField keyTextField;
+    private javax.swing.JRadioButton lastSubjectRadioButton;
     private org.owasp.webscarab.ui.swing.editors.TextPanel rawPanel;
     private org.owasp.webscarab.ui.swing.editors.TextPanel relayStatePanel;
     private javax.swing.JTextField relayStateTextField;
+    private javax.swing.JCheckBox removeAssertionSignatureCheckBox;
     private javax.swing.JCheckBox removeSignatureCheckBox;
+    private javax.swing.JCheckBox renameIdCheckBox;
     private javax.swing.JPopupMenu samlPopupMenu;
     private javax.swing.JCheckBox samlReplayCheckBox;
     private javax.swing.JLabel samlReplayLabel;
     private javax.swing.JTable samlTable;
     private javax.swing.JLabel samlVersionLabel;
+    private javax.swing.JRadioButton samlpExtWrapperRadioButton;
     private javax.swing.JButton selectKeyButton;
     private javax.swing.JCheckBox signCheckBox;
+    private javax.swing.JCheckBox signWrapAttackCheckBox;
     private javax.swing.JPanel signaturePanel;
     private javax.swing.JLabel signatureValidityLabel;
     private javax.swing.JCheckBox signedMessageCheckBox;
+    private javax.swing.ButtonGroup subjectButtonGroup;
     private org.owasp.webscarab.ui.swing.editors.TextPanel textPanel;
     private javax.swing.JCheckBox validityIntervalIndicationCheckBox;
+    private javax.swing.ButtonGroup wrapperButtonGroup;
     private org.owasp.webscarab.ui.swing.editors.XMLPanel xmlPanel;
     // End of variables declaration//GEN-END:variables
 

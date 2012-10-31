@@ -492,7 +492,7 @@ public class SamlModel extends AbstractPluginModel {
     private boolean isDigested(NodeList nodes, VerifyReference[] references) {
         for (int idx = 0; idx < nodes.getLength(); idx++) {
             Node node = nodes.item(idx);
-            this._logger.log(Level.FINE, "node name: {0}", node.getLocalName());
+            //this._logger.log(Level.FINE, "node name: {0}", node.getLocalName());
             boolean changed = false;
             if (node.getNodeType() == Node.TEXT_NODE) {
                 String originalTextValue = node.getNodeValue();
