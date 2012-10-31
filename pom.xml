@@ -17,6 +17,13 @@
                     <include>webscarab_logo.gif</include>
                 </includes>
             </resource>
+            <resource>
+                <directory>${basedir}/src/org/owasp/webscarab/plugin/scripted</directory>
+                <targetPath>org/owasp/webscarab/plugin/scripted</targetPath>
+                <includes>
+                    <include>script.bsh</include>
+                </includes>
+            </resource>
         </resources>
         <testSourceDirectory>test/java</testSourceDirectory>
         <testResources>
@@ -30,8 +37,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                  <source>1.6</source>
-                  <target>1.6</target>
+                    <source>1.6</source>
+                    <target>1.6</target>
                 </configuration>
             </plugin>
 
