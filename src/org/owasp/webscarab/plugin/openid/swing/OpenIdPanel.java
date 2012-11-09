@@ -26,7 +26,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
 import javax.swing.Action;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -34,7 +33,6 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
-
 import org.openid4java.association.Association;
 import org.openid4java.association.AssociationSessionType;
 import org.owasp.webscarab.model.ConversationID;
@@ -80,6 +78,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         ConversationTableModel openIdTableModel = new ConversationTableModel(
                 this.openIdModel.getOpenIDConversationModel());
         openIdTableModel.addColumn(new ColumnDataModel<ConversationID>("OpenID Type", String.class) {
+            @Override
             public Object getValue(ConversationID key) {
                 return OpenIdPanel.this.openIdModel.getReadableOpenIDMessageType(key);
             }
@@ -108,6 +107,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
     private void addTableListeners() {
         this.openIdTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
+            @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (e.getValueIsAdjusting()) {
                     return;
@@ -130,10 +130,12 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         });
         this.openIdTable.addMouseListener(new MouseAdapter() {
 
+            @Override
             public void mousePressed(MouseEvent e) {
                 maybeShowPopup(e);
             }
 
+            @Override
             public void mouseReleased(MouseEvent e) {
                 maybeShowPopup(e);
             }
@@ -146,6 +148,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
                 }
             }
 
+            @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
                     ActionEvent actionEvent = new ActionEvent(OpenIdPanel.this.openIdTable, 0, (String) OpenIdPanel.this.showConversationAction.getValue(Action.ACTION_COMMAND_KEY));
@@ -155,26 +158,32 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         });
     }
 
+    @Override
     public JPanel getPanel() {
         return this;
     }
 
+    @Override
     public Action[] getUrlActions() {
         return null;
     }
 
+    @Override
     public ColumnDataModel<HttpUrl>[] getUrlColumns() {
         return null;
     }
 
+    @Override
     public Action[] getConversationActions() {
         return null;
     }
 
+    @Override
     public ColumnDataModel<ConversationID>[] getConversationColumns() {
         return null;
     }
 
+    @Override
     public String getPluginName() {
         return this.openId.getPluginName();
     }
@@ -788,6 +797,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
         this.associationRequestButton.setEnabled(false);
         new SwingWorker() {
 
+            @Override
             public Object construct() {
                 try {
                     return OpenIdPanel.this.openIdModel.establishAssociation(opUrl, associationSessionType);
@@ -796,6 +806,7 @@ public class OpenIdPanel extends JPanel implements SwingPluginUI {
                 }
             }
 
+            @Override
             public void finished() {
                 OpenIdPanel.this.associationRequestButton.setEnabled(true);
                 Object obj = getValue();

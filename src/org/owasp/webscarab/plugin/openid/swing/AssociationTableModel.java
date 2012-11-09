@@ -53,14 +53,17 @@ public class AssociationTableModel extends AbstractTableModel {
         return this.associations.size() - 1;
     }
 
+    @Override
     public int getRowCount() {
         return this.associations.size();
     }
 
+    @Override
     public int getColumnCount() {
         return columnNames.length;
     }
 
+    @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         if (rowIndex >= this.associations.size()) {
             return null;
@@ -78,6 +81,7 @@ public class AssociationTableModel extends AbstractTableModel {
         }
     }
 
+    @Override
     public String getColumnName(int column) {
         return columnNames[column];
     }

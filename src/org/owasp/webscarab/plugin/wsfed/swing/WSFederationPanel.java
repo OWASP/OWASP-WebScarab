@@ -39,13 +39,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
-
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.NamedValue;
@@ -83,6 +81,7 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         ConversationTableModel wsfedTableModel = new ConversationTableModel(
                 this.wsfedModel.getConversationModel());
         wsfedTableModel.addColumn(new ColumnDataModel<ConversationID>("WS-Federation", String.class) {
+            @Override
             public Object getValue(ConversationID key) {
                 return WSFederationPanel.this.wsfedModel.getReadableMessageType(key);
             }
@@ -102,6 +101,7 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
     private void addTableListeners() {
         this.conversationsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
+            @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (e.getValueIsAdjusting()) {
                     return;
@@ -122,10 +122,12 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
         });
         this.conversationsTable.addMouseListener(new MouseAdapter() {
 
+            @Override
             public void mousePressed(MouseEvent e) {
                 maybeShowPopup(e);
             }
 
+            @Override
             public void mouseReleased(MouseEvent e) {
                 maybeShowPopup(e);
             }
@@ -138,6 +140,7 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
                 }
             }
 
+            @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
                     ActionEvent actionEvent = new ActionEvent(WSFederationPanel.this.conversationsTable, 0, (String) WSFederationPanel.this.showConversationAction.getValue(Action.ACTION_COMMAND_KEY));
@@ -283,26 +286,32 @@ public class WSFederationPanel extends javax.swing.JPanel implements SwingPlugin
     private org.owasp.webscarab.ui.swing.editors.XMLPanel xmlPanel;
     // End of variables declaration//GEN-END:variables
 
+    @Override
     public JPanel getPanel() {
         return this;
     }
 
+    @Override
     public Action[] getUrlActions() {
         return null;
     }
 
+    @Override
     public ColumnDataModel<HttpUrl>[] getUrlColumns() {
         return null;
     }
 
+    @Override
     public Action[] getConversationActions() {
         return null;
     }
 
+    @Override
     public ColumnDataModel<ConversationID>[] getConversationColumns() {
         return null;
     }
 
+    @Override
     public String getPluginName() {
         return this.wsfed.getPluginName();
     }

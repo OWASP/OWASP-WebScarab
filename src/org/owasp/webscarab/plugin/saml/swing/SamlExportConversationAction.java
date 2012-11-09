@@ -59,6 +59,7 @@ public class SamlExportConversationAction extends AbstractAction {
         putValue(SHORT_DESCRIPTION, "Exports the embedded SAML Message to a file");
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {
         Object o = getValue("CONVERSATION");
         if (o == null || !(o instanceof ConversationID)) {
@@ -83,10 +84,9 @@ public class SamlExportConversationAction extends AbstractAction {
             }
         }
 
-        FileWriter fileWriter = null;
         String samlMessage = this.samlModel.getDecodedSAMLMessage(id);
         try {
-            fileWriter = new FileWriter(file);
+            FileWriter fileWriter = new FileWriter(file);
             fileWriter.write(samlMessage);
             fileWriter.flush();
             fileWriter.close();

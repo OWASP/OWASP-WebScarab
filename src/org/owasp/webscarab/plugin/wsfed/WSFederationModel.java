@@ -80,6 +80,7 @@ public class WSFederationModel extends AbstractPluginModel {
 
         this.wsfedConversationModel = new FilteredConversationModel(model, model.getConversationModel()) {
 
+            @Override
             public boolean shouldFilter(ConversationID id) {
                 return !isWSFederationMessage(id);
             }
