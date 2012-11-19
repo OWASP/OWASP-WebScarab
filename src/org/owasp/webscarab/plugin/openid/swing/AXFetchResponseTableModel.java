@@ -61,6 +61,7 @@ public class AXFetchResponseTableModel extends AbstractTableModel {
         return this.attributes.size() - 1;
     }
 
+    @Override
     public int getRowCount() {
         if (null == this.attributes) {
             return 0;
@@ -68,10 +69,12 @@ public class AXFetchResponseTableModel extends AbstractTableModel {
         return this.attributes.size();
     }
 
+    @Override
     public int getColumnCount() {
         return columnNames.length;
     }
 
+    @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         if (null == this.attributes) {
             return null;
@@ -94,6 +97,7 @@ public class AXFetchResponseTableModel extends AbstractTableModel {
         }
     }
 
+    @Override
     public String getColumnName(int column) {
         return columnNames[column];
     }

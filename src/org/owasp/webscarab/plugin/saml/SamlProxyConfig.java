@@ -61,6 +61,8 @@ public interface SamlProxyConfig {
     String getInjectionAttributeValue();
 
     boolean doInjectSubject();
+    
+    Occurences getSubjectOccurences();
 
     String getInjectionSubject();
 
@@ -77,4 +79,12 @@ public interface SamlProxyConfig {
     boolean doSignSamlMessage();
 
     public PrivateKeyEntry getPrivateKeyEntry();
+    
+    boolean doSignWrapAttack();
+    
+    Wrapper getWrapper();
+    
+    boolean doRenameTopId();
+    
+    boolean doRemoveAssertionSignature();
 }

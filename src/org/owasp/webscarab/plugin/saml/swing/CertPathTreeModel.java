@@ -54,25 +54,30 @@ public class CertPathTreeModel extends AbstractTreeModel {
         this.certificateChain = certificateChain;
     }
 
+    @Override
     public Object getRoot() {
         return new TreeNode(this.certificateChain.size() - 1);
     }
 
+    @Override
     public Object getChild(Object parent, int index) {
         TreeNode parentTreeNode = (TreeNode) parent;
         return parentTreeNode.getChild();
     }
 
+    @Override
     public int getChildCount(Object parent) {
         TreeNode parentTreeNode = (TreeNode) parent;
         return parentTreeNode.getChildCount();
     }
 
+    @Override
     public boolean isLeaf(Object node) {
         TreeNode treeNode = (TreeNode) node;
         return treeNode.isLeaf();
     }
 
+    @Override
     public void valueForPathChanged(TreePath path, Object newValue) {
         // no editing
     }
@@ -111,6 +116,7 @@ public class CertPathTreeModel extends AbstractTreeModel {
             return CertPathTreeModel.this.certificateChain.get(this.certificateIdx);
         }
 
+        @Override
         public String toString() {
             X509Certificate certificate = getCertificate();
             return certificate.getSubjectX500Principal().toString();

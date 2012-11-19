@@ -61,6 +61,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private String attributeName;
     private String attributeValue;
     private boolean injectSubject;
+    private Occurences subjectOccurences;
     private String subject;
     private boolean injectPublicDoctype;
     private String dtdUri;
@@ -69,13 +70,20 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private String relayState;
     private boolean signSamlMessage;
     private KeyStore.PrivateKeyEntry privateKeyEntry;
+    private boolean signWrapAttack;
+    private Wrapper wrapper;
+    private boolean renameTopId;
+    private boolean removeAssertionSignature;
+    
     private EventListenerList _listenerList = new EventListenerList();
     private SamlModel samlModel;
 
+    @Override
     public String getPluginName() {
         return "SAML Proxy";
     }
 
+    @Override
     public HTTPClient getProxyPlugin(HTTPClient in) {
         return new SamlHTTPClient(in, this);
     }
@@ -85,6 +93,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
         updateAttackState();
     }
 
+    @Override
     public boolean doCorruptSignature() {
         return this.corruptSignature;
     }
@@ -94,6 +103,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
         updateAttackState();
     }
 
+    @Override
     public boolean doRemoveSignature() {
         return this.removeSignature;
     }
@@ -108,6 +118,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
         updateAttackState();
     }
 
+    @Override
     public boolean doReplay() {
         return this.replay;
     }
@@ -136,6 +147,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
         }
     }
 
+    @Override
     public String getReplaySamlResponse() {
         return this.samlModel.getSAMLMessage(this.replayId);
     }
@@ -149,6 +161,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
         updateAttackState();
     }
 
+    @Override
     public boolean doInjectRemoteReference() {
         return this.injectRemoteReference;
     }
@@ -157,6 +170,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
         this.remoteReference = remoteReference;
     }
 
+    @Override
     public String getRemoteReference() {
         return this.remoteReference;
     }
@@ -174,14 +188,17 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
         this.attributeValue = attributeValue;
     }
 
+    @Override
     public boolean doInjectAttribute() {
         return this.injectAttribute;
     }
 
+    @Override
     public String getInjectionAttributeName() {
         return this.attributeName;
     }
 
+    @Override
     public String getInjectionAttributeValue() {
         return this.attributeValue;
     }
@@ -195,14 +212,17 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
         this.subject = injectionSubject;
     }
 
+    @Override
     public boolean doInjectSubject() {
         return this.injectSubject;
     }
 
+    @Override
     public String getInjectionSubject() {
         return this.subject;
     }
 
+    @Override
     public boolean doSomething() {
         return this.attack;
     }
@@ -210,7 +230,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private void updateAttackState() {
         this.attack = this.corruptSignature | this.injectAttribute | this.injectRemoteReference
                 | this.injectSubject | this.removeSignature | this.replay | this.injectPublicDoctype |
-                this.injectRelayState | this.signSamlMessage;
+                this.injectRelayState | this.signSamlMessage | this.signWrapAttack | this.removeAssertionSignature;
     }
 
     public void setInjectPublicDoctype(boolean injectPublicDoctype) {
@@ -222,10 +242,12 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
         this.dtdUri = dtdUri;
     }
 
+    @Override
     public boolean doInjectPublicDoctype() {
         return this.injectPublicDoctype;
     }
 
+    @Override
     public String getDtdUri() {
         return this.dtdUri;
     }
@@ -239,10 +261,12 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
         this.relayState = relayState;
     }
 
+    @Override
     public boolean doInjectRelayState() {
         return this.injectRelayState;
     }
 
+    @Override
     public String getRelayState() {
         return this.relayState;
     }
@@ -252,15 +276,70 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
         updateAttackState();
     }
 
+    @Override
     public boolean doSignSamlMessage() {
         return this.signSamlMessage;
     }
 
+    @Override
     public PrivateKeyEntry getPrivateKeyEntry() {
         return this.privateKeyEntry;
     }
     
     public void setPrivateKeyEntry(PrivateKeyEntry privateKeyEntry) {
         this.privateKeyEntry = privateKeyEntry;
+    }
+
+    public void setSignWrapAttack(boolean signWrapAttack) {
+        this.signWrapAttack = signWrapAttack;
+        updateAttackState();
+    }
+
+    @Override
+    public boolean doSignWrapAttack() {
+        return this.signWrapAttack;
+    }
+
+    public void setSubjectOccurences(Occurences occurences) {
+        this.subjectOccurences = occurences;
+    }
+
+    @Override
+    public Occurences getSubjectOccurences() {
+        if (null == this.subjectOccurences) {
+            return Occurences.ALL;
+        }
+        return this.subjectOccurences;
+    }
+
+    public void setRenameTopId(boolean renameTopId) {
+        this.renameTopId = renameTopId;
+    }
+
+    @Override
+    public boolean doRenameTopId() {
+        return this.renameTopId;
+    }
+
+    public void setRemoveAssertionSignature(boolean removeAssertionSignature) {
+        this.removeAssertionSignature = removeAssertionSignature;
+        updateAttackState();
+    }
+
+    @Override
+    public boolean doRemoveAssertionSignature() {
+        return this.removeAssertionSignature;
+    }
+
+    public void setWrapper(Wrapper wrapper) {
+        this.wrapper = wrapper;
+    }
+
+    @Override
+    public Wrapper getWrapper() {
+        if (null == this.wrapper) {
+            return Wrapper.DS_OBJECT;
+        }
+        return this.wrapper;
     }
 }
