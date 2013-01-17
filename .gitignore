@@ -5,3 +5,5 @@
 maven-eclipse.xml
 nbactions.xml
 target/
+build/
+dist/
