@@ -194,7 +194,7 @@
         </repository>
         <repository>
             <id>jboss</id>
-            <url>http://repository.jboss.org/maven2/</url>
+            <url>https://repository.jboss.org/nexus/content/groups/public/</url>
         </repository>
         <repository>
             <id>jahia</id>
