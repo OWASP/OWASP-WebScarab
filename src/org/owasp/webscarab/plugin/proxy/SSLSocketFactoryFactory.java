@@ -35,6 +35,8 @@ import org.owasp.webscarab.util.SunCertificateUtils;
 
 public class SSLSocketFactoryFactory {
 
+	/* set the date of issue to one month ago */
+	private static final long DEFAULT_AGE = 30L * 24L * 60L * 60L * 1000L;
 	private static final long DEFAULT_VALIDITY = 10L * 365L * 24L * 60L * 60L
 			* 1000L;
 
@@ -201,6 +203,7 @@ public class SSLSocketFactoryFactory {
 		caKey = caPair.getPrivate();
 		PublicKey caPubKey = caPair.getPublic();
 		Date begin = new Date();
+		begin.setTime(begin.getTime() - DEFAULT_AGE);
 		Date ends = new Date(begin.getTime() + DEFAULT_VALIDITY);
 
 		X509Certificate cert = SunCertificateUtils.sign(caName, caPubKey,
@@ -248,6 +251,7 @@ public class SSLSocketFactoryFactory {
 
 		X500Principal subject = getSubjectPrincipal(host);
 		Date begin = new Date();
+		begin.setTime(begin.getTime() - DEFAULT_AGE);
 		Date ends = new Date(begin.getTime() + DEFAULT_VALIDITY);
 
 		X509Certificate cert = SunCertificateUtils.sign(subject, keyPair
