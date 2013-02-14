@@ -478,7 +478,7 @@ public class Proxy implements Plugin {
 			ks.load(is, _keystorepass);
 			kmf = KeyManagerFactory.getInstance("X509");
 			kmf.init(ks, _keypassword);
-			sslcontext = SSLContext.getInstance("SSLv3");
+			sslcontext = SSLContext.getInstance("TLSv1");
 			sslcontext.init(kmf.getKeyManagers(), null, null);
 			return sslcontext.getSocketFactory();
 		} catch (IOException ioe) {

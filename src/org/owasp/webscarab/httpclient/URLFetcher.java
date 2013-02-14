@@ -421,7 +421,7 @@ public class URLFetcher implements HTTPClient {
             try {
                 SSLSocketFactory factory = sslContext.getSocketFactory();
                 SSLSocket sslsocket=(SSLSocket)factory.createSocket(_socket,_socket.getInetAddress().getHostName(),_socket.getPort(),true);
-                sslsocket.setEnabledProtocols(new String[] {"SSLv3"});
+                sslsocket.setEnabledProtocols(new String[] {"TLSv1"});
                 sslsocket.setUseClientMode(true);
                 _socket = sslsocket;
                 _socket.setSoTimeout(_timeout);
