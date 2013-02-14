@@ -221,7 +221,7 @@ public class URLFetcher implements HTTPClient {
             request.deleteHeader("Proxy-Authorization");
 
             _response = null;
-            connect(url);
+            connect(url, true);
             if (_response != null) { // there was an error opening the socket
                 return _response;
             }
@@ -345,7 +345,7 @@ public class URLFetcher implements HTTPClient {
         return _response;
     }
 
-    private void connect(HttpUrl url) throws IOException {
+    private void connect(HttpUrl url, boolean enableSNI) throws IOException {
         if (! invalidSocket(url)) return;
         _logger.fine("Opening a new connection");
         _socket = new Socket();
@@ -420,13 +420,30 @@ public class URLFetcher implements HTTPClient {
             // HTTPS port of the specified web server.
             try {
                 SSLSocketFactory factory = sslContext.getSocketFactory();
-                SSLSocket sslsocket=(SSLSocket)factory.createSocket(_socket,_socket.getInetAddress().getHostName(),_socket.getPort(),true);
-                sslsocket.setEnabledProtocols(new String[] {"SSLv3"});
+                // Empty host name avoids the SNI extension from being set
+                String hostname = "";
+                if (enableSNI) {
+                    hostname = _socket.getInetAddress().getHostName();
+                }
+                SSLSocket sslsocket = (SSLSocket) factory.createSocket(_socket, hostname, _socket.getPort(), true);
+                sslsocket.setEnabledProtocols(new String[] {"TLSv1"});
                 sslsocket.setUseClientMode(true);
                 _socket = sslsocket;
                 _socket.setSoTimeout(_timeout);
             } catch (IOException ioe) {
                 _logger.severe("Error layering SSL over the existing socket: " + ioe);
+                throw ioe;
+            }
+            try {
+                ((SSLSocket) _socket).startHandshake();
+            } catch (IOException ioe) {
+                // Workaround for Java inability to continue on ignored SNI
+                if (enableSNI && ioe.getMessage().equals("handshake alert:  unrecognized_name")) {
+                    _logger.fine("Server received saw wrong SNI host, retrying without SNI");
+                    connect(url, false);
+                    return;
+                }
+                _logger.severe("Error during SSL handshake: " + ioe);
                 throw ioe;
             }
             _logger.fine("Finished negotiating SSL");

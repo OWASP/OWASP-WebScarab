@@ -147,7 +147,7 @@ public class SSLSocketFactoryFactory {
 			} else {
 				km = loadKeyMaterial(host);
 			}
-			sslcontext = SSLContext.getInstance("SSLv3");
+			sslcontext = SSLContext.getInstance("TLSv1");
 			sslcontext.init(new KeyManager[] { km }, null, null);
 			contextCache.put(host, sslcontext);
 		}
