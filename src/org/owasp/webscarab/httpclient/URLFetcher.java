@@ -429,6 +429,12 @@ public class URLFetcher implements HTTPClient {
                 _logger.severe("Error layering SSL over the existing socket: " + ioe);
                 throw ioe;
             }
+            try {
+                ((SSLSocket) _socket).startHandshake();
+            } catch (IOException ioe) {
+                _logger.severe("Error during SSL handshake: " + ioe);
+                throw ioe;
+            }
             _logger.fine("Finished negotiating SSL");
         }
         _in = _socket.getInputStream();
