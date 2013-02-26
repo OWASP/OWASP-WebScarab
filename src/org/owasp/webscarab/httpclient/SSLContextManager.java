@@ -36,13 +36,7 @@ public class SSLContextManager extends AbstractCertificateRepository {
     private SSLContext _noClientCertContext;
     
     private static TrustManager[] _trustAllCerts = new TrustManager[] {
-        new X509TrustManager() {
-            public X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
-            public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-            public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-        }
+        new ClientTrustManager()
     };
     
     /** Creates a new instance of SSLContextManager */
