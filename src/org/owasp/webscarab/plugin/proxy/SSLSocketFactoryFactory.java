@@ -30,6 +30,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509KeyManager;
 import javax.security.auth.x500.X500Principal;
+import org.bouncycastle.cert.CertIOException;
+import org.bouncycastle.operator.OperatorCreationException;
 
 import org.owasp.webscarab.util.SunCertificateUtils;
 
@@ -76,18 +78,18 @@ public class SSLSocketFactoryFactory {
 	private Set<BigInteger> serials = new HashSet<BigInteger>();
 
 	public SSLSocketFactoryFactory() throws GeneralSecurityException,
-			IOException {
+			IOException, OperatorCreationException {
 		this(null, "JKS", "password".toCharArray());
 	}
 
 	public SSLSocketFactoryFactory(String filename, String type, char[] password)
-			throws GeneralSecurityException, IOException {
+			throws GeneralSecurityException, IOException, OperatorCreationException {
 		this(filename, type, password, CA_NAME);
 	}
 
 	public SSLSocketFactoryFactory(String filename, String type,
 			char[] password, X500Principal caName)
-			throws GeneralSecurityException, IOException {
+			throws GeneralSecurityException, IOException, OperatorCreationException {
 		this.filename = filename;
 		this.password = password;
 		keystore = KeyStore.getInstance(type);
@@ -138,7 +140,8 @@ public class SSLSocketFactoryFactory {
 	 * .String, int)
 	 */
 	public synchronized SSLSocketFactory getSocketFactory(String host)
-			throws IOException, GeneralSecurityException {
+			throws IOException, GeneralSecurityException,
+                        OperatorCreationException {
 		SSLContext sslcontext = contextCache.get(host);
 		if (sslcontext == null) {
 			X509KeyManager km;
@@ -162,7 +165,8 @@ public class SSLSocketFactoryFactory {
 		return certs;
 	}
 	
-	private X509KeyManager loadKeyMaterial(String host) throws GeneralSecurityException, IOException {
+	private X509KeyManager loadKeyMaterial(String host)
+                throws GeneralSecurityException, IOException {
 		X509Certificate[] certs = null;
 		Certificate[] chain = keystore.getCertificateChain(host);
 		if (chain != null) {
@@ -196,7 +200,8 @@ public class SSLSocketFactoryFactory {
 	}
 
 	private void generateCA(X500Principal caName)
-			throws GeneralSecurityException, IOException {
+			throws GeneralSecurityException, IOException,
+                        OperatorCreationException {
 		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
 		keyGen.initialize(1024);
 		KeyPair caPair = keyGen.generateKeyPair();
@@ -238,7 +243,7 @@ public class SSLSocketFactoryFactory {
 	}
 
 	private X509KeyManager createKeyMaterial(String host)
-			throws GeneralSecurityException {
+			throws GeneralSecurityException, IOException, OperatorCreationException {
 		KeyPair keyPair;
 
 		if (reuseKeys) {
