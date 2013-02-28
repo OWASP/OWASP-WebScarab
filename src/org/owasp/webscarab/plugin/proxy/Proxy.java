@@ -53,6 +53,7 @@ import java.util.logging.Logger;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
+import org.bouncycastle.operator.OperatorCreationException;
 
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
@@ -130,7 +131,9 @@ public class Proxy implements Plugin {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} catch (OperatorCreationException e) {
+			e.printStackTrace();
+                }
 	}
 
 	public Hook[] getScriptingHooks() {
@@ -503,7 +506,10 @@ public class Proxy implements Plugin {
 		} catch (GeneralSecurityException gse) {
 			_logger.info("Error generating custom SSL keystore for " + host
 					+ ": " + gse);
-		}
+		} catch (OperatorCreationException oce) {
+			_logger.info("Error generating custom SSL keystore for " + host
+					+ ": " + oce);
+                }
 		return null;
 	}
 
