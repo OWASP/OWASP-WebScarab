@@ -68,7 +68,22 @@ public class HttpUrl implements Comparable<HttpUrl> {
         parseUrl(url);
         _hashcode = this.toString().hashCode();
     }
-    
+
+    /**
+     * Creates an HttpURL based on the supplied host part and the supplied HttpUrl.
+     * @param host New host name for the URL, it must not contain a port
+     * @param url An existing base URL
+     * @throws MalformedURLException if the URL is malformed
+     */
+    public HttpUrl(String host, HttpUrl url) throws MalformedURLException {
+        url.toString();
+        StringBuffer buff = new StringBuffer();
+        buff.append(url.getScheme()).append("://");
+        buff.append(host).append(":").append(url.getPort());
+        parseUrl(url.direct(buff).toString());
+        _hashcode = this.toString().hashCode();
+    }
+
     /**
      * Creates a new url, basing the supplied relative path against the supplied HttpUrl
      * @param url the existing base url

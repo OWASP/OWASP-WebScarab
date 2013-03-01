@@ -141,6 +141,19 @@ public class ConnectionHandler implements Runnable {
 			if (_base != null) {
 				if (_base.getScheme().equals("https")) {
 					_logger.fine("Intercepting SSL connection!");
+					_sock = new WireSocket(_sock);
+					SNIInputStream sis = ((WireSocket) _sock).getInputStream();
+					String sniHostName = null;
+					if (sis.readRecord() == 0) {
+						sniHostName = sis.getHostName();
+						if (sniHostName != null) {
+							_logger.fine("Using SNI host name " + sniHostName
+								+ " instead of " + _base.getHost());
+							_base = new HttpUrl(sniHostName, _base);
+						}
+					} else {
+						_logger.warning("Failed to read ClientHello");
+					}
 					_sock = negotiateSSL(_sock, _base.getHost());
 					_clientIn = _sock.getInputStream();
 					_clientOut = _sock.getOutputStream();
