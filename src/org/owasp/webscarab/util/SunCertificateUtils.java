@@ -67,8 +67,13 @@ public class SunCertificateUtils {
 
     public static X509Certificate sign(X500Principal subject, PublicKey pubKey,
             X500Principal issuer, PublicKey caPubKey, PrivateKey caKey,
-            Date begin, Date ends, BigInteger serialNo)
+            Date begin, Date ends, BigInteger serialNo,
+            X509Certificate baseCrt)
             throws GeneralSecurityException, CertIOException, OperatorCreationException, IOException {
+
+        if (baseCrt != null) {
+            subject = baseCrt.getSubjectX500Principal();
+        }
 
         JcaX509v3CertificateBuilder certificateBuilder;
         certificateBuilder = new JcaX509v3CertificateBuilder(issuer, serialNo,
@@ -80,6 +85,14 @@ public class SunCertificateUtils {
                     new BasicConstraints(5));
         } else {
             JcaX509ExtensionUtils jxeu = new JcaX509ExtensionUtils();
+
+            if (baseCrt != null) {
+                byte[] sans = baseCrt.getExtensionValue(X509Extension.subjectAlternativeName.getId());
+                if (sans != null) {
+                    certificateBuilder.copyAndAddExtension(X509Extension.subjectAlternativeName, true, baseCrt);
+                }
+            }
+
             SubjectKeyIdentifier subjectKeyIdentifier = jxeu.createSubjectKeyIdentifier(pubKey);
             certificateBuilder.addExtension(
                     X509Extension.subjectKeyIdentifier, false, subjectKeyIdentifier);

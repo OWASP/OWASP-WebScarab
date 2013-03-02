@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.security.cert.X509Certificate;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLSocket;
@@ -45,6 +46,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
+import org.owasp.webscarab.httpclient.URLFetcher;
 import org.owasp.webscarab.model.ConversationID;
 import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.Request;
@@ -136,9 +138,22 @@ public class ConnectionHandler implements Runnable {
 					request = null;
 				}
 			}
+
+			if (_httpClient == null)
+				_httpClient = HTTPClientFactory.getInstance().getHTTPClient();
+
+			HTTPClient hc = _httpClient;
+
 			// if we are servicing a CONNECT, or operating as a reverse
 			// proxy with an https:// base URL, negotiate SSL
 			if (_base != null) {
+				// There are two certificates involved in a connection: one for the
+				// requested server, one for the client. First, the actual host must
+				// be determined from the client (SNI). Next, that host name must be
+				// taken to the server so it can return an appropriate certificate.
+				// Finally, the attributes from that server cert (mainly Subject and
+				// subjectAlternateName) can be copied back to the certificate
+				// presented to the client.
 				if (_base.getScheme().equals("https")) {
 					_logger.fine("Intercepting SSL connection!");
 					_sock = new WireSocket(_sock);
@@ -154,16 +169,22 @@ public class ConnectionHandler implements Runnable {
 					} else {
 						_logger.warning("Failed to read ClientHello");
 					}
-					_sock = negotiateSSL(_sock, _base.getHost());
+					X509Certificate baseCrt = null;
+					// Connect early so some SSL details can be copied into new cert
+					URLFetcher uf = (URLFetcher) hc;
+					try {
+						uf.connect(_base);
+					} catch (IOException ioe) {
+						_logger.severe("Could not connect to remote server "
+								+ _base.toString() + ": " + ioe);
+						return;
+					}
+					baseCrt = uf.getCertificate();
+					_sock = negotiateSSL(_sock, _base.getHost(), baseCrt);
 					_clientIn = _sock.getInputStream();
 					_clientOut = _sock.getOutputStream();
 				}
 			}
-
-			if (_httpClient == null)
-				_httpClient = HTTPClientFactory.getInstance().getHTTPClient();
-
-			HTTPClient hc = _httpClient;
 
 			// Maybe set SSL ProxyAuthorization here at a connection level?
 			// I prefer it in the Request itself, since it gets archived, and
@@ -323,8 +344,9 @@ public class ConnectionHandler implements Runnable {
 	}
 
 
-	private Socket negotiateSSL(Socket sock, String host) throws Exception {
-		SSLSocketFactory factory = _proxy.getSocketFactory(host);
+	private Socket negotiateSSL(Socket sock, String host,
+			X509Certificate baseCrt) throws Exception {
+		SSLSocketFactory factory = _proxy.getSocketFactory(host, baseCrt);
 		if (factory == null)
 			throw new RuntimeException(
 					"SSL Intercept not available - no keystores available");
