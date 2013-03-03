@@ -17,10 +17,12 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -139,14 +141,15 @@ public class SSLSocketFactoryFactory {
 	 * org.owasp.proxy.daemon.CertificateProvider#getSocketFactory(java.lang
 	 * .String, int)
 	 */
-	public synchronized SSLSocketFactory getSocketFactory(String host)
+	public synchronized SSLSocketFactory getSocketFactory(String host,
+		X509Certificate baseCrt)
 			throws IOException, GeneralSecurityException,
                         OperatorCreationException {
 		SSLContext sslcontext = contextCache.get(host);
 		if (sslcontext == null) {
 			X509KeyManager km;
 			if (!keystore.containsAlias(host)) {
-				km = createKeyMaterial(host);
+				km = createKeyMaterial(host, baseCrt);
 			} else {
 				km = loadKeyMaterial(host);
 			}
@@ -212,7 +215,8 @@ public class SSLSocketFactoryFactory {
 		Date ends = new Date(begin.getTime() + DEFAULT_VALIDITY);
 
 		X509Certificate cert = SunCertificateUtils.sign(caName, caPubKey,
-				caName, caPubKey, caKey, begin, ends, BigInteger.ONE);
+				caName, caPubKey, caKey, begin, ends, BigInteger.ONE,
+                                null);
 		caCerts = new X509Certificate[] { cert };
 
 		keystore.setKeyEntry(CA, caKey, password, caCerts);
@@ -242,7 +246,7 @@ public class SSLSocketFactoryFactory {
 		return serial;
 	}
 
-	private X509KeyManager createKeyMaterial(String host)
+	private X509KeyManager createKeyMaterial(String host, X509Certificate baseCrt)
 			throws GeneralSecurityException, IOException, OperatorCreationException {
 		KeyPair keyPair;
 
@@ -261,7 +265,8 @@ public class SSLSocketFactoryFactory {
 
 		X509Certificate cert = SunCertificateUtils.sign(subject, keyPair
 				.getPublic(), caCerts[0].getSubjectX500Principal(), caCerts[0]
-				.getPublicKey(), caKey, begin, ends, getNextSerialNo());
+				.getPublicKey(), caKey, begin, ends, getNextSerialNo(),
+				baseCrt);
 
 		X509Certificate[] chain = new X509Certificate[caCerts.length + 1];
 		System.arraycopy(caCerts, 0, chain, 1, caCerts.length);

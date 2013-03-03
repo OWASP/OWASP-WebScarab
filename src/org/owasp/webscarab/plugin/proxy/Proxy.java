@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -412,7 +413,8 @@ public class Proxy implements Plugin {
 				+ (_pending > 0 ? (_pending + " in progress") : "Idle");
 	}
 
-	protected SSLSocketFactory getSocketFactory(String host) {
+	protected SSLSocketFactory getSocketFactory(String host,
+                X509Certificate baseCrt) {
 		synchronized (_factoryMap) {
 			// If it has been loaded already, use it
 			if (_factoryMap.containsKey(host))
@@ -426,7 +428,7 @@ public class Proxy implements Plugin {
 				return factory;
 			}
 			// See if we can generate one directly
-			factory = generateSocketFactory(host);
+			factory = generateSocketFactory(host, baseCrt);
 			if (factory != null) {
 				_factoryMap.put(host, factory);
 				return factory;
@@ -494,12 +496,13 @@ public class Proxy implements Plugin {
 		return null;
 	}
 
-	private SSLSocketFactory generateSocketFactory(String host) {
+	private SSLSocketFactory generateSocketFactory(String host,
+                X509Certificate baseCrt) {
 		if (_certGenerator == null)
 			return null;
 		try {
 			_logger.info("Generating custom SSL keystore for " + host);
-			return _certGenerator.getSocketFactory(host);
+			return _certGenerator.getSocketFactory(host, baseCrt);
 		} catch (IOException ioe) {
 			_logger.info("Error generating custom SSL keystore for " + host
 					+ ": " + ioe);

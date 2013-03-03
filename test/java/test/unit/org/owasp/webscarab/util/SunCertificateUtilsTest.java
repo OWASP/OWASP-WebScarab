@@ -87,7 +87,7 @@ public class SunCertificateUtilsTest {
         JcaX509ExtensionUtils jxeu = new JcaX509ExtensionUtils();
 
         // operate
-        X509Certificate resultCert = SunCertificateUtils.sign(subject, pubKey, issuer, caPubKey, caKey, begin, ends, serialNo);
+        X509Certificate resultCert = SunCertificateUtils.sign(subject, pubKey, issuer, caPubKey, caKey, begin, ends, serialNo, null);
 
         // verify
         assertNotNull(resultCert);
