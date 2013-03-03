@@ -34,9 +34,6 @@ package test.unit.org.owasp.webscarab.util;
 
 import org.bouncycastle.x509.extension.X509ExtensionUtil;
 import org.bouncycastle.asn1.DERBitString;
-import org.bouncycastle.x509.extension.AuthorityKeyIdentifierStructure;
-import org.bouncycastle.x509.extension.SubjectKeyIdentifierStructure;
-import org.bouncycastle.asn1.x509.X509Extensions;
 import org.apache.commons.logging.Log;
 import java.util.Date;
 import java.security.PublicKey;
@@ -51,10 +48,13 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import org.apache.commons.logging.LogFactory;
+import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.asn1.misc.NetscapeCertType;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.bouncycastle.asn1.x509.X509Extension;
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.junit.Test;
 import org.owasp.webscarab.util.SunCertificateUtils;
 
@@ -84,9 +84,10 @@ public class SunCertificateUtilsTest {
         Date begin = new Date();
         Date ends = new Date(begin.getTime() + (long) 1000 * 60 * 60 * 24 * 30);
         BigInteger serialNo = BigInteger.valueOf(1234);
+        JcaX509ExtensionUtils jxeu = new JcaX509ExtensionUtils();
 
         // operate
-        X509Certificate resultCert = SunCertificateUtils.sign(subject, pubKey, issuer, caPubKey, caKey, begin, ends, serialNo);
+        X509Certificate resultCert = SunCertificateUtils.sign(subject, pubKey, issuer, caPubKey, caKey, begin, ends, serialNo, null);
 
         // verify
         assertNotNull(resultCert);
@@ -104,16 +105,18 @@ public class SunCertificateUtilsTest {
         assertTrue(Math.abs(begin.getTime() - resultCert.getNotBefore().getTime()) < 1000);
         assertTrue(Math.abs(ends.getTime() - resultCert.getNotAfter().getTime()) < 1000);
 
-        byte[] subjectKeyIdentifierExtValue = resultCert.getExtensionValue(X509Extensions.SubjectKeyIdentifier.getId());
+        byte[] subjectKeyIdentifierExtValue = resultCert.getExtensionValue(X509Extension.subjectKeyIdentifier.getId());
         assertNotNull(subjectKeyIdentifierExtValue);
-        SubjectKeyIdentifierStructure subjectKeyIdentifierStructure = new SubjectKeyIdentifierStructure(
+        ASN1Primitive subjectKeyIdentifier = JcaX509ExtensionUtils.parseExtensionValue(
                 subjectKeyIdentifierExtValue);
-        assertArrayEquals(new SubjectKeyIdentifierStructure(pubKey).getKeyIdentifier(), subjectKeyIdentifierStructure.getKeyIdentifier());
+        ASN1Primitive expSKI = jxeu.createSubjectKeyIdentifier(pubKey).toASN1Primitive();
+        assertArrayEquals(expSKI.getEncoded(), subjectKeyIdentifier.getEncoded());
 
-        byte[] authorityKeyIdentifierExtValue = resultCert.getExtensionValue(X509Extensions.AuthorityKeyIdentifier.getId());
-        AuthorityKeyIdentifierStructure authorityKeyIdentifierStructure = new AuthorityKeyIdentifierStructure(
+        byte[] authorityKeyIdentifierExtValue = resultCert.getExtensionValue(X509Extension.authorityKeyIdentifier.getId());
+        ASN1Primitive authorityKeyIdentifier = JcaX509ExtensionUtils.parseExtensionValue(
                 authorityKeyIdentifierExtValue);
-        assertArrayEquals(new AuthorityKeyIdentifierStructure(caPubKey).getKeyIdentifier(), authorityKeyIdentifierStructure.getKeyIdentifier());
+        ASN1Primitive expAKI = jxeu.createAuthorityKeyIdentifier(caPubKey).toASN1Primitive();
+        assertArrayEquals(expAKI.getEncoded(), authorityKeyIdentifier.getEncoded());
 
         assertEquals(-1, resultCert.getBasicConstraints());
 
@@ -127,7 +130,7 @@ public class SunCertificateUtilsTest {
         assertTrue(resultCert.getKeyUsage()[0]);
         assertTrue(resultCert.getKeyUsage()[2]);
 
-        byte[] extendedKeyUsageExtValue = resultCert.getExtensionValue(X509Extensions.ExtendedKeyUsage.getId());
+        byte[] extendedKeyUsageExtValue = resultCert.getExtensionValue(X509Extension.extendedKeyUsage.getId());
         assertNotNull(extendedKeyUsageExtValue);
         ExtendedKeyUsage extendedKeyUsage = ExtendedKeyUsage.getInstance(X509ExtensionUtil.fromExtensionValue(extendedKeyUsageExtValue));
         assertTrue(extendedKeyUsage.hasKeyPurposeId(KeyPurposeId.id_kp_clientAuth));
