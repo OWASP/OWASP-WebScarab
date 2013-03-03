@@ -168,8 +168,16 @@ public class WebScarab {
         logger.setUseParentHandlers(false);
         Handler ch = new ConsoleHandler();
         ch.setFormatter(new TextFormatter());
+        logger.setLevel(Level.ALL);
         logger.addHandler(ch);
-        ch.setLevel(Level.FINE);
+        // Preferences are not initialized yet, therefore use system properties
+        String consoleLogLevel = System.getProperty("WebScarab.ConsoleLogLevel", "FINE");
+        try {
+            ch.setLevel(Level.parse(consoleLogLevel));
+        } catch (IllegalArgumentException ex) {
+            ch.setLevel(Level.FINE);
+            logger.warning("Unrecognized console log level " + consoleLogLevel);
+        }
     }
     
     public static void loadAllPlugins(Framework framework, WebScarabUI uif) {

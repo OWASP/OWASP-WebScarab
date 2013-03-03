@@ -57,7 +57,7 @@ public class TextFormatter extends Formatter {
     }
     
     public String format(LogRecord record) {
-        StringBuffer buff = new StringBuffer(100);
+        StringBuilder buff = new StringBuilder(100);
         buff.append(_sdf.format(new Date(record.getMillis())));
         buff.append(Thread.currentThread().getName());
         String className = record.getSourceClassName();
@@ -66,7 +66,9 @@ public class TextFormatter extends Formatter {
         }
         buff.append("(").append(className).append(".");
         buff.append(record.getSourceMethodName()).append("): ");
-        buff.append(record.getMessage());
+        String message = record.getMessage()
+                .replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "");
+        buff.append(message);
         if (record.getParameters() != null) {
             Object[] params = record.getParameters();
             buff.append(" { ").append(params[0]);
