@@ -46,12 +46,16 @@ import java.net.InetSocketAddress;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.logging.Level;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.SSLContext;
 
 import java.util.logging.Logger;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import jcifs.ntlmssp.NtlmFlags;
 import jcifs.ntlmssp.NtlmMessage;
 import jcifs.ntlmssp.Type1Message;
@@ -343,6 +347,33 @@ public class URLFetcher implements HTTPClient {
             request.setHeader("X-SSLClientCertificate", _keyFingerprint);
 
         return _response;
+    }
+
+    public X509Certificate getCertificate() {
+        if (_socket instanceof SSLSocket) {
+            SSLSocket sslSock = (SSLSocket) _socket;
+            try {
+                Certificate[] peerCertificates;
+                peerCertificates = sslSock.getSession().getPeerCertificates();
+                if (peerCertificates[0] instanceof X509Certificate) {
+                    return (X509Certificate) peerCertificates[0];
+                }
+                _logger.log(Level.WARNING, "Unexpected certificate type {0}",
+                        peerCertificates[0].getType());
+            } catch (SSLPeerUnverifiedException ex) {
+                _logger.log(Level.WARNING, "No peer certificate available", ex);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Attempt to connect to the specified host:port combination. No data is
+     * sent, if scheme is https, then a handshake will be performed.
+     * @param url Host, port and scheme are used.
+     */
+    public void connect(HttpUrl url) throws IOException {
+        connect(url, true);
     }
 
     private void connect(HttpUrl url, boolean enableSNI) throws IOException {
