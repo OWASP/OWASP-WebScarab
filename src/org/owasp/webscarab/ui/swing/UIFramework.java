@@ -40,7 +40,6 @@
 package org.owasp.webscarab.ui.swing;
 
 import java.awt.BorderLayout;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -60,13 +59,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.plaf.TextUI;
-import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultCaret;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.Position.Bias;
 
 import org.owasp.webscarab.model.FileSystemStore;
 import org.owasp.webscarab.model.FrameworkModel;
@@ -201,7 +195,8 @@ public class UIFramework extends JFrame implements WebScarabUI {
         
         final Document doc = _dh.getDocument();
         logTextArea.setDocument(doc);
-        doc.addDocumentListener(new TextScroller(logTextArea));
+        DefaultCaret caret = (DefaultCaret) logTextArea.getCaret();
+        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         
         String level = Preferences.getPreference("UI.logLevel","INFO");
         if (level.equals("SEVERE")) {
@@ -898,45 +893,5 @@ public class UIFramework extends JFrame implements WebScarabUI {
     private javax.swing.JMenu viewMenu;
     private javax.swing.JCheckBoxMenuItem wrapTextCheckBoxMenuItem;
     // End of variables declaration//GEN-END:variables
-    
-    private class TextScroller implements DocumentListener {
-        
-        private JTextComponent _component;
-        private TextUI _mapper;
-        
-        public TextScroller(JTextComponent component) {
-            _component = component;
-            _mapper = _component.getUI();
-        }
-        
-        public void removeUpdate(DocumentEvent e) {}
-        
-        public void changedUpdate(DocumentEvent e) {}
-        
-        public void insertUpdate(DocumentEvent e) {
-            if (_mapper != null) {
-                try {
-                    Rectangle newLoc = _mapper.modelToView(_component, e.getOffset(), Bias.Forward);
-                    adjustVisibility(newLoc);
-                } catch (BadLocationException ble) {
-                }
-            }
-        }
-        
-        private void adjustVisibility(final Rectangle location) {
-            if (location != null) {
-                if (SwingUtilities.isEventDispatchThread()) {
-                    _component.scrollRectToVisible(location);
-                } else {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            _component.scrollRectToVisible(location);
-                        }
-                    });
-                }
-            }
-        }
-        
-    }
-    
+
 }
