@@ -39,6 +39,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.security.cert.X509Certificate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLSocket;
@@ -180,6 +181,9 @@ public class ConnectionHandler implements Runnable {
 						return;
 					}
 					baseCrt = uf.getCertificate();
+					_logger.log(Level.FINEST, "Certificate: {0}",
+							baseCrt == null ? "null" :
+							baseCrt.getSubjectX500Principal().getName());
 					_sock = negotiateSSL(_sock, _base.getHost(), baseCrt);
 					_clientIn = _sock.getInputStream();
 					_clientOut = _sock.getOutputStream();
