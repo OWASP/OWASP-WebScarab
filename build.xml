@@ -42,10 +42,17 @@
 			</chainedmapper>
 		</mapper>
         </pathconvert>
+
+        <property name="onejar.jar.name" value="${basedir}/${project.name}-onejar_${project.version}"/>
+        <property name="onejar.jar" value="${onejar.jar.name}.jar"/>
+        <property name="onejar.tempdir" value="${basedir}/onejar-temp"/>
+        <property name="onejar.tempjar" value="${onejar.tempdir}/temp_final.jar" />
+
     </target>
     <target depends="init" description="clean up the build area" name="clean">
         <delete dir="${build.dir}"/>
         <delete dir="${dist.dir}"/>
+        <delete dir="${onejar.tempdir}"/>
         <delete>
             <fileset dir="${src.dir}" includes="**/*.class"/>
         </delete>
@@ -56,6 +63,7 @@
             <fileset dir="${basedir}" includes="webscarab*.zip"/>
         </delete>
     </target>
+
     <target depends="init" description="prepare the build area" name="prepare">
         <copy file="server.p12" todir="${build.dir}"/>
         <copy 
@@ -83,6 +91,7 @@
         >
         </javac>
     </target>
+
     <target depends="prepare" description="JavaHelp" name="javahelp">
         <!-- Commented out until I can get Ant working properly 
             Using xsltproc in the meantime
@@ -116,6 +125,7 @@
             <fileset dir="doc/userguide/" includes="*.png,*.jpg,*.gif,*.css"/>
         </copy>
     </target>
+
     <target depends="compile" description="Build a jar file" name="build">
         <jar basedir="${build.dir}" jarfile="${jar}">
             <manifest>
@@ -130,6 +140,7 @@
             </manifest>
         </jar>
     </target>
+
     <target depends="build" description="Sign the jar" name="sign">
 		<signjar 
 			keystore="${keystore}"
@@ -150,10 +161,12 @@
 			<fileset dir="${basedir}/lib" includes="*.jar" />
 		</signjar>
     </target>
+
     <target depends="build" description="run the program" name="run">
         <java jar="${jar}" fork="on">
         </java>
     </target>
+
     <target depends="init" description="JavaDoc" name="javadoc">
         <mkdir dir="${javadoc.dir}"/>
         <javadoc classpathref="webscarab-classpath" destdir="${javadoc.dir}/" packagenames="org.owasp.webscarab.*">
@@ -162,38 +175,10 @@
             </sourcepath>
         </javadoc>
     </target>
-    <target
-        depends="init,clean,build"
-        description="Package WebScarab.jar and libs into a single runnable jar"
-        name="one-jar"
-    >
-        <property name="one-jar.ant.jar" 
-            value="${one-jar.dist.dir}/"
-        />
-        <taskdef name="one-jar" 
-            classname="com.simontuffs.onejar.ant.OneJarTask" 
-            classpath="${one-jar.ant.jar}" onerror="report"/>
-        <one-jar 
-            destfile="${dist.dir}/webscarab-one-${project.version}.jar" 
-            update="false">
-            <manifest>
-                <attribute name="Main-Class" value="com.simontuffs.onejar.Boot
-"/>
-                <attribute name="One-Jar-Main-Class" value="${mainclass}"/>
-                <attribute name="Built-By" value="${user.name}"/>
-                <section name="org/owasp/webscarab/">
-                    <attribute name="Implementation-Title" value="org.owasp.webscarab"/>
-                    <attribute name="Implementation-Vendor" value="OWASP Foundation."/>
-                    <attribute name="Implementation-Version" value="${project.version}"/>
-                </section>
-            </manifest>
-            <main><fileset dir="${build.dir}"/></main>
-            <lib><fileset file="./lib/*.jar"/></lib>
-        </one-jar>
-    </target>
+
     <target
 	depends="init,clean,build"
-	description="Package webScara.jar and libs in a ZIP"
+	description="Package webscarab.jar and libs in a ZIP"
 	name="zip"
     >
 	<zip destfile="${dist.dir}/webscarab-${project.version}.zip">
@@ -223,6 +208,34 @@
 	    />
 	</zip>
     </target>
+
+    <target name="one-jar" depends="build">
+        <echo message="Packaging project.name into a single JAR at ${onejar.jar}"/>
+
+        <delete dir="${onejar.tempdir}"/>
+        <mkdir dir="${onejar.tempdir}"/>
+
+        <jar destfile="${onejar.tempjar}" filesetmanifest="skip">
+            <zipgroupfileset dir="lib" includes="*.jar"/>
+            <zipfileset src="${jar}"/>
+
+            <manifest>
+                <attribute name="Main-Class" value="${mainclass}"/>
+                <attribute name="Class-Path" value="${manifest.classpath}"/>
+                <attribute name="Built-By" value="${user.name}"/>
+            </manifest>
+        </jar>
+
+        <zip destfile="${onejar.jar}">
+            <zipfileset src="${onejar.tempjar}"
+            excludes="META-INF/*.SF, META-INF/*.DSA, META-INF/*.RSA"/>
+        </zip>
+
+        <delete file="${onejar.tempjar}"/>
+        <delete dir="${onejar.tempdir}"/>
+
+    </target>
+
     <target 
         depends="init,clean" 
         description="packages up the source files" 
@@ -266,6 +279,7 @@
             /-->
         </zip>
     </target>
+
     <target 
         depends="clean,source" 
         description="Build all distributables" 
