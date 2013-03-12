@@ -6,8 +6,6 @@
         <!-- ${docbook.location} refers to the location of the    -->
         <!-- DocBook XSL stylesheets and DTD's, for building the  -->
         <!-- JavaHelp documentation                               -->
-        <!-- ${izpack.location} refers to the location of the     -->
-        <!-- IzPack libraries, for building the installer         -->
         <!-- none of these are REQUIRED, if you are just building -->
         <!-- for local use                                        -->
         <property file="local.properties"/>
@@ -164,24 +162,6 @@
             </sourcepath>
         </javadoc>
     </target>
-    <target 
-        depends="clean,javahelp,build" 
-        description="Build a self contained installer package" 
-        name="izpack"
-    >
-        <taskdef 
-            classname="com.izforge.izpack.ant.IzPackTask" 
-            classpath="${izpack.location}/lib/compiler.jar" 
-            name="izpack"
-        />
-        <izpack 
-            basedir="${basedir}" 
-            input="${basedir}/installer/izpack.xml" 
-            installerType="standard" 
-            izPackDir="${izpack.location}" 
-            output="${dist.dir}/webscarab-installer-${project.version}.jar"
-        />
-    </target>
     <target
         depends="init,clean,build"
         description="Package WebScarab.jar and libs into a single runnable jar"
@@ -287,7 +267,7 @@
         </zip>
     </target>
     <target 
-        depends="clean,source,izpack" 
+        depends="clean,source" 
         description="Build all distributables" 
         name="dist"
     />
