@@ -210,7 +210,7 @@
     </target>
 
     <target name="one-jar" depends="build">
-        <echo message="Packaging project.name into a single JAR at ${onejar.jar}"/>
+        <echo message="Packaging ${project.name} into a single JAR at ${onejar.jar}"/>
 
         <delete dir="${onejar.tempdir}"/>
         <mkdir dir="${onejar.tempdir}"/>
@@ -237,7 +237,7 @@
     </target>
 
     <target 
-        depends="init,clean" 
+        depends="init,clean,javadoc" 
         description="packages up the source files" 
         name="source"
     >
@@ -272,16 +272,16 @@
                 excludes="**/.*" 
                 prefix="webscarab-${project.version}/src"
             />
-            <!-- zipfileset 
+            <zipfileset 
                 dir="${javadoc.dir}" 
                 excludes="**/.*" 
                 prefix="webscarab-${project.version}/doc/api"
-            /-->
+            />
         </zip>
     </target>
 
     <target 
-        depends="clean,source" 
+        depends="clean,one-jar,source" 
         description="Build all distributables" 
         name="dist"
     />
