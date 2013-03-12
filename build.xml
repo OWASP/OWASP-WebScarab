@@ -19,28 +19,28 @@
         <property name="src.dir" location="${basedir}/src"/>
         <property name="dist.dir" location="${basedir}/dist"/>
         <property name="javadoc.dir" location="${basedir}/doc/api"/>
-        <property 
-            name="javahelpstyle" 
+        <property
+            name="javahelpstyle"
             value="${docbook.location}/javahelp/javahelp.xsl"
         />
 
         <property name="mainclass" value="org.owasp.webscarab.Main"/>
-        
- 
+
+
         <path id="webscarab-classpath">
             <fileset dir="${basedir}/lib">
                 <include name="*.jar"/>
             </fileset>
         </path>
-        
+
         <pathconvert property="manifest.classpath" pathsep=" ">
-        	<path refid="webscarab-classpath"/>
-        	<mapper>
-			<chainedmapper>
-				<flattenmapper/>
-				<globmapper from="*.jar" to="lib/*.jar"/>
-			</chainedmapper>
-		</mapper>
+            <path refid="webscarab-classpath"/>
+            <mapper>
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*.jar" to="lib/*.jar"/>
+            </chainedmapper>
+        </mapper>
         </pathconvert>
 
         <property name="onejar.jar.name" value="${basedir}/${project.name}-onejar_${project.version}"/>
@@ -66,23 +66,23 @@
 
     <target depends="init" description="prepare the build area" name="prepare">
         <copy file="server.p12" todir="${build.dir}"/>
-        <copy 
-            file="src/org/owasp/webscarab/plugin/scripted/script.bsh" 
+        <copy
+            file="src/org/owasp/webscarab/plugin/scripted/script.bsh"
             todir="${build.dir}/org/owasp/webscarab/plugin/scripted/"
         />
-        <copy 
-            file="src/org/owasp/webscarab/webscarab_logo.gif" 
+        <copy
+            file="src/org/owasp/webscarab/webscarab_logo.gif"
             todir="${build.dir}/org/owasp/webscarab/"
         />
     </target>
     <target depends="prepare" description="Compile the sources" name="compile">
-        <javac 
-            classpathref="webscarab-classpath" 
-            deprecation="yes" 
-            destdir="${build.dir}" 
-            excludes="**/test/**" 
-            listfiles="no" 
-            optimize="on" 
+        <javac
+            classpathref="webscarab-classpath"
+            deprecation="yes"
+            destdir="${build.dir}"
+            excludes="**/test/**"
+            listfiles="no"
+            optimize="on"
             srcdir="${src.dir}"
             debug="on"
             source="1.6"
@@ -93,34 +93,34 @@
     </target>
 
     <target depends="prepare" description="JavaHelp" name="javahelp">
-        <!-- Commented out until I can get Ant working properly 
+        <!-- Commented out until I can get Ant working properly
             Using xsltproc in the meantime
-	    Use "ant -lib path/to/saxon.jar javahelp" for ant 1.7.1 and earlier - ->
+        Use "ant -lib path/to/saxon.jar javahelp" for ant 1.7.1 and earlier - ->
         <xmlcatalog id="docbook_catalogs">
             <catalogpath>
                 <fileset dir="${docbook.location}" includes="**/catalog.xml"/>
             </catalogpath>
         </xmlcatalog>
-        <xslt 
-            basedir="doc/userguide/" 
-            destdir="${build.dir}/help" 
-            scanincludeddirectories="false" 
-            includes="swing.xml" 
+        <xslt
+            basedir="doc/userguide/"
+            destdir="${build.dir}/help"
+            scanincludeddirectories="false"
+            includes="swing.xml"
             style="${javahelpstyle}"
         >
-	    <classpath location="${saxon.location}"/>
-	    <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+        <classpath location="${saxon.location}"/>
+        <factory name="net.sf.saxon.TransformerFactoryImpl"/>
             <xmlcatalog refid="docbook_catalogs"/>
         </xslt>
         <!- - -->
         <exec executable="xsltproc">
             <arg line="-stringparam base.dir build/help/ -stringparam use.id.as.filename 1 ${docbook.location}/javahelp/javahelp.xsl doc/userguide/swing.xml"/>
         </exec>
-	<!-- - ->
+    <!-- - ->
         <copy todir="${build.dir}/help/">
             <fileset dir="doc/userguide/javahelp/"/>
         </copy>
-	<!- - -->
+    <!- - -->
         <copy todir="${build.dir}/help/">
             <fileset dir="doc/userguide/" includes="*.png,*.jpg,*.gif,*.css"/>
         </copy>
@@ -142,24 +142,24 @@
     </target>
 
     <target depends="build" description="Sign the jar" name="sign">
-		<signjar 
-			keystore="${keystore}"
-			storetype="${storetype}"
-			alias="${alias}"
-			storepass="${password}"
-			preservelastmodified="true"
-			jar="${jar}">
-		</signjar>
-		<signjar 
-			keystore="${keystore}"
-			storetype="${storetype}"
-			alias="${alias}"
-			storepass="${password}"
-			preserveLastModified="true"
-			lazy="true"
-			destDir="${dist.dir}">
-			<fileset dir="${basedir}/lib" includes="*.jar" />
-		</signjar>
+        <signjar
+            keystore="${keystore}"
+            storetype="${storetype}"
+            alias="${alias}"
+            storepass="${password}"
+            preservelastmodified="true"
+            jar="${jar}">
+        </signjar>
+        <signjar
+            keystore="${keystore}"
+            storetype="${storetype}"
+            alias="${alias}"
+            storepass="${password}"
+            preserveLastModified="true"
+            lazy="true"
+            destDir="${dist.dir}">
+            <fileset dir="${basedir}/lib" includes="*.jar" />
+        </signjar>
     </target>
 
     <target depends="build" description="run the program" name="run">
@@ -177,11 +177,11 @@
     </target>
 
     <target
-	depends="init,clean,build"
-	description="Package webscarab.jar and libs in a ZIP"
-	name="zip"
+    depends="init,clean,build"
+    description="Package webscarab.jar and libs in a ZIP"
+    name="zip"
     >
-	<zip destfile="${dist.dir}/webscarab-${project.version}.zip">
+    <zip destfile="${dist.dir}/webscarab-${project.version}.zip">
            <zipfileset
                 dir="${basedir}"
                 includes="ChangeLog"
@@ -197,16 +197,16 @@
                 includes="README"
                 prefix="webscarab-${project.version}"
             />
-	    <zipfileset
-		dir="${basedir}"
-		includes="webscarab.jar"
-		prefix="webscarab-${project.version}"
-	    />
-	    <zipfileset
-		dir="${basedir}/lib"
-		prefix="webscarab-${project.version}/lib"
-	    />
-	</zip>
+        <zipfileset
+        dir="${basedir}"
+        includes="webscarab.jar"
+        prefix="webscarab-${project.version}"
+        />
+        <zipfileset
+        dir="${basedir}/lib"
+        prefix="webscarab-${project.version}/lib"
+        />
+    </zip>
     </target>
 
     <target name="one-jar" depends="build">
@@ -236,53 +236,53 @@
 
     </target>
 
-    <target 
-        depends="init,clean,javadoc" 
-        description="packages up the source files" 
+    <target
+        depends="init,clean,javadoc"
+        description="packages up the source files"
         name="source"
     >
         <zip destfile="${dist.dir}/webscarab-src-${project.version}.zip">
-            <zipfileset 
-                dir="${basedir}" 
-                includes="ChangeLog" 
+            <zipfileset
+                dir="${basedir}"
+                includes="ChangeLog"
                 prefix="webscarab-${project.version}"
             />
-            <zipfileset 
-                dir="${basedir}" 
-                includes="LICENSE" 
+            <zipfileset
+                dir="${basedir}"
+                includes="LICENSE"
                 prefix="webscarab-${project.version}"
             />
-            <zipfileset 
-                dir="${basedir}" 
-                includes="README" 
+            <zipfileset
+                dir="${basedir}"
+                includes="README"
                 prefix="webscarab-${project.version}"
             />
-            <zipfileset 
-                dir="${basedir}" 
-                includes="INSTALL" 
+            <zipfileset
+                dir="${basedir}"
+                includes="INSTALL"
                 prefix="webscarab-${project.version}"
             />
-            <zipfileset 
-                dir="${basedir}" 
-                includes="build.xml" 
+            <zipfileset
+                dir="${basedir}"
+                includes="build.xml"
                 prefix="webscarab-${project.version}"
             />
-            <zipfileset 
-                dir="${src.dir}" 
-                excludes="**/.*" 
+            <zipfileset
+                dir="${src.dir}"
+                excludes="**/.*"
                 prefix="webscarab-${project.version}/src"
             />
-            <zipfileset 
-                dir="${javadoc.dir}" 
-                excludes="**/.*" 
+            <zipfileset
+                dir="${javadoc.dir}"
+                excludes="**/.*"
                 prefix="webscarab-${project.version}/doc/api"
             />
         </zip>
     </target>
 
-    <target 
-        depends="clean,one-jar,source" 
-        description="Build all distributables" 
+    <target
+        depends="clean,one-jar,source"
+        description="Build all distributables"
         name="dist"
     />
 </project>
