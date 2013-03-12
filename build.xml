@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project basedir="." default="proguard" name="webscarab">
+<project basedir="." default="build" name="webscarab">
     <target name="init">
 
         <!-- reads in certain local properties that should be set -->
@@ -68,6 +68,21 @@
 	    <pathelement location="${jcifsjar}"/>
             <pathelement location="${bcprovjar}"/>
         </path>
+        <path id="webscarab-classpath">
+            <fileset dir="${basedir}/lib">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
+        
+        <pathconvert property="manifest.classpath" pathsep=" ">
+        	<path refid="webscarab-classpath"/>
+        	<mapper>
+			<chainedmapper>
+				<flattenmapper/>
+				<globmapper from="*.jar" to="lib/*.jar"/>
+			</chainedmapper>
+		</mapper>
+        </pathconvert>
     </target>
     <target depends="init" description="clean up the build area" name="clean">
         <delete dir="${build.dir}"/>
@@ -95,7 +110,7 @@
     </target>
     <target depends="prepare" description="Compile the sources" name="compile">
         <javac 
-            classpathref="cpath" 
+            classpathref="webscarab-classpath" 
             deprecation="yes" 
             destdir="${build.dir}" 
             excludes="**/test/**" 
@@ -103,8 +118,9 @@
             optimize="on" 
             srcdir="${src.dir}"
             debug="on"
-            source="1.5"
-            target="1.5"
+            source="1.6"
+            target="1.6"
+            includeantruntime="false"
         >
         </javac>
     </target>
@@ -145,10 +161,7 @@
         <jar basedir="${build.dir}" jarfile="${jar}">
             <manifest>
                 <attribute name="Main-Class" value="${mainclass}"/>
-                <attribute 
-                    name="Class-Path" 
-                    value="${concurrentjar} ${htmlparserjar} ${beanshelljar} ${jfreechartjar} ${jcommonjar} ${bsfjar} ${jhelpjar} ${chardetjar} ${tagsoupjar} ${openamfjar} ${commonsloggingjar} ${flexcommonjar} ${flexremotingjar} ${flexcorejar} ${xmlsecjar} ${jcifsjar} ${bcprovjar}"
-                />
+                <attribute name="Class-Path" value="${manifest.classpath}"/>
                 <attribute name="Built-By" value="${user.name}"/>
                 <section name="org/owasp/webscarab/">
                     <attribute name="Implementation-Title" value="org.owasp.webscarab"/>
@@ -184,7 +197,7 @@
     </target>
     <target depends="init" description="JavaDoc" name="javadoc">
         <mkdir dir="${javadoc.dir}"/>
-        <javadoc classpathref="cpath" destdir="${javadoc.dir}/" packagenames="*">
+        <javadoc classpathref="webscarab-classpath" destdir="${javadoc.dir}/" packagenames="org.owasp.webscarab.*">
             <sourcepath>
                 <pathelement location="${src.dir}"/>
             </sourcepath>
