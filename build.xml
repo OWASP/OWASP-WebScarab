@@ -28,23 +28,6 @@
 
         <property name="mainclass" value="org.owasp.webscarab.Main"/>
         
-     	<property name="concurrentjar" value="lib/concurrent.jar"/>
-     	<property name="htmlparserjar" value="lib/htmlparser.jar"/>
-     	<property name="bsfjar" value="lib/bsf-2.3.0.jar"/>
-     	<property name="beanshelljar" value="lib/bsh-2.0b1.jar"/>
-     	<property name="jfreechartjar" value="lib/jfreechart-1.0.13.jar"/>
-     	<property name="jcommonjar" value="lib/jcommon-1.0.16.jar"/>
-     	<property name="jhelpjar" value="lib/jhall-2.0_02.jar"/>
-     	<property name="chardetjar" value="lib/chardet.jar"/>
-     	<property name="tagsoupjar" value="lib/tagsoup-1.0rc2.jar"/>
-     	<property name="openamfjar" value="lib/openamf.jar"/>
-     	<property name="commonsloggingjar" value="lib/commons-logging-1.0.4.jar"/>
-     	<property name="flexcommonjar" value="lib/flex-messaging-common.jar"/>
-     	<property name="flexremotingjar" value="lib/flex-messaging-remoting.jar"/>
-     	<property name="flexcorejar" value="lib/flex-messaging-core.jar"/>
-	<property name="xmlsecjar" value="lib/xmlsec-1.4.3.jar"/>
-	<property name="jcifsjar" value="lib/jcifs-1.3.14.jar"/>
-        <property name="bcprovjar" value="lib/bcprov-jdk15-1.45.jar"/>
  
         <path id="webscarab-classpath">
             <fileset dir="${basedir}/lib">
