@@ -7,3 +7,6 @@ nbactions.xml
 target/
 build/
 dist/
+doc/
+webscarab*.jar
+*~
