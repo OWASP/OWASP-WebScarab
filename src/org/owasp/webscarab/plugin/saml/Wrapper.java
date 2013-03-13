@@ -39,5 +39,5 @@ package org.owasp.webscarab.plugin.saml;
  */
 public enum Wrapper {
 
-    DS_OBJECT, SAMLP_EXTENSIONS
+    DS_OBJECT, SAMLP_EXTENSIONS, ASSERTION;
 }

@@ -476,7 +476,7 @@ public class SamlHTTPClient implements HTTPClient {
                 Element signatureElement;
                 SignatureType wrapperTargetSignature = this.samlProxyConfig.getWrapperTargetSignature();
                 this._logger.log(Level.FINE, "wrapper target signature: " + wrapperTargetSignature);
-                switch(wrapperTargetSignature) {
+                switch (wrapperTargetSignature) {
                     default:
                     case PROTOCOL:
                         signatureElement = SamlModel.findProtocolSignatureElement(document);
@@ -523,6 +523,21 @@ public class SamlHTTPClient implements HTTPClient {
                 Element importedSamlResponseElement = (Element) document.importNode(samlResponseElement, true);
                 samlpExtensionsElement.appendChild(importedSamlResponseElement);
                 samlResponseElement.appendChild(samlpExtensionsElement);
+            }
+            break;
+            case ASSERTION: {
+                NodeList saml2AssertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
+                if (saml2AssertionNodeList.getLength() != 0) {
+                    Element assertionElement = (Element) saml2AssertionNodeList.item(0);
+                    Element importedAssertionElement = (Element) document.importNode(assertionElement, true);
+                    assertionElement.getParentNode().appendChild(importedAssertionElement);
+                    if (this.samlProxyConfig.doRenameAssertionId()) {
+                        Attr idAttr = assertionElement.getAttributeNode("ID");
+                        String oldIdValue = idAttr.getValue();
+                        String newIdValue = "renamed-" + oldIdValue;
+                        idAttr.setValue(newIdValue);
+                    }
+                }
             }
             break;
         }

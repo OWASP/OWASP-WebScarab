@@ -421,6 +421,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel34 = new javax.swing.JPanel();
         dsObjectWrapperRadioButton = new javax.swing.JRadioButton();
         samlpExtWrapperRadioButton = new javax.swing.JRadioButton();
+        duplicateAssertionRadioButton = new javax.swing.JRadioButton();
         jPanel33 = new javax.swing.JPanel();
         renameIdCheckBox = new javax.swing.JCheckBox();
         renameAssertionIdCheckBox = new javax.swing.JCheckBox();
@@ -952,6 +953,15 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
             }
         });
         jPanel34.add(samlpExtWrapperRadioButton);
+
+        wrapperButtonGroup.add(duplicateAssertionRadioButton);
+        duplicateAssertionRadioButton.setText("Duplicate Assertion");
+        duplicateAssertionRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                duplicateAssertionRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel34.add(duplicateAssertionRadioButton);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1512,6 +1522,14 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         samlProxy.setRenameAssertionId(renameAssertionId);
     }//GEN-LAST:event_renameAssertionIdCheckBoxItemStateChanged
 
+    private void duplicateAssertionRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_duplicateAssertionRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean duplicateAssertion = evt.getStateChange() == ItemEvent.SELECTED;
+        if (duplicateAssertion) {
+            samlProxy.setWrapper(Wrapper.ASSERTION);
+        }
+    }//GEN-LAST:event_duplicateAssertionRadioButtonItemStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel aboutPanel;
     private javax.swing.JRadioButton allSubjectRadioButton;
@@ -1532,6 +1550,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JCheckBox destinationIndicationCheckBox;
     private javax.swing.JRadioButton dsObjectWrapperRadioButton;
     private javax.swing.JTextField dtdUriTextField;
+    private javax.swing.JRadioButton duplicateAssertionRadioButton;
     private javax.swing.JPanel encryptedAttributesPanel;
     private javax.swing.JTable encryptedAttributesTable;
     private javax.swing.JRadioButton firstSubjectRadioButton;

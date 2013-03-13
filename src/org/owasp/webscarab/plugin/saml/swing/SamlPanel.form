@@ -974,6 +974,17 @@
                                 <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="samlpExtWrapperRadioButtonItemStateChanged"/>
                               </Events>
                             </Component>
+                            <Component class="javax.swing.JRadioButton" name="duplicateAssertionRadioButton">
+                              <Properties>
+                                <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                                  <ComponentRef name="wrapperButtonGroup"/>
+                                </Property>
+                                <Property name="text" type="java.lang.String" value="Duplicate Assertion"/>
+                              </Properties>
+                              <Events>
+                                <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="duplicateAssertionRadioButtonItemStateChanged"/>
+                              </Events>
+                            </Component>
                           </SubComponents>
                         </Container>
                         <Container class="javax.swing.JPanel" name="jPanel33">
