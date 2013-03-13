@@ -63,6 +63,7 @@ import org.owasp.webscarab.plugin.saml.SamlModel;
 import org.owasp.webscarab.plugin.saml.SamlProxy;
 import org.owasp.webscarab.plugin.saml.SamlProxyListener;
 import org.owasp.webscarab.plugin.saml.SamlSignatureException;
+import org.owasp.webscarab.plugin.saml.SignatureType;
 import org.owasp.webscarab.plugin.saml.Wrapper;
 import org.owasp.webscarab.ui.swing.CertificateManager;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
@@ -333,6 +334,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         samlPopupMenu = new javax.swing.JPopupMenu();
         subjectButtonGroup = new javax.swing.ButtonGroup();
         wrapperButtonGroup = new javax.swing.ButtonGroup();
+        signatureButtonGroup = new javax.swing.ButtonGroup();
         jSplitPane1 = new javax.swing.JSplitPane();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         rawPanel = new org.owasp.webscarab.ui.swing.editors.TextPanel();
@@ -413,11 +415,15 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel30 = new javax.swing.JPanel();
         jPanel32 = new javax.swing.JPanel();
         signWrapAttackCheckBox = new javax.swing.JCheckBox();
+        jPanel35 = new javax.swing.JPanel();
+        protocolSignatureRadioButton = new javax.swing.JRadioButton();
+        assertionSignatureRadioButton = new javax.swing.JRadioButton();
         jPanel34 = new javax.swing.JPanel();
         dsObjectWrapperRadioButton = new javax.swing.JRadioButton();
         samlpExtWrapperRadioButton = new javax.swing.JRadioButton();
         jPanel33 = new javax.swing.JPanel();
         renameIdCheckBox = new javax.swing.JCheckBox();
+        renameAssertionIdCheckBox = new javax.swing.JCheckBox();
         jPanel19 = new javax.swing.JPanel();
         jPanel20 = new javax.swing.JPanel();
         jPanel15 = new javax.swing.JPanel();
@@ -520,7 +526,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         encryptedAttributesPanel.setLayout(new java.awt.BorderLayout());
 
-        jPanel29.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel29.setLayout(new java.awt.FlowLayout(0));
 
         jLabel22.setText("AES-128 key (hex): ");
         jPanel29.add(jLabel22);
@@ -576,7 +582,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jTabbedPane1.addTab("HTML Form", htmlFormPanel);
         jTabbedPane1.addTab("Relay State", relayStatePanel);
 
-        analysisPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        analysisPanel.setLayout(new java.awt.FlowLayout(0));
 
         analysisDataPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -729,12 +735,12 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jTabbedPane3.addTab("SAML Browser POST Profile Messages", jPanel8);
 
         jPanel6.setBorder(null);
-        jPanel6.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel6.setLayout(new java.awt.FlowLayout(0));
 
         jPanel10.setLayout(new java.awt.GridBagLayout());
 
         jPanel7.setBorder(javax.swing.BorderFactory.createTitledBorder("Signature Integrity Attacks"));
-        jPanel7.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel7.setLayout(new java.awt.FlowLayout(0));
 
         jPanel11.setLayout(new java.awt.GridBagLayout());
 
@@ -780,7 +786,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel10.add(jPanel7, gridBagConstraints);
 
         jPanel13.setBorder(javax.swing.BorderFactory.createTitledBorder("Signature Remote Attack"));
-        jPanel13.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel13.setLayout(new java.awt.FlowLayout(0));
 
         jPanel14.setLayout(new java.awt.GridBagLayout());
 
@@ -881,7 +887,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         jTabbedPane3.addTab("Signature Attacks", jPanel6);
 
-        jPanel30.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel30.setLayout(new java.awt.FlowLayout(0));
 
         jPanel32.setLayout(new java.awt.GridBagLayout());
 
@@ -895,6 +901,35 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         jPanel32.add(signWrapAttackCheckBox, gridBagConstraints);
+
+        jPanel35.setBorder(javax.swing.BorderFactory.createTitledBorder("Signature"));
+        jPanel35.setLayout(new javax.swing.BoxLayout(jPanel35, javax.swing.BoxLayout.PAGE_AXIS));
+
+        signatureButtonGroup.add(protocolSignatureRadioButton);
+        protocolSignatureRadioButton.setSelected(true);
+        protocolSignatureRadioButton.setText("SAML protocol signature");
+        protocolSignatureRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                protocolSignatureRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel35.add(protocolSignatureRadioButton);
+
+        signatureButtonGroup.add(assertionSignatureRadioButton);
+        assertionSignatureRadioButton.setText("SAML assertion signature");
+        assertionSignatureRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                assertionSignatureRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel35.add(assertionSignatureRadioButton);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel32.add(jPanel35, gridBagConstraints);
 
         jPanel34.setBorder(javax.swing.BorderFactory.createTitledBorder("Wrapper Element"));
         jPanel34.setLayout(new javax.swing.BoxLayout(jPanel34, javax.swing.BoxLayout.PAGE_AXIS));
@@ -920,11 +955,11 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         jPanel32.add(jPanel34, gridBagConstraints);
 
         jPanel33.setBorder(javax.swing.BorderFactory.createTitledBorder("References Settings"));
-        jPanel33.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel33.setLayout(new javax.swing.BoxLayout(jPanel33, javax.swing.BoxLayout.PAGE_AXIS));
 
         renameIdCheckBox.setText("Rename top Response Id");
         renameIdCheckBox.addItemListener(new java.awt.event.ItemListener() {
@@ -934,9 +969,17 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         });
         jPanel33.add(renameIdCheckBox);
 
+        renameAssertionIdCheckBox.setText("Rename Assertion ID");
+        renameAssertionIdCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                renameAssertionIdCheckBoxItemStateChanged(evt);
+            }
+        });
+        jPanel33.add(renameAssertionIdCheckBox);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
         jPanel32.add(jPanel33, gridBagConstraints);
 
@@ -944,12 +987,12 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         jTabbedPane3.addTab("Signature Wrapping Attacks", jPanel30);
 
-        jPanel19.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel19.setLayout(new java.awt.FlowLayout(0));
 
         jPanel20.setLayout(new java.awt.GridBagLayout());
 
         jPanel15.setBorder(javax.swing.BorderFactory.createTitledBorder("Attribute Injection Attack"));
-        jPanel15.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel15.setLayout(new java.awt.FlowLayout(0));
 
         jPanel16.setLayout(new java.awt.GridBagLayout());
 
@@ -1019,7 +1062,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel20.add(jPanel15, gridBagConstraints);
 
         jPanel17.setBorder(javax.swing.BorderFactory.createTitledBorder("Subject Injection Attack"));
-        jPanel17.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel17.setLayout(new java.awt.FlowLayout(0));
 
         jPanel18.setLayout(new java.awt.GridBagLayout());
 
@@ -1058,7 +1101,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.gridy = 1;
         jPanel18.add(injectionSubjectTextField, gridBagConstraints);
 
-        jPanel31.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel31.setLayout(new java.awt.FlowLayout(0));
 
         subjectButtonGroup.add(allSubjectRadioButton);
         allSubjectRadioButton.setSelected(true);
@@ -1109,7 +1152,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel20.add(jPanel17, gridBagConstraints);
 
         jPanel23.setBorder(javax.swing.BorderFactory.createTitledBorder("DTD Injection Attack"));
-        jPanel23.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel23.setLayout(new java.awt.FlowLayout(0));
 
         jPanel24.setLayout(new java.awt.GridBagLayout());
 
@@ -1156,7 +1199,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel20.add(jPanel23, gridBagConstraints);
 
         jPanel25.setBorder(javax.swing.BorderFactory.createTitledBorder("Relay State Injection Attack"));
-        jPanel25.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel25.setLayout(new java.awt.FlowLayout(0));
 
         jPanel26.setLayout(new java.awt.GridBagLayout());
 
@@ -1201,12 +1244,12 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         jTabbedPane3.addTab("Injection Attacks", jPanel19);
 
-        jPanel21.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel21.setLayout(new java.awt.FlowLayout(0));
 
         jPanel22.setLayout(new java.awt.GridBagLayout());
 
         jPanel9.setBorder(javax.swing.BorderFactory.createTitledBorder("SAML Response Replay Attack"));
-        jPanel9.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel9.setLayout(new java.awt.FlowLayout(0));
 
         jPanel12.setLayout(new java.awt.GridBagLayout());
 
@@ -1447,11 +1490,34 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         }
     }//GEN-LAST:event_samlpExtWrapperRadioButtonItemStateChanged
 
+    private void protocolSignatureRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_protocolSignatureRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean protocolSignature = evt.getStateChange() == ItemEvent.SELECTED;
+        if (protocolSignature) {
+            samlProxy.setWrapperTargetSignature(SignatureType.PROTOCOL);
+        }
+    }//GEN-LAST:event_protocolSignatureRadioButtonItemStateChanged
+
+    private void assertionSignatureRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_assertionSignatureRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean assertionSignature = evt.getStateChange() == ItemEvent.SELECTED;
+        if (assertionSignature) {
+            samlProxy.setWrapperTargetSignature(SignatureType.ASSERTION);
+        }
+    }//GEN-LAST:event_assertionSignatureRadioButtonItemStateChanged
+
+    private void renameAssertionIdCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_renameAssertionIdCheckBoxItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean renameAssertionId = evt.getStateChange() == ItemEvent.SELECTED;
+        samlProxy.setRenameAssertionId(renameAssertionId);
+    }//GEN-LAST:event_renameAssertionIdCheckBoxItemStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel aboutPanel;
     private javax.swing.JRadioButton allSubjectRadioButton;
     private javax.swing.JPanel analysisDataPanel;
     private javax.swing.JPanel analysisPanel;
+    private javax.swing.JRadioButton assertionSignatureRadioButton;
     private javax.swing.JCheckBox assertionsDigestedCheckBox;
     private javax.swing.JTextField attributeKeyTextField;
     private javax.swing.JTextField attributeNameTextField;
@@ -1532,6 +1598,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JPanel jPanel32;
     private javax.swing.JPanel jPanel33;
     private javax.swing.JPanel jPanel34;
+    private javax.swing.JPanel jPanel35;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
@@ -1549,11 +1616,13 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JTabbedPane jTabbedPane3;
     private javax.swing.JTextField keyTextField;
     private javax.swing.JRadioButton lastSubjectRadioButton;
+    private javax.swing.JRadioButton protocolSignatureRadioButton;
     private org.owasp.webscarab.ui.swing.editors.TextPanel rawPanel;
     private org.owasp.webscarab.ui.swing.editors.TextPanel relayStatePanel;
     private javax.swing.JTextField relayStateTextField;
     private javax.swing.JCheckBox removeAssertionSignatureCheckBox;
     private javax.swing.JCheckBox removeSignatureCheckBox;
+    private javax.swing.JCheckBox renameAssertionIdCheckBox;
     private javax.swing.JCheckBox renameIdCheckBox;
     private javax.swing.JPopupMenu samlPopupMenu;
     private javax.swing.JCheckBox samlReplayCheckBox;
@@ -1564,6 +1633,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JButton selectKeyButton;
     private javax.swing.JCheckBox signCheckBox;
     private javax.swing.JCheckBox signWrapAttackCheckBox;
+    private javax.swing.ButtonGroup signatureButtonGroup;
     private javax.swing.JPanel signaturePanel;
     private javax.swing.JLabel signatureValidityLabel;
     private javax.swing.JCheckBox signedMessageCheckBox;

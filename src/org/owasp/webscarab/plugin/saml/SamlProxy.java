@@ -72,7 +72,9 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private KeyStore.PrivateKeyEntry privateKeyEntry;
     private boolean signWrapAttack;
     private Wrapper wrapper;
+    private SignatureType wrapperTargetSignature;
     private boolean renameTopId;
+    private boolean renameAssertionId;
     private boolean removeAssertionSignature;
     
     private EventListenerList _listenerList = new EventListenerList();
@@ -341,5 +343,26 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
             return Wrapper.DS_OBJECT;
         }
         return this.wrapper;
+    }
+
+    public void setWrapperTargetSignature(SignatureType signatureType) {
+        this.wrapperTargetSignature = signatureType;
+    }
+
+    @Override
+    public SignatureType getWrapperTargetSignature() {
+        if (null == this.wrapperTargetSignature) {
+            return SignatureType.PROTOCOL;
+        }
+        return this.wrapperTargetSignature;
+    }
+
+    public void setRenameAssertionId(boolean renameAssertionId) {
+        this.renameAssertionId = renameAssertionId;
+    }
+
+    @Override
+    public boolean doRenameAssertionId() {
+        return this.renameAssertionId;
     }
 }

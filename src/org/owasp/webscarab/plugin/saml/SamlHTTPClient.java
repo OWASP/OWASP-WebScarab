@@ -473,11 +473,23 @@ public class SamlHTTPClient implements HTTPClient {
         Wrapper wrapper = this.samlProxyConfig.getWrapper();
         switch (wrapper) {
             case DS_OBJECT: {
-                Element protocolSignatureElement = SamlModel.findProtocolSignatureElement(document);
-                if (null == protocolSignatureElement) {
+                Element signatureElement;
+                SignatureType wrapperTargetSignature = this.samlProxyConfig.getWrapperTargetSignature();
+                this._logger.log(Level.FINE, "wrapper target signature: " + wrapperTargetSignature);
+                switch(wrapperTargetSignature) {
+                    default:
+                    case PROTOCOL:
+                        signatureElement = SamlModel.findProtocolSignatureElement(document);
+                        break;
+                    case ASSERTION:
+                        signatureElement = SamlModel.findAssertionSignatureElement(document);
+                        break;
+                }
+                if (null == signatureElement) {
+                    this._logger.fine("no signature element found");
                     return samlResponse;
                 }
-                String dsPrefix = protocolSignatureElement.getPrefix();
+                String dsPrefix = signatureElement.getPrefix();
                 String dsObjectQualifiedName;
                 if (null == dsPrefix) {
                     dsObjectQualifiedName = "Object";
@@ -485,10 +497,16 @@ public class SamlHTTPClient implements HTTPClient {
                     dsObjectQualifiedName = dsPrefix + ":Object";
                 }
                 Element dsObjectElement = document.createElementNS("http://www.w3.org/2000/09/xmldsig#", dsObjectQualifiedName);
-                Element samlResponseElement = document.getDocumentElement();
-                Element importedSamlResponseElement = (Element) document.importNode(samlResponseElement, true);
-                dsObjectElement.appendChild(importedSamlResponseElement);
-                protocolSignatureElement.appendChild(dsObjectElement);
+                Element parentElement = (Element) signatureElement.getParentNode();
+                Element importedParentElement = (Element) document.importNode(parentElement, true);
+                dsObjectElement.appendChild(importedParentElement);
+                signatureElement.appendChild(dsObjectElement);
+                if (this.samlProxyConfig.doRenameAssertionId()) {
+                    Attr idAttr = parentElement.getAttributeNode("ID");
+                    String oldIdValue = idAttr.getValue();
+                    String newIdValue = "renamed-" + oldIdValue;
+                    idAttr.setValue(newIdValue);
+                }
             }
             break;
             case SAMLP_EXTENSIONS: {

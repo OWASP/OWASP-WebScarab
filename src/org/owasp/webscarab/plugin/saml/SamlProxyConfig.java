@@ -84,7 +84,11 @@ public interface SamlProxyConfig {
     
     Wrapper getWrapper();
     
+    SignatureType getWrapperTargetSignature();
+    
     boolean doRenameTopId();
+    
+    boolean doRenameAssertionId();
     
     boolean doRemoveAssertionSignature();
 }
