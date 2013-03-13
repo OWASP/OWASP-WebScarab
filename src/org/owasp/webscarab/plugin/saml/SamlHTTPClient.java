@@ -71,6 +71,7 @@ import org.owasp.webscarab.util.Encoding;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -342,6 +343,7 @@ public class SamlHTTPClient implements HTTPClient {
                     Element attributeValueElement = (Element) attributeValueNodeList.item(valueIdx);
                     attributeValueElement.getChildNodes().item(0).setNodeValue(injectionAttributeValue);
                 }
+                break;
             }
         }
 
@@ -355,6 +357,7 @@ public class SamlHTTPClient implements HTTPClient {
                     Element attributeValueElement = (Element) attributeValueNodeList.item(valueIdx);
                     attributeValueElement.getChildNodes().item(0).setNodeValue(injectionAttributeValue);
                 }
+                break;
             }
         }
 
@@ -529,13 +532,19 @@ public class SamlHTTPClient implements HTTPClient {
     private List<Element> findAssertionSignatures(Document document) {
         List<Element> assertionSignatures = new LinkedList<Element>();
 
-        NodeList saml2AssertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
-        for (int assertionNodeIdx = 0; assertionNodeIdx < saml2AssertionNodeList.getLength(); assertionNodeIdx++) {
-            Element assertionElement = (Element) saml2AssertionNodeList.item(assertionNodeIdx);
-            NodeList signatureNodeList = assertionElement.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
-            for (int signatureNodeIdx = 0; signatureNodeIdx < signatureNodeList.getLength(); signatureNodeIdx++) {
-                Element signatureElement = (Element) signatureNodeList.item(signatureNodeIdx);
-                assertionSignatures.add(signatureElement);
+        NodeList childNodeList = document.getDocumentElement().getChildNodes();
+        for (int nodeIdx = 0; nodeIdx < childNodeList.getLength(); nodeIdx++) {
+            Node childNode = childNodeList.item(nodeIdx);
+            if (childNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element childElement = (Element) childNode;
+                if ("urn:oasis:names:tc:SAML:2.0:assertion".equals(childElement.getNamespaceURI())
+                        && "Assertion".equals(childElement.getLocalName())) {
+                    NodeList signatureNodeList = childElement.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
+                    for (int signatureNodeIdx = 0; signatureNodeIdx < signatureNodeList.getLength(); signatureNodeIdx++) {
+                        Element signatureElement = (Element) signatureNodeList.item(signatureNodeIdx);
+                        assertionSignatures.add(signatureElement);
+                    }
+                }
             }
         }
 
