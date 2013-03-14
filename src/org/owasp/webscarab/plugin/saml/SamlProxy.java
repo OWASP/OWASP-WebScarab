@@ -61,6 +61,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private String remoteReference;
     private boolean injectAttribute;
     private List<NamedValue> injectionAttributes;
+    private Occurences attributeOccurences;
     private boolean injectSubject;
     private Occurences subjectOccurences;
     private String subject;
@@ -366,5 +367,14 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     @Override
     public boolean doRenameLastAssertionId() {
         return this.renameLastAssertionId;
+    }
+
+    public void setAttributeOccurences(Occurences occurences) {
+        this.attributeOccurences = occurences;
+    }
+
+    @Override
+    public Occurences getAttributeOccurences() {
+        return this.attributeOccurences;
     }
 }

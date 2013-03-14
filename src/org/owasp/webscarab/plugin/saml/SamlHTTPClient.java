@@ -343,17 +343,35 @@ public class SamlHTTPClient implements HTTPClient {
 
     private void setAttribute(Document document, String name, String value) {
         this._logger.fine("injecting attribute: " + name);
+        Occurences attributeOccurences = this.samlProxyConfig.getAttributeOccurences();
         NodeList attributeNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "Attribute");
+        Element lastAttributeElement = null;
         for (int idx = 0; idx < attributeNodeList.getLength(); idx++) {
             Element attributeElement = (Element) attributeNodeList.item(idx);
             String attributeName = attributeElement.getAttribute("AttributeName");
             if (attributeName.equals(name)) {
-                NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "AttributeValue");
+                if (attributeOccurences == Occurences.LAST) {
+                    lastAttributeElement = attributeElement;
+                } else {
+                    NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "AttributeValue");
+                    for (int valueIdx = 0; valueIdx < attributeValueNodeList.getLength(); valueIdx++) {
+                        Element attributeValueElement = (Element) attributeValueNodeList.item(valueIdx);
+                        attributeValueElement.getChildNodes().item(0).setNodeValue(value);
+                    }
+                    if (attributeOccurences == Occurences.FIRST) {
+                        break;
+                    }
+                }
+            }
+        }
+        if (attributeOccurences == Occurences.LAST) {
+            if (null != lastAttributeElement) {
+                NodeList attributeValueNodeList = lastAttributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "AttributeValue");
                 for (int valueIdx = 0; valueIdx < attributeValueNodeList.getLength(); valueIdx++) {
                     Element attributeValueElement = (Element) attributeValueNodeList.item(valueIdx);
                     attributeValueElement.getChildNodes().item(0).setNodeValue(value);
                 }
-                break;
+                return;
             }
         }
 
@@ -362,12 +380,27 @@ public class SamlHTTPClient implements HTTPClient {
             Element attributeElement = (Element) attribute2NodeList.item(idx);
             String attributeName = attributeElement.getAttribute("Name");
             if (attributeName.equals(name)) {
-                NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AttributeValue");
+                if (attributeOccurences == Occurences.LAST) {
+                    lastAttributeElement = attributeElement;
+                } else {
+                    NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AttributeValue");
+                    for (int valueIdx = 0; valueIdx < attributeValueNodeList.getLength(); valueIdx++) {
+                        Element attributeValueElement = (Element) attributeValueNodeList.item(valueIdx);
+                        attributeValueElement.getChildNodes().item(0).setNodeValue(value);
+                    }
+                    if (attributeOccurences == Occurences.FIRST) {
+                        break;
+                    }
+                }
+            }
+        }
+        if (attributeOccurences == Occurences.LAST) {
+            if (null != lastAttributeElement) {
+                NodeList attributeValueNodeList = lastAttributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AttributeValue");
                 for (int valueIdx = 0; valueIdx < attributeValueNodeList.getLength(); valueIdx++) {
                     Element attributeValueElement = (Element) attributeValueNodeList.item(valueIdx);
                     attributeValueElement.getChildNodes().item(0).setNodeValue(value);
                 }
-                break;
             }
         }
     }

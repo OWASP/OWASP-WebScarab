@@ -368,6 +368,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         subjectButtonGroup = new javax.swing.ButtonGroup();
         wrapperButtonGroup = new javax.swing.ButtonGroup();
         signatureButtonGroup = new javax.swing.ButtonGroup();
+        attributeButtonGroup = new javax.swing.ButtonGroup();
         jSplitPane1 = new javax.swing.JSplitPane();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         rawPanel = new org.owasp.webscarab.ui.swing.editors.TextPanel();
@@ -469,6 +470,11 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel37 = new javax.swing.JPanel();
         addInjectAttributeButton = new javax.swing.JButton();
         removeInjectAttributeButton = new javax.swing.JButton();
+        jPanel16 = new javax.swing.JPanel();
+        jLabel15 = new javax.swing.JLabel();
+        allAttributeRadioButton = new javax.swing.JRadioButton();
+        firstAttributeRadioButton = new javax.swing.JRadioButton();
+        lastAttributeRadioButton = new javax.swing.JRadioButton();
         jPanel17 = new javax.swing.JPanel();
         jPanel18 = new javax.swing.JPanel();
         injectSubjectCheckBox = new javax.swing.JCheckBox();
@@ -1104,6 +1110,43 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         jPanel36.add(jPanel37, gridBagConstraints);
 
+        jLabel15.setText("Occurences:");
+        jPanel16.add(jLabel15);
+
+        attributeButtonGroup.add(allAttributeRadioButton);
+        allAttributeRadioButton.setSelected(true);
+        allAttributeRadioButton.setText("All");
+        allAttributeRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                allAttributeRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel16.add(allAttributeRadioButton);
+
+        attributeButtonGroup.add(firstAttributeRadioButton);
+        firstAttributeRadioButton.setText("First");
+        firstAttributeRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                firstAttributeRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel16.add(firstAttributeRadioButton);
+
+        attributeButtonGroup.add(lastAttributeRadioButton);
+        lastAttributeRadioButton.setText("Last");
+        lastAttributeRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                lastAttributeRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel16.add(lastAttributeRadioButton);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel36.add(jPanel16, gridBagConstraints);
+
         jPanel15.add(jPanel36);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1592,14 +1635,40 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         samlProxy.setRenameLastAssertionId(renameLastAssertionId);
     }//GEN-LAST:event_renameLastAssertionIdCheckBoxItemStateChanged
 
+    private void allAttributeRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_allAttributeRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean allOccurences = evt.getStateChange() == ItemEvent.SELECTED;
+        if (allOccurences) {
+            samlProxy.setAttributeOccurences(Occurences.ALL);
+        }
+    }//GEN-LAST:event_allAttributeRadioButtonItemStateChanged
+
+    private void firstAttributeRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_firstAttributeRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean allOccurences = evt.getStateChange() == ItemEvent.SELECTED;
+        if (allOccurences) {
+            samlProxy.setAttributeOccurences(Occurences.FIRST);
+        }
+    }//GEN-LAST:event_firstAttributeRadioButtonItemStateChanged
+
+    private void lastAttributeRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_lastAttributeRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean allOccurences = evt.getStateChange() == ItemEvent.SELECTED;
+        if (allOccurences) {
+            samlProxy.setAttributeOccurences(Occurences.LAST);
+        }
+    }//GEN-LAST:event_lastAttributeRadioButtonItemStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel aboutPanel;
     private javax.swing.JButton addInjectAttributeButton;
+    private javax.swing.JRadioButton allAttributeRadioButton;
     private javax.swing.JRadioButton allSubjectRadioButton;
     private javax.swing.JPanel analysisDataPanel;
     private javax.swing.JPanel analysisPanel;
     private javax.swing.JRadioButton assertionSignatureRadioButton;
     private javax.swing.JCheckBox assertionsDigestedCheckBox;
+    private javax.swing.ButtonGroup attributeButtonGroup;
     private javax.swing.JTextField attributeKeyTextField;
     private javax.swing.JPanel attributesPanel;
     private javax.swing.JTable attributesTable;
@@ -1614,6 +1683,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JRadioButton duplicateAssertionRadioButton;
     private javax.swing.JPanel encryptedAttributesPanel;
     private javax.swing.JTable encryptedAttributesTable;
+    private javax.swing.JRadioButton firstAttributeRadioButton;
     private javax.swing.JRadioButton firstSubjectRadioButton;
     private javax.swing.JLabel htmlFormConversationIdLabel;
     private javax.swing.JPanel htmlFormPanel;
@@ -1634,6 +1704,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
@@ -1656,6 +1727,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JPanel jPanel13;
     private javax.swing.JPanel jPanel14;
     private javax.swing.JPanel jPanel15;
+    private javax.swing.JPanel jPanel16;
     private javax.swing.JPanel jPanel17;
     private javax.swing.JPanel jPanel18;
     private javax.swing.JPanel jPanel19;
@@ -1696,6 +1768,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JTabbedPane jTabbedPane3;
     private javax.swing.JTextField keyTextField;
+    private javax.swing.JRadioButton lastAttributeRadioButton;
     private javax.swing.JRadioButton lastSubjectRadioButton;
     private javax.swing.JRadioButton protocolSignatureRadioButton;
     private org.owasp.webscarab.ui.swing.editors.TextPanel rawPanel;
