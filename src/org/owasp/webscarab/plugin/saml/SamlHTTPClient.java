@@ -330,18 +330,28 @@ public class SamlHTTPClient implements HTTPClient {
     private String injectAttribute(String samlResponse) throws IOException, ParserConfigurationException, SAXException, Base64DecodingException, TransformerConfigurationException, TransformerException {
         Document document = parseDocument(samlResponse);
 
-        String injectionAttributeName = this.samlProxyConfig.getInjectionAttributeName();
-        String injectionAttributeValue = this.samlProxyConfig.getInjectionAttributeValue();
+        List<NamedValue> injectionAttributes = this.samlProxyConfig.getInjectionAttributes();
+        if (null != injectionAttributes) {
+            for (NamedValue attribute : injectionAttributes) {
+                String name = attribute.getName();
+                String value = attribute.getValue();
+                setAttribute(document, name, value);
+            }
+        }
+        return outputDocument(document);
+    }
 
+    private void setAttribute(Document document, String name, String value) {
+        this._logger.fine("injecting attribute: " + name);
         NodeList attributeNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "Attribute");
         for (int idx = 0; idx < attributeNodeList.getLength(); idx++) {
             Element attributeElement = (Element) attributeNodeList.item(idx);
             String attributeName = attributeElement.getAttribute("AttributeName");
-            if (attributeName.equals(injectionAttributeName)) {
+            if (attributeName.equals(name)) {
                 NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "AttributeValue");
                 for (int valueIdx = 0; valueIdx < attributeValueNodeList.getLength(); valueIdx++) {
                     Element attributeValueElement = (Element) attributeValueNodeList.item(valueIdx);
-                    attributeValueElement.getChildNodes().item(0).setNodeValue(injectionAttributeValue);
+                    attributeValueElement.getChildNodes().item(0).setNodeValue(value);
                 }
                 break;
             }
@@ -351,17 +361,15 @@ public class SamlHTTPClient implements HTTPClient {
         for (int idx = 0; idx < attribute2NodeList.getLength(); idx++) {
             Element attributeElement = (Element) attribute2NodeList.item(idx);
             String attributeName = attributeElement.getAttribute("Name");
-            if (attributeName.equals(injectionAttributeName)) {
+            if (attributeName.equals(name)) {
                 NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AttributeValue");
                 for (int valueIdx = 0; valueIdx < attributeValueNodeList.getLength(); valueIdx++) {
                     Element attributeValueElement = (Element) attributeValueNodeList.item(valueIdx);
-                    attributeValueElement.getChildNodes().item(0).setNodeValue(injectionAttributeValue);
+                    attributeValueElement.getChildNodes().item(0).setNodeValue(value);
                 }
                 break;
             }
         }
-
-        return outputDocument(document);
     }
 
     private String getInjectedRelayState() {

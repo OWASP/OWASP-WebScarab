@@ -35,6 +35,8 @@
 package org.owasp.webscarab.plugin.saml;
 
 import java.security.KeyStore.PrivateKeyEntry;
+import java.util.List;
+import org.owasp.webscarab.model.NamedValue;
 
 /**
  *
@@ -55,10 +57,8 @@ public interface SamlProxyConfig {
     String getRemoteReference();
 
     boolean doInjectAttribute();
-
-    String getInjectionAttributeName();
-
-    String getInjectionAttributeValue();
+    
+    List<NamedValue> getInjectionAttributes();
 
     boolean doInjectSubject();
     
