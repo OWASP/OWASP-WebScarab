@@ -458,6 +458,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel33 = new javax.swing.JPanel();
         renameIdCheckBox = new javax.swing.JCheckBox();
         renameAssertionIdCheckBox = new javax.swing.JCheckBox();
+        renameLastAssertionIdCheckBox = new javax.swing.JCheckBox();
         jPanel19 = new javax.swing.JPanel();
         jPanel20 = new javax.swing.JPanel();
         jPanel15 = new javax.swing.JPanel();
@@ -1013,13 +1014,21 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         });
         jPanel33.add(renameIdCheckBox);
 
-        renameAssertionIdCheckBox.setText("Rename Assertion ID");
+        renameAssertionIdCheckBox.setText("Rename first Assertion ID");
         renameAssertionIdCheckBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 renameAssertionIdCheckBoxItemStateChanged(evt);
             }
         });
         jPanel33.add(renameAssertionIdCheckBox);
+
+        renameLastAssertionIdCheckBox.setText("Rename last Assertion ID");
+        renameLastAssertionIdCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                renameLastAssertionIdCheckBoxItemStateChanged(evt);
+            }
+        });
+        jPanel33.add(renameLastAssertionIdCheckBox);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1577,6 +1586,12 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         this.removeInjectAttributeButton.setEnabled(false);
     }//GEN-LAST:event_removeInjectAttributeButtonActionPerformed
 
+    private void renameLastAssertionIdCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_renameLastAssertionIdCheckBoxItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean renameLastAssertionId = evt.getStateChange() == ItemEvent.SELECTED;
+        samlProxy.setRenameLastAssertionId(renameLastAssertionId);
+    }//GEN-LAST:event_renameLastAssertionIdCheckBoxItemStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel aboutPanel;
     private javax.swing.JButton addInjectAttributeButton;
@@ -1691,6 +1706,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JCheckBox removeSignatureCheckBox;
     private javax.swing.JCheckBox renameAssertionIdCheckBox;
     private javax.swing.JCheckBox renameIdCheckBox;
+    private javax.swing.JCheckBox renameLastAssertionIdCheckBox;
     private javax.swing.JPopupMenu samlPopupMenu;
     private javax.swing.JCheckBox samlReplayCheckBox;
     private javax.swing.JLabel samlReplayLabel;

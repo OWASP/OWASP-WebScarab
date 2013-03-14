@@ -76,6 +76,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private SignatureType wrapperTargetSignature;
     private boolean renameTopId;
     private boolean renameAssertionId;
+    private boolean renameLastAssertionId;
     private boolean removeAssertionSignature;
     
     private EventListenerList _listenerList = new EventListenerList();
@@ -356,5 +357,14 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     @Override
     public List<NamedValue> getInjectionAttributes() {
         return this.injectionAttributes;
+    }
+
+    public void setRenameLastAssertionId(boolean renameLastAssertionId) {
+        this.renameLastAssertionId = renameLastAssertionId;
+    }
+
+    @Override
+    public boolean doRenameLastAssertionId() {
+        return this.renameLastAssertionId;
     }
 }

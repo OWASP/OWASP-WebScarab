@@ -545,6 +545,12 @@ public class SamlHTTPClient implements HTTPClient {
                         String newIdValue = "renamed-" + oldIdValue;
                         idAttr.setValue(newIdValue);
                     }
+                    if (this.samlProxyConfig.doRenameLastAssertionId()) {
+                        Attr idAttr = importedAssertionElement.getAttributeNode("ID");
+                        String oldIdValue = idAttr.getValue();
+                        String newIdValue = "renamed-" + oldIdValue;
+                        idAttr.setValue(newIdValue);
+                    }
                 }
             }
             break;

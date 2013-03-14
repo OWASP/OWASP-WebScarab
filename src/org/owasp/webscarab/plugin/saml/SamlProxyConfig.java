@@ -90,5 +90,7 @@ public interface SamlProxyConfig {
     
     boolean doRenameAssertionId();
     
+    boolean doRenameLastAssertionId();
+    
     boolean doRemoveAssertionSignature();
 }
