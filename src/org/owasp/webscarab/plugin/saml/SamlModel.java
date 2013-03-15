@@ -85,7 +85,7 @@ import org.xml.sax.SAXException;
  * @author Frank Cornelis
  */
 public class SamlModel extends AbstractPluginModel {
-
+    
     private Logger _logger = Logger.getLogger(getClass().getName());
     private final FrameworkModel model;
     private final ConversationModel samlConversationModel;
@@ -304,6 +304,34 @@ public class SamlModel extends AbstractPluginModel {
         }
         return null;
     }
+    
+    public static Element findAssertionSignatureElement(Document document) {
+        NodeList assertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
+        if (0 == assertionNodeList.getLength()) {
+            assertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "Assertion");
+            if (0 == assertionNodeList.getLength()) {
+                return null;
+            }
+        }
+        Node assertionNode = assertionNodeList.item(0);
+        NodeList assertionChildrenNodeList = assertionNode.getChildNodes();
+        int assertionChildrenNodeCount = assertionChildrenNodeList.getLength();
+        for (int nodeIdx = 0; nodeIdx < assertionChildrenNodeCount; nodeIdx++) {
+            Node node = assertionChildrenNodeList.item(nodeIdx);
+            if (Node.ELEMENT_NODE == node.getNodeType()) {
+                Element element = (Element) node;
+                if (false == "http://www.w3.org/2000/09/xmldsig#".equals(element.getNamespaceURI())) {
+                    continue;
+                }
+                if (false == "Signature".equals(element.getLocalName())) {
+                    continue;
+                }
+                return element;
+            }
+        }
+        return null;
+    }
+
 
     public List<X509Certificate> verifySAMLProtocolSignature(ConversationID id) throws SamlSignatureException {
         Document document = getSAMLDocument(id);

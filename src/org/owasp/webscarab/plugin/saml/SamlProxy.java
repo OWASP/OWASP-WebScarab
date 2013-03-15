@@ -35,11 +35,13 @@ package org.owasp.webscarab.plugin.saml;
 
 import java.security.KeyStore;
 import java.security.KeyStore.PrivateKeyEntry;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.EventListenerList;
 import org.owasp.webscarab.httpclient.HTTPClient;
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.plugin.proxy.ProxyPlugin;
 
 /**
@@ -58,8 +60,8 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private boolean injectRemoteReference;
     private String remoteReference;
     private boolean injectAttribute;
-    private String attributeName;
-    private String attributeValue;
+    private List<NamedValue> injectionAttributes;
+    private Occurences attributeOccurences;
     private boolean injectSubject;
     private Occurences subjectOccurences;
     private String subject;
@@ -72,7 +74,10 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private KeyStore.PrivateKeyEntry privateKeyEntry;
     private boolean signWrapAttack;
     private Wrapper wrapper;
+    private SignatureType wrapperTargetSignature;
     private boolean renameTopId;
+    private boolean renameAssertionId;
+    private boolean renameLastAssertionId;
     private boolean removeAssertionSignature;
     
     private EventListenerList _listenerList = new EventListenerList();
@@ -180,27 +185,9 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
         updateAttackState();
     }
 
-    public void setInjectionAttributeName(String attributeName) {
-        this.attributeName = attributeName;
-    }
-
-    public void setInjectionAttributeValue(String attributeValue) {
-        this.attributeValue = attributeValue;
-    }
-
     @Override
     public boolean doInjectAttribute() {
         return this.injectAttribute;
-    }
-
-    @Override
-    public String getInjectionAttributeName() {
-        return this.attributeName;
-    }
-
-    @Override
-    public String getInjectionAttributeValue() {
-        return this.attributeValue;
     }
 
     public void setInjectSubject(boolean injectSubject) {
@@ -341,5 +328,53 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
             return Wrapper.DS_OBJECT;
         }
         return this.wrapper;
+    }
+
+    public void setWrapperTargetSignature(SignatureType signatureType) {
+        this.wrapperTargetSignature = signatureType;
+    }
+
+    @Override
+    public SignatureType getWrapperTargetSignature() {
+        if (null == this.wrapperTargetSignature) {
+            return SignatureType.PROTOCOL;
+        }
+        return this.wrapperTargetSignature;
+    }
+
+    public void setRenameAssertionId(boolean renameAssertionId) {
+        this.renameAssertionId = renameAssertionId;
+    }
+
+    @Override
+    public boolean doRenameAssertionId() {
+        return this.renameAssertionId;
+    }
+
+    public void setInjectionAttributes(List<NamedValue> attributes) {
+        this.injectionAttributes = attributes;
+    }
+
+    @Override
+    public List<NamedValue> getInjectionAttributes() {
+        return this.injectionAttributes;
+    }
+
+    public void setRenameLastAssertionId(boolean renameLastAssertionId) {
+        this.renameLastAssertionId = renameLastAssertionId;
+    }
+
+    @Override
+    public boolean doRenameLastAssertionId() {
+        return this.renameLastAssertionId;
+    }
+
+    public void setAttributeOccurences(Occurences occurences) {
+        this.attributeOccurences = occurences;
+    }
+
+    @Override
+    public Occurences getAttributeOccurences() {
+        return this.attributeOccurences;
     }
 }
