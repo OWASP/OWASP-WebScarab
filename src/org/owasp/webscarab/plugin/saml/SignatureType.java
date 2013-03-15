@@ -6,7 +6,7 @@
  * This file is part of WebScarab, an Open Web Application Security Project
  * utility. For details, please see http://www.owasp.org/
  *
- * Copyright (c) 2012 FedICT
+ * Copyright (c) 2013 FedICT
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -33,11 +33,11 @@
 package org.owasp.webscarab.plugin.saml;
 
 /**
- * Enumeration of signature wrapper elements.
+ * Enumeration of the signature types.
  *
  * @author Frank Cornelis
  */
-public enum Wrapper {
+public enum SignatureType {
 
-    DS_OBJECT, SAMLP_EXTENSIONS, ASSERTION;
+    PROTOCOL, ASSERTION
 }

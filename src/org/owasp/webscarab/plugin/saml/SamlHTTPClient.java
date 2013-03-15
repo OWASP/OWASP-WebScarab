@@ -71,6 +71,7 @@ import org.owasp.webscarab.util.Encoding;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -329,19 +330,48 @@ public class SamlHTTPClient implements HTTPClient {
     private String injectAttribute(String samlResponse) throws IOException, ParserConfigurationException, SAXException, Base64DecodingException, TransformerConfigurationException, TransformerException {
         Document document = parseDocument(samlResponse);
 
-        String injectionAttributeName = this.samlProxyConfig.getInjectionAttributeName();
-        String injectionAttributeValue = this.samlProxyConfig.getInjectionAttributeValue();
+        List<NamedValue> injectionAttributes = this.samlProxyConfig.getInjectionAttributes();
+        if (null != injectionAttributes) {
+            for (NamedValue attribute : injectionAttributes) {
+                String name = attribute.getName();
+                String value = attribute.getValue();
+                setAttribute(document, name, value);
+            }
+        }
+        return outputDocument(document);
+    }
 
+    private void setAttribute(Document document, String name, String value) {
+        this._logger.fine("injecting attribute: " + name);
+        Occurences attributeOccurences = this.samlProxyConfig.getAttributeOccurences();
         NodeList attributeNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "Attribute");
+        Element lastAttributeElement = null;
         for (int idx = 0; idx < attributeNodeList.getLength(); idx++) {
             Element attributeElement = (Element) attributeNodeList.item(idx);
             String attributeName = attributeElement.getAttribute("AttributeName");
-            if (attributeName.equals(injectionAttributeName)) {
-                NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "AttributeValue");
+            if (attributeName.equals(name)) {
+                if (attributeOccurences == Occurences.LAST) {
+                    lastAttributeElement = attributeElement;
+                } else {
+                    NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "AttributeValue");
+                    for (int valueIdx = 0; valueIdx < attributeValueNodeList.getLength(); valueIdx++) {
+                        Element attributeValueElement = (Element) attributeValueNodeList.item(valueIdx);
+                        attributeValueElement.getChildNodes().item(0).setNodeValue(value);
+                    }
+                    if (attributeOccurences == Occurences.FIRST) {
+                        break;
+                    }
+                }
+            }
+        }
+        if (attributeOccurences == Occurences.LAST) {
+            if (null != lastAttributeElement) {
+                NodeList attributeValueNodeList = lastAttributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "AttributeValue");
                 for (int valueIdx = 0; valueIdx < attributeValueNodeList.getLength(); valueIdx++) {
                     Element attributeValueElement = (Element) attributeValueNodeList.item(valueIdx);
-                    attributeValueElement.getChildNodes().item(0).setNodeValue(injectionAttributeValue);
+                    attributeValueElement.getChildNodes().item(0).setNodeValue(value);
                 }
+                return;
             }
         }
 
@@ -349,16 +379,30 @@ public class SamlHTTPClient implements HTTPClient {
         for (int idx = 0; idx < attribute2NodeList.getLength(); idx++) {
             Element attributeElement = (Element) attribute2NodeList.item(idx);
             String attributeName = attributeElement.getAttribute("Name");
-            if (attributeName.equals(injectionAttributeName)) {
-                NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AttributeValue");
-                for (int valueIdx = 0; valueIdx < attributeValueNodeList.getLength(); valueIdx++) {
-                    Element attributeValueElement = (Element) attributeValueNodeList.item(valueIdx);
-                    attributeValueElement.getChildNodes().item(0).setNodeValue(injectionAttributeValue);
+            if (attributeName.equals(name)) {
+                if (attributeOccurences == Occurences.LAST) {
+                    lastAttributeElement = attributeElement;
+                } else {
+                    NodeList attributeValueNodeList = attributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AttributeValue");
+                    for (int valueIdx = 0; valueIdx < attributeValueNodeList.getLength(); valueIdx++) {
+                        Element attributeValueElement = (Element) attributeValueNodeList.item(valueIdx);
+                        attributeValueElement.getChildNodes().item(0).setNodeValue(value);
+                    }
+                    if (attributeOccurences == Occurences.FIRST) {
+                        break;
+                    }
                 }
             }
         }
-
-        return outputDocument(document);
+        if (attributeOccurences == Occurences.LAST) {
+            if (null != lastAttributeElement) {
+                NodeList attributeValueNodeList = lastAttributeElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AttributeValue");
+                for (int valueIdx = 0; valueIdx < attributeValueNodeList.getLength(); valueIdx++) {
+                    Element attributeValueElement = (Element) attributeValueNodeList.item(valueIdx);
+                    attributeValueElement.getChildNodes().item(0).setNodeValue(value);
+                }
+            }
+        }
     }
 
     private String getInjectedRelayState() {
@@ -470,11 +514,23 @@ public class SamlHTTPClient implements HTTPClient {
         Wrapper wrapper = this.samlProxyConfig.getWrapper();
         switch (wrapper) {
             case DS_OBJECT: {
-                Element protocolSignatureElement = SamlModel.findProtocolSignatureElement(document);
-                if (null == protocolSignatureElement) {
+                Element signatureElement;
+                SignatureType wrapperTargetSignature = this.samlProxyConfig.getWrapperTargetSignature();
+                this._logger.log(Level.FINE, "wrapper target signature: " + wrapperTargetSignature);
+                switch (wrapperTargetSignature) {
+                    default:
+                    case PROTOCOL:
+                        signatureElement = SamlModel.findProtocolSignatureElement(document);
+                        break;
+                    case ASSERTION:
+                        signatureElement = SamlModel.findAssertionSignatureElement(document);
+                        break;
+                }
+                if (null == signatureElement) {
+                    this._logger.fine("no signature element found");
                     return samlResponse;
                 }
-                String dsPrefix = protocolSignatureElement.getPrefix();
+                String dsPrefix = signatureElement.getPrefix();
                 String dsObjectQualifiedName;
                 if (null == dsPrefix) {
                     dsObjectQualifiedName = "Object";
@@ -482,10 +538,19 @@ public class SamlHTTPClient implements HTTPClient {
                     dsObjectQualifiedName = dsPrefix + ":Object";
                 }
                 Element dsObjectElement = document.createElementNS("http://www.w3.org/2000/09/xmldsig#", dsObjectQualifiedName);
-                Element samlResponseElement = document.getDocumentElement();
-                Element importedSamlResponseElement = (Element) document.importNode(samlResponseElement, true);
-                dsObjectElement.appendChild(importedSamlResponseElement);
-                protocolSignatureElement.appendChild(dsObjectElement);
+                Element parentElement = (Element) signatureElement.getParentNode();
+                Element importedParentElement = (Element) document.importNode(parentElement, true);
+                dsObjectElement.appendChild(importedParentElement);
+                signatureElement.appendChild(dsObjectElement);
+                if (this.samlProxyConfig.doRenameAssertionId()) {
+                    Attr idAttr = parentElement.getAttributeNode("ID"); // SAML 2
+                    if (null == idAttr) {
+                        idAttr = parentElement.getAttributeNode("AssertionID"); // SAML 1.1
+                    }
+                    String oldIdValue = idAttr.getValue();
+                    String newIdValue = "renamed-" + oldIdValue;
+                    idAttr.setValue(newIdValue);
+                }
             }
             break;
             case SAMLP_EXTENSIONS: {
@@ -504,11 +569,41 @@ public class SamlHTTPClient implements HTTPClient {
                 samlResponseElement.appendChild(samlpExtensionsElement);
             }
             break;
+            case ASSERTION: {
+                NodeList saml2AssertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
+                if (saml2AssertionNodeList.getLength() != 0) {
+                    Element assertionElement = (Element) saml2AssertionNodeList.item(0);
+                    Element importedAssertionElement = (Element) document.importNode(assertionElement, true);
+                    assertionElement.getParentNode().appendChild(importedAssertionElement);
+                    if (this.samlProxyConfig.doRenameAssertionId()) {
+                        Attr idAttr = assertionElement.getAttributeNode("ID"); // SAML 2
+                        if (null == idAttr) {
+                            idAttr = assertionElement.getAttributeNode("AssertionID"); // SAML 1.1
+                        }
+                        String oldIdValue = idAttr.getValue();
+                        String newIdValue = "renamed-" + oldIdValue;
+                        idAttr.setValue(newIdValue);
+                    }
+                    if (this.samlProxyConfig.doRenameLastAssertionId()) {
+                        Attr idAttr = importedAssertionElement.getAttributeNode("ID"); // SAML 2
+                        if (null == idAttr) {
+                            idAttr = importedAssertionElement.getAttributeNode("AssertionID"); // SAML 1.1
+                        }
+                        String oldIdValue = idAttr.getValue();
+                        String newIdValue = "renamed-" + oldIdValue;
+                        idAttr.setValue(newIdValue);
+                    }
+                }
+            }
+            break;
         }
 
         if (this.samlProxyConfig.doRenameTopId()) {
             Element rootElement = document.getDocumentElement();
-            Attr idAttr = rootElement.getAttributeNode("ID");
+            Attr idAttr = rootElement.getAttributeNode("ID"); // SAML 2.0
+            if (null == idAttr) {
+                idAttr = rootElement.getAttributeNode("ResponseID"); // SAML 1.1
+            }
             String oldIdValue = idAttr.getValue();
             String newIdValue = "renamed-" + oldIdValue;
             idAttr.setValue(newIdValue);
@@ -529,13 +624,19 @@ public class SamlHTTPClient implements HTTPClient {
     private List<Element> findAssertionSignatures(Document document) {
         List<Element> assertionSignatures = new LinkedList<Element>();
 
-        NodeList saml2AssertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
-        for (int assertionNodeIdx = 0; assertionNodeIdx < saml2AssertionNodeList.getLength(); assertionNodeIdx++) {
-            Element assertionElement = (Element) saml2AssertionNodeList.item(assertionNodeIdx);
-            NodeList signatureNodeList = assertionElement.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
-            for (int signatureNodeIdx = 0; signatureNodeIdx < signatureNodeList.getLength(); signatureNodeIdx++) {
-                Element signatureElement = (Element) signatureNodeList.item(signatureNodeIdx);
-                assertionSignatures.add(signatureElement);
+        NodeList childNodeList = document.getDocumentElement().getChildNodes();
+        for (int nodeIdx = 0; nodeIdx < childNodeList.getLength(); nodeIdx++) {
+            Node childNode = childNodeList.item(nodeIdx);
+            if (childNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element childElement = (Element) childNode;
+                if ("urn:oasis:names:tc:SAML:2.0:assertion".equals(childElement.getNamespaceURI())
+                        && "Assertion".equals(childElement.getLocalName())) {
+                    NodeList signatureNodeList = childElement.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
+                    for (int signatureNodeIdx = 0; signatureNodeIdx < signatureNodeList.getLength(); signatureNodeIdx++) {
+                        Element signatureElement = (Element) signatureNodeList.item(signatureNodeIdx);
+                        assertionSignatures.add(signatureElement);
+                    }
+                }
             }
         }
 

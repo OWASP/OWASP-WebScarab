@@ -246,7 +246,7 @@ public class ConnectionHandler implements Runnable {
 					// response
 					try {
 						response = hc.fetchResponse(request);
-						if (response.getRequest() != null)
+						if (response != null && response.getRequest() != null)
 							request = response.getRequest();
 					} catch (IOException ioe) {
 						_logger

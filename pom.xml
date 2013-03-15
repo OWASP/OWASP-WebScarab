@@ -75,6 +75,41 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>installer</id>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>${basedir}/izpack</directory>
+                        <targetPath>${project.build.directory}/staging</targetPath>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.izpack</groupId>
+                        <artifactId>izpack-maven-plugin</artifactId>
+                        <version>5.0.0-beta11</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>izpack</goal>
+                                </goals>
+                                <configuration>
+                                    <baseDir>${project.build.directory}</baseDir>
+                                    <enableAttachArtifact>true</enableAttachArtifact>
+                                    <installFile>${project.build.directory}/staging/install.xml</installFile>
+                                    <classifier>installer</classifier>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
     <dependencies>
         <dependency>
             <groupId>org.apache.santuario</groupId>

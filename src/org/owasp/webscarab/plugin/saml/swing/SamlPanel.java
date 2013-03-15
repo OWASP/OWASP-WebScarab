@@ -33,6 +33,8 @@
  */
 package org.owasp.webscarab.plugin.saml.swing;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
@@ -42,12 +44,17 @@ import java.beans.PropertyChangeListener;
 import java.security.KeyStore.PrivateKeyEntry;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.Action;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.TableModel;
@@ -63,6 +70,7 @@ import org.owasp.webscarab.plugin.saml.SamlModel;
 import org.owasp.webscarab.plugin.saml.SamlProxy;
 import org.owasp.webscarab.plugin.saml.SamlProxyListener;
 import org.owasp.webscarab.plugin.saml.SamlSignatureException;
+import org.owasp.webscarab.plugin.saml.SignatureType;
 import org.owasp.webscarab.plugin.saml.Wrapper;
 import org.owasp.webscarab.ui.swing.CertificateManager;
 import org.owasp.webscarab.ui.swing.ColumnWidthTracker;
@@ -80,6 +88,7 @@ import org.owasp.webscarab.util.swing.TreeUtil;
  */
 public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, SamlProxyListener {
 
+    private Logger _logger = Logger.getLogger(getClass().getName());
     private final Saml saml;
     private final SamlModel samlModel;
     private final ShowConversationAction showConversationAction;
@@ -87,6 +96,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private final SamlExportConversationAction samlExportConversationAction;
     private final OpenBrowserAction openBrowserAction;
     private final AttributesTableModel attributesTableModel;
+    private final AttributesTableModel injectAttributesTableModel;
     private final AttributesTableModel encryptedAttributesTableModel;
     private final SamlCertificateRepository samlCertificateRepository;
     private final CertificateManager certificateManager;
@@ -124,6 +134,9 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         this.attributesTableModel = new AttributesTableModel();
         this.attributesTable.setModel(this.attributesTableModel);
+
+        this.injectAttributesTableModel = new AttributesTableModel();
+        this.injectAttributesTable.setModel(this.injectAttributesTableModel);
 
         this.encryptedAttributesTableModel = new AttributesTableModel();
         this.encryptedAttributesTable.setModel(this.encryptedAttributesTableModel);
@@ -224,6 +237,27 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
                     ActionEvent actionEvent = new ActionEvent(SamlPanel.this.samlTable, 0, (String) SamlPanel.this.showConversationAction.getValue(Action.ACTION_COMMAND_KEY));
                     SamlPanel.this.showConversationAction.actionPerformed(actionEvent);
                 }
+            }
+        });
+        
+        this.injectAttributesTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                int row = SamlPanel.this.injectAttributesTable.getSelectedRow();
+                if (row > -1) {
+                    SamlPanel.this.removeInjectAttributeButton.setEnabled(true);
+                } else {
+                    SamlPanel.this.removeInjectAttributeButton.setEnabled(false);
+                }
+            }
+        });
+        
+        this.injectAttributesTableModel.addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                SamlPanel.this._logger.fine("injectAttributesTableModel changed");
+                SamlProxy samlProxy = SamlPanel.this.saml.getSamlProxy();
+                samlProxy.setInjectionAttributes(SamlPanel.this.injectAttributesTableModel.getAttributes());
             }
         });
     }
@@ -333,6 +367,8 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         samlPopupMenu = new javax.swing.JPopupMenu();
         subjectButtonGroup = new javax.swing.ButtonGroup();
         wrapperButtonGroup = new javax.swing.ButtonGroup();
+        signatureButtonGroup = new javax.swing.ButtonGroup();
+        attributeButtonGroup = new javax.swing.ButtonGroup();
         jSplitPane1 = new javax.swing.JSplitPane();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         rawPanel = new org.owasp.webscarab.ui.swing.editors.TextPanel();
@@ -413,20 +449,32 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel30 = new javax.swing.JPanel();
         jPanel32 = new javax.swing.JPanel();
         signWrapAttackCheckBox = new javax.swing.JCheckBox();
+        jPanel35 = new javax.swing.JPanel();
+        protocolSignatureRadioButton = new javax.swing.JRadioButton();
+        assertionSignatureRadioButton = new javax.swing.JRadioButton();
         jPanel34 = new javax.swing.JPanel();
         dsObjectWrapperRadioButton = new javax.swing.JRadioButton();
         samlpExtWrapperRadioButton = new javax.swing.JRadioButton();
+        duplicateAssertionRadioButton = new javax.swing.JRadioButton();
         jPanel33 = new javax.swing.JPanel();
         renameIdCheckBox = new javax.swing.JCheckBox();
+        renameAssertionIdCheckBox = new javax.swing.JCheckBox();
+        renameLastAssertionIdCheckBox = new javax.swing.JCheckBox();
         jPanel19 = new javax.swing.JPanel();
         jPanel20 = new javax.swing.JPanel();
         jPanel15 = new javax.swing.JPanel();
-        jPanel16 = new javax.swing.JPanel();
+        jPanel36 = new javax.swing.JPanel();
         injectAttributeCheckBox = new javax.swing.JCheckBox();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        injectAttributesTable = new javax.swing.JTable();
+        jPanel37 = new javax.swing.JPanel();
+        addInjectAttributeButton = new javax.swing.JButton();
+        removeInjectAttributeButton = new javax.swing.JButton();
+        jPanel16 = new javax.swing.JPanel();
         jLabel15 = new javax.swing.JLabel();
-        attributeNameTextField = new javax.swing.JTextField();
-        jLabel16 = new javax.swing.JLabel();
-        attributeValueTextField = new javax.swing.JTextField();
+        allAttributeRadioButton = new javax.swing.JRadioButton();
+        firstAttributeRadioButton = new javax.swing.JRadioButton();
+        lastAttributeRadioButton = new javax.swing.JRadioButton();
         jPanel17 = new javax.swing.JPanel();
         jPanel18 = new javax.swing.JPanel();
         injectSubjectCheckBox = new javax.swing.JCheckBox();
@@ -896,6 +944,35 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         jPanel32.add(signWrapAttackCheckBox, gridBagConstraints);
 
+        jPanel35.setBorder(javax.swing.BorderFactory.createTitledBorder("Signature"));
+        jPanel35.setLayout(new javax.swing.BoxLayout(jPanel35, javax.swing.BoxLayout.PAGE_AXIS));
+
+        signatureButtonGroup.add(protocolSignatureRadioButton);
+        protocolSignatureRadioButton.setSelected(true);
+        protocolSignatureRadioButton.setText("SAML protocol signature");
+        protocolSignatureRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                protocolSignatureRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel35.add(protocolSignatureRadioButton);
+
+        signatureButtonGroup.add(assertionSignatureRadioButton);
+        assertionSignatureRadioButton.setText("SAML assertion signature");
+        assertionSignatureRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                assertionSignatureRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel35.add(assertionSignatureRadioButton);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel32.add(jPanel35, gridBagConstraints);
+
         jPanel34.setBorder(javax.swing.BorderFactory.createTitledBorder("Wrapper Element"));
         jPanel34.setLayout(new javax.swing.BoxLayout(jPanel34, javax.swing.BoxLayout.PAGE_AXIS));
 
@@ -918,13 +995,22 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         });
         jPanel34.add(samlpExtWrapperRadioButton);
 
+        wrapperButtonGroup.add(duplicateAssertionRadioButton);
+        duplicateAssertionRadioButton.setText("Duplicate Assertion");
+        duplicateAssertionRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                duplicateAssertionRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel34.add(duplicateAssertionRadioButton);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         jPanel32.add(jPanel34, gridBagConstraints);
 
         jPanel33.setBorder(javax.swing.BorderFactory.createTitledBorder("References Settings"));
-        jPanel33.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        jPanel33.setLayout(new javax.swing.BoxLayout(jPanel33, javax.swing.BoxLayout.PAGE_AXIS));
 
         renameIdCheckBox.setText("Rename top Response Id");
         renameIdCheckBox.addItemListener(new java.awt.event.ItemListener() {
@@ -934,9 +1020,25 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         });
         jPanel33.add(renameIdCheckBox);
 
+        renameAssertionIdCheckBox.setText("Rename first Assertion ID");
+        renameAssertionIdCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                renameAssertionIdCheckBoxItemStateChanged(evt);
+            }
+        });
+        jPanel33.add(renameAssertionIdCheckBox);
+
+        renameLastAssertionIdCheckBox.setText("Rename last Assertion ID");
+        renameLastAssertionIdCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                renameLastAssertionIdCheckBoxItemStateChanged(evt);
+            }
+        });
+        jPanel33.add(renameLastAssertionIdCheckBox);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
         jPanel32.add(jPanel33, gridBagConstraints);
 
@@ -951,7 +1053,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel15.setBorder(javax.swing.BorderFactory.createTitledBorder("Attribute Injection Attack"));
         jPanel15.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
-        jPanel16.setLayout(new java.awt.GridBagLayout());
+        jPanel36.setLayout(new java.awt.GridBagLayout());
 
         injectAttributeCheckBox.setText("Change Attribute");
         injectAttributeCheckBox.setToolTipText("Changes the given attribute value on the SAML assertions");
@@ -963,59 +1065,95 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel16.add(injectAttributeCheckBox, gridBagConstraints);
+        jPanel36.add(injectAttributeCheckBox, gridBagConstraints);
 
-        jLabel15.setText("Name: ");
+        jScrollPane6.setPreferredSize(new java.awt.Dimension(250, 100));
+
+        injectAttributesTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+
+            }
+        ));
+        injectAttributesTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jScrollPane6.setViewportView(injectAttributesTable);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel16.add(jLabel15, gridBagConstraints);
+        jPanel36.add(jScrollPane6, gridBagConstraints);
 
-        attributeNameTextField.setColumns(20);
-        attributeNameTextField.addActionListener(new java.awt.event.ActionListener() {
+        jPanel37.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        addInjectAttributeButton.setText("Add...");
+        addInjectAttributeButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                attributeNameTextFieldActionPerformed(evt);
+                addInjectAttributeButtonActionPerformed(evt);
             }
         });
-        attributeNameTextField.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                attributeNameTextFieldFocusLost(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        jPanel16.add(attributeNameTextField, gridBagConstraints);
+        jPanel37.add(addInjectAttributeButton);
 
-        jLabel16.setText("Value: ");
+        removeInjectAttributeButton.setText("Remove");
+        removeInjectAttributeButton.setEnabled(false);
+        removeInjectAttributeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeInjectAttributeButtonActionPerformed(evt);
+            }
+        });
+        jPanel37.add(removeInjectAttributeButton);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        jPanel16.add(jLabel16, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel36.add(jPanel37, gridBagConstraints);
 
-        attributeValueTextField.setColumns(20);
-        attributeValueTextField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                attributeValueTextFieldActionPerformed(evt);
+        jLabel15.setText("Occurences:");
+        jPanel16.add(jLabel15);
+
+        attributeButtonGroup.add(allAttributeRadioButton);
+        allAttributeRadioButton.setSelected(true);
+        allAttributeRadioButton.setText("All");
+        allAttributeRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                allAttributeRadioButtonItemStateChanged(evt);
             }
         });
-        attributeValueTextField.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                attributeValueTextFieldFocusLost(evt);
+        jPanel16.add(allAttributeRadioButton);
+
+        attributeButtonGroup.add(firstAttributeRadioButton);
+        firstAttributeRadioButton.setText("First");
+        firstAttributeRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                firstAttributeRadioButtonItemStateChanged(evt);
             }
         });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        jPanel16.add(attributeValueTextField, gridBagConstraints);
+        jPanel16.add(firstAttributeRadioButton);
 
-        jPanel15.add(jPanel16);
+        attributeButtonGroup.add(lastAttributeRadioButton);
+        lastAttributeRadioButton.setText("Last");
+        lastAttributeRadioButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                lastAttributeRadioButtonItemStateChanged(evt);
+            }
+        });
+        jPanel16.add(lastAttributeRadioButton);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel36.add(jPanel16, gridBagConstraints);
+
+        jPanel15.add(jPanel36);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
         jPanel20.add(jPanel15, gridBagConstraints);
 
         jPanel17.setBorder(javax.swing.BorderFactory.createTitledBorder("Subject Injection Attack"));
@@ -1150,8 +1288,8 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel23.add(jPanel24);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel20.add(jPanel23, gridBagConstraints);
 
@@ -1192,7 +1330,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel25.add(jPanel26);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel20.add(jPanel25, gridBagConstraints);
@@ -1289,18 +1427,6 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         samlProxy.setInjectAttribute(injectAttribute);
     }//GEN-LAST:event_injectAttributeCheckBoxItemStateChanged
 
-    private void attributeNameTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_attributeNameTextFieldActionPerformed
-        SamlProxy samlProxy = this.saml.getSamlProxy();
-        String attributeName = this.attributeNameTextField.getText();
-        samlProxy.setInjectionAttributeName(attributeName);
-    }//GEN-LAST:event_attributeNameTextFieldActionPerformed
-
-    private void attributeValueTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_attributeValueTextFieldActionPerformed
-        SamlProxy samlProxy = this.saml.getSamlProxy();
-        String attributeValue = this.attributeValueTextField.getText();
-        samlProxy.setInjectionAttributeValue(attributeValue);
-    }//GEN-LAST:event_attributeValueTextFieldActionPerformed
-
     private void injectSubjectCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_injectSubjectCheckBoxItemStateChanged
         SamlProxy samlProxy = this.saml.getSamlProxy();
         boolean injectSubject = evt.getStateChange() == ItemEvent.SELECTED;
@@ -1324,18 +1450,6 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         String remoteReference = this.injectionUriTextField.getText();
         samlProxy.setRemoteReference(remoteReference);
     }//GEN-LAST:event_injectionUriTextFieldFocusLost
-
-    private void attributeNameTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_attributeNameTextFieldFocusLost
-        SamlProxy samlProxy = this.saml.getSamlProxy();
-        String attributeName = this.attributeNameTextField.getText();
-        samlProxy.setInjectionAttributeName(attributeName);
-    }//GEN-LAST:event_attributeNameTextFieldFocusLost
-
-    private void attributeValueTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_attributeValueTextFieldFocusLost
-        SamlProxy samlProxy = this.saml.getSamlProxy();
-        String attributeValue = this.attributeValueTextField.getText();
-        samlProxy.setInjectionAttributeValue(attributeValue);
-    }//GEN-LAST:event_attributeValueTextFieldFocusLost
 
     private void injectPublicDoctypeCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_injectPublicDoctypeCheckBoxItemStateChanged
         SamlProxy samlProxy = this.saml.getSamlProxy();
@@ -1447,15 +1561,115 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         }
     }//GEN-LAST:event_samlpExtWrapperRadioButtonItemStateChanged
 
+    private void protocolSignatureRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_protocolSignatureRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean protocolSignature = evt.getStateChange() == ItemEvent.SELECTED;
+        if (protocolSignature) {
+            samlProxy.setWrapperTargetSignature(SignatureType.PROTOCOL);
+        }
+    }//GEN-LAST:event_protocolSignatureRadioButtonItemStateChanged
+
+    private void assertionSignatureRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_assertionSignatureRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean assertionSignature = evt.getStateChange() == ItemEvent.SELECTED;
+        if (assertionSignature) {
+            samlProxy.setWrapperTargetSignature(SignatureType.ASSERTION);
+        }
+    }//GEN-LAST:event_assertionSignatureRadioButtonItemStateChanged
+
+    private void renameAssertionIdCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_renameAssertionIdCheckBoxItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean renameAssertionId = evt.getStateChange() == ItemEvent.SELECTED;
+        samlProxy.setRenameAssertionId(renameAssertionId);
+    }//GEN-LAST:event_renameAssertionIdCheckBoxItemStateChanged
+
+    private void duplicateAssertionRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_duplicateAssertionRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean duplicateAssertion = evt.getStateChange() == ItemEvent.SELECTED;
+        if (duplicateAssertion) {
+            samlProxy.setWrapper(Wrapper.ASSERTION);
+        }
+    }//GEN-LAST:event_duplicateAssertionRadioButtonItemStateChanged
+
+    private void addInjectAttributeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addInjectAttributeButtonActionPerformed
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gridBagConstraints = new GridBagConstraints();
+
+        JLabel nameLabel = new JLabel("Name:");
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.ipadx = 10;
+        panel.add(nameLabel, gridBagConstraints);
+
+        gridBagConstraints.gridx++;
+        JTextField nameTextField = new JTextField(20);
+        panel.add(nameTextField, gridBagConstraints);
+
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy++;
+        JLabel valueLabel = new JLabel("Value:");
+        panel.add(valueLabel, gridBagConstraints);
+
+        gridBagConstraints.gridx++;
+        JTextField valueTextField = new JTextField(20);
+        panel.add(valueTextField, gridBagConstraints);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Inject attribute", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+            if (false == nameTextField.getText().isEmpty()) {
+                this.injectAttributesTableModel.addAttribute(nameTextField.getText(), valueTextField.getText());
+            }
+        }
+    }//GEN-LAST:event_addInjectAttributeButtonActionPerformed
+
+    private void removeInjectAttributeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeInjectAttributeButtonActionPerformed
+        int row = this.injectAttributesTable.getSelectedRow();
+        this.injectAttributesTableModel.removeAttribute(row);
+        this.removeInjectAttributeButton.setEnabled(false);
+    }//GEN-LAST:event_removeInjectAttributeButtonActionPerformed
+
+    private void renameLastAssertionIdCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_renameLastAssertionIdCheckBoxItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean renameLastAssertionId = evt.getStateChange() == ItemEvent.SELECTED;
+        samlProxy.setRenameLastAssertionId(renameLastAssertionId);
+    }//GEN-LAST:event_renameLastAssertionIdCheckBoxItemStateChanged
+
+    private void allAttributeRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_allAttributeRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean allOccurences = evt.getStateChange() == ItemEvent.SELECTED;
+        if (allOccurences) {
+            samlProxy.setAttributeOccurences(Occurences.ALL);
+        }
+    }//GEN-LAST:event_allAttributeRadioButtonItemStateChanged
+
+    private void firstAttributeRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_firstAttributeRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean allOccurences = evt.getStateChange() == ItemEvent.SELECTED;
+        if (allOccurences) {
+            samlProxy.setAttributeOccurences(Occurences.FIRST);
+        }
+    }//GEN-LAST:event_firstAttributeRadioButtonItemStateChanged
+
+    private void lastAttributeRadioButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_lastAttributeRadioButtonItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean allOccurences = evt.getStateChange() == ItemEvent.SELECTED;
+        if (allOccurences) {
+            samlProxy.setAttributeOccurences(Occurences.LAST);
+        }
+    }//GEN-LAST:event_lastAttributeRadioButtonItemStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel aboutPanel;
+    private javax.swing.JButton addInjectAttributeButton;
+    private javax.swing.JRadioButton allAttributeRadioButton;
     private javax.swing.JRadioButton allSubjectRadioButton;
     private javax.swing.JPanel analysisDataPanel;
     private javax.swing.JPanel analysisPanel;
+    private javax.swing.JRadioButton assertionSignatureRadioButton;
     private javax.swing.JCheckBox assertionsDigestedCheckBox;
+    private javax.swing.ButtonGroup attributeButtonGroup;
     private javax.swing.JTextField attributeKeyTextField;
-    private javax.swing.JTextField attributeNameTextField;
-    private javax.swing.JTextField attributeValueTextField;
     private javax.swing.JPanel attributesPanel;
     private javax.swing.JTable attributesTable;
     private javax.swing.JCheckBox browserPostSslCheckBox;
@@ -1466,8 +1680,10 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JCheckBox destinationIndicationCheckBox;
     private javax.swing.JRadioButton dsObjectWrapperRadioButton;
     private javax.swing.JTextField dtdUriTextField;
+    private javax.swing.JRadioButton duplicateAssertionRadioButton;
     private javax.swing.JPanel encryptedAttributesPanel;
     private javax.swing.JTable encryptedAttributesTable;
+    private javax.swing.JRadioButton firstAttributeRadioButton;
     private javax.swing.JRadioButton firstSubjectRadioButton;
     private javax.swing.JLabel htmlFormConversationIdLabel;
     private javax.swing.JPanel htmlFormPanel;
@@ -1475,6 +1691,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private org.owasp.webscarab.ui.swing.editors.TextPanel htmlFormTextPanel;
     private org.owasp.webscarab.ui.swing.editors.XMLPanel htmlFormXmlPanel;
     private javax.swing.JCheckBox injectAttributeCheckBox;
+    private javax.swing.JTable injectAttributesTable;
     private javax.swing.JCheckBox injectPublicDoctypeCheckBox;
     private javax.swing.JCheckBox injectRelayStateCheckBox;
     private javax.swing.JCheckBox injectRemoteReferenceCheckBox;
@@ -1488,7 +1705,6 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
-    private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
@@ -1532,6 +1748,9 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JPanel jPanel32;
     private javax.swing.JPanel jPanel33;
     private javax.swing.JPanel jPanel34;
+    private javax.swing.JPanel jPanel35;
+    private javax.swing.JPanel jPanel36;
+    private javax.swing.JPanel jPanel37;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
@@ -1542,19 +1761,25 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JTabbedPane jTabbedPane3;
     private javax.swing.JTextField keyTextField;
+    private javax.swing.JRadioButton lastAttributeRadioButton;
     private javax.swing.JRadioButton lastSubjectRadioButton;
+    private javax.swing.JRadioButton protocolSignatureRadioButton;
     private org.owasp.webscarab.ui.swing.editors.TextPanel rawPanel;
     private org.owasp.webscarab.ui.swing.editors.TextPanel relayStatePanel;
     private javax.swing.JTextField relayStateTextField;
     private javax.swing.JCheckBox removeAssertionSignatureCheckBox;
+    private javax.swing.JButton removeInjectAttributeButton;
     private javax.swing.JCheckBox removeSignatureCheckBox;
+    private javax.swing.JCheckBox renameAssertionIdCheckBox;
     private javax.swing.JCheckBox renameIdCheckBox;
+    private javax.swing.JCheckBox renameLastAssertionIdCheckBox;
     private javax.swing.JPopupMenu samlPopupMenu;
     private javax.swing.JCheckBox samlReplayCheckBox;
     private javax.swing.JLabel samlReplayLabel;
@@ -1564,6 +1789,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JButton selectKeyButton;
     private javax.swing.JCheckBox signCheckBox;
     private javax.swing.JCheckBox signWrapAttackCheckBox;
+    private javax.swing.ButtonGroup signatureButtonGroup;
     private javax.swing.JPanel signaturePanel;
     private javax.swing.JLabel signatureValidityLabel;
     private javax.swing.JCheckBox signedMessageCheckBox;
