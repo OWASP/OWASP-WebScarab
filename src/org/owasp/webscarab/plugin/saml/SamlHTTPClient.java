@@ -543,7 +543,10 @@ public class SamlHTTPClient implements HTTPClient {
                 dsObjectElement.appendChild(importedParentElement);
                 signatureElement.appendChild(dsObjectElement);
                 if (this.samlProxyConfig.doRenameAssertionId()) {
-                    Attr idAttr = parentElement.getAttributeNode("ID");
+                    Attr idAttr = parentElement.getAttributeNode("ID"); // SAML 2
+                    if (null == idAttr) {
+                        idAttr = parentElement.getAttributeNode("AssertionID"); // SAML 1.1
+                    }
                     String oldIdValue = idAttr.getValue();
                     String newIdValue = "renamed-" + oldIdValue;
                     idAttr.setValue(newIdValue);
@@ -573,13 +576,19 @@ public class SamlHTTPClient implements HTTPClient {
                     Element importedAssertionElement = (Element) document.importNode(assertionElement, true);
                     assertionElement.getParentNode().appendChild(importedAssertionElement);
                     if (this.samlProxyConfig.doRenameAssertionId()) {
-                        Attr idAttr = assertionElement.getAttributeNode("ID");
+                        Attr idAttr = assertionElement.getAttributeNode("ID"); // SAML 2
+                        if (null == idAttr) {
+                            idAttr = assertionElement.getAttributeNode("AssertionID"); // SAML 1.1
+                        }
                         String oldIdValue = idAttr.getValue();
                         String newIdValue = "renamed-" + oldIdValue;
                         idAttr.setValue(newIdValue);
                     }
                     if (this.samlProxyConfig.doRenameLastAssertionId()) {
-                        Attr idAttr = importedAssertionElement.getAttributeNode("ID");
+                        Attr idAttr = importedAssertionElement.getAttributeNode("ID"); // SAML 2
+                        if (null == idAttr) {
+                            idAttr = importedAssertionElement.getAttributeNode("AssertionID"); // SAML 1.1
+                        }
                         String oldIdValue = idAttr.getValue();
                         String newIdValue = "renamed-" + oldIdValue;
                         idAttr.setValue(newIdValue);

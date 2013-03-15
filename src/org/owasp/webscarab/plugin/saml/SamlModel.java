@@ -308,7 +308,10 @@ public class SamlModel extends AbstractPluginModel {
     public static Element findAssertionSignatureElement(Document document) {
         NodeList assertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
         if (0 == assertionNodeList.getLength()) {
-            return null;
+            assertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:1.0:assertion", "Assertion");
+            if (0 == assertionNodeList.getLength()) {
+                return null;
+            }
         }
         Node assertionNode = assertionNodeList.item(0);
         NodeList assertionChildrenNodeList = assertionNode.getChildNodes();
