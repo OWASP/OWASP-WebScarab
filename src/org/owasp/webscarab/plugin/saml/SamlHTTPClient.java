@@ -600,7 +600,10 @@ public class SamlHTTPClient implements HTTPClient {
 
         if (this.samlProxyConfig.doRenameTopId()) {
             Element rootElement = document.getDocumentElement();
-            Attr idAttr = rootElement.getAttributeNode("ID");
+            Attr idAttr = rootElement.getAttributeNode("ID"); // SAML 2.0
+            if (null == idAttr) {
+                idAttr = rootElement.getAttributeNode("ResponseID"); // SAML 1.1
+            }
             String oldIdValue = idAttr.getValue();
             String newIdValue = "renamed-" + oldIdValue;
             idAttr.setValue(newIdValue);
