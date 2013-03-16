@@ -1,44 +1,36 @@
-/*
- * $Source: /cvsroot/owasp/webscarab/INSTALL,v $
- * Copyright (c) 2002 owasp.org.
- * This file is part of WebScarab.
- * WebScarab is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- * 
- * WebScarab is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * The valid license text for this file can be retrieved with
- * the call:   java -cp owasp.jar org.owasp.webscarab.LICENSE
- * 
- * If you are not able to view the LICENSE that way, which should
- * always be possible within a valid and working WebScarab release,
- * please write to the Free Software Foundation, Inc.,
- * 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+INSTALL for OWASP WebScarab
+===========================
+
+=== 1. Requirements
 
 This is the WebScarab OpenSource project, hosted at
-http://www.owasp.org/webscarab.
+https://www.owasp.org/index.php/Category:OWASP_WebScarab_Project
 All source code and development stuff is done under
-http://sourceforge.net/projects/owasp
+https://github.com/OWASP/OWASP-WebScarab
 
-Prior to building WebScarab, you should download the various
-libraries that it depends on. You can see the list in the ant build.xml
-file, in this directory. If you got this file by checking out the source
-from the WebScarab CVS repository, you should have the required libraries
-already.
+Required tools are:
+* Apache Maven 3.0.4+ for building
+* NetBeans 7.3 for development (for the Swing forms)
+
+
+=== 2. Maven
+
+Building WebScarab can be done via the Apache Maven build tool.
+Simply do:
+	mvn clean install
+will get you the one-jar JAR under the target directory.
+
+The WebScarab installer can be built via:
+	mvn clean install -Pinstaller
+
+
+=== 3. Ant
+
+WebScarab can also be built via the Apache Ant build tool.
+Prior to building WebScarab via Ant, you should download the various
+libraries that it depends on. You can make Apache Maven to download the
+various required libraries via:
+	mvn package -Pant
 
 WebScarab uses the Apache Ant build tool. In order to build WebScarab, you
 should use a reasonably recent version of Ant.
-
-There are two Ant build tasks that depend on external tools, IzPack and 
-ProGuard. You are only likely to need these tools if you plan to build
-redistributable images of WebScarab. i.e. an installer, or the self-contained
-jar. There should be no problem running the common build tasks if you do not 
-have these external tools.
-
-// end of $Source: /cvsroot/owasp/webscarab/INSTALL,v $

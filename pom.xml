@@ -109,6 +109,30 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>ant</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>2.7</version>
+                        <executions>
+                            <execution>
+                                <id>copy-lib</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>copy-dependencies</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${basedir}/lib</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
     <dependencies>
         <dependency>
@@ -129,6 +153,11 @@
         <dependency>
             <groupId>amf</groupId>
             <artifactId>flex-messaging-common</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>amf</groupId>
+            <artifactId>flex-messaging-remoting</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
@@ -165,6 +194,11 @@
             <groupId>javax.help</groupId>
             <artifactId>javahelp</artifactId>
             <version>2.0.02</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.woodstock.dependlibs</groupId>
+            <artifactId>jhall</artifactId>
+            <version>2.0</version>
         </dependency>
         <dependency>
             <groupId>org.ccil.cowan.tagsoup</groupId>
