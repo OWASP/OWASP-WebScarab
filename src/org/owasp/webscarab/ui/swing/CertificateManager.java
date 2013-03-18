@@ -19,6 +19,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.AbstractTableModel;
+import org.apache.commons.io.FilenameUtils;
 import org.owasp.webscarab.httpclient.CertificateRepository;
 import org.owasp.webscarab.httpclient.HTTPClientFactory;
 
@@ -130,8 +131,6 @@ public class CertificateManager extends javax.swing.JFrame {
         jLabel6 = new javax.swing.JLabel();
         pkcs11LibraryTextField = new javax.swing.JTextField();
         pkcs11BrowseButton = new javax.swing.JButton();
-        jLabel7 = new javax.swing.JLabel();
-        pkcs11PasswordField = new javax.swing.JPasswordField();
         jLabel10 = new javax.swing.JLabel();
         pkcs11SlotListIndexSpinner = new javax.swing.JSpinner();
         buttonPanel = new javax.swing.JPanel();
@@ -233,20 +232,6 @@ public class CertificateManager extends javax.swing.JFrame {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         pkcs11Panel.add(pkcs11BrowseButton, gridBagConstraints);
-
-        jLabel7.setText("Password");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        pkcs11Panel.add(jLabel7, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        pkcs11Panel.add(pkcs11PasswordField, gridBagConstraints);
 
         jLabel10.setText("Slot List Index");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -392,8 +377,8 @@ public class CertificateManager extends javax.swing.JFrame {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(currentCertTextField, gridBagConstraints);
 
-        java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width-600)/2, (screenSize.height-400)/2, 600, 400);
+        setSize(new java.awt.Dimension(600, 400));
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void setButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setButtonActionPerformed
@@ -401,15 +386,18 @@ public class CertificateManager extends javax.swing.JFrame {
         int alias = aliasTable.getSelectedRow();
         String fingerprint = "";
         if (ks > -1 && alias>-1) {
+            String password;
             if (!_certRepo.isKeyUnlocked(ks, alias)) {
-                String password = getPassword();
-                try {
+                password = getPassword();
+            } else {
+                password = null;
+            }
+            try {
                     _certRepo.unlockKey(ks, alias, password);
                 } catch (Exception e) {
                     e.printStackTrace();
                     JOptionPane.showMessageDialog(null, new String[] {"Error accessing key store: ", e.toString()}, "Error", JOptionPane.ERROR_MESSAGE);
                 }
-            }
             Certificate cert = _certRepo.getCertificate(ks, alias);
             try {
                 fingerprint = _certRepo.getFingerPrint(cert);
@@ -469,14 +457,17 @@ public class CertificateManager extends javax.swing.JFrame {
                 int ksIndex = _certRepo.loadPKCS12Certificate(file, kspass);
                 _keystoreListModel.insertElementAt(_certRepo.getKeyStoreDescription(ksIndex), ksIndex);
             } else if (tab == 1) { //PKCS#11
-                String name = pkcs11NameTextField.getText();
-                if (name.equals("")) return;
                 String library = pkcs11LibraryTextField.getText();
                 if (library.equals("")) return;
-                String kspass = new String(pkcs11PasswordField.getPassword());
-                if (kspass.equals("")) kspass = null;
+                String name = pkcs11NameTextField.getText();
+                if (name.equals("")) {
+                    name = FilenameUtils.getBaseName(library);
+                }
                 int slotListIndex = Integer.parseInt(pkcs11SlotListIndexSpinner.getValue().toString());
-                int ksIndex = _certRepo.initPKCS11(name, library, slotListIndex, kspass);
+                int ksIndex = _certRepo.initPKCS11(name, library, slotListIndex);
+                if (ksIndex == -1) {
+                    throw new RuntimeException("No PKCS11 token available.");
+                }
                 _keystoreListModel.insertElementAt(_certRepo.getKeyStoreDescription(ksIndex), ksIndex);
             }
         } catch (Exception e) {
@@ -532,7 +523,6 @@ public class CertificateManager extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
@@ -547,7 +537,6 @@ public class CertificateManager extends javax.swing.JFrame {
     private javax.swing.JTextField pkcs11LibraryTextField;
     private javax.swing.JTextField pkcs11NameTextField;
     private javax.swing.JPanel pkcs11Panel;
-    private javax.swing.JPasswordField pkcs11PasswordField;
     private javax.swing.JSpinner pkcs11SlotListIndexSpinner;
     private javax.swing.JButton pkcs12BrowseButton;
     private javax.swing.JTextField pkcs12FileTextField;
