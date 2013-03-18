@@ -30,24 +30,28 @@ public abstract class AbstractCertificateRepository implements CertificateReposi
 
     protected Logger _logger = Logger.getLogger(getClass().getName());
     private String _defaultKey = null;
-    private Map _aliasPasswords = new HashMap();
-    protected List _keyStores = new ArrayList();
-    protected Map _keyStoreDescriptions = new HashMap();
+    private Map<KeyStore, Map<String, String>> _aliasPasswords = new HashMap<KeyStore, Map<String, String>>();
+    protected List<KeyStore> _keyStores = new ArrayList<KeyStore>();
+    protected Map<KeyStore, String> _keyStoreDescriptions = new HashMap();
 
+    @Override
     public int getKeyStoreCount() {
         return _keyStores.size();
     }
 
+    @Override
     public String getKeyStoreDescription(int keystoreIndex) {
-        return (String) _keyStoreDescriptions.get(_keyStores.get(keystoreIndex));
+        return _keyStoreDescriptions.get(_keyStores.get(keystoreIndex));
     }
 
+    @Override
     public int getAliasCount(int keystoreIndex) {
-        return getAliases((KeyStore) _keyStores.get(keystoreIndex)).length;
+        return getAliases(_keyStores.get(keystoreIndex)).length;
     }
 
+    @Override
     public String getAliasAt(int keystoreIndex, int aliasIndex) {
-        return getAliases((KeyStore) _keyStores.get(keystoreIndex))[aliasIndex];
+        return getAliases(_keyStores.get(keystoreIndex))[aliasIndex];
     }
 
     private String[] getAliases(KeyStore ks) {
@@ -66,9 +70,10 @@ public abstract class AbstractCertificateRepository implements CertificateReposi
         return (String[]) aliases.toArray(new String[0]);
     }
 
+    @Override
     public Certificate getCertificate(int keystoreIndex, int aliasIndex) {
         try {
-            KeyStore ks = (KeyStore) _keyStores.get(keystoreIndex);
+            KeyStore ks = _keyStores.get(keystoreIndex);
             String alias = getAliasAt(keystoreIndex, aliasIndex);
             return ks.getCertificate(alias);
         } catch (Exception e) {
@@ -76,6 +81,7 @@ public abstract class AbstractCertificateRepository implements CertificateReposi
         }
     }
 
+    @Override
     public String getFingerPrint(Certificate cert) throws KeyStoreException {
         if (!(cert instanceof X509Certificate)) {
             return null;
@@ -96,6 +102,7 @@ public abstract class AbstractCertificateRepository implements CertificateReposi
         return buff.toString().toUpperCase() + " " + dn;
     }
 
+    @Override
     public boolean isProviderAvailable(String type) {
         try {
             if (type.equals("PKCS11")) {
@@ -107,8 +114,13 @@ public abstract class AbstractCertificateRepository implements CertificateReposi
         return true;
     }
 
+    @Override
     public boolean isKeyUnlocked(int keystoreIndex, int aliasIndex) {
         KeyStore ks = (KeyStore) _keyStores.get(keystoreIndex);
+        if (ks.getType().equals("PKCS11")) {
+            // we use the callback mechanism here
+            return true;
+        }
         String alias = getAliasAt(keystoreIndex, aliasIndex);
 
         Map pwmap = (Map) _aliasPasswords.get(ks);
@@ -118,6 +130,7 @@ public abstract class AbstractCertificateRepository implements CertificateReposi
         return pwmap.containsKey(alias);
     }
 
+    @Override
     public void setDefaultKey(String fingerprint) {
         _defaultKey = fingerprint;
     }
@@ -136,7 +149,8 @@ public abstract class AbstractCertificateRepository implements CertificateReposi
         return index;
     }
 
-    public int initPKCS11(String name, String library, int slotListIndex, String kspassword) {
+    @Override
+    public int initPKCS11(String name, String library, int slotListIndex) {
         try {
             if (!isProviderAvailable("PKCS11")) {
                 return -1;
@@ -157,7 +171,7 @@ public abstract class AbstractCertificateRepository implements CertificateReposi
 
             // init the key store
             KeyStore ks = KeyStore.getInstance("PKCS11");
-            ks.load(null, kspassword == null ? null : kspassword.toCharArray());
+            ks.load(new Pkcs11LoadStoreParameter());
             return addKeyStore(ks, name);
         } catch (Exception e) {
             System.err.println("Error instantiating the PKCS11 provider");
@@ -166,6 +180,7 @@ public abstract class AbstractCertificateRepository implements CertificateReposi
         }
     }
 
+    @Override
     public int loadPKCS12Certificate(String filename, String ksPassword)
             throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
         // Open the file
