@@ -1,41 +1,41 @@
-/***********************************************************************
+/**
+ * *********************************************************************
  *
  * $CVSHeader$
  *
- * This file is part of WebScarab, an Open Web Application Security
- * Project utility. For details, please see http://www.owasp.org/
+ * This file is part of WebScarab, an Open Web Application Security Project
+ * utility. For details, please see http://www.owasp.org/
  *
- * Copyright (c) 2010 FedICT
- * Copyright (c) 2010 Frank Cornelis <info@frankcornelis.be>
+ * Copyright (c) 2010 FedICT Copyright (c) 2010 Frank Cornelis
+ * <info@frankcornelis.be>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA.
  *
- * Getting Source
- * ==============
+ * Getting Source ==============
  *
- * Source for this application is maintained at Sourceforge.net, a
- * repository for free software projects.
+ * Source for this application is maintained at Sourceforge.net, a repository
+ * for free software projects.
  *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
  */
-
 package org.owasp.webscarab.plugin.saml;
 
 import java.util.logging.Logger;
 import org.owasp.webscarab.model.ConversationID;
+import org.owasp.webscarab.model.HttpUrl;
 import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.model.Request;
 import org.owasp.webscarab.model.Response;
@@ -45,9 +45,8 @@ import org.owasp.webscarab.plugin.Hook;
 import org.owasp.webscarab.plugin.Plugin;
 
 /**
- * WebScarab SAML plugin.
- * This plugin allows you to analyse SAML Messages.
- * 
+ * WebScarab SAML plugin. This plugin allows you to analyse SAML Messages.
+ *
  * @author Frank Cornelis
  */
 public class Saml implements Plugin {
@@ -90,6 +89,23 @@ public class Saml implements Plugin {
                                 this._model.setRelayState(id, namedValue.getValue());
                             }
                         }
+                    }
+                }
+            }
+        } else if (method.equals("GET")) {
+            HttpUrl url = request.getURL();
+            String query = url.getQuery();
+            if (null != query) {
+                NamedValue[] values = NamedValue.splitNamedValues(query, "&", "=");
+                for (int i = 0; i < values.length; i++) {
+                    String name = values[i].getName();
+                    String value = values[i].getValue();
+                    if ("SAMLResponse".equals(name)) {
+                        this._model.setSAMLResponse(id, value);
+                    } else if ("SAMLRequest".equals(name)) {
+                        this._model.setSAMLRequest(id, value, true);
+                    } else if ("RelayState".equals(name)) {
+                        this._model.setRelayState(id, value);
                     }
                 }
             }
