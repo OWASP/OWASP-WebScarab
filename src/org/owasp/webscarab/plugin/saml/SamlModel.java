@@ -1,32 +1,32 @@
-/***********************************************************************
+/**
+ * *********************************************************************
  *
  * $CVSHeader$
  *
- * This file is part of WebScarab, an Open Web Application Security
- * Project utility. For details, please see http://www.owasp.org/
+ * This file is part of WebScarab, an Open Web Application Security Project
+ * utility. For details, please see http://www.owasp.org/
  *
- * Copyright (c) 2010 FedICT
- * Copyright (c) 2010 Frank Cornelis <info@frankcornelis.be>
+ * Copyright (c) 2010 FedICT Copyright (c) 2010 Frank Cornelis
+ * <info@frankcornelis.be>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA.
  *
- * Getting Source
- * ==============
+ * Getting Source ==============
  *
- * Source for this application is maintained at Sourceforge.net, a
- * repository for free software projects.
+ * Source for this application is maintained at Sourceforge.net, a repository
+ * for free software projects.
  *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
@@ -42,13 +42,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.apache.xml.security.Init;
 import org.apache.xml.security.encryption.XMLCipher;
-import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.keys.KeyInfo;
 import org.apache.xml.security.keys.content.X509Data;
@@ -57,7 +60,6 @@ import org.apache.xml.security.keys.keyresolver.KeyResolverException;
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureException;
-import org.apache.xml.security.utils.Base64;
 import org.bouncycastle.util.encoders.Hex;
 import org.htmlparser.tags.FormTag;
 import org.htmlparser.util.NodeIterator;
@@ -85,7 +87,7 @@ import org.xml.sax.SAXException;
  * @author Frank Cornelis
  */
 public class SamlModel extends AbstractPluginModel {
-    
+
     private Logger _logger = Logger.getLogger(getClass().getName());
     private final FrameworkModel model;
     private final ConversationModel samlConversationModel;
@@ -95,7 +97,6 @@ public class SamlModel extends AbstractPluginModel {
     public SamlModel(FrameworkModel model) {
         this.model = model;
         this.samlConversationModel = new FilteredConversationModel(model, model.getConversationModel()) {
-
             @Override
             public boolean shouldFilter(ConversationID id) {
                 return !isSAMLMessage(id);
@@ -202,22 +203,30 @@ public class SamlModel extends AbstractPluginModel {
 
     public String getDecodedSAMLMessage(ConversationID id) {
         String encodedSAMLMessage = getEncodedSAMLMessage(id);
-        String decodedSAMLMessage = getDecodedSAMLMessage(encodedSAMLMessage);
+        String decodedSAMLMessage = getDecodedSAMLMessage(encodedSAMLMessage, id);
         return decodedSAMLMessage;
     }
 
-    public String getDecodedSAMLMessage(String encodedSamlMessage) {
+    public String getDecodedSAMLMessage(String encodedSamlMessage, ConversationID id) {
         /*
          * Cannot use org.owasp.webscarab.util.Encoding here as SAML tickets not
          * always come with line-breaks.
          */
 
-        String decodedSamlMessage;
-        try {
-            decodedSamlMessage = new String(Base64.decode(encodedSamlMessage));
-        } catch (Base64DecodingException ex) {
-            decodedSamlMessage = "[ERROR WHILE DECODING THE BASE64 ENCODED SAML MESSAGE]";
+        String deflate = this.model.getConversationProperty(id, "SAML-DEFLATE");
+        if (null != deflate) {
+            _logger.fine("inflating SAML message");
+            byte[] deflated = Base64.decodeBase64(encodedSamlMessage);
+            try {
+                Inflater inflater = new Inflater(true);
+                InflaterInputStream inflaterInputStream = new InflaterInputStream(new ByteArrayInputStream(deflated), inflater);
+                return new String(IOUtils.toByteArray(inflaterInputStream));
+            } catch (IOException ex) {
+                return "[ERROR INFLATING SAML MESSAGE]: " + ex.getMessage();
+            }
         }
+
+        String decodedSamlMessage = new String(Base64.decodeBase64(encodedSamlMessage));
 
         return decodedSamlMessage;
     }
@@ -231,7 +240,7 @@ public class SamlModel extends AbstractPluginModel {
         }
 
         String encodedSamlMessage = getEncodedSAMLMessage(id);
-        String decodedSamlMessage = getDecodedSAMLMessage(encodedSamlMessage);
+        String decodedSamlMessage = getDecodedSAMLMessage(encodedSamlMessage, id);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(decodedSamlMessage.getBytes());
 
         try {
@@ -304,7 +313,7 @@ public class SamlModel extends AbstractPluginModel {
         }
         return null;
     }
-    
+
     public static Element findAssertionSignatureElement(Document document) {
         NodeList assertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
         if (0 == assertionNodeList.getLength()) {
@@ -331,7 +340,6 @@ public class SamlModel extends AbstractPluginModel {
         }
         return null;
     }
-
 
     public List<X509Certificate> verifySAMLProtocolSignature(ConversationID id) throws SamlSignatureException {
         Document document = getSAMLDocument(id);
@@ -410,9 +418,16 @@ public class SamlModel extends AbstractPluginModel {
         return samlType;
     }
 
-    public void setSAMLRequest(ConversationID id, String encodedSamlRequest) {
+    public void setSAMLRequest(ConversationID id, String encodedSamlRequest, boolean deflate) {
         this.model.setConversationProperty(id, "SAML-TYPE", "Request");
         this.model.setConversationProperty(id, "SAML-MESSAGE", encodedSamlRequest);
+        if (deflate) {
+            this.model.setConversationProperty(id, "SAML-DEFLATE", Boolean.TRUE.toString());
+        }
+    }
+
+    public void setSAMLRequest(ConversationID id, String encodedSamlRequest) {
+        setSAMLRequest(id, encodedSamlRequest, false);
     }
 
     private boolean hasDestinationIndicationSaml2Response(Element responseElement) {
@@ -673,7 +688,7 @@ public class SamlModel extends AbstractPluginModel {
          * We create a new DOM tree as XMLCipher will change the tree.
          */
         String encodedSamlMessage = getEncodedSAMLMessage(id);
-        String decodedSamlMessage = getDecodedSAMLMessage(encodedSamlMessage);
+        String decodedSamlMessage = getDecodedSAMLMessage(encodedSamlMessage, id);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(decodedSamlMessage.getBytes());
         Document document = this.builder.parse(inputStream);
 

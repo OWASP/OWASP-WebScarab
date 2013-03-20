@@ -293,7 +293,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         resetDisplay();
         String encodedSamlMessage = this.samlModel.getEncodedSAMLMessage(id);
         this.rawPanel.setText(null, encodedSamlMessage);
-        String decodedSamlMessage = this.samlModel.getDecodedSAMLMessage(encodedSamlMessage);
+        String decodedSamlMessage = this.samlModel.getDecodedSAMLMessage(encodedSamlMessage, id);
         this.textPanel.setText(null, decodedSamlMessage);
         this.xmlPanel.setBytes("text/xml", decodedSamlMessage.getBytes());
         String relayState = this.samlModel.getRelayState(id);
