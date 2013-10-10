@@ -79,6 +79,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private boolean renameAssertionId;
     private boolean renameLastAssertionId;
     private boolean removeAssertionSignature;
+    private boolean signAssertionAttack;
     
     private EventListenerList _listenerList = new EventListenerList();
     private SamlModel samlModel;
@@ -217,7 +218,8 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private void updateAttackState() {
         this.attack = this.corruptSignature | this.injectAttribute | this.injectRemoteReference
                 | this.injectSubject | this.removeSignature | this.replay | this.injectPublicDoctype |
-                this.injectRelayState | this.signSamlMessage | this.signWrapAttack | this.removeAssertionSignature;
+                this.injectRelayState | this.signSamlMessage | this.signWrapAttack | this.removeAssertionSignature
+                | this.signAssertionAttack;
     }
 
     public void setInjectPublicDoctype(boolean injectPublicDoctype) {
@@ -376,5 +378,15 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     @Override
     public Occurences getAttributeOccurences() {
         return this.attributeOccurences;
+    }
+
+    public void setSignAssertionAttack(boolean signAssertionAttack) {
+        this.signAssertionAttack = signAssertionAttack;
+        updateAttackState();
+    }
+
+    @Override
+    public boolean doSignAssertionAttack() {
+        return this.signAssertionAttack;
     }
 }

@@ -446,6 +446,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jLabel21 = new javax.swing.JLabel();
         selectKeyButton = new javax.swing.JButton();
         keyTextField = new javax.swing.JTextField();
+        signAssertionCheckBox = new javax.swing.JCheckBox();
         jPanel30 = new javax.swing.JPanel();
         jPanel32 = new javax.swing.JPanel();
         signWrapAttackCheckBox = new javax.swing.JCheckBox();
@@ -894,7 +895,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jLabel21.setText("Key: ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         jPanel28.add(jLabel21, gridBagConstraints);
 
@@ -906,16 +907,31 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
         gridBagConstraints.insets = new java.awt.Insets(5, 0, 0, 0);
         jPanel28.add(selectKeyButton, gridBagConstraints);
 
-        keyTextField.setColumns(20);
         keyTextField.setEditable(false);
+        keyTextField.setColumns(20);
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         jPanel28.add(keyTextField, gridBagConstraints);
+
+        signAssertionCheckBox.setText("Resign SAML assertion");
+        signAssertionCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                signAssertionCheckBoxItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel28.add(signAssertionCheckBox, gridBagConstraints);
 
         jPanel27.add(jPanel28);
 
@@ -1659,6 +1675,12 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         }
     }//GEN-LAST:event_lastAttributeRadioButtonItemStateChanged
 
+    private void signAssertionCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_signAssertionCheckBoxItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean signAssertionAttack = evt.getStateChange() == ItemEvent.SELECTED;
+        samlProxy.setSignAssertionAttack(signAssertionAttack);
+    }//GEN-LAST:event_signAssertionCheckBoxItemStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel aboutPanel;
     private javax.swing.JButton addInjectAttributeButton;
@@ -1787,6 +1809,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JLabel samlVersionLabel;
     private javax.swing.JRadioButton samlpExtWrapperRadioButton;
     private javax.swing.JButton selectKeyButton;
+    private javax.swing.JCheckBox signAssertionCheckBox;
     private javax.swing.JCheckBox signCheckBox;
     private javax.swing.JCheckBox signWrapAttackCheckBox;
     private javax.swing.ButtonGroup signatureButtonGroup;

