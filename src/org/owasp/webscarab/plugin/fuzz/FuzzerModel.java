@@ -73,6 +73,10 @@ public class FuzzerModel extends AbstractPluginModel {
         _model = model;
         _conversationModel = new FuzzConversationModel(model);
     }
+
+    public ConversationModel getTemplateConversationModel() {
+        return _model.getConversationModel();
+    }
     
     public ConversationModel getConversationModel() {
         return _conversationModel;
