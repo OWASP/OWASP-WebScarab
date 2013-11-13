@@ -605,7 +605,7 @@ public class Lite extends JFrame implements WebScarabUI {
         }.start();
     }
     
-    private void createTemporarySession() {
+    public void createTemporarySession() {
         _tempDir = TempDir.createTempDir("webscarab", ".tmp", null);
         if (_tempDir != null) {
             loadSession(_tempDir);

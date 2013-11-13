@@ -141,9 +141,12 @@ public class WebScarab {
                         frame.toFront();
                         frame.requestFocus();
                         splash.close();
-                        if (session != null && session.isDirectory())
-                        	ui.loadSession(session);
-                    }
+                		if (session != null && session.isDirectory())
+                			ui.loadSession(session);
+                		else
+                	        ui.createTemporarySession();
+
+                	}
                 });
                 ui.run();
             } catch (Exception e) {

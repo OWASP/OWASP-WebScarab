@@ -173,7 +173,6 @@ public class UIFramework extends JFrame implements WebScarabUI {
     }
     
     public void run() {
-        createTemporarySession();
         synchronized(_exit) {
             try {
                 _exit.wait();
@@ -697,7 +696,7 @@ public class UIFramework extends JFrame implements WebScarabUI {
         }.start();
     }
     
-    private void createTemporarySession() {
+    public void createTemporarySession() {
         _tempDir = TempDir.createTempDir("webscarab", ".tmp", null);
         if (_tempDir != null) {
             loadSession(_tempDir);

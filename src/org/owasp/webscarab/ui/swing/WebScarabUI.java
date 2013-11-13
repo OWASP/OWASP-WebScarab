@@ -11,5 +11,7 @@ public interface WebScarabUI extends Runnable {
 	public void addPlugin(final SwingPluginUI plugin);
 	
 	public void loadSession(File session);
+
+	public void createTemporarySession();
 	
 }
