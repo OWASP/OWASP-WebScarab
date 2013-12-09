@@ -95,4 +95,6 @@ public interface SamlProxyConfig {
     boolean doRemoveAssertionSignature();
     
     Occurences getAttributeOccurences();
+    
+    boolean doSignAssertionAttack();
 }
