@@ -94,6 +94,14 @@
                         <targetPath>${project.build.directory}/staging</targetPath>
                         <filtering>true</filtering>
                     </resource>
+                    <resource>
+                        <targetPath>${project.build.directory}</targetPath>
+                        <filtering>false</filtering>
+                        <directory>${basedir}</directory>
+                        <includes>
+                            <include>webscarab_logo.gif</include>
+                        </includes>
+                    </resource>
                 </resources>
                 <plugins>
                     <plugin>

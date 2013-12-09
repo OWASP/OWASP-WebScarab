@@ -7,6 +7,10 @@
         <appname>WebScarab</appname>
         <appversion>${project.version}</appversion>
         <javaversion>1.6</javaversion>
+        <url>https://www.owasp.org/index.php/Category:OWASP_WebScarab_Project</url>
+        <uninstaller name="WebScarab-${project.version}-uninstaller.jar"/>
+        <requiresjdk>true</requiresjdk>
+        <run-privileged condition="izpack.windowsinstall.7|izpack.windowsinstall.vista"/>
     </info>
     
     <locale>
@@ -37,6 +41,7 @@
     </natives>
     
     <resources>
-        <res src="staging/shortcutSpec.xml" id="shortcutSpec.xml"/>
+        <res id="shortcutSpec.xml" src="staging/shortcutSpec.xml"/>
+        <res id="Installer.image" src="webscarab_logo.gif"/>
     </resources>
 </installation>
