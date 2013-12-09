@@ -101,7 +101,7 @@ public class Saml implements Plugin {
                     String name = values[i].getName();
                     String value = values[i].getValue();
                     if ("SAMLResponse".equals(name)) {
-                        this._model.setSAMLResponse(id, value);
+                        this._model.setSAMLResponse(id, value, true);
                     } else if ("SAMLRequest".equals(name)) {
                         this._model.setSAMLRequest(id, value, true);
                     } else if ("RelayState".equals(name)) {

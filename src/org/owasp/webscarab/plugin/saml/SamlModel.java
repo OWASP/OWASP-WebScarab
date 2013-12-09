@@ -117,16 +117,23 @@ public class SamlModel extends AbstractPluginModel {
         Init.init();
     }
 
+    public void setSAMLResponse(ConversationID id, String encodedSamlResponse) {
+        setSAMLResponse(id, encodedSamlResponse, false);
+    }
+
     /**
      * Mark this conversation message as being a SAML Response.
      *
      * @param id
      * @param encodedSamlResponse
      */
-    public void setSAMLResponse(ConversationID id, String encodedSamlResponse) {
+    public void setSAMLResponse(ConversationID id, String encodedSamlResponse, boolean deflate) {
         this.model.setConversationProperty(id, "SAML-TYPE", "Response");
         this.model.setConversationProperty(id, "SAML-MESSAGE",
                 encodedSamlResponse);
+        if (deflate) {
+            this.model.setConversationProperty(id, "SAML-DEFLATE", Boolean.TRUE.toString());
+        }
     }
 
     public void setRelayState(ConversationID id, String relayState) {
