@@ -35,7 +35,10 @@ package org.owasp.webscarab.plugin.saml;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
+import java.security.PrivateKey;
+import java.security.Key;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -48,10 +51,17 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.xml.security.Init;
 import org.apache.xml.security.encryption.XMLCipher;
+import org.apache.xml.security.encryption.XMLEncryptionException;
 import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.keys.KeyInfo;
 import org.apache.xml.security.keys.content.X509Data;
@@ -730,5 +740,53 @@ public class SamlModel extends AbstractPluginModel {
         }
 
         return samlAttributes;
+    }
+
+    public byte[] getEncryptedAssertion(ConversationID id) {
+        Document samlDocument = getSAMLDocument(id);
+        NodeList encryptedAssertionNodeList = samlDocument.getElementsByTagNameNS(
+                "urn:oasis:names:tc:SAML:2.0:assertion", "EncryptedAssertion");
+        if (encryptedAssertionNodeList.getLength() == 0) {
+            return null;
+        }
+        Element encryptedAssertionElement = (Element) encryptedAssertionNodeList.item(0);
+        try {
+            return toString(encryptedAssertionElement).getBytes();
+        } catch (TransformerException ex) {
+            return null;
+        }
+    }
+
+    private String toString(Node node) throws TransformerConfigurationException, TransformerException {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        StringWriter stringWriter = new StringWriter();
+        transformer.transform(new DOMSource(node), new StreamResult(stringWriter));
+        return stringWriter.toString();
+    }
+
+    public byte[] getDecryptedAssertion(ConversationID id, PrivateKey privateKey) throws ParserConfigurationException, SAXException, IOException, TransformerException, XMLEncryptionException, Exception {
+        byte[] encryptedAssertion = getEncryptedAssertion(id);
+        if (null == encryptedAssertion) {
+            return null;
+        }
+        if (null == privateKey) {
+            return "<error>null private key</error>".getBytes();
+        }
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setNamespaceAware(true);
+        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        Document document = documentBuilder.parse(new ByteArrayInputStream(encryptedAssertion));
+        
+        Element encryptedDataElement = (Element) document.getElementsByTagNameNS("http://www.w3.org/2001/04/xmlenc#", "EncryptedData").item(0);
+        if (null == encryptedDataElement) {
+            return "missing encrypted data element".getBytes();
+        }
+        XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_128);
+        xmlCipher.init(XMLCipher.DECRYPT_MODE, null);
+        xmlCipher.setKEK(privateKey);
+        document = xmlCipher.doFinal(document, encryptedDataElement);
+        
+        return toString(document).getBytes();
     }
 }
