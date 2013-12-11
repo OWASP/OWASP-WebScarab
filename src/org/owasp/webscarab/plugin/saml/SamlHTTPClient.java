@@ -55,6 +55,8 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.apache.xml.security.encryption.XMLCipher;
+import org.apache.xml.security.encryption.XMLEncryptionException;
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.keys.KeyInfo;
@@ -149,6 +151,12 @@ public class SamlHTTPClient implements HTTPClient {
                     String newSamlResponse = replaySamlResponse();
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
                     samlProxyHeader += "replayed;";
+                }
+
+                if (this.samlProxyConfig.doDecryptAssertionAttack()) {
+                    String newSamlResponse = decryptAssertion(namedValues[idx].getValue());
+                    namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    samlProxyHeader += "decrypt assertion;";
                 }
 
                 if (this.samlProxyConfig.doSignWrapAttack()) {
@@ -691,5 +699,35 @@ public class SamlHTTPClient implements HTTPClient {
         }
 
         return assertionSignatures;
+    }
+
+    private String decryptAssertion(String samlResponse) throws IOException, ParserConfigurationException, SAXException, Base64DecodingException, TransformerException, XMLEncryptionException, Exception {
+        Document document = parseDocument(samlResponse);
+
+        NodeList encryptedAssertionNodeList = document.getElementsByTagNameNS(
+                "urn:oasis:names:tc:SAML:2.0:assertion", "EncryptedAssertion");
+        if (encryptedAssertionNodeList.getLength() == 0) {
+            return samlResponse;
+        }
+
+        Element encryptedAssertionElement = (Element) encryptedAssertionNodeList.item(0);
+        Element encryptedDataElement = (Element) encryptedAssertionElement.getElementsByTagNameNS("http://www.w3.org/2001/04/xmlenc#", "EncryptedData").item(0);
+        if (null == encryptedDataElement) {
+            return samlResponse;
+        }
+        XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_128);
+        xmlCipher.init(XMLCipher.DECRYPT_MODE, null);
+        xmlCipher.setKEK(this.samlProxyConfig.getDecryptionPrivateKeyEntry().getPrivateKey());
+        document = xmlCipher.doFinal(document, encryptedDataElement);
+
+        // remove the EncryptedAssertion container
+        encryptedAssertionNodeList = document.getElementsByTagNameNS(
+                "urn:oasis:names:tc:SAML:2.0:assertion", "EncryptedAssertion");
+        encryptedAssertionElement = (Element) encryptedAssertionNodeList.item(0);
+        Element assertionElement = (Element) encryptedAssertionElement.getFirstChild();
+        encryptedAssertionElement.getParentNode().appendChild(assertionElement);
+        encryptedAssertionElement.getParentNode().removeChild(encryptedAssertionElement);
+        
+        return outputDocument(document);
     }
 }
