@@ -599,6 +599,15 @@ public class SamlHTTPClient implements HTTPClient {
                     String newIdValue = "renamed-" + oldIdValue;
                     idAttr.setValue(newIdValue);
                 }
+                if (this.samlProxyConfig.doRenameLastAssertionId()) {
+                    Attr idAttr = importedParentElement.getAttributeNode("ID"); // SAML 2
+                    if (null == idAttr) {
+                        idAttr = importedParentElement.getAttributeNode("AssertionID"); // SAML 1.1
+                    }
+                    String oldIdValue = idAttr.getValue();
+                    String newIdValue = "renamed-" + oldIdValue;
+                    idAttr.setValue(newIdValue);
+                }
             }
             break;
             case SAMLP_EXTENSIONS: {
@@ -615,6 +624,17 @@ public class SamlHTTPClient implements HTTPClient {
                 Element importedSamlResponseElement = (Element) document.importNode(samlResponseElement, true);
                 samlpExtensionsElement.appendChild(importedSamlResponseElement);
                 samlResponseElement.appendChild(samlpExtensionsElement);
+                if (this.samlProxyConfig.doRenameAssertionId()) {
+                    NodeList saml2AssertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
+                    Element assertionElement = (Element) saml2AssertionNodeList.item(0);
+                    Attr idAttr = assertionElement.getAttributeNode("ID"); // SAML 2
+                    if (null == idAttr) {
+                        idAttr = assertionElement.getAttributeNode("AssertionID"); // SAML 1.1
+                    }
+                    String oldIdValue = idAttr.getValue();
+                    String newIdValue = "renamed-" + oldIdValue;
+                    idAttr.setValue(newIdValue);
+                }
             }
             break;
             case ASSERTION: {
@@ -727,7 +747,7 @@ public class SamlHTTPClient implements HTTPClient {
         Element assertionElement = (Element) encryptedAssertionElement.getFirstChild();
         encryptedAssertionElement.getParentNode().appendChild(assertionElement);
         encryptedAssertionElement.getParentNode().removeChild(encryptedAssertionElement);
-        
+
         return outputDocument(document);
     }
 }
