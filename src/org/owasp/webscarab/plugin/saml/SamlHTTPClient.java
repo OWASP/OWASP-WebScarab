@@ -487,14 +487,18 @@ public class SamlHTTPClient implements HTTPClient {
         if (null == assertionSignatureElement) {
             return samlResponse;
         }
+        Element assertionElement = (Element) assertionSignatureElement.getParentNode();
         Node beforeNode = assertionSignatureElement.getNextSibling();
-        Node parentNode = assertionSignatureElement.getParentNode();
-        parentNode.removeChild(assertionSignatureElement);
+        assertionElement.removeChild(assertionSignatureElement);
         XMLSignature xmlSignature = new XMLSignature(document, null, XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1);
-        parentNode.insertBefore(xmlSignature.getElement(), beforeNode);
-        
-        
-        
+        assertionElement.insertBefore(xmlSignature.getElement(), beforeNode);
+
+        String assertionId = assertionElement.getAttribute("ID");
+        Transforms transforms = new Transforms(document);
+        transforms.addTransform(Transforms.TRANSFORM_ENVELOPED_SIGNATURE);
+        transforms.addTransform(Transforms.TRANSFORM_C14N_EXCL_OMIT_COMMENTS);
+        xmlSignature.addDocument("#" + assertionId, transforms, Constants.ALGO_ID_DIGEST_SHA1);
+
         KeyStore.PrivateKeyEntry privateKeyEntry = this.samlProxyConfig.getPrivateKeyEntry();
 
         KeyInfo keyInfo = xmlSignature.getKeyInfo();
@@ -508,7 +512,7 @@ public class SamlHTTPClient implements HTTPClient {
 
         PrivateKey privateKey = privateKeyEntry.getPrivateKey();
         xmlSignature.sign(privateKey);
-        
+
         return outputDocument(document);
     }
 
