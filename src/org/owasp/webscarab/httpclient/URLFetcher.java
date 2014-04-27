@@ -481,6 +481,8 @@ public class URLFetcher implements HTTPClient {
         }
         _in = _socket.getInputStream();
         _out = _socket.getOutputStream();
+        // reset timeout
+        _lastRequestTime = System.currentTimeMillis();
     }
 
     private boolean useProxy(HttpUrl url) {
