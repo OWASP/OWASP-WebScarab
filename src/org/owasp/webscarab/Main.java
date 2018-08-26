@@ -42,7 +42,7 @@ public class Main {
 				findJars(f, urls);
 			} else {
 				try {
-					URL u = f.toURL();
+					URL u = f.toURI().toURL();
 					System.err.println("Adding " + u);
 					urls.add(u);
 				} catch (MalformedURLException mue) {
