@@ -237,12 +237,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <repositories>
-	    <!--
-	    <repository>
-		    <id>frozenLibs</id>
-		    <url>file://${project.basedir}/frozenlibs</url>
-	    </repository>
-	    -->
 	    <repository>
 		    <id>central</id>
 		    <name>Central Repository</name>
@@ -252,33 +246,17 @@
 			    <enabled>false</enabled>
 		    </snapshots>
 	    </repository>
-    <!--
-        <repository>
-            <id>eviware</id>
-            <url>http://www.eviware.com/repository/maven2/</url>
-        </repository>
-    -->
         <repository>
             <id>jboss</id>
             <url>https://repository.jboss.org/nexus/content/groups/public/</url>
         </repository>
         <repository>
             <id>jahia</id>
-	    <!-->works<-->
             <url>http://maven.jahia.org/maven2/</url>
         </repository>
         <repository>
             <id>opennms</id>
-	    <!-->works<-->
             <url>http://repo.opennms.org/maven2/</url>
         </repository>
     </repositories>
-    <!--
-    <pluginRepositories>
-        <pluginRepository>
-            <id>dstovall.org</id>
-            <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
-        </pluginRepository>
-    </pluginRepositories>
-    -->
 </project>
