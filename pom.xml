@@ -59,7 +59,7 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.dstovall</groupId>
+                <groupId>com.jolira</groupId>
                 <artifactId>onejar-maven-plugin</artifactId>
                 <version>1.4.4</version>
                 <executions>
@@ -125,16 +125,18 @@
             <groupId>htmlparser</groupId>
             <artifactId>htmlparser</artifactId>
             <version>1.5</version>
+	    <scope>system</scope>
+	    <systemPath>${project.basedir}/frozenlibs/htmlparser-1.5.jar</systemPath> 
         </dependency>
         <dependency>
-            <groupId>amf</groupId>
+            <groupId>org.apache.flex.blazeds</groupId>
             <artifactId>flex-messaging-core</artifactId>
-            <version>1.0</version>
+            <version>4.7.3</version>
         </dependency>
         <dependency>
-            <groupId>amf</groupId>
+            <groupId>org.apache.flex.blazeds</groupId>
             <artifactId>flex-messaging-common</artifactId>
-            <version>1.0</version>
+            <version>4.7.3</version>
         </dependency>
         <dependency>
             <groupId>org.samba.jcifs</groupId>
@@ -160,6 +162,8 @@
             <groupId>chardet</groupId>
             <artifactId>chardet</artifactId>
             <version>1.0</version>
+	    <scope>system</scope>
+	    <systemPath>${project.basedir}/frozenlibs/chardet-1.0.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>bsf</groupId>
@@ -233,10 +237,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <repositories>
-        <repository>
-            <id>eviware</id>
-            <url>http://www.eviware.com/repository/maven2/</url>
-        </repository>
+	    <repository>
+		    <id>central</id>
+		    <name>Central Repository</name>
+		    <url>http://repo.maven.apache.org/maven2</url>
+		    <layout>default</layout>
+		    <snapshots>
+			    <enabled>false</enabled>
+		    </snapshots>
+	    </repository>
         <repository>
             <id>jboss</id>
             <url>https://repository.jboss.org/nexus/content/groups/public/</url>
@@ -250,10 +259,4 @@
             <url>http://repo.opennms.org/maven2/</url>
         </repository>
     </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>dstovall.org</id>
-            <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
-        </pluginRepository>
-    </pluginRepositories>
 </project>
