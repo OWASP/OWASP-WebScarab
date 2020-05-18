@@ -248,7 +248,7 @@
 	    </repository>
         <repository>
             <id>jboss</id>
-            <url>httpss://repository.jboss.org/nexus/content/groups/public/</url>
+            <url>https://repository.jboss.org/nexus/content/groups/public/</url>
         </repository>
         <repository>
             <id>jahia</id>
