@@ -240,7 +240,7 @@
 	    <repository>
 		    <id>central</id>
 		    <name>Central Repository</name>
-		    <url>http://repo.maven.apache.org/maven2</url>
+		    <url>https://repo.maven.apache.org/maven2</url>
 		    <layout>default</layout>
 		    <snapshots>
 			    <enabled>false</enabled>
@@ -252,11 +252,11 @@
         </repository>
         <repository>
             <id>jahia</id>
-            <url>http://maven.jahia.org/maven2/</url>
+            <url>https://maven.jahia.org/maven2/</url>
         </repository>
         <repository>
             <id>opennms</id>
-            <url>http://repo.opennms.org/maven2/</url>
+            <url>https://repo.opennms.org/maven2/</url>
         </repository>
     </repositories>
 </project>
