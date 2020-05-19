@@ -55,7 +55,10 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.SSLContext;
 
 import java.util.logging.Logger;
+import javax.net.ssl.HandshakeCompletedEvent;
+import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSession;
 import jcifs.ntlmssp.NtlmFlags;
 import jcifs.ntlmssp.NtlmMessage;
 import jcifs.ntlmssp.Type1Message;
@@ -73,7 +76,7 @@ import org.owasp.webscarab.util.Glob;
 /** Creates a new instance of URLFetcher
  * @author rdawes
  */
-public class URLFetcher implements HTTPClient {
+public class URLFetcher implements HTTPClient, HandshakeCompletedListener {
 
     // These represent the SSL classes required to connect to the server.
     private String _keyFingerprint = null;
@@ -459,6 +462,7 @@ public class URLFetcher implements HTTPClient {
                 SSLSocket sslsocket = (SSLSocket) factory.createSocket(_socket, hostname, _socket.getPort(), true);
                 sslsocket.setEnabledProtocols(new String[] {"TLSv1"});
                 sslsocket.setUseClientMode(true);
+                sslsocket.addHandshakeCompletedListener(this);
                 _socket = sslsocket;
                 _socket.setSoTimeout(_timeout);
             } catch (IOException ioe) {
@@ -618,4 +622,14 @@ public class URLFetcher implements HTTPClient {
         return authMethod + " " + Base64.encode(message.toByteArray());
     }
 
+    @Override
+    public void handshakeCompleted(HandshakeCompletedEvent event) {
+        _logger.fine("handshake completed: " + _host);
+        String cipherSuite = event.getCipherSuite();
+        _logger.fine("cipher suite: " + cipherSuite);
+        SSLSession sslSession = event.getSession();
+        String protocol = sslSession.getProtocol();
+        _logger.fine("protocol: " + protocol);
+        _logger.fine("local principal: " + sslSession.getLocalPrincipal());
+    }
 }

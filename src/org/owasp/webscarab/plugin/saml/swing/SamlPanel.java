@@ -100,6 +100,10 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private final AttributesTableModel encryptedAttributesTableModel;
     private final SamlCertificateRepository samlCertificateRepository;
     private final CertificateManager certificateManager;
+    private final CertificateManager assertionCertificateManager;
+    private final SamlCertificateRepository assertionCertificateRepository;
+    private final CertificateManager decryptionCertificateManager;
+    private final SamlCertificateRepository decryptionCertificateRepository;
 
     /**
      * Creates new form SamlPanel
@@ -156,6 +160,38 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
             }
         });
         this.certificateManager = new CertificateManager(this.samlCertificateRepository);
+
+        this.assertionCertificateRepository = new SamlCertificateRepository();
+        this.assertionCertificateRepository.addPropertyChangeListener(new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(PropertyChangeEvent event) {
+                String propertyName = event.getPropertyName();
+                if (propertyName.equals(SamlCertificateRepository.SELECTED_KEY)) {
+                    String fingerprint = (String) event.getNewValue();
+                    SamlPanel.this.assertionDecryptionKeyTextField.setText(fingerprint);
+                    SamlPanel.this.decryptAssertionButton.setEnabled(true);
+                }
+            }
+        });
+        this.assertionCertificateManager = new CertificateManager(this.assertionCertificateRepository);
+
+        this.decryptionCertificateRepository = new SamlCertificateRepository();
+        this.decryptionCertificateRepository.addPropertyChangeListener(new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(PropertyChangeEvent event) {
+                String propertyName = event.getPropertyName();
+                if (propertyName.equals(SamlCertificateRepository.SELECTED_KEY)) {
+                    String fingerprint = (String) event.getNewValue();
+                    SamlPanel.this.decryptionKeyTextField.setText(fingerprint);
+                } else if (propertyName.equals(SamlCertificateRepository.SELECTED_KEY_ENTRY)) {
+                    PrivateKeyEntry privateKeyEntry = (PrivateKeyEntry) event.getNewValue();
+                    SamlPanel.this.saml.getSamlProxy().setDecryptionPrivateKeyEntry(privateKeyEntry);
+                }
+            }
+        });
+        this.decryptionCertificateManager = new CertificateManager(this.decryptionCertificateRepository);
 
         addTableListeners();
         addTreeListeners();
@@ -239,7 +275,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
                 }
             }
         });
-        
+
         this.injectAttributesTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -251,7 +287,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
                 }
             }
         });
-        
+
         this.injectAttributesTableModel.addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
@@ -287,13 +323,17 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         this.attributesTableModel.resetAttributes();
         this.encryptedAttributesTableModel.resetAttributes();
+
+        this.encryptedAssertionXMLPanel.setBytes(null, null);
+        this.decryptedAssertionXMLPanel.setBytes(null, null);
+        this.decryptedAssertionTextPanel.setText(null, "");
     }
 
     private void displaySaml(ConversationID id) {
         resetDisplay();
         String encodedSamlMessage = this.samlModel.getEncodedSAMLMessage(id);
         this.rawPanel.setText(null, encodedSamlMessage);
-        String decodedSamlMessage = this.samlModel.getDecodedSAMLMessage(encodedSamlMessage);
+        String decodedSamlMessage = this.samlModel.getDecodedSAMLMessage(encodedSamlMessage, id);
         this.textPanel.setText(null, decodedSamlMessage);
         this.xmlPanel.setBytes("text/xml", decodedSamlMessage.getBytes());
         String relayState = this.samlModel.getRelayState(id);
@@ -338,6 +378,8 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         } else {
             this.decryptButton.setEnabled(false);
         }
+
+        this.encryptedAssertionXMLPanel.setBytes("text/xml", this.samlModel.getEncryptedAssertion(id));
     }
 
     private void displaySignature(ConversationID id) {
@@ -395,6 +437,16 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         decryptButton = new javax.swing.JButton();
         jScrollPane4 = new javax.swing.JScrollPane();
         encryptedAttributesTable = new javax.swing.JTable();
+        encryptedAssertionPanel = new javax.swing.JPanel();
+        jPanel38 = new javax.swing.JPanel();
+        jLabel16 = new javax.swing.JLabel();
+        assertionDecryptionKeyTextField = new javax.swing.JTextField();
+        selectAssertionDecryptionKeyButton = new javax.swing.JButton();
+        decryptAssertionButton = new javax.swing.JButton();
+        jTabbedPane4 = new javax.swing.JTabbedPane();
+        encryptedAssertionXMLPanel = new org.owasp.webscarab.ui.swing.editors.XMLPanel();
+        decryptedAssertionXMLPanel = new org.owasp.webscarab.ui.swing.editors.XMLPanel();
+        decryptedAssertionTextPanel = new org.owasp.webscarab.ui.swing.editors.TextPanel();
         htmlFormPanel = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
         jLabel7 = new javax.swing.JLabel();
@@ -428,7 +480,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jPanel8 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         samlTable = new javax.swing.JTable();
-        jPanel6 = new javax.swing.JPanel();
+        signatureAttacksPanel = new javax.swing.JPanel();
         jPanel10 = new javax.swing.JPanel();
         jPanel7 = new javax.swing.JPanel();
         jPanel11 = new javax.swing.JPanel();
@@ -446,6 +498,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jLabel21 = new javax.swing.JLabel();
         selectKeyButton = new javax.swing.JButton();
         keyTextField = new javax.swing.JTextField();
+        signAssertionCheckBox = new javax.swing.JCheckBox();
         jPanel30 = new javax.swing.JPanel();
         jPanel32 = new javax.swing.JPanel();
         signWrapAttackCheckBox = new javax.swing.JCheckBox();
@@ -502,6 +555,14 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         samlReplayCheckBox = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
         samlReplayLabel = new javax.swing.JLabel();
+        jPanel39 = new javax.swing.JPanel();
+        jPanel40 = new javax.swing.JPanel();
+        jPanel41 = new javax.swing.JPanel();
+        jPanel42 = new javax.swing.JPanel();
+        decryptAssertionCheckBox = new javax.swing.JCheckBox();
+        jLabel24 = new javax.swing.JLabel();
+        decryptionKeyTextField = new javax.swing.JTextField();
+        decryptionSelectKeyButton = new javax.swing.JButton();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -603,6 +664,44 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         encryptedAttributesPanel.add(jScrollPane4, java.awt.BorderLayout.CENTER);
 
         jTabbedPane1.addTab("Encrypted Attributes", encryptedAttributesPanel);
+
+        encryptedAssertionPanel.setLayout(new java.awt.BorderLayout());
+
+        jPanel38.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jLabel16.setText("Key:");
+        jPanel38.add(jLabel16);
+
+        assertionDecryptionKeyTextField.setEditable(false);
+        assertionDecryptionKeyTextField.setColumns(30);
+        jPanel38.add(assertionDecryptionKeyTextField);
+
+        selectAssertionDecryptionKeyButton.setText("Select key...");
+        selectAssertionDecryptionKeyButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectAssertionDecryptionKeyButtonActionPerformed(evt);
+            }
+        });
+        jPanel38.add(selectAssertionDecryptionKeyButton);
+
+        decryptAssertionButton.setText("Decrypt Assertion");
+        decryptAssertionButton.setEnabled(false);
+        decryptAssertionButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                decryptAssertionButtonActionPerformed(evt);
+            }
+        });
+        jPanel38.add(decryptAssertionButton);
+
+        encryptedAssertionPanel.add(jPanel38, java.awt.BorderLayout.PAGE_START);
+
+        jTabbedPane4.addTab("XML", encryptedAssertionXMLPanel);
+        jTabbedPane4.addTab("Decrypted Assertion XML", decryptedAssertionXMLPanel);
+        jTabbedPane4.addTab("Decrypted Assertion", decryptedAssertionTextPanel);
+
+        encryptedAssertionPanel.add(jTabbedPane4, java.awt.BorderLayout.CENTER);
+
+        jTabbedPane1.addTab("Encrypted Assertion", encryptedAssertionPanel);
 
         htmlFormPanel.setLayout(new java.awt.BorderLayout());
 
@@ -776,8 +875,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         jTabbedPane3.addTab("SAML Browser POST Profile Messages", jPanel8);
 
-        jPanel6.setBorder(null);
-        jPanel6.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        signatureAttacksPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         jPanel10.setLayout(new java.awt.GridBagLayout());
 
@@ -894,7 +992,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         jLabel21.setText("Key: ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         jPanel28.add(jLabel21, gridBagConstraints);
 
@@ -906,16 +1004,31 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
         gridBagConstraints.insets = new java.awt.Insets(5, 0, 0, 0);
         jPanel28.add(selectKeyButton, gridBagConstraints);
 
-        keyTextField.setColumns(20);
         keyTextField.setEditable(false);
+        keyTextField.setColumns(20);
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         jPanel28.add(keyTextField, gridBagConstraints);
+
+        signAssertionCheckBox.setText("Resign SAML assertion");
+        signAssertionCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                signAssertionCheckBoxItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel28.add(signAssertionCheckBox, gridBagConstraints);
 
         jPanel27.add(jPanel28);
 
@@ -925,9 +1038,9 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel10.add(jPanel27, gridBagConstraints);
 
-        jPanel6.add(jPanel10);
+        signatureAttacksPanel.add(jPanel10);
 
-        jTabbedPane3.addTab("Signature Attacks", jPanel6);
+        jTabbedPane3.addTab("Signature Attacks", signatureAttacksPanel);
 
         jPanel30.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
@@ -1384,6 +1497,62 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
 
         jTabbedPane3.addTab("Replay Attacks", jPanel21);
 
+        jPanel39.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jPanel40.setBorder(javax.swing.BorderFactory.createTitledBorder("SAML Assertion Decryption Attack"));
+        jPanel40.setLayout(new java.awt.GridBagLayout());
+
+        jPanel41.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jPanel42.setLayout(new java.awt.GridBagLayout());
+
+        decryptAssertionCheckBox.setText("Decrypt encrypted assertion");
+        decryptAssertionCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                decryptAssertionCheckBoxItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jPanel42.add(decryptAssertionCheckBox, gridBagConstraints);
+
+        jLabel24.setText("Key:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 5);
+        jPanel42.add(jLabel24, gridBagConstraints);
+
+        decryptionKeyTextField.setEditable(false);
+        decryptionKeyTextField.setColumns(20);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        jPanel42.add(decryptionKeyTextField, gridBagConstraints);
+
+        decryptionSelectKeyButton.setText("Select Key...");
+        decryptionSelectKeyButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                decryptionSelectKeyButtonActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
+        gridBagConstraints.insets = new java.awt.Insets(5, 0, 0, 0);
+        jPanel42.add(decryptionSelectKeyButton, gridBagConstraints);
+
+        jPanel41.add(jPanel42);
+
+        jPanel40.add(jPanel41, new java.awt.GridBagConstraints());
+
+        jPanel39.add(jPanel40);
+
+        jTabbedPane3.addTab("Encryption Attacks", jPanel39);
+
         jPanel1.add(jTabbedPane3, java.awt.BorderLayout.PAGE_START);
 
         jSplitPane1.setLeftComponent(jPanel1);
@@ -1659,6 +1828,38 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
         }
     }//GEN-LAST:event_lastAttributeRadioButtonItemStateChanged
 
+    private void signAssertionCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_signAssertionCheckBoxItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean signAssertionAttack = evt.getStateChange() == ItemEvent.SELECTED;
+        samlProxy.setSignAssertionAttack(signAssertionAttack);
+    }//GEN-LAST:event_signAssertionCheckBoxItemStateChanged
+
+    private void selectAssertionDecryptionKeyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAssertionDecryptionKeyButtonActionPerformed
+        this.assertionCertificateManager.setVisible(true);
+    }//GEN-LAST:event_selectAssertionDecryptionKeyButtonActionPerformed
+
+    private void decryptAssertionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_decryptAssertionButtonActionPerformed
+        ConversationID id = (ConversationID) this.showConversationAction.getValue("CONVERSATION");
+        try {
+            byte[] decryptedAssertion = this.samlModel.getDecryptedAssertion(id,
+                    this.assertionCertificateRepository.getPrivateKey());
+            this.decryptedAssertionXMLPanel.setBytes("text/xml", decryptedAssertion);
+            this.decryptedAssertionTextPanel.setText(null, new String(decryptedAssertion));
+        } catch (Exception ex) {
+            this.decryptedAssertionXMLPanel.setBytes("text/xml", ("<error>" + ex.getMessage() + "</error>").getBytes());
+        }
+    }//GEN-LAST:event_decryptAssertionButtonActionPerformed
+
+    private void decryptionSelectKeyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_decryptionSelectKeyButtonActionPerformed
+        this.decryptionCertificateManager.setVisible(true);
+    }//GEN-LAST:event_decryptionSelectKeyButtonActionPerformed
+
+    private void decryptAssertionCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_decryptAssertionCheckBoxItemStateChanged
+        SamlProxy samlProxy = this.saml.getSamlProxy();
+        boolean signAssertionAttack = evt.getStateChange() == ItemEvent.SELECTED;
+        samlProxy.setDecryptAssertionAttack(signAssertionAttack);
+    }//GEN-LAST:event_decryptAssertionCheckBoxItemStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel aboutPanel;
     private javax.swing.JButton addInjectAttributeButton;
@@ -1666,6 +1867,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JRadioButton allSubjectRadioButton;
     private javax.swing.JPanel analysisDataPanel;
     private javax.swing.JPanel analysisPanel;
+    private javax.swing.JTextField assertionDecryptionKeyTextField;
     private javax.swing.JRadioButton assertionSignatureRadioButton;
     private javax.swing.JCheckBox assertionsDigestedCheckBox;
     private javax.swing.ButtonGroup attributeButtonGroup;
@@ -1676,11 +1878,19 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private org.owasp.webscarab.ui.swing.editors.TextPanel certDetailTextPanel;
     private javax.swing.JTree certPathTree;
     private javax.swing.JCheckBox corruptSignatureCheckBox;
+    private javax.swing.JButton decryptAssertionButton;
+    private javax.swing.JCheckBox decryptAssertionCheckBox;
     private javax.swing.JButton decryptButton;
+    private org.owasp.webscarab.ui.swing.editors.TextPanel decryptedAssertionTextPanel;
+    private org.owasp.webscarab.ui.swing.editors.XMLPanel decryptedAssertionXMLPanel;
+    private javax.swing.JTextField decryptionKeyTextField;
+    private javax.swing.JButton decryptionSelectKeyButton;
     private javax.swing.JCheckBox destinationIndicationCheckBox;
     private javax.swing.JRadioButton dsObjectWrapperRadioButton;
     private javax.swing.JTextField dtdUriTextField;
     private javax.swing.JRadioButton duplicateAssertionRadioButton;
+    private javax.swing.JPanel encryptedAssertionPanel;
+    private org.owasp.webscarab.ui.swing.editors.XMLPanel encryptedAssertionXMLPanel;
     private javax.swing.JPanel encryptedAttributesPanel;
     private javax.swing.JTable encryptedAttributesTable;
     private javax.swing.JRadioButton firstAttributeRadioButton;
@@ -1705,6 +1915,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
@@ -1713,6 +1924,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel23;
+    private javax.swing.JLabel jLabel24;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -1751,9 +1963,13 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JPanel jPanel35;
     private javax.swing.JPanel jPanel36;
     private javax.swing.JPanel jPanel37;
+    private javax.swing.JPanel jPanel38;
+    private javax.swing.JPanel jPanel39;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel40;
+    private javax.swing.JPanel jPanel41;
+    private javax.swing.JPanel jPanel42;
     private javax.swing.JPanel jPanel5;
-    private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel jPanel9;
@@ -1767,6 +1983,7 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JTabbedPane jTabbedPane3;
+    private javax.swing.JTabbedPane jTabbedPane4;
     private javax.swing.JTextField keyTextField;
     private javax.swing.JRadioButton lastAttributeRadioButton;
     private javax.swing.JRadioButton lastSubjectRadioButton;
@@ -1786,9 +2003,12 @@ public class SamlPanel extends javax.swing.JPanel implements SwingPluginUI, Saml
     private javax.swing.JTable samlTable;
     private javax.swing.JLabel samlVersionLabel;
     private javax.swing.JRadioButton samlpExtWrapperRadioButton;
+    private javax.swing.JButton selectAssertionDecryptionKeyButton;
     private javax.swing.JButton selectKeyButton;
+    private javax.swing.JCheckBox signAssertionCheckBox;
     private javax.swing.JCheckBox signCheckBox;
     private javax.swing.JCheckBox signWrapAttackCheckBox;
+    private javax.swing.JPanel signatureAttacksPanel;
     private javax.swing.ButtonGroup signatureButtonGroup;
     private javax.swing.JPanel signaturePanel;
     private javax.swing.JLabel signatureValidityLabel;

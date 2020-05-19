@@ -35,6 +35,7 @@
 package org.owasp.webscarab.plugin.saml;
 
 import java.security.KeyStore.PrivateKeyEntry;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import org.owasp.webscarab.model.NamedValue;
 
@@ -78,7 +79,7 @@ public interface SamlProxyConfig {
 
     boolean doSignSamlMessage();
 
-    public PrivateKeyEntry getPrivateKeyEntry();
+    PrivateKeyEntry getPrivateKeyEntry();
     
     boolean doSignWrapAttack();
     
@@ -95,4 +96,10 @@ public interface SamlProxyConfig {
     boolean doRemoveAssertionSignature();
     
     Occurences getAttributeOccurences();
+    
+    boolean doSignAssertionAttack();
+    
+    boolean doDecryptAssertionAttack();
+    
+    PrivateKeyEntry getDecryptionPrivateKeyEntry();
 }

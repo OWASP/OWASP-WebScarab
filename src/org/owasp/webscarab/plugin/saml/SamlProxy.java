@@ -1,32 +1,32 @@
-/***********************************************************************
+/**
+ * *********************************************************************
  *
  * $CVSHeader$
  *
- * This file is part of WebScarab, an Open Web Application Security
- * Project utility. For details, please see http://www.owasp.org/
+ * This file is part of WebScarab, an Open Web Application Security Project
+ * utility. For details, please see http://www.owasp.org/
  *
- * Copyright (c) 2010 FedICT
- * Copyright (c) 2010 Frank Cornelis <info@frankcornelis.be>
+ * Copyright (c) 2010 FedICT Copyright (c) 2010 Frank Cornelis
+ * <info@frankcornelis.be>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA.
  *
- * Getting Source
- * ==============
+ * Getting Source ==============
  *
- * Source for this application is maintained at Sourceforge.net, a
- * repository for free software projects.
+ * Source for this application is maintained at Sourceforge.net, a repository
+ * for free software projects.
  *
  * For details, please see http://www.sourceforge.net/projects/owasp
  *
@@ -35,6 +35,7 @@ package org.owasp.webscarab.plugin.saml;
 
 import java.security.KeyStore;
 import java.security.KeyStore.PrivateKeyEntry;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,9 +46,9 @@ import org.owasp.webscarab.model.NamedValue;
 import org.owasp.webscarab.plugin.proxy.ProxyPlugin;
 
 /**
- * WebScarab SAML Proxy plugin.
- * This plugin allows to modify the SAML Messages so simulate certain attacks.
- * 
+ * WebScarab SAML Proxy plugin. This plugin allows to modify the SAML Messages
+ * so simulate certain attacks.
+ *
  * @author Frank Cornelis
  */
 public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
@@ -79,7 +80,10 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     private boolean renameAssertionId;
     private boolean renameLastAssertionId;
     private boolean removeAssertionSignature;
-    
+    private boolean signAssertionAttack;
+    private boolean decryptAssertionAttack;
+    private KeyStore.PrivateKeyEntry decryptionPrivateKeyEntry;
+
     private EventListenerList _listenerList = new EventListenerList();
     private SamlModel samlModel;
 
@@ -216,8 +220,9 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
 
     private void updateAttackState() {
         this.attack = this.corruptSignature | this.injectAttribute | this.injectRemoteReference
-                | this.injectSubject | this.removeSignature | this.replay | this.injectPublicDoctype |
-                this.injectRelayState | this.signSamlMessage | this.signWrapAttack | this.removeAssertionSignature;
+                | this.injectSubject | this.removeSignature | this.replay | this.injectPublicDoctype
+                | this.injectRelayState | this.signSamlMessage | this.signWrapAttack | this.removeAssertionSignature
+                | this.signAssertionAttack | this.decryptAssertionAttack;
     }
 
     public void setInjectPublicDoctype(boolean injectPublicDoctype) {
@@ -272,7 +277,7 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     public PrivateKeyEntry getPrivateKeyEntry() {
         return this.privateKeyEntry;
     }
-    
+
     public void setPrivateKeyEntry(PrivateKeyEntry privateKeyEntry) {
         this.privateKeyEntry = privateKeyEntry;
     }
@@ -376,5 +381,34 @@ public class SamlProxy extends ProxyPlugin implements SamlProxyConfig {
     @Override
     public Occurences getAttributeOccurences() {
         return this.attributeOccurences;
+    }
+
+    public void setSignAssertionAttack(boolean signAssertionAttack) {
+        this.signAssertionAttack = signAssertionAttack;
+        updateAttackState();
+    }
+
+    @Override
+    public boolean doSignAssertionAttack() {
+        return this.signAssertionAttack;
+    }
+
+    public void setDecryptAssertionAttack(boolean decryptAssertionAttack) {
+        this.decryptAssertionAttack = decryptAssertionAttack;
+        updateAttackState();
+    }
+
+    @Override
+    public boolean doDecryptAssertionAttack() {
+        return this.decryptAssertionAttack;
+    }
+
+    public void setDecryptionPrivateKeyEntry(PrivateKeyEntry decryptionPrivateKeyEntry) {
+        this.decryptionPrivateKeyEntry = decryptionPrivateKeyEntry;
+    }
+
+    @Override
+    public PrivateKeyEntry getDecryptionPrivateKeyEntry() {
+        return this.decryptionPrivateKeyEntry;
     }
 }

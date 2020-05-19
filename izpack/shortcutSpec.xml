@@ -25,7 +25,7 @@
         startMenu="no"
         startup="no"
         target="java"
-        commandLine="-jar &quot;$INSTALL_PATH/Uninstaller/uninstaller.jar&quot;"
+        commandLine="-jar &quot;$INSTALL_PATH/Uninstaller/WebScarab-${project.version}-uninstaller.jar&quot;"
         type="Application"
         encoding="UTF-8"
         description="WebScarab uninstaller">

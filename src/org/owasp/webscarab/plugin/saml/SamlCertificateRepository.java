@@ -38,6 +38,7 @@ import java.beans.PropertyChangeSupport;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStore.PrivateKeyEntry;
+import java.security.PrivateKey;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
@@ -56,6 +57,8 @@ public class SamlCertificateRepository extends AbstractCertificateRepository {
     
     private PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
     
+    private PrivateKey privateKey;
+    
     @Override
     public void unlockKey(int keystoreIndex, int aliasIndex, String keyPassword) throws KeyStoreException, KeyManagementException {
         String fingerprint = getFingerPrint(getCertificate(keystoreIndex, aliasIndex));
@@ -64,7 +67,8 @@ public class SamlCertificateRepository extends AbstractCertificateRepository {
         KeyStore keyStore = (KeyStore) this._keyStores.get(keystoreIndex);
         String alias = getAliasAt(keystoreIndex, aliasIndex);
         try {
-            PrivateKeyEntry privateKeyEntry = (PrivateKeyEntry) keyStore.getEntry(alias, null);
+            PrivateKeyEntry privateKeyEntry = (PrivateKeyEntry) keyStore.getEntry(alias, new KeyStore.PasswordProtection(keyPassword.toCharArray()));
+            this.privateKey = privateKeyEntry.getPrivateKey();
             this.propertyChangeSupport.firePropertyChange(SELECTED_KEY_ENTRY, null, privateKeyEntry);
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(SamlCertificateRepository.class.getName()).log(Level.SEVERE, null, ex);
@@ -79,5 +83,9 @@ public class SamlCertificateRepository extends AbstractCertificateRepository {
     
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         this.propertyChangeSupport.removePropertyChangeListener(listener);
+    }
+    
+    public PrivateKey getPrivateKey() {
+        return this.privateKey;
     }
 }

@@ -52,7 +52,7 @@ public class SSLContextManager extends AbstractCertificateRepository {
         }
         try {
         	if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
-            	initPKCS11("P11-CAPI", "lib/p11-capi.dll", 0, "");
+                    initPKCS11("P11-CAPI", "lib/p11-capi.dll", 0);
         	}
         } catch (Exception e) {
         	e.printStackTrace();

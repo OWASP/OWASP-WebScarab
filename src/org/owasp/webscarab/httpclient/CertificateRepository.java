@@ -30,7 +30,7 @@ public interface CertificateRepository {
 
     String getKeyStoreDescription(int keystoreIndex);
 
-    int initPKCS11(String name, String library, int slotListIndex, String kspassword);
+    int initPKCS11(String name, String library, int slotListIndex);
 
     int getKeyStoreCount();
 

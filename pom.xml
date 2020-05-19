@@ -74,6 +74,15 @@
                 </executions>
             </plugin>
         </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>2.4</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
     <profiles>
         <profile>
@@ -84,6 +93,14 @@
                         <directory>${basedir}/izpack</directory>
                         <targetPath>${project.build.directory}/staging</targetPath>
                         <filtering>true</filtering>
+                    </resource>
+                    <resource>
+                        <targetPath>${project.build.directory}</targetPath>
+                        <filtering>false</filtering>
+                        <directory>${basedir}</directory>
+                        <includes>
+                            <include>webscarab_logo.gif</include>
+                        </includes>
                     </resource>
                 </resources>
                 <plugins>
@@ -102,6 +119,30 @@
                                     <enableAttachArtifact>true</enableAttachArtifact>
                                     <installFile>${project.build.directory}/staging/install.xml</installFile>
                                     <classifier>installer</classifier>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>ant</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>2.7</version>
+                        <executions>
+                            <execution>
+                                <id>copy-lib</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>copy-dependencies</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${basedir}/lib</outputDirectory>
                                 </configuration>
                             </execution>
                         </executions>
@@ -137,6 +178,11 @@
             <groupId>org.apache.flex.blazeds</groupId>
             <artifactId>flex-messaging-common</artifactId>
             <version>4.7.3</version>
+        </dependency>
+        <dependency>
+            <groupId>amf</groupId>
+            <artifactId>flex-messaging-remoting</artifactId>
+            <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>org.samba.jcifs</groupId>
@@ -219,6 +265,11 @@
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
